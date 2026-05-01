@@ -1,0 +1,30 @@
+project: godmode
+updated: "20260501:155222"
+
+items:
+  - id: gm-001
+    title: "Define next feature scope for godmode plugin"
+    description: >
+      Rust workspace is standing (godmode-core + godmode-cli, 19 tests passing).
+      README written from real usage. Next step: determine what capabilities to add
+      (e.g. task execution, crux integration, additional skill hooks).
+    priority: P1
+    status: open
+    files:
+      - godmode-core/src/lib.rs
+      - godmode-cli/src/main.rs
+      - README.md
+
+log:
+  - session: 1
+    date: "20260501:155222"
+    summary: "Stood up Rust workspace (godmode-core + godmode-cli), 19 tests passing; wrote README from real usage"
+    commits:
+      - sha: 18d5994
+        branch: main
+      - sha: 42acf44
+        branch: main
+      - sha: 7c3dd6d
+        branch: main
+      - sha: 75cdca7
+        branch: main
