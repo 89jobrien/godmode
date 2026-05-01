@@ -1,3 +1,6 @@
+target/
+*.local.md
+
 # handoff-begin
 .ctx/*
 !.ctx/HANDOFF.*.yaml
