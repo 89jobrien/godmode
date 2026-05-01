@@ -1,0 +1,20 @@
+{
+  "name": "godmode",
+  "version": "1.0.0",
+  "description": "Rust-native development methodology: TDD, debugging, collaboration patterns, and proven techniques for Rust workspaces",
+  "author": {
+    "name": "Joseph O'Brien",
+    "email": "joe@89jobrien.com"
+  },
+  "homepage": "https://github.com/89jobrien/godmode",
+  "repository": "https://github.com/89jobrien/godmode",
+  "license": "MIT OR Apache-2.0",
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "rust",
+    "workflows"
+  ]
+}
