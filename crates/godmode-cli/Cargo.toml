@@ -1,0 +1,16 @@
+[package]
+name = "godmode-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "godmode"
+path = "src/main.rs"
+
+[dependencies]
+godmode-core = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
