@@ -5,11 +5,11 @@
 # to sync completions back to doob.
 
 let input = open --raw /dev/stdin | from json
-let cmd = ($input | get -i tool_input.command | default "")
+let cmd = ($input | get --optional tool_input.command | default "")
 
 let matched = (
     ($cmd | str contains "godmode task done") or
-    ($cmd | str contains "godmode task run" and $cmd | str contains "--auto-done")
+    (($cmd | str contains "godmode task run") and ($cmd | str contains "--auto-done"))
 )
 
 if not $matched {
@@ -17,7 +17,7 @@ if not $matched {
 }
 
 # Find the repo root from the working directory in the tool input, falling back to cwd.
-let work_dir = ($input | get -i tool_input.cwd | default (pwd))
+let work_dir = ($input | get --optional tool_input.cwd | default (pwd))
 
 let result = do { ^godmode task push-done } | complete
 
