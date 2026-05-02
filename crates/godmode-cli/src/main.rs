@@ -42,6 +42,9 @@ enum Cmd {
         /// Maximum concurrent agents.
         #[arg(long, default_value = "5")]
         max: usize,
+        /// Show the critical path instead of independent chains.
+        #[arg(long)]
+        critical_path: bool,
     },
 
     /// Show graph counts and next runnable task(s) — fast mid-session state check.
@@ -411,6 +414,7 @@ fn main() -> Result<()> {
             let g = graph::load(&root)?;
             let summary = g.summary();
             let next = graph::runnable(&g);
+            let critical = dispatch::critical_path(&g);
             if json {
                 println!(
                     "{}",
@@ -420,6 +424,7 @@ fn main() -> Result<()> {
                         "pending": summary.pending,
                         "blocked": summary.blocked,
                         "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
+                        "critical_depth": critical.len(),
                     }))?
                 );
             } else {
@@ -427,6 +432,7 @@ fn main() -> Result<()> {
                     "{} done  {} running  {} pending  {} blocked",
                     summary.done, summary.running, summary.pending, summary.blocked
                 );
+                println!("  critical: {} tasks deep", critical.len());
                 for t in &next {
                     let crate_tag = t
                         .crate_name
@@ -439,13 +445,37 @@ fn main() -> Result<()> {
             Ok(())
         }
 
-        Cmd::Dispatch { max } => {
+        Cmd::Dispatch {
+            max,
+            critical_path: cp,
+        } => {
             let g = graph::load(&root)?;
-            let chains = dispatch::independent_chains(&g, max);
-            if chains.is_empty() {
-                exit_empty(json);
+            if cp {
+                let path = dispatch::critical_path(&g);
+                if path.is_empty() {
+                    exit_empty(json);
+                }
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "critical_path": path,
+                            "depth": path.len(),
+                        }))?
+                    );
+                } else {
+                    println!("=== critical path ({} tasks) ===", path.len());
+                    for t in &path {
+                        println!("[{}] {}", t.id, t.title);
+                    }
+                }
+            } else {
+                let chains = dispatch::independent_chains(&g, max);
+                if chains.is_empty() {
+                    exit_empty(json);
+                }
+                println!("{}", serde_json::to_string_pretty(&chains)?);
             }
-            println!("{}", serde_json::to_string_pretty(&chains)?);
             Ok(())
         }
 
