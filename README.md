@@ -1,7 +1,10 @@
 # godmode
 
-Self-contained Rust-native development methodology plugin for Claude Code. Replaces
-superpowers entirely. No external tool dependencies.
+Self-contained Rust-native development methodology plugin for Claude Code. Inspired by and
+built on the ideas in [superpowers](https://github.com/obra/superpowers) by
+[Jesse Vincent (obra)](https://github.com/obra) — the original agentic skills framework for
+Claude Code. Godmode replaces the superpowers runtime with a Rust-backed CLI and task graph,
+but the methodology, skill structure, and session ritual are directly descended from that work.
 
 ## Overview
 
@@ -56,10 +59,20 @@ godmode task add <id> <title> [--depends-on t1,t2] [--crate-name <crate>]
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>
+godmode task unblock <id>
 godmode task remove <id>
+godmode task clear --done           # prune completed tasks
+godmode task clear --all            # reset graph entirely
 godmode task next                   # show next runnable task(s)
+godmode task run <id> [--auto-done] # run task's run: command; --auto-done marks done on exit 0
 godmode task pull [--project <name>] # import pending doob todos as tasks
 godmode task push-done               # mark completed tasks done in doob
+```
+
+### Status
+
+```bash
+godmode status                      # counts + next runnable, no external calls
 ```
 
 ### Plan ingestion
@@ -68,9 +81,8 @@ godmode task push-done               # mark completed tasks done in doob
 godmode plan ingest docs/plans/2026-05-01-my-feature.md
 ```
 
-Parses `### Task N: <title>` headings and optional `**Crate**: \`name\`` annotations.
-Builds sequential deps automatically (t2 depends on t1, etc.). Merges into the existing
-graph — errors on duplicate IDs.
+Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential deps automatically. Idempotent —
+re-running a plan skips existing task IDs silently.
 
 ### Parallel dispatch
 
