@@ -19,8 +19,8 @@ if not ($task_file | path exists) {
 }
 
 # Check godmode is on PATH
-let which_result = do { which godmode } | complete
-if $which_result.exit_code != 0 {
+let godmode_found = (which godmode | length) > 0
+if not $godmode_found {
     exit 0
 }
 
