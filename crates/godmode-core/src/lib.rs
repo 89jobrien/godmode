@@ -7,3 +7,4 @@ pub mod plan;
 pub mod session;
 pub mod verify;
 pub mod wave;
+pub mod worktree;
