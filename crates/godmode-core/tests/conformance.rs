@@ -215,6 +215,23 @@ fn task_pull_github_idempotent() {
     assert_eq!(v2["imported"], 0, "second pull should import 0 new tasks");
 }
 
+// ── plan_depends_on_annotation_overrides_sequential ──────────────────────────
+
+#[test]
+fn plan_depends_on_annotation_overrides_sequential() {
+    let md = r#"
+### Task 1: Alpha
+### Task 2: Beta
+### Task 3: Gamma
+**Depends-on**: `t1`
+"#;
+    let tasks = godmode_core::plan::parse(md).unwrap();
+    assert_eq!(tasks[2].depends_on, vec!["t1"]);
+    // t1 and t2 use default sequential — t1 has no deps, t2 depends on t1
+    assert!(tasks[0].depends_on.is_empty());
+    assert_eq!(tasks[1].depends_on, vec!["t1"]);
+}
+
 // ── dispatch_json_shape ──────────────────────────────────────────────────────
 
 #[test]
