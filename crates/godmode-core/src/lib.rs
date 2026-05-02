@@ -5,6 +5,7 @@ pub mod integrations;
 pub mod model;
 pub mod plan;
 pub mod session;
+pub mod templates;
 pub mod verify;
 pub mod wave;
 pub mod worktree;

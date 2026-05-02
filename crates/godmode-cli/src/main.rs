@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use godmode_core::{detect, dispatch, graph, integrations, model, plan};
+use godmode_core::{detect, dispatch, graph, integrations, model, plan, templates};
 
 #[derive(Parser)]
 #[command(
@@ -233,6 +233,18 @@ enum TaskAction {
 
     /// Reset all blocked tasks to pending in one operation.
     UnblockAll,
+
+    /// Apply a template to the task graph.
+    Apply {
+        /// Template name (looks in templates/ then ~/.config/godmode/templates/).
+        name: String,
+        /// Variable substitutions in key=value format.
+        #[arg(long = "var", value_name = "KEY=VALUE")]
+        vars: Vec<String>,
+    },
+
+    /// List available templates.
+    ListTemplates,
 }
 
 #[derive(Subcommand)]
@@ -498,6 +510,54 @@ fn main() -> Result<()> {
                         println!("No blocked tasks.");
                     } else {
                         println!("Unblocked {} task(s).", count);
+                    }
+                }
+
+                TaskAction::Apply { name, vars } => {
+                    let path = templates::find(&root, &name)?;
+                    let tmpl = templates::load(&path, &vars)?;
+                    let tmpl_name = tmpl.meta.name.clone();
+                    let (applied, skipped) = templates::apply(&mut g, tmpl)?;
+                    graph::save(&root, &g)?;
+                    if json {
+                        println!(
+                            r#"{{"ok":true,"applied":{},"skipped":{}}}"#,
+                            applied, skipped
+                        );
+                    } else {
+                        println!(
+                            "Applied {} task(s) from template '{}'. ({} skipped)",
+                            applied, tmpl_name, skipped
+                        );
+                    }
+                }
+
+                TaskAction::ListTemplates => {
+                    let entries = templates::list(&root)?;
+                    if entries.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No templates found.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        let arr: Vec<serde_json::Value> = entries
+                            .iter()
+                            .map(|e| {
+                                serde_json::json!({
+                                    "name": e.meta.name,
+                                    "description": e.meta.description,
+                                    "source": e.source.to_string(),
+                                })
+                            })
+                            .collect();
+                        println!("{}", serde_json::to_string_pretty(&arr)?);
+                    } else {
+                        for e in &entries {
+                            println!("[{}] {} — {}", e.source, e.meta.name, e.meta.description);
+                        }
                     }
                 }
             }
