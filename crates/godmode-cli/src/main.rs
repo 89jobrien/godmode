@@ -337,7 +337,11 @@ fn main() -> Result<()> {
                     let tasks = integrations::doob::todos_to_tasks(&todos);
                     let count = tasks.len();
                     for task in tasks {
-                        graph::add(&mut g, task).ok(); // skip duplicates silently
+                        if let Err(e) = graph::add(&mut g, task)
+                            && !e.to_string().contains("already exists")
+                        {
+                            return Err(e);
+                        }
                     }
                     graph::save(&root, &g)?;
                     if json {
@@ -387,7 +391,11 @@ fn main() -> Result<()> {
                 let count = tasks.len();
                 let mut g = graph::load(&root)?;
                 for task in tasks {
-                    graph::add(&mut g, task).ok(); // skip duplicates silently
+                    if let Err(e) = graph::add(&mut g, task)
+                        && !e.to_string().contains("already exists")
+                    {
+                        return Err(e);
+                    }
                 }
                 graph::save(&root, &g)?;
                 if json {
@@ -450,10 +458,11 @@ fn main() -> Result<()> {
             let mut g = graph::load(&root)?;
             let mut ingested = 0usize;
             for task in tasks {
-                if graph::add(&mut g, task).is_ok() {
-                    ingested += 1;
+                match graph::add(&mut g, task) {
+                    Ok(()) => ingested += 1,
+                    Err(e) if e.to_string().contains("already exists") => {} // idempotent
+                    Err(e) => return Err(e),
                 }
-                // silently skip duplicates — idempotent
             }
             graph::save(&root, &g)?;
             let chains = dispatch::independent_chains(&g, max);

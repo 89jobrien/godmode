@@ -215,10 +215,49 @@ pub fn unblock_all(graph: &mut TaskGraph) -> usize {
     count
 }
 
+/// Returns `Some(cycle_path)` if adding a task with the given id and deps would
+/// create a cycle in the existing graph. `None` means the addition is safe.
+fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Option<String> {
+    use std::collections::HashMap;
+    let mut adj: HashMap<&str, Vec<&str>> = HashMap::new();
+    for t in &graph.tasks {
+        adj.insert(
+            t.id.as_str(),
+            t.depends_on.iter().map(|s| s.as_str()).collect(),
+        );
+    }
+    adj.insert(new_id, deps.iter().map(|s| s.as_str()).collect());
+
+    // DFS from each dep; if we reach new_id, there is a cycle.
+    let mut stack: Vec<(Vec<&str>, &str)> = deps
+        .iter()
+        .map(|d| (vec![new_id, d.as_str()], d.as_str()))
+        .collect();
+
+    while let Some((path, current)) = stack.pop() {
+        if current == new_id {
+            return Some(path.join(" → "));
+        }
+        if let Some(next_deps) = adj.get(current) {
+            for &next in next_deps {
+                if !path.contains(&next) || next == new_id {
+                    let mut new_path = path.clone();
+                    new_path.push(next);
+                    stack.push((new_path, next));
+                }
+            }
+        }
+    }
+    None
+}
+
 /// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
         bail!("task '{}' already exists", task.id);
+    }
+    if let Some(cycle_path) = would_create_cycle(graph, &task.id, &task.depends_on) {
+        bail!("cycle detected: {}", cycle_path);
     }
     graph.tasks.push(task);
     Ok(())
@@ -360,5 +399,43 @@ mod tests {
         let removed = clear(&mut g, false);
         assert_eq!(removed, 2);
         assert!(g.tasks.is_empty());
+    }
+
+    #[test]
+    fn add_rejects_self_cycle() {
+        let mut g = TaskGraph::default();
+        let mut t = Task::new("t1", "A");
+        t.depends_on = vec!["t1".into()];
+        let err = add(&mut g, t).unwrap_err();
+        assert!(err.to_string().contains("cycle"));
+    }
+
+    #[test]
+    fn add_rejects_transitive_cycle() {
+        let mut g3 = TaskGraph::default();
+        let mut existing_b = Task::new("b", "B");
+        existing_b.depends_on = vec!["a".into()];
+        add(&mut g3, existing_b).unwrap();
+        // Now add 'a' with dep on 'b' — this creates a→b→a cycle
+        let mut new_a = Task::new("a", "A");
+        new_a.depends_on = vec!["b".into()];
+        let err = add(&mut g3, new_a).unwrap_err();
+        assert!(
+            err.to_string().contains("cycle"),
+            "expected cycle error, got: {err}"
+        );
+    }
+
+    #[test]
+    fn add_valid_dag_no_false_positive() {
+        let mut g = TaskGraph::default();
+        add(&mut g, Task::new("t1", "A")).unwrap();
+        let mut t2 = Task::new("t2", "B");
+        t2.depends_on = vec!["t1".into()];
+        add(&mut g, t2).unwrap();
+        let mut t3 = Task::new("t3", "C");
+        t3.depends_on = vec!["t1".into()];
+        add(&mut g, t3).unwrap(); // diamond — valid DAG
+        assert_eq!(g.tasks.len(), 3);
     }
 }
