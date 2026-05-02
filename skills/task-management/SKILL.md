@@ -9,120 +9,96 @@ description: >
 
 # Task Management
 
-Godmode maintains a self-contained task graph at `.ctx/GODMODE.tasks.yaml`. No external
-tools required. Tasks persist across sessions, encode causal dependencies, and drive
-sequential execution.
+Godmode maintains a task graph at `.ctx/GODMODE.tasks.yaml` via the `godmode` CLI. Tasks
+persist across sessions, encode causal dependencies, and drive sequential or parallel
+execution. Never edit the YAML directly — always use the CLI.
 
-## Task File Location
+## Session Start
 
-`.ctx/GODMODE.tasks.yaml` — ephemeral, gitignored. Create `.ctx/` if it doesn't exist.
-
-Add to `.gitignore`:
-
-```
-.ctx/
+```bash
+godmode handon          # shows running, next runnable, blocked, next doob todo
+godmode task next       # show only the next runnable task(s)
+godmode task next --json  # machine-readable — exit 1 if empty
 ```
 
-## Schema
+## Session End
 
-```yaml
-# .ctx/GODMODE.tasks.yaml
-tasks:
-  - id: t1
-    title: "Write failing test for FooAdapter"
-    status: done # pending | running | done | blocked
-    depends_on: []
-    notes: "Completed, all green"
+```bash
+godmode handoff         # warns on running tasks, calls hj handoff
+```
 
-  - id: t2
-    title: "Implement FooAdapter"
-    status: running
-    depends_on: [t1]
-    notes: ""
+## Task Operations
 
-  - id: t3
-    title: "Wire FooAdapter into service layer"
-    status: pending
-    depends_on: [t2]
-    notes: ""
+### Ingest from a plan doc
 
-  - id: t4
-    title: "Integration tests for Foo"
-    status: pending
-    depends_on: [t3]
-    notes: ""
+```bash
+godmode plan ingest docs/plans/YYYY-MM-DD-<feature>.md
+```
+
+Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential deps automatically.
+
+### Add a task manually
+
+```bash
+godmode task add <id> "<title>" [--depends-on t1,t2] [--crate-name <crate>]
+```
+
+### Start / complete / block / unblock
+
+```bash
+godmode task start <id>
+godmode task done <id> [--commit <sha>] [--notes "<text>"]
+godmode task block <id> "<reason>"
+godmode task unblock <id>
+```
+
+### Remove a task
+
+```bash
+godmode task remove <id>
+```
+
+### List all tasks
+
+```bash
+godmode task list           # human table
+godmode task list --json    # full JSON array — exit 1 if empty
 ```
 
 ## Rules
 
-- A task is **runnable** when all entries in `depends_on` have `status: done`.
-- A task is **blocked** when a dependency has `status: blocked`.
-- Only one task per causal chain runs at a time (`status: running`).
-- Independent chains (no shared dependencies) can run in parallel via `godmode:parallel-agents`.
+- A task is **runnable** when all `depends_on` entries have `status: done`.
+- A task is **blocked** when a dependency is blocked — do not continue past it.
+- Only one task per causal chain runs at a time.
+- Independent chains (no shared deps) can run in parallel via `godmode:parallel-agents`.
 
-## Operations
+## Parallel Dispatch
 
-### Create task graph
-
-Read the plan from `docs/plans/YYYY-MM-DD-<feature>.md`, extract tasks, write the YAML.
-Assign IDs sequentially (`t1`, `t2`, ...). Set all statuses to `pending`.
-
-### Find next runnable task
-
-```
-for each task where status == pending:
-  if all depends_on tasks have status == done:
-    this task is runnable
+```bash
+godmode dispatch [--max 5] --json
 ```
 
-### Start a task
+Emits independent chains shaped for orca-strait tdd-crate-agent. Each chain targets one
+crate. Feed directly to `godmode:parallel-agents`.
 
-Set `status: running`. Update the file. Execute the task.
+## Run a Task's Shell Command
 
-### Complete a task
-
-Set `status: done`. Add notes summarizing what was done and the commit SHA.
-Find the next runnable task and continue.
-
-### Block a task
-
-Set `status: blocked`. Add notes explaining why (3 attempts failed, dependency issue, etc.).
-Surface the blocker to the user — do not continue past a blocked task in the same chain.
-
-### Session start
-
-If `.ctx/GODMODE.tasks.yaml` exists, read it and print a summary:
-
-```
-Tasks: 2 done, 1 running, 3 pending, 0 blocked
-Next runnable: t4 — "Integration tests for Foo"
+```bash
+godmode task run <id>
 ```
 
-### Session end
+Executes the `run:` field on the task. Prefix with `rx:` to invoke via rx registry.
 
-Ensure all `running` tasks are updated to `done` or `blocked` before closing.
+## Example Workflow
 
-## Independent Chains
-
-When the task graph has independent chains with no shared dependencies, they can run in
-parallel. See `godmode:parallel-agents` for the dispatch protocol.
-
-Example — parallel chains:
-
-```yaml
-tasks:
-  - id: a1
-    title: "Implement AuthAdapter"
-    depends_on: []
-  - id: a2
-    title: "Test AuthAdapter"
-    depends_on: [a1]
-  - id: b1
-    title: "Implement CacheAdapter"
-    depends_on: [] # independent of a-chain
-  - id: b2
-    title: "Test CacheAdapter"
-    depends_on: [b1]
 ```
-
-`a1` and `b1` are runnable simultaneously. Dispatch as parallel agents.
+godmode plan ingest docs/plans/2026-05-01-my-feature.md
+godmode handon
+godmode task start t1
+# implement...
+godmode task done t1 --commit abc1234
+godmode task next          # → t2 is now runnable
+godmode task start t2
+# ...
+godmode handoff
+```

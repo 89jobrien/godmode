@@ -7,13 +7,43 @@ use anyhow::{Context, Result, bail};
 
 use crate::detect;
 
-fn project_name(root: &Path) -> Result<String> {
-    detect::package_name(root)
+// ---------------------------------------------------------------------------
+// Pure logic — testable without shelling out
+// ---------------------------------------------------------------------------
+
+/// Build the argv for `hj handoff` (excluding the binary name itself).
+pub fn build_handoff_args(
+    project: &str,
+    build: &str,
+    tests: &str,
+    summary: &str,
+    commits: &[&str],
+) -> Vec<String> {
+    let mut args = vec![
+        "handoff".into(),
+        "--project".into(),
+        project.into(),
+        "--build".into(),
+        build.into(),
+        "--tests".into(),
+        tests.into(),
+        "--log-summary".into(),
+        summary.into(),
+    ];
+    for sha in commits {
+        args.push("--commit".into());
+        args.push((*sha).into());
+    }
+    args
 }
+
+// ---------------------------------------------------------------------------
+// Shell-out layer
+// ---------------------------------------------------------------------------
 
 /// Call `hj handon --project <name>` and return stdout.
 pub fn handon(root: &Path) -> Result<String> {
-    let project = project_name(root)?;
+    let project = detect::package_name(root)?;
     let out = Command::new("hj")
         .args(["handon", "--project", &project])
         .current_dir(root)
@@ -33,17 +63,11 @@ pub fn handoff(
     summary: &str,
     commits: &[&str],
 ) -> Result<String> {
-    let project = project_name(root)?;
-    let mut cmd = Command::new("hj");
-    cmd.args(["handoff", "--project", &project])
-        .args(["--build", build])
-        .args(["--tests", tests])
-        .args(["--log-summary", summary])
-        .current_dir(root);
-    for sha in commits {
-        cmd.args(["--commit", sha]);
-    }
-    let out = cmd
+    let project = detect::package_name(root)?;
+    let args = build_handoff_args(&project, build, tests, summary, commits);
+    let out = Command::new("hj")
+        .args(&args)
+        .current_dir(root)
         .output()
         .context("hj not found on PATH — install hj to enable handoff integration")?;
     if !out.status.success() {

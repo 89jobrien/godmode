@@ -43,6 +43,15 @@ enum Cmd {
         #[arg(long, default_value = "5")]
         max: usize,
     },
+
+    /// Ingest a plan and emit an orca-strait dispatch payload.
+    Agent {
+        /// Path to the plan markdown file.
+        path: String,
+        /// Maximum concurrent agent chains.
+        #[arg(long, default_value = "5")]
+        max: usize,
+    },
 }
 
 #[derive(Subcommand)]
@@ -291,6 +300,43 @@ fn main() -> Result<()> {
                 exit_empty(json);
             }
             println!("{}", serde_json::to_string_pretty(&chains)?);
+            Ok(())
+        }
+
+        Cmd::Agent { path, max } => {
+            let markdown = std::fs::read_to_string(&path)?;
+            let tasks = plan::parse(&markdown)?;
+            if tasks.is_empty() {
+                anyhow::bail!("no tasks found in {}", path);
+            }
+            let mut g = graph::load(&root)?;
+            let mut ingested = 0usize;
+            for task in tasks {
+                if graph::add(&mut g, task).is_ok() {
+                    ingested += 1;
+                }
+                // silently skip duplicates — idempotent
+            }
+            graph::save(&root, &g)?;
+            let chains = dispatch::independent_chains(&g, max);
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({
+                        "plan": path,
+                        "ingested": ingested,
+                        "chains": chains,
+                    }))?
+                );
+            } else {
+                println!("=== godmode agent dispatch ===");
+                println!("Plan:    {}", path);
+                println!("Chains:  {}", chains.len());
+                println!();
+                println!("{}", serde_json::to_string_pretty(&chains)?);
+                println!();
+                println!("Paste the chains array into orca-strait or feed to tdd-crate-agent.");
+            }
             Ok(())
         }
     }

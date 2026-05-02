@@ -61,5 +61,32 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 
 ## Session Ritual
 
-Start: check `.ctx/GODMODE.tasks.yaml` for pending tasks (see `godmode:task-management`).
-End: update task statuses, note blockers.
+**Start:**
+
+```bash
+godmode handon      # triage: running tasks, next runnable, next doob todo
+```
+
+**End:**
+
+```bash
+godmode handoff     # warns on leaked running tasks, writes hj handoff
+```
+
+## CLI Quick Reference
+
+```bash
+godmode handon                          # session start triage
+godmode handoff                         # session end closeout
+godmode plan ingest <plan.md>           # ingest plan → task graph
+godmode task list [--json]              # all tasks
+godmode task next [--json]              # next runnable (exit 1 if none)
+godmode task add <id> "<title>" [opts]  # add task
+godmode task start <id>                 # mark running
+godmode task done <id> [--commit <sha>] # mark done
+godmode task block <id> "<reason>"      # mark blocked
+godmode task unblock <id>               # reset to pending
+godmode task run <id>                   # run task's run: command
+godmode dispatch [--max 5] [--json]     # parallel chains for orca-strait
+godmode agent <plan.md> [--json]        # ingest + dispatch in one step
+```

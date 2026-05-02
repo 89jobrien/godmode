@@ -7,6 +7,32 @@ use anyhow::{Context, Result, bail};
 
 use crate::detect;
 
+// ---------------------------------------------------------------------------
+// Pure logic — testable without shelling out
+// ---------------------------------------------------------------------------
+
+/// Parse raw JSON bytes from `doob todo list --json` into a Value.
+pub fn parse_todo_list(raw: &[u8]) -> Result<serde_json::Value> {
+    serde_json::from_slice(raw).context("doob todo list: invalid JSON")
+}
+
+/// Return the first pending todo from a parsed `doob todo list` response.
+pub fn find_next_pending(value: &serde_json::Value) -> Option<serde_json::Value> {
+    value
+        .get("todos")
+        .and_then(|t| t.as_array())
+        .and_then(|todos| {
+            todos
+                .iter()
+                .find(|t| t.get("status").and_then(|s| s.as_str()) == Some("pending"))
+                .cloned()
+        })
+}
+
+// ---------------------------------------------------------------------------
+// Shell-out layer
+// ---------------------------------------------------------------------------
+
 /// Call `doob todo list -p <project> --json` and return the parsed JSON value.
 pub fn todo_list(project: &str) -> Result<serde_json::Value> {
     let out = Command::new("doob")
@@ -19,24 +45,13 @@ pub fn todo_list(project: &str) -> Result<serde_json::Value> {
             String::from_utf8_lossy(&out.stderr)
         );
     }
-    let v: serde_json::Value =
-        serde_json::from_slice(&out.stdout).context("doob todo list: invalid JSON")?;
-    Ok(v)
+    parse_todo_list(&out.stdout)
 }
 
 /// Return the highest-priority pending todo for a project, or None if empty.
 pub fn todo_next(project: &str) -> Result<Option<serde_json::Value>> {
     let v = todo_list(project)?;
-    let todos = v
-        .get("todos")
-        .and_then(|t| t.as_array())
-        .cloned()
-        .unwrap_or_default();
-    // doob returns todos already sorted by priority descending; take first pending.
-    let next = todos
-        .into_iter()
-        .find(|t| t.get("status").and_then(|s| s.as_str()) == Some("pending"));
-    Ok(next)
+    Ok(find_next_pending(&v))
 }
 
 /// Detect project name from nearest Cargo.toml and call `todo_next`.

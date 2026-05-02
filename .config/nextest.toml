@@ -1,0 +1,4 @@
+[profile.default]
+# Integration tests mutate PATH via set_var — run each in its own process to avoid races.
+# nextest already does this by default; this config makes it explicit and sets test-threads.
+test-threads = "num-cpus"
