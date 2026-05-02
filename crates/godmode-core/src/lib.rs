@@ -1,3 +1,4 @@
+pub mod builder;
 pub mod detect;
 pub mod dispatch;
 pub mod graph;

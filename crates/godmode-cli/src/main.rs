@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use godmode_core::{detect, dispatch, graph, integrations, model, plan, templates};
+use godmode_core::{builder, detect, dispatch, graph, integrations, model, plan, templates};
 
 #[derive(Parser)]
 #[command(
@@ -88,6 +88,25 @@ enum Cmd {
     Issue {
         #[command(subcommand)]
         action: IssueAction,
+    },
+
+    /// Interactive or file-driven task graph construction.
+    Graph {
+        #[command(subcommand)]
+        action: GraphAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum GraphAction {
+    /// Build a task graph interactively or from a template file.
+    Build {
+        /// Path to a template YAML file (non-interactive mode).
+        #[arg(long)]
+        input: Option<String>,
+        /// Variable substitutions in key=value format (used with --input).
+        #[arg(long = "var", value_name = "KEY=VALUE")]
+        vars: Vec<String>,
     },
 }
 
@@ -883,6 +902,35 @@ fn main() -> Result<()> {
                     println!(r#"{{"ok":true,"number":{}}}"#, number);
                 } else {
                     println!("Issue #{} closed (commit {}).", number, commit);
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Graph { action } => match action {
+            GraphAction::Build { input, vars } => {
+                let summary = match input {
+                    Some(path) => {
+                        let p = std::path::PathBuf::from(&path);
+                        builder::build_from_file(&root, &p, &vars)?
+                    }
+                    None => builder::build_interactive(&root)?,
+                };
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&summary)?);
+                } else {
+                    println!(
+                        "Added {} task(s), {} dep(s) wired.",
+                        summary.added, summary.wired
+                    );
+                    if !summary.findings.is_empty() {
+                        for f in &summary.findings {
+                            eprintln!("! {}", f);
+                        }
+                    }
+                    if summary.next.is_empty() {
+                        std::process::exit(1);
+                    }
                 }
                 Ok(())
             }
