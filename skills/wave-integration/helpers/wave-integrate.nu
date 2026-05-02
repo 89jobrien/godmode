@@ -53,8 +53,8 @@ def main [
     if $pull_r2.exit_code != 0 { fail $"Failed to pull ($base)"; exit 1 }
     ok $"($base) up to date"
 
-    mut log_rows: list<record> = []
     mut integrated: list<string> = []
+    mut integrated_shas: record = {}
     mut failed: list<string> = []
 
     for branch in $branch_list {
@@ -70,13 +70,6 @@ def main [
 
         # Fetch latest
         do { git fetch origin $branch } | complete | ignore
-
-        # Stash any dirty state before rebase (can accumulate from prior branches)
-        let pre_unstaged = (do { git diff --quiet } | complete).exit_code != 0
-        let pre_staged   = (do { git diff --cached --quiet } | complete).exit_code != 0
-        if $pre_unstaged or $pre_staged {
-            do { git stash push -m $"wave-integrate: pre-rebase stash for ($branch)" } | complete | ignore
-        }
 
         # Rebase onto base
         step $"Rebasing ($branch) onto ($base)"
@@ -103,9 +96,9 @@ def main [
         }
         ok "Rebase clean"
 
-        # Run tests (xtask test-unit skips Linux-only e2e tests on macOS)
-        step "Running cargo xtask test-unit"
-        let test_r = (do { cargo xtask test-unit } | complete)
+        # Run tests
+        step "Running cargo nextest run --workspace"
+        let test_r = (do { cargo nextest run --workspace } | complete)
         if $test_r.exit_code != 0 {
             fail "Tests failed after rebase"
             print ($test_r.stdout | lines | last 30 | str join "\n")
@@ -117,7 +110,7 @@ def main [
         ok "Tests pass"
 
         # Get final SHA
-        let sha = (git rev-parse --short HEAD | str trim)
+        let sha = (do { git rev-parse --short HEAD } | complete | get stdout | str trim)
 
         if not $dry_run {
             # Merge to base
@@ -136,13 +129,13 @@ def main [
         }
 
         $integrated = ($integrated | append $branch)
-        $log_rows = ($log_rows | append {branch: $branch, sha: $sha, status: "integrated"})
+        $integrated_shas = ($integrated_shas | insert $branch $sha)
     }
 
     # Final test run on base
     if not $dry_run and ($integrated | length) > 0 {
         step $"Final test run on ($base)"
-        let final_r = (do { cargo test --workspace } | complete)
+        let final_r = (do { cargo nextest run --workspace } | complete)
         if $final_r.exit_code != 0 {
             fail "Final tests failed on integration branch — do not proceed"
             exit 1
@@ -153,7 +146,10 @@ def main [
     # Write conflict log template
     let log_path = $"($repo_root)/conflict-resolution-log.md"
     let timestamp = (date now | format date "%Y-%m-%d %H:%M")
-    let branch_summary = ($integrated | each { |b| $"- ($b)" } | str join "\n")
+    let branch_summary = ($integrated | each { |b|
+        let sha = ($integrated_shas | get -i $b | default "unknown")
+        $"- ($b) \(($sha)\)"
+    } | str join "\n")
     let failed_summary = if ($failed | is-empty) { "none" } else { $failed | str join ", " }
 
     let log_content = $"# Wave Integration Log — ($timestamp)

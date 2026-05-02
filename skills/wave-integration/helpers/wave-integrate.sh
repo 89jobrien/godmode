@@ -79,7 +79,7 @@ echo "Branches: $(
 
 # ── stash any dirty worktree ─────────────────────────────────────────────────
 STASHED=0
-if ! git diff --quiet || ! git diff --cached --quiet; then
+if [[ -n "$(git status --porcelain)" ]]; then
     step "Stashing uncommitted changes"
     git stash push -m "wave-integrate: auto-stash"
     STASHED=1
@@ -117,11 +117,6 @@ for BRANCH in "${BRANCH_LIST[@]}"; do
     # Fetch latest
     git fetch origin "$BRANCH" 2>/dev/null || true
 
-    # Stash any dirty state before rebase (can accumulate from prior branches)
-    if ! git diff --quiet || ! git diff --cached --quiet; then
-        git stash push -m "wave-integrate: pre-rebase stash for ${BRANCH}" 2>/dev/null || true
-    fi
-
     # Rebase onto base
     step "Rebasing ${BRANCH} onto ${BASE}"
     if ! git rebase "$BASE"; then
@@ -148,9 +143,9 @@ for BRANCH in "${BRANCH_LIST[@]}"; do
     fi
     ok "Rebase clean"
 
-    # Run tests (xtask test-unit skips Linux-only e2e tests on macOS)
-    step "Running cargo xtask test-unit"
-    if ! cargo xtask test-unit; then
+    # Run tests
+    step "Running cargo nextest run --workspace"
+    if ! cargo nextest run --workspace; then
         fail "Tests failed after rebase"
         warn "Fix tests on this branch before continuing"
         FAILED+=("$BRANCH")
@@ -184,7 +179,7 @@ done
 # ── final test run on base ────────────────────────────────────────────────────
 if [[ $DRY_RUN -eq 0 && ${#INTEGRATED[@]} -gt 0 ]]; then
     step "Final test run on ${BASE}"
-    if ! cargo test --workspace; then
+    if ! cargo nextest run --workspace; then
         fail "Final tests failed on integration branch — do not proceed"
         exit 1
     fi

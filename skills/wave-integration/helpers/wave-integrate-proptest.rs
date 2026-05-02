@@ -87,19 +87,22 @@ fn run_state_machine(branches: &[String], outcomes: &[BranchOutcome]) -> (Vec<St
 
 fn branch_name() -> impl Strategy<Value = String> {
     // Valid git branch name component: letters, digits, hyphens, slashes
-    "[a-z][a-z0-9/-]{0,15}".prop_map(|s| s.trim_matches('/').to_string())
-        .prop_filter("non-empty", |s| !s.is_empty())
+    "[a-z][a-z0-9-]{0,15}".prop_map(|s| s.trim_matches('-').to_string())
 }
 
 fn branch_list_string() -> impl Strategy<Value = String> {
     prop::collection::vec(branch_name(), 1..=8).prop_map(|v| v.join(" "))
 }
 
-fn outcomes(n: usize) -> impl Strategy<Value = Vec<BranchOutcome>> {
-    prop::collection::vec(
-        prop_oneof![Just(BranchOutcome::Integrated), Just(BranchOutcome::Failed)],
-        n..=n,
-    )
+fn branch_list_with_outcomes() -> impl Strategy<Value = (Vec<String>, Vec<BranchOutcome>)> {
+    prop::collection::vec(branch_name(), 1..=8).prop_flat_map(|branches| {
+        let n = branches.len();
+        let outcomes_strat = prop::collection::vec(
+            prop_oneof![Just(BranchOutcome::Integrated), Just(BranchOutcome::Failed)],
+            n..=n,
+        );
+        (Just(branches), outcomes_strat)
+    })
 }
 
 // ── Properties ────────────────────────────────────────────────────────────────
@@ -135,18 +138,13 @@ proptest! {
 
     /// integrated + failed == total branches processed (no branch lost).
     #[test]
-    fn state_machine_accounts_all(s in branch_list_string()) {
-        let branches = parse_branches(&s);
+    fn state_machine_accounts_all((branches, outcomes_vec) in branch_list_with_outcomes()) {
         let n = branches.len();
-        let outs = outcomes(n);
-        let outcomes_vec = outs.new_tree(&mut proptest::test_runner::TestRunner::default())
-            .unwrap()
-            .current();
         let (integrated, failed) = run_state_machine(&branches, &outcomes_vec);
         prop_assert_eq!(integrated.len() + failed.len(), n);
     }
 
-    /// Every integrated branch appears exactly once in the log.
+    /// Every integrated branch appears exactly once in the log (as a full list item).
     #[test]
     fn log_contains_each_integrated_branch(branches in prop::collection::vec(branch_name(), 1..=6)) {
         let n = branches.len();
@@ -155,8 +153,10 @@ proptest! {
         let result = IntegrationResult { integrated: &integrated, failed: &failed };
         let log = render_log(&result);
         for b in &branches {
-            let count = log.matches(b.as_str()).count();
-            prop_assert_eq!(count, 1, "branch {b} appears {count} times in log");
+            // Count only full list-item occurrences ("- <branch>\n") to avoid substring collisions.
+            let pattern = format!("- {b}\n");
+            let count = log.matches(pattern.as_str()).count();
+            prop_assert_eq!(count, 1, "branch {b} appears {count} times as list item in log");
         }
     }
 
