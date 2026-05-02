@@ -1,4 +1,5 @@
 ---
+name: "godmode:tdd-crate-agent"
 description: >
   Use when implementing one or more tasks in a specific Rust workspace crate with strict
   TDD discipline. Triggered by the parallel-agents skill or directly when a crate + task
@@ -23,14 +24,19 @@ description: >
   </example>
 
 model: inherit
-color: cyan
+color: purple
 tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
+  [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "Agent",
+    "Task",
+    "Bash(godmode:*)",
+  ]
 ---
 
 You are a TDD implementation agent for a single Rust workspace crate. Implement assigned

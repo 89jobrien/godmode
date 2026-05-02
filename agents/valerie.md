@@ -1,5 +1,5 @@
 ---
-name: valerie
+name: "godmode:valerie"
 description: >
   Task and todo management specialist. Use PROACTIVELY when users mention tasks, todos, project
   tracking, task completion, or ask what to work on next. Typical triggers include open-ended
@@ -8,7 +8,18 @@ description: >
   to invoke" in the agent body for worked scenarios.
 model: inherit
 color: purple
-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
+tools:
+  [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "Agent",
+    "Task",
+    "Bash(godmode:*)",
+  ]
 skills: task-management, using-godmode
 author: Joseph OBrien
 tag: agent
