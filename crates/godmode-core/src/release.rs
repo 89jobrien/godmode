@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -123,6 +124,157 @@ pub fn push(root: &Path) -> Result<()> {
         );
     }
 
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Changelog
+// ---------------------------------------------------------------------------
+
+/// One versioned section in CHANGELOG.md.
+#[derive(Debug)]
+pub struct ChangelogEntry {
+    pub version: String,
+    pub date: String,
+    pub sections: BTreeMap<String, Vec<String>>,
+}
+
+/// Recognised conventional-commit type prefixes → section heading.
+fn commit_type_heading(prefix: &str) -> &'static str {
+    match prefix {
+        "feat" => "Features",
+        "fix" => "Bug Fixes",
+        "chore" => "Chores",
+        "docs" => "Documentation",
+        "refactor" => "Refactoring",
+        "test" => "Tests",
+        _ => "Other",
+    }
+}
+
+/// Classify a commit subject line into a (heading, message) pair.
+fn classify(subject: &str) -> (&'static str, String) {
+    // Match `type:` or `type(scope):` prefix
+    if let Some(colon) = subject.find(':') {
+        let prefix = subject[..colon].split('(').next().unwrap_or("").trim();
+        let msg = subject[colon + 1..].trim().to_string();
+        let heading = commit_type_heading(prefix);
+        if heading != "Other" || prefix.chars().all(|c| c.is_alphabetic()) {
+            return (heading, msg);
+        }
+    }
+    ("Other", subject.to_string())
+}
+
+/// Generate a changelog entry from commits since the latest tag.
+pub fn generate_changelog(root: &Path) -> Result<ChangelogEntry> {
+    let root_str = root.to_str().unwrap_or(".");
+
+    // Get latest tag
+    let tag_out = Command::new("git")
+        .args(["-C", root_str, "describe", "--tags", "--abbrev=0"])
+        .output()
+        .context("failed to run git describe")?;
+    let since = if tag_out.status.success() {
+        let tag = String::from_utf8_lossy(&tag_out.stdout).trim().to_string();
+        format!("{}..HEAD", tag)
+    } else {
+        // No tags yet — use all commits
+        "HEAD".to_string()
+    };
+
+    // Get commit subjects since tag
+    let log_out = Command::new("git")
+        .args(["-C", root_str, "log", &since, "--format=%s"])
+        .output()
+        .context("failed to run git log")?;
+    if !log_out.status.success() {
+        bail!(
+            "git log failed: {}",
+            String::from_utf8_lossy(&log_out.stderr)
+        );
+    }
+
+    let mut sections: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for line in String::from_utf8_lossy(&log_out.stdout).lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let (heading, msg) = classify(line);
+        sections.entry(heading.to_string()).or_default().push(msg);
+    }
+
+    let version = current_version(root)?;
+    let date = Command::new("date")
+        .args(["+%Y-%m-%d"])
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    Ok(ChangelogEntry {
+        version,
+        date,
+        sections,
+    })
+}
+
+/// Prepend a new section to CHANGELOG.md (creates the file if absent).
+pub fn write_changelog(root: &Path, entry: &ChangelogEntry) -> Result<()> {
+    let path = root.join("CHANGELOG.md");
+    let existing = if path.exists() {
+        fs::read_to_string(&path).unwrap_or_default()
+    } else {
+        String::new()
+    };
+
+    let mut new_section = format!("## [{}] - {}\n", entry.version, entry.date);
+
+    // Ordered headings for deterministic output
+    let order = [
+        "Features",
+        "Bug Fixes",
+        "Refactoring",
+        "Tests",
+        "Documentation",
+        "Chores",
+        "Other",
+    ];
+    for heading in order {
+        if let Some(items) = entry.sections.get(heading) {
+            new_section.push_str(&format!("\n### {}\n", heading));
+            for item in items {
+                new_section.push_str(&format!("- {}\n", item));
+            }
+        }
+    }
+    // Any headings not in the ordered list
+    for (heading, items) in &entry.sections {
+        if !order.contains(&heading.as_str()) {
+            new_section.push_str(&format!("\n### {}\n", heading));
+            for item in items {
+                new_section.push_str(&format!("- {}\n", item));
+            }
+        }
+    }
+
+    let content = if existing.is_empty() {
+        format!("# Changelog\n\n{}\n", new_section)
+    } else {
+        // Prepend after first line if it's a `# Changelog` heading, else just prepend
+        if existing.starts_with("# Changelog") {
+            let rest = existing
+                .split_once('\n')
+                .map(|x| x.1)
+                .unwrap_or("")
+                .trim_start_matches('\n');
+            format!("# Changelog\n\n{}\n{}", new_section, rest)
+        } else {
+            format!("{}\n{}", new_section, existing)
+        }
+    };
+
+    fs::write(&path, content).with_context(|| format!("failed to write {}", path.display()))?;
     Ok(())
 }
 

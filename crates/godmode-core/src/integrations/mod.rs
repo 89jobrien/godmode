@@ -2,6 +2,7 @@ pub mod cruxx;
 pub mod doob;
 pub mod gh;
 pub mod hj;
+pub mod hook_migrate;
 pub mod hook_runner;
 pub mod output;
 pub mod rx;

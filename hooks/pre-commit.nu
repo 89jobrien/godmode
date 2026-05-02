@@ -58,7 +58,9 @@ if ($godmode_path | is-empty) {
     # Check for blocked tasks — blocked tasks must be resolved or unblocked before committing.
     let list_result = (run-external "godmode" "task" "list" "--json" | complete)
     if $list_result.exit_code == 0 {
-        let tasks = (try { $list_result.stdout | str trim | from json } catch { [] })
+        let raw_tasks = (try { $list_result.stdout | str trim | from json } catch { [] })
+        # Ensure we have a list — degrade gracefully if godmode returned a record (e.g. error shape)
+        let tasks = if ($raw_tasks | describe | str starts-with "list") { $raw_tasks } else { [] }
         let blocked = ($tasks | where { |t| ($t | get --optional status | default "") == "blocked" })
         if ($blocked | length) > 0 {
             let ids = ($blocked | each { |t|

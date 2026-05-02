@@ -165,6 +165,27 @@ enum ReleaseAction {
     Tag,
     /// Push current branch and version tag to origin.
     Push,
+    /// Generate and prepend a changelog entry from commits since last tag.
+    Changelog,
+}
+
+#[derive(Subcommand)]
+enum HookAction {
+    /// List all hooks registered in hooks/hooks.json.
+    List,
+    /// Print the last N lines from .ctx/GODMODE.hooks.log.
+    Log {
+        /// Number of lines to show (default 20).
+        #[arg(long, default_value = "20")]
+        tail: usize,
+    },
+    /// Run a hook script with synthetic stdin JSON and show exit code + stderr.
+    Test {
+        /// Path to the hook script to test.
+        script: String,
+    },
+    /// Run all numbered migration scripts in hooks/migrations/.
+    Migrate,
 }
 
 #[derive(Subcommand)]
@@ -343,23 +364,6 @@ enum PlanAction {
     Ingest {
         /// Path to the plan markdown file.
         path: String,
-    },
-}
-
-#[derive(Subcommand)]
-enum HookAction {
-    /// List all hooks registered in hooks/hooks.json.
-    List,
-    /// Print the last N lines from .ctx/GODMODE.hooks.log.
-    Log {
-        /// Number of lines to show (default 20).
-        #[arg(long, default_value = "20")]
-        tail: usize,
-    },
-    /// Run a hook script with synthetic stdin JSON and show exit code + stderr.
-    Test {
-        /// Path to the hook script to test.
-        script: String,
     },
 }
 
@@ -918,6 +922,39 @@ fn main() -> Result<()> {
                         }
                     }
                 }
+
+                HookAction::Migrate => {
+                    let results = integrations::hook_migrate::run_migrations(&root)?;
+                    if results.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No migrations found.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        let arr: Vec<serde_json::Value> = results
+                            .iter()
+                            .map(|r| {
+                                serde_json::json!({
+                                    "name": r.name,
+                                    "ok": r.ok,
+                                    "output": r.output,
+                                })
+                            })
+                            .collect();
+                        println!("{}", serde_json::to_string_pretty(&arr)?);
+                    } else {
+                        for r in &results {
+                            let status = if r.ok { "pass" } else { "FAIL" };
+                            println!("[{}] {}", status, r.name);
+                            if !r.output.is_empty() {
+                                println!("     {}", r.output);
+                            }
+                        }
+                    }
+                }
             }
             Ok(())
         }
@@ -1318,6 +1355,19 @@ fn main() -> Result<()> {
                     println!(r#"{{"ok":true}}"#);
                 } else {
                     println!("Pushed branch and tag.");
+                }
+                Ok(())
+            }
+            ReleaseAction::Changelog => {
+                let entry = release::generate_changelog(&root)?;
+                release::write_changelog(&root, &entry)?;
+                if json {
+                    println!(
+                        r#"{{"ok":true,"version":"{}","date":"{}"}}"#,
+                        entry.version, entry.date
+                    );
+                } else {
+                    println!("Updated CHANGELOG.md for version {}.", entry.version);
                 }
                 Ok(())
             }
