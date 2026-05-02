@@ -58,6 +58,101 @@ enum Cmd {
         #[arg(long, default_value = "5")]
         max: usize,
     },
+
+    /// Run verification gate: nextest + clippy + fmt + non-empty git log.
+    Verify {
+        /// Scope to a single crate instead of --workspace.
+        #[arg(long)]
+        crate_name: Option<String>,
+    },
+
+    /// Wave state management for parallel agent sessions.
+    Wave {
+        #[command(subcommand)]
+        action: WaveAction,
+    },
+
+    /// Git worktree lifecycle management.
+    Worktree {
+        #[command(subcommand)]
+        action: WorktreeAction,
+    },
+
+    /// CI failure triage.
+    Ci {
+        #[command(subcommand)]
+        action: CiAction,
+    },
+
+    /// GitHub issue operations.
+    Issue {
+        #[command(subcommand)]
+        action: IssueAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum WaveAction {
+    /// Initialise a new wave state file.
+    Init {
+        #[arg(long, default_value = "1")]
+        wave: u32,
+        /// Comma-separated agent/crate names.
+        #[arg(long, value_delimiter = ',')]
+        agents: Vec<String>,
+    },
+    /// Show current wave status.
+    Status,
+    /// Mark an agent slot as done.
+    Done {
+        agent: String,
+        #[arg(long, value_delimiter = ',')]
+        commits: Vec<String>,
+    },
+    /// Mark an agent slot as blocked.
+    Block { agent: String },
+    /// Exit 1 if any slot is still pending.
+    Check,
+}
+
+#[derive(Subcommand)]
+enum WorktreeAction {
+    /// Create a worktree for a branch (optionally linked to a GH issue).
+    Add {
+        branch: String,
+        #[arg(long)]
+        issue: Option<u64>,
+    },
+    /// Remove a worktree after verifying its branch is merged into main.
+    Remove { branch: String },
+}
+
+#[derive(Subcommand)]
+enum CiAction {
+    /// Fetch latest failed CI run and classify root cause.
+    Triage {
+        #[arg(long)]
+        run_id: Option<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum IssueAction {
+    /// List open GitHub issues.
+    List {
+        #[arg(long)]
+        repo: Option<String>,
+        #[arg(long)]
+        label: Option<String>,
+    },
+    /// Close a GitHub issue with a commit reference.
+    Close {
+        number: u64,
+        #[arg(long)]
+        repo: Option<String>,
+        #[arg(long)]
+        commit: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -516,5 +611,199 @@ fn main() -> Result<()> {
             }
             Ok(())
         }
+
+        Cmd::Verify { crate_name } => {
+            let report = godmode_core::verify::run(&root, crate_name.as_deref())?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            } else {
+                let s = |r: &godmode_core::verify::StepResult| if r.ok { "✓" } else { "✗" };
+                println!("nextest  {}", s(&report.nextest));
+                println!("clippy   {}", s(&report.clippy));
+                println!("fmt      {}", s(&report.fmt));
+                println!("commits  {}", s(&report.commits));
+                if !report.passed {
+                    for step in [
+                        &report.nextest,
+                        &report.clippy,
+                        &report.fmt,
+                        &report.commits,
+                    ] {
+                        if !step.ok && !step.output.is_empty() {
+                            eprintln!("{}", step.output);
+                        }
+                    }
+                }
+            }
+            if !report.passed {
+                std::process::exit(1);
+            }
+            Ok(())
+        }
+
+        Cmd::Wave { action } => match action {
+            WaveAction::Init { wave, agents } => {
+                let agent_refs: Vec<&str> = agents.iter().map(|s| s.as_str()).collect();
+                let state = godmode_core::wave::init(&root, wave, &agent_refs)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&state)?);
+                } else {
+                    println!(
+                        "Wave {} initialised: {} agent(s).",
+                        wave,
+                        state.agents.len()
+                    );
+                    for (name, slot) in &state.agents {
+                        println!("  {} — {:?}", name, slot.status);
+                    }
+                }
+                Ok(())
+            }
+            WaveAction::Status => {
+                let state = godmode_core::wave::load(&root)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&state)?);
+                } else {
+                    println!("Wave {}:", state.wave);
+                    for (name, slot) in &state.agents {
+                        println!(
+                            "  {:20} {:?}  commits: {}",
+                            name,
+                            slot.status,
+                            slot.commits.join(", ")
+                        );
+                    }
+                }
+                Ok(())
+            }
+            WaveAction::Done { agent, commits } => {
+                godmode_core::wave::mark_done(&root, &agent, commits)?;
+                if json {
+                    println!(r#"{{"ok":true,"agent":"{}","status":"done"}}"#, agent);
+                } else {
+                    println!("Agent '{}' marked done.", agent);
+                }
+                Ok(())
+            }
+            WaveAction::Block { agent } => {
+                godmode_core::wave::mark_blocked(&root, &agent)?;
+                if json {
+                    println!(r#"{{"ok":true,"agent":"{}","status":"blocked"}}"#, agent);
+                } else {
+                    println!("Agent '{}' marked blocked.", agent);
+                }
+                Ok(())
+            }
+            WaveAction::Check => {
+                let state = godmode_core::wave::load(&root)?;
+                let settled = godmode_core::wave::check(&state);
+                if json {
+                    println!(
+                        r#"{{"settled":{},"all_done":{}}}"#,
+                        settled,
+                        godmode_core::wave::all_done(&state)
+                    );
+                } else if settled {
+                    println!(
+                        "Wave settled. all_done={}",
+                        godmode_core::wave::all_done(&state)
+                    );
+                } else {
+                    let pending: Vec<_> = state
+                        .agents
+                        .iter()
+                        .filter(|(_, s)| s.status == godmode_core::wave::SlotStatus::Pending)
+                        .map(|(n, _)| n.as_str())
+                        .collect();
+                    println!("Wave not settled. Pending: {}", pending.join(", "));
+                }
+                if !settled {
+                    std::process::exit(1);
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Worktree { action } => match action {
+            WorktreeAction::Add { branch, issue } => {
+                let info = godmode_core::worktree::add(&root, &branch, issue)?;
+                if json {
+                    println!(
+                        r#"{{"ok":true,"branch":"{}","path":"{}"}}"#,
+                        info.branch,
+                        info.path.display()
+                    );
+                } else {
+                    println!(
+                        "Worktree created: {} → {}",
+                        info.branch,
+                        info.path.display()
+                    );
+                }
+                Ok(())
+            }
+            WorktreeAction::Remove { branch } => {
+                godmode_core::worktree::remove(&root, &branch)?;
+                if json {
+                    println!(r#"{{"ok":true,"branch":"{}","removed":true}}"#, branch);
+                } else {
+                    println!("Worktree removed: {}", branch);
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Ci { action } => match action {
+            CiAction::Triage { run_id } => {
+                let result = godmode_core::integrations::gh::ci_triage(run_id.as_deref())?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                } else {
+                    println!("Run:   {}", result.run_id);
+                    println!("Class: {:?}", result.class);
+                    println!("Fix:   {}", result.fix_hint);
+                    if !result.raw_snippet.is_empty() {
+                        println!("\n--- log snippet ---\n{}", result.raw_snippet);
+                    }
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Issue { action } => match action {
+            IssueAction::List { repo, label } => {
+                let tasks =
+                    godmode_core::integrations::gh::pull_issues(repo.as_deref(), label.as_deref())?;
+                if tasks.is_empty() {
+                    if json {
+                        println!("[]");
+                    } else {
+                        println!("No open issues.");
+                    }
+                    return Ok(());
+                }
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&tasks)?);
+                } else {
+                    for t in &tasks {
+                        println!("[{}] {}", t.id, t.title);
+                    }
+                }
+                Ok(())
+            }
+            IssueAction::Close {
+                number,
+                repo,
+                commit,
+            } => {
+                godmode_core::integrations::gh::issue_close(number, repo.as_deref(), &commit)?;
+                if json {
+                    println!(r#"{{"ok":true,"number":{}}}"#, number);
+                } else {
+                    println!("Issue #{} closed (commit {}).", number, commit);
+                }
+                Ok(())
+            }
+        },
     }
 }
