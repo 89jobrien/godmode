@@ -109,6 +109,12 @@ enum Cmd {
         #[command(subcommand)]
         action: ReleaseAction,
     },
+
+    /// Hook lifecycle management.
+    Hook {
+        #[command(subcommand)]
+        action: HookAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -136,6 +142,14 @@ enum ReleaseAction {
     Tag,
     /// Push current branch and version tag to origin.
     Push,
+    /// Generate and prepend a changelog entry from commits since last tag.
+    Changelog,
+}
+
+#[derive(Subcommand)]
+enum HookAction {
+    /// Run all numbered migration scripts in hooks/migrations/.
+    Migrate,
 }
 
 #[derive(Subcommand)]
@@ -1037,6 +1051,55 @@ fn main() -> Result<()> {
                     println!(r#"{{"ok":true}}"#);
                 } else {
                     println!("Pushed branch and tag.");
+                }
+                Ok(())
+            }
+            ReleaseAction::Changelog => {
+                let entry = release::generate_changelog(&root)?;
+                release::write_changelog(&root, &entry)?;
+                if json {
+                    println!(
+                        r#"{{"ok":true,"version":"{}","date":"{}"}}"#,
+                        entry.version, entry.date
+                    );
+                } else {
+                    println!("Updated CHANGELOG.md for version {}.", entry.version);
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Hook { action } => match action {
+            HookAction::Migrate => {
+                let results = integrations::hook_migrate::run_migrations(&root)?;
+                if results.is_empty() {
+                    if json {
+                        println!("[]");
+                    } else {
+                        println!("No migrations found.");
+                    }
+                    return Ok(());
+                }
+                if json {
+                    let arr: Vec<serde_json::Value> = results
+                        .iter()
+                        .map(|r| {
+                            serde_json::json!({
+                                "name": r.name,
+                                "ok": r.ok,
+                                "output": r.output,
+                            })
+                        })
+                        .collect();
+                    println!("{}", serde_json::to_string_pretty(&arr)?);
+                } else {
+                    for r in &results {
+                        let status = if r.ok { "pass" } else { "FAIL" };
+                        println!("[{}] {}", status, r.name);
+                        if !r.output.is_empty() {
+                            println!("     {}", r.output);
+                        }
+                    }
                 }
                 Ok(())
             }

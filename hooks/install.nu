@@ -49,3 +49,9 @@ if ($push_src | path exists) {
 } else {
     print $"install.nu: pre-push source not found at ($push_src) — skipping"
 }
+
+# Run hook migrations
+let migrate_result = do { godmode hook migrate } | complete
+if $migrate_result.exit_code != 0 {
+    print "install.nu: hook migrate failed — check hooks/migrations/"
+}
