@@ -1,32 +1,23 @@
 project: godmode
 id: godmode
-updated: "20260501:233015"
+updated: 2026-05-01
 items: []
 log:
-  - date: "20260501:233015"
-    session: 3
-    summary: >-
-      Installed godmode CLI. Fixed shell metacharacter execution in task run via sh -c.
-      Smoke-tested end-to-end plan→task→run→done cycle. Created GitHub repo 89jobrien/godmode.
-      Filed 6 roadmap issues (#1–#6). Closed gm-001.
+  - date: 20260501:233015
+    summary: Installed godmode CLI. Fixed shell metacharacter execution in task run via sh -c. Smoke-tested end-to-end plan→task→run→done cycle. Created GitHub repo 89jobrien/godmode. Filed 6 roadmap issues (#1–#6). Closed gm-001.
     commits:
-      - sha: cafa41e
-        branch: main
-      - sha: 67eaf81
-        branch: main
-  - date: "20260501:232757"
-    session: 2
+      - cafa41e
+      - 67eaf81
+    session: 3
+  - date: 20260501:232757
     summary: Fixed shell metacharacter handling in task run (sh -c). Closed gm-001. Filed 6 roadmap issues.
     commits: []
-  - date: "20260501:155222"
-    session: 1
+    session: 2
+  - date: 20260501:155222
     summary: Stood up Rust workspace (godmode-core + godmode-cli), 19 tests passing; wrote README from real usage.
     commits:
-      - sha: 18d5994
-        branch: main
-      - sha: 42acf44
-        branch: main
-      - sha: 7c3dd6d
-        branch: main
-      - sha: 75cdca7
-        branch: main
+      - 18d5994
+      - 42acf44
+      - 7c3dd6d
+      - 75cdca7
+    session: 1

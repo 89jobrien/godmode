@@ -220,6 +220,20 @@ pub fn remove(graph: &mut TaskGraph, id: &str) -> Result<()> {
     Ok(())
 }
 
+/// Remove tasks from the graph. Returns the count removed.
+///
+/// - `done_only = true`: remove only tasks with `status: done`
+/// - `done_only = false`: remove all tasks
+pub fn clear(graph: &mut TaskGraph, done_only: bool) -> usize {
+    let before = graph.tasks.len();
+    if done_only {
+        graph.tasks.retain(|t| t.status != Status::Done);
+    } else {
+        graph.tasks.clear();
+    }
+    before - graph.tasks.len()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,5 +306,28 @@ mod tests {
         add(&mut g, Task::new("t1", "A")).unwrap();
         let err = add(&mut g, Task::new("t1", "B")).unwrap_err();
         assert!(err.to_string().contains("already exists"));
+    }
+
+    #[test]
+    fn clear_done_only_removes_done_tasks() {
+        let mut g = TaskGraph::default();
+        let mut t1 = Task::new("t1", "A");
+        t1.status = Status::Done;
+        g.tasks.push(t1);
+        g.tasks.push(Task::new("t2", "B")); // pending
+        let removed = clear(&mut g, true);
+        assert_eq!(removed, 1);
+        assert_eq!(g.tasks.len(), 1);
+        assert_eq!(g.tasks[0].id, "t2");
+    }
+
+    #[test]
+    fn clear_all_removes_everything() {
+        let mut g = TaskGraph::default();
+        g.tasks.push(Task::new("t1", "A"));
+        g.tasks.push(Task::new("t2", "B"));
+        let removed = clear(&mut g, false);
+        assert_eq!(removed, 2);
+        assert!(g.tasks.is_empty());
     }
 }

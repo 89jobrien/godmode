@@ -44,6 +44,9 @@ enum Cmd {
         max: usize,
     },
 
+    /// Show graph counts and next runnable task(s) — fast mid-session state check.
+    Status,
+
     /// Ingest a plan and emit an orca-strait dispatch payload.
     Agent {
         /// Path to the plan markdown file.
@@ -90,11 +93,26 @@ enum TaskAction {
     /// Remove a task.
     Remove { id: String },
 
+    /// Clear tasks from the graph.
+    Clear {
+        /// Remove only completed (done) tasks.
+        #[arg(long, conflicts_with = "all")]
+        done: bool,
+        /// Remove all tasks.
+        #[arg(long, conflicts_with = "done")]
+        all: bool,
+    },
+
     /// Show the next runnable task(s).
     Next,
 
     /// Run the shell command attached to a task's `run:` field.
-    Run { id: String },
+    Run {
+        id: String,
+        /// Automatically mark the task done if the command exits 0.
+        #[arg(long)]
+        auto_done: bool,
+    },
 
     /// Pull pending doob todos into the task graph.
     Pull {
@@ -252,6 +270,21 @@ fn main() -> Result<()> {
                     }
                 }
 
+                TaskAction::Clear { done, all } => {
+                    if !done && !all {
+                        anyhow::bail!(
+                            "specify --done to clear completed tasks or --all to clear everything"
+                        );
+                    }
+                    let count = graph::clear(&mut g, done);
+                    graph::save(&root, &g)?;
+                    if json {
+                        println!(r#"{{"ok":true,"removed":{}}}"#, count);
+                    } else {
+                        println!("Removed {} task(s).", count);
+                    }
+                }
+
                 TaskAction::Next => {
                     let next = graph::runnable(&g);
                     if next.is_empty() {
@@ -271,19 +304,24 @@ fn main() -> Result<()> {
                     }
                 }
 
-                TaskAction::Run { id } => {
-                    let task = g
+                TaskAction::Run { id, auto_done } => {
+                    let run_cmd = g
                         .tasks
                         .iter()
                         .find(|t| t.id == id)
-                        .ok_or_else(|| anyhow::anyhow!("task '{}' not found", id))?;
-                    let run_cmd = task
+                        .ok_or_else(|| anyhow::anyhow!("task '{}' not found", id))?
                         .run
                         .clone()
                         .ok_or_else(|| anyhow::anyhow!("task '{}' has no `run:` field", id))?;
-                    let status = integrations::rx::run_cmd(&run_cmd)?;
-                    if !status.success() {
-                        std::process::exit(status.code().unwrap_or(2));
+                    let exit = integrations::rx::run_cmd(&run_cmd)?;
+                    if exit.success() && auto_done {
+                        graph::complete_traced(&mut g, &id, None, None, Some(&root))?;
+                        graph::save(&root, &g)?;
+                        if !json {
+                            println!("Task '{}' marked done.", id);
+                        }
+                    } else if !exit.success() {
+                        std::process::exit(exit.code().unwrap_or(2));
                     }
                 }
 
@@ -334,7 +372,7 @@ fn main() -> Result<()> {
                 let count = tasks.len();
                 let mut g = graph::load(&root)?;
                 for task in tasks {
-                    graph::add(&mut g, task)?;
+                    graph::add(&mut g, task).ok(); // skip duplicates silently
                 }
                 graph::save(&root, &g)?;
                 if json {
@@ -345,6 +383,38 @@ fn main() -> Result<()> {
                 Ok(())
             }
         },
+
+        Cmd::Status => {
+            let g = graph::load(&root)?;
+            let summary = g.summary();
+            let next = graph::runnable(&g);
+            if json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({
+                        "done": summary.done,
+                        "running": summary.running,
+                        "pending": summary.pending,
+                        "blocked": summary.blocked,
+                        "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
+                    }))?
+                );
+            } else {
+                println!(
+                    "{} done  {} running  {} pending  {} blocked",
+                    summary.done, summary.running, summary.pending, summary.blocked
+                );
+                for t in &next {
+                    let crate_tag = t
+                        .crate_name
+                        .as_deref()
+                        .map(|c| format!(" ({})", c))
+                        .unwrap_or_default();
+                    println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
+                }
+            }
+            Ok(())
+        }
 
         Cmd::Dispatch { max } => {
             let g = graph::load(&root)?;

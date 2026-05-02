@@ -1,10 +1,7 @@
-updated: "20260501:155222"
+updated: "20260501:233015"
 branch: main
-build: passing
-tests: "19 passed, 0 failed"
+build: clean
+tests: "45 passed, 0 failed"
 touched_files:
-  - godmode-core/src/lib.rs
-  - godmode-cli/src/main.rs
-  - README.md
-  - Cargo.toml
-  - .gitignore
+  - crates/godmode-core/src/integrations/rx.rs
+  - .ctx/HANDOFF.godmode.godmode.yaml

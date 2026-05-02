@@ -39,6 +39,17 @@ One sentence. What does this implement and why.
 
 **Crate**: `<crate-name>`
 **File(s)**: `crates/<crate>/src/<file>.rs`
+**Run**: `cargo nextest run -p <crate>`
+
+The optional `**Run**:` annotation attaches a shell command to the task. When present,
+`godmode task run <id>` executes it. Use `--auto-done` to automatically mark the task done
+on exit 0: `godmode task run t1 --auto-done`.
+
+Prefix with `rx:` to invoke a script from the rx registry: `**Run**: rx:my-script`
+
+Commands containing shell metacharacters (`>`, `|`, `&`, `;`) are automatically run via
+`sh -c`, so redirects and pipes work as expected:
+`**Run**: cargo test 2>&1 | tee /tmp/results.txt`
 
 1. Write failing test:
    ```rust
