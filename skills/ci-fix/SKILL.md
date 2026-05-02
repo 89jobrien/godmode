@@ -63,6 +63,9 @@ cargo fmt --all --check
 
 ### Step 5: Commit and push
 
+1. Run: `git branch --show-current`
+   Verify output matches the expected branch. Stop immediately if not.
+
 ```bash
 git add -A
 git commit -m "fix(ci): <short description of root cause>"

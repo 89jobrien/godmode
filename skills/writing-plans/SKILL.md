@@ -74,7 +74,9 @@ Expected: FAIL
    cargo clippy -p <crate> -- -D warnings  → zero warnings
    ```
 
-4. Commit: `git commit -m "feat(<crate>): <summary>"`
+4. Run: `git branch --show-current`
+   Verify output matches the expected branch. Stop immediately if not.
+   Commit: `git commit -m "feat(<crate>): <summary>"`
 
 ### Task 2: ...
 

@@ -56,6 +56,9 @@ cargo nextest run -p <crate>             # still green after refactor
 
 Commit only when clippy is clean:
 
+1. Run: `git branch --show-current`
+   Verify output matches the expected branch. Stop immediately if not.
+
 ```bash
 git commit -m "feat(<crate>): <what it does>"
 ```
