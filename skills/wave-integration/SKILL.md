@@ -90,7 +90,10 @@ cargo xtask test-unit 2>&1 | tail -20
 
 ### 4. Merge to main
 
+Verify you are on main before merging (`guardrails.nu check-branch main`):
+
 ```bash
+git branch --show-current   # must be main — stop if not
 git checkout main
 git merge --no-ff <branch> -m "integrate(<scope>): merge <branch>"
 ```
