@@ -26,6 +26,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
     let mut current_title: Option<String> = None;
     let mut current_crate: Option<String> = None;
     let mut current_run: Option<String> = None;
+    let mut current_deps: Option<Vec<String>> = None;
 
     for line in markdown.lines() {
         let trimmed = line.trim();
@@ -34,7 +35,13 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
         if let Some(rest) = trimmed.strip_prefix("### Task ") {
             // flush previous
             if let Some(title) = current_title.take() {
-                push_task(&mut tasks, title, current_crate.take(), current_run.take());
+                push_task(
+                    &mut tasks,
+                    title,
+                    current_crate.take(),
+                    current_run.take(),
+                    current_deps.take(),
+                );
             }
             // strip leading "N: " or "N. "
             let title = rest
@@ -46,6 +53,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
                 .to_string();
             current_title = Some(title);
             current_crate = None;
+            current_deps = None;
             continue;
         }
 
@@ -68,11 +76,31 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
                 .to_string();
             current_run = Some(run_cmd);
         }
+
+        // Detect depends-on annotation: `**Depends-on**: `t1,t2``
+        if trimmed.starts_with("**Depends-on**:") {
+            let raw = trimmed
+                .trim_start_matches("**Depends-on**:")
+                .trim()
+                .trim_matches('`');
+            let ids: Vec<String> = raw
+                .split(',')
+                .map(|s| s.trim().trim_matches('`').to_string())
+                .filter(|s| !s.is_empty())
+                .collect();
+            current_deps = Some(ids);
+        }
     }
 
     // flush last
     if let Some(title) = current_title.take() {
-        push_task(&mut tasks, title, current_crate.take(), current_run.take());
+        push_task(
+            &mut tasks,
+            title,
+            current_crate.take(),
+            current_run.take(),
+            current_deps.take(),
+        );
     }
 
     Ok(tasks)
@@ -83,16 +111,21 @@ fn push_task(
     title: String,
     crate_name: Option<String>,
     run: Option<String>,
+    deps: Option<Vec<String>>,
 ) {
     let idx = tasks.len() + 1;
     let id = format!("t{idx}");
     let mut task = Task::new(id, title);
     task.crate_name = crate_name;
     task.run = run;
-    // Sequential dependency: each task depends on the previous one.
-    if idx > 1 {
-        task.depends_on = vec![format!("t{}", idx - 1)];
-    }
+    task.depends_on = if let Some(explicit) = deps {
+        explicit
+    } else if idx > 1 {
+        // Sequential dependency: each task depends on the previous one.
+        vec![format!("t{}", idx - 1)]
+    } else {
+        vec![]
+    };
     tasks.push(task);
 }
 
