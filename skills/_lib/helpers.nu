@@ -97,6 +97,11 @@ export def open-trace [] {
 # Worktree helpers
 # ---------------------------------------------------------------------------
 
+# Return true if BLOCKED.md exists at the given path.
+export def is-blocked [wt_path: string] {
+    ($"($wt_path)/BLOCKED.md" | path exists)
+}
+
 # Return true if a worktree path has at least one commit.
 export def worktree-has-commits [wt_path: string] {
     let log = (run-external "git" "-C" $wt_path "log" "--oneline" "-1" | complete).stdout | str trim

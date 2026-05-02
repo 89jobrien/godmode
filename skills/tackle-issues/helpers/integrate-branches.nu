@@ -22,7 +22,7 @@ def main [...issues: string] {
             print $"ERROR: no commits for issue #($issue)"
             exit 1
         }
-        if ($"($wt_path)/BLOCKED.md" | path exists) {
+        if (is-blocked $wt_path) {
             trace-agent-blocked $"issue-($issue)" $issue "BLOCKED.md found"
             trace-error $tid 1 $"BLOCKED.md for issue #($issue)"
             print $"ERROR: BLOCKED.md for issue #($issue) — escalate to user"
