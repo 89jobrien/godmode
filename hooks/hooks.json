@@ -8,6 +8,68 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/session-start.nu",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/task-management/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/using-godmode/hook.nu",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-bash-nag.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/test-driven-development/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/moa/hook.nu",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/brainstorm/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/testing-philosophy/hook.nu",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/refactoring/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/receiving-review/hook.nu",
+            "timeout": 10
           }
         ]
       }
@@ -20,6 +82,11 @@
             "type": "command",
             "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/scripts/check-blocked.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/parallel-agents/hook.nu",
+            "timeout": 10
           }
         ]
       },
@@ -30,6 +97,51 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/task-done-sync.nu",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/systematic-debugging/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/ci-fix/hook.nu",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/cap/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/code-review/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/tackle-issues/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/wave-integration/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/observability-as-infrastructure/hook.nu",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/writing-plans/hook.nu",
+            "timeout": 10
           }
         ]
       }
@@ -39,9 +151,19 @@
         "matcher": "*",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Run `godmode task list --json` and check for tasks with status 'running'. Respond with JSON only: {\"decision\":\"block\",\"reason\":\"<task ids still running>\"} if any tasks are running, or {\"decision\":\"approve\"} if none are.",
-            "timeout": 30
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/stop-guard.nu",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/verification-before-completion/hook.nu",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/introspection/hook.nu",
+            "timeout": 20
           }
         ]
       }

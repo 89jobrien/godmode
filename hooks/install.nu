@@ -35,3 +35,17 @@ run-external "chmod" "+x" $target
 
 print $"pre-commit hook installed: ($target)"
 print $"  -> ($src)"
+
+# Install pre-push hook
+let push_target = $"($hooks_dir)/pre-push"
+let push_src = $"($plugin_root)/hooks/pre-push.nu"
+
+if ($push_src | path exists) {
+    let push_wrapper = $"#!/bin/sh\nexec nu \"($push_src)\" \"$@\"\n"
+    $push_wrapper | save --force $push_target
+    run-external "chmod" "+x" $push_target
+    print $"pre-push hook installed: ($push_target)"
+    print $"  -> ($push_src)"
+} else {
+    print $"install.nu: pre-push source not found at ($push_src) — skipping"
+}

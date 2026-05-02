@@ -54,6 +54,23 @@ if ($godmode_path | is-empty) {
         print "Resolve running tasks before committing (`godmode task done <id>` or `godmode task block <id> <reason>`)."
         exit 1
     }
+
+    # Check for blocked tasks — blocked tasks must be resolved or unblocked before committing.
+    let list_result = (run-external "godmode" "task" "list" "--json" | complete)
+    if $list_result.exit_code == 0 {
+        let tasks = (try { $list_result.stdout | str trim | from json } catch { [] })
+        let blocked = ($tasks | where { |t| ($t | get --optional status | default "") == "blocked" })
+        if ($blocked | length) > 0 {
+            let ids = ($blocked | each { |t|
+                let reason = ($t | get --optional reason | default "")
+                if ($reason | is-empty) { $t.id } else { $"($t.id): ($reason)" }
+            })
+            print $"pre-commit: blocked tasks must be resolved before committing:"
+            for id in $ids { print $"  - ($id)" }
+            print "Use `godmode task unblock <id>` or `godmode task remove <id>` to clear them."
+            exit 1
+        }
+    }
 }
 
 # ---------------------------------------------------------------------------

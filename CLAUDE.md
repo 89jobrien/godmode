@@ -46,6 +46,11 @@ Two-crate workspace:
 | `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                           |
 | `session`       | `handoff()` — validates session-end state (counts running tasks).                                                                                        |
 | `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: field dispatch), `cruxx` (trace event append).                             |
+| `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                    |
+| `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                      |
+| `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                   |
+| `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                  |
+| `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                               |
 
 ### State file
 
@@ -90,10 +95,18 @@ godmode status                          # graph counts + next runnable tasks
 godmode task list / next / add / start / done / block / unblock / remove / clear
 godmode task run <id> [--auto-done]     # execute task's run: field via rx
 godmode task pull [--project <name>]    # import pending doob todos
+godmode task apply <name> [--var k=v]  # expand a template into the task graph
+godmode task list-templates             # list available templates (local + global)
 godmode task push-done                  # sync completed tasks back to doob
 godmode plan ingest <path>              # parse plan markdown into task graph
 godmode dispatch [--max N]             # emit parallel chains JSON
 godmode agent <path> [--max N]         # plan ingest + dispatch in one shot
+godmode graph build [--input <tmpl>]   # interactive or file-driven graph construction
+godmode verify [--crate-name X]        # run quality gate (nextest + clippy + fmt + commits)
+godmode wave init/status/done/block/check
+godmode worktree add/remove
+godmode ci triage
+godmode issue list/close
 ```
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
@@ -111,3 +124,12 @@ agents/
 
 Plugin manifest schema accepts only: `name`, `version`, `author`, `description`. Extra fields
 cause validation failure on `claude plugin install`.
+
+## Gotchas
+
+- `godmode plan ingest` skips tasks whose IDs already exist — plans reuse `t1`/`t2`/etc.
+  If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
+- `godmode task add <id> <title> --depends-on ""` registers an empty string as a dep,
+  causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
+- `dispatch --critical-path` does not exist. Critical path is shown by `godmode status`.
+- Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.
