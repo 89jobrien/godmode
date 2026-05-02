@@ -334,6 +334,45 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
+    # Check 13: _lib/*.nu files parse without error (nu --parse)
+    # -----------------------------------------------------------------------
+    let lib_dir = ($repo_root | path join "skills" "_lib")
+    if ($lib_dir | path exists) {
+        let lib_files = (glob ($lib_dir | path join "*.nu"))
+        for lib_file in $lib_files {
+            $checks = $checks + 1
+            let result = (do { nu -c $"use ($lib_file)" } | complete)
+            if $result.exit_code != 0 {
+                let lib_name = ($lib_file | path basename)
+                $failures = ($failures | append $"[_lib/($lib_name)] parse error: ($result.stderr | lines | first | str trim)")
+            }
+        }
+    }
+
+    # -----------------------------------------------------------------------
+    # Check 14: _lib/ references in SKILL.md files resolve to real files
+    # -----------------------------------------------------------------------
+    for skill_path in $skill_dirs {
+        let skill_name = ($skill_path | path basename)
+        let skill_md = ($skill_path | path join "SKILL.md")
+        if not ($skill_md | path exists) { continue }
+        let content = (open --raw $skill_md)
+        let refs = (
+            $content
+            | lines
+            | each { |l| $l | parse --regex '`(skills/_lib/[^`]+\.nu)[^`]*`' | get capture0? | default [] }
+            | flatten
+        )
+        for ref in $refs {
+            $checks = $checks + 1
+            let resolved = ($repo_root | path join $ref)
+            if not ($resolved | path exists) {
+                $failures = ($failures | append $"[($skill_name)] broken _lib link: ($ref)")
+            }
+        }
+    }
+
+    # -----------------------------------------------------------------------
     # Results
     # -----------------------------------------------------------------------
     if ($failures | is-empty) {
