@@ -43,7 +43,6 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/GODMODE.tasks.ya
 | Run task command | `godmode task run <id>`                                        |
 | Session start    | `godmode handon`                                               |
 | Session end      | `godmode handoff`                                              |
-| Session triage   | `godmode handon`                                               |
 | JSON output      | append `--json` to any command                                 |
 
 ## Instructions
@@ -51,7 +50,7 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/GODMODE.tasks.ya
 ### When asked what to work on next
 
 1. Run `godmode task next` to show the next runnable task(s)
-2. If more context is needed, run `godmode status` for graph counts
+2. If more context is needed, run `godmode task list` for full graph state
 3. Recommend top 1-3 items with brief reasoning
 
 ### When adding tasks
