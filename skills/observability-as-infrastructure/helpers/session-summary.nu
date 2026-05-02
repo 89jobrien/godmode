@@ -2,11 +2,10 @@
 # session-summary.nu — cross-session triage: what the last session left behind.
 # Usage: nu session-summary.nu [--sessions 3]
 
-def main [--sessions: int = 3] {
-    let trace = $"(git rev-parse --show-toplevel | str trim)/.ctx/GODMODE.trace.jsonl"
-    if not ($trace | path exists) { print "No trace file."; exit 0 }
+use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
 
-    let events = (open $trace | lines | each { from json })
+def main [--sessions: int = 3] {
+    let events = (open-trace)
 
     # Collect unique session_ids in order of first appearance
     let session_ids = ($events

@@ -2,11 +2,10 @@
 # trace-stats.nu — duration histogram per skill, agent convergence summary.
 # Usage: nu trace-stats.nu [--session <id>]
 
-def main [--session: string = ""] {
-    let trace = $"(git rev-parse --show-toplevel | str trim)/.ctx/GODMODE.trace.jsonl"
-    if not ($trace | path exists) { print "No trace file."; exit 0 }
+use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
 
-    let events = (open $trace | lines | each { from json })
+def main [--session: string = ""] {
+    let events = (open-trace)
     let scoped = if ($session | is-empty) { $events } else { $events | where session_id == $session }
 
     # Duration histogram — skill.complete events only
