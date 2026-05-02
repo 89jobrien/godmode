@@ -15,7 +15,7 @@ def main [...issues: string] {
     let root = (repo-root)
 
     for issue in $issues {
-        let wt_path = $"($root)/.worktrees/issue-($issue)"
+        let wt_path = (worktree-path $root $issue)
         if not (worktree-has-commits $wt_path) {
             trace-decision "tackle-issues" "integrate-branches.nu" "agent_incomplete" $issue
             trace-error $tid 1 $"no commits for issue #($issue)"
@@ -43,7 +43,7 @@ def main [...issues: string] {
     run-checked $tid "cargo" "clippy" "--workspace" $"--manifest-path=($root)/Cargo.toml" "--" "-D" "warnings"
 
     for issue in $issues {
-        run-external "git" "-C" $root "worktree" "remove" $"($root)/.worktrees/issue-($issue)"
+        run-external "git" "-C" $root "worktree" "remove" (worktree-path $root $issue)
         run-external "git" "-C" $root "branch" "-d" $"issue/($issue)"
     }
 

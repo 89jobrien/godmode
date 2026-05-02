@@ -22,7 +22,7 @@ def main [...issues: string] {
     run-checked $tid "git" "-C" $root "fetch" "origin" "main"
 
     for issue in $issues {
-        let wt_path = $"($root)/.worktrees/issue-($issue)"
+        let wt_path = (worktree-path $root $issue)
         if ($wt_path | path exists) {
             trace-decision "tackle-issues" "setup-worktrees.nu" "removed_stale_worktree" $issue
             run-external "git" "-C" $root "worktree" "remove" "--force" $wt_path

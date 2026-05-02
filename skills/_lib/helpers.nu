@@ -97,6 +97,11 @@ export def open-trace [] {
 # Worktree helpers
 # ---------------------------------------------------------------------------
 
+# Return the canonical worktree path for a given issue number.
+export def worktree-path [root: string, issue: string] {
+    $"($root)/.worktrees/issue-($issue)"
+}
+
 # Return true if BLOCKED.md exists at the given path.
 export def is-blocked [wt_path: string] {
     ($"($wt_path)/BLOCKED.md" | path exists)
