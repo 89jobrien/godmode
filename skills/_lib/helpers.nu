@@ -29,7 +29,7 @@ export def run-checked [
     let r = (run-external ...$args | complete)
     if $r.exit_code != 0 {
         if not ($trace_id | is-empty) {
-            use ($"(repo-root)/skills/_lib/trace.nu") *
+            use trace.nu *
             trace-error $trace_id $r.exit_code $r.stderr
         }
         print $r.stderr
