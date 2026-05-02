@@ -14,6 +14,7 @@ cargo clippy --workspace -- -D warnings
 cargo nextest run --workspace          # preferred
 cargo test --workspace                 # fallback
 cargo fmt --all --check                # format check
+just conformance                       # plugin structure + subcommand + consistency checks
 
 # Run a single test
 cargo nextest run -E 'test(runnable_returns_tasks)'
