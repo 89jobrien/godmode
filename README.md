@@ -18,6 +18,30 @@ cargo install --path crates/godmode-cli --root ~/.local
 claude plugin install godmode@bazaar
 ```
 
+### Pre-commit hook
+
+Install the godmode pre-commit hook into any git repo to block commits when tasks are
+still running and to run cargo gates (fmt-check, clippy, nextest):
+
+```bash
+# From the repo root where you want the hook installed:
+nu /path/to/godmode/hooks/install.nu
+
+# Or, if godmode is installed as a plugin and $CLAUDE_PLUGIN_ROOT is set:
+nu "$CLAUDE_PLUGIN_ROOT/hooks/install.nu"
+```
+
+The hook:
+
+1. Runs `godmode handoff --json` — exits non-zero if any task is in `running` state,
+   printing the offending task IDs.
+2. Runs `cargo fmt --all --check`, `cargo clippy --workspace -- -D warnings`, and
+   `cargo nextest run --workspace`.
+3. Blocks the commit on any failure with a clear message.
+
+If `godmode` is not on PATH, the task-state check is skipped gracefully and only the
+cargo gates run.
+
 ## Skills
 
 | Skill                                     | When                                          |
