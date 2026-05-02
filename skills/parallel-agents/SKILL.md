@@ -65,7 +65,23 @@ Workflow (follow exactly):
 Report: tasks completed, tasks blocked, commit SHAs.
 ```
 
-### Step 3: Dispatch concurrently
+### Step 3: Initialize wave state
+
+Before dispatching, write `.ctx/wave-status.json`:
+
+```json
+{
+  "wave": 1,
+  "agents": {
+    "<crate-or-domain>": { "status": "pending", "branch": "", "commits": [] }
+  }
+}
+```
+
+Each agent updates its own entry on completion. The orchestrator reads this file to track
+convergence without polling agent sessions.
+
+### Step 4: Dispatch concurrently
 
 Cap at **5 concurrent agents**. If more than 5 independent units exist, queue the rest
 and dispatch each as a slot frees.
@@ -76,19 +92,31 @@ Pass explicit tool lists — agents do NOT inherit Bash permissions from parent:
 allowedTools: Read, Write, Edit, Bash, Grep, Glob
 ```
 
-### Step 4: Integrate results
+Instruct each agent to update wave state on finish:
+
+```bash
+# agent writes on completion:
+# status: "done" | "blocked"
+# branch: output of git branch --show-current
+# commits: list of SHAs from git log --oneline -3
+```
+
+### Step 5: Integrate results
 
 After all agents report:
 
-1. Verify each agent committed (`git log --oneline -5`). Empty log = incomplete.
-2. Run full workspace suite:
+1. Read `.ctx/wave-status.json` — verify no agent has `status: "pending"`.
+2. Any agent with empty `commits` list has not finished — do not proceed.
+3. Verify each agent committed (`git log --oneline -5`). Empty log = incomplete.
+4. Run full workspace suite:
    ```bash
    cargo nextest run --workspace
    cargo clippy --workspace -- -D warnings
    ```
-3. Integration failures (cross-crate) are fixed in the orchestrator session — do not
+5. Integration failures (cross-crate) are fixed in the orchestrator session — do not
    spawn another agent layer.
-4. Update `.ctx/GODMODE.tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
+6. Update `.ctx/GODMODE.tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
+7. Archive wave state: `mv .ctx/wave-status.json .ctx/wave-<N>-complete.json`
 
 ## Guardrails
 

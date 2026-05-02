@@ -4,6 +4,8 @@
 
 | Skill                                    | Trigger                                             |
 | ---------------------------------------- | --------------------------------------------------- |
+| `godmode:cap`                            | "cap", "commit and push", "ship it"                 |
+| `godmode:ci-fix`                         | CI failing, "fix CI", broken pipeline after push    |
 | `godmode:brainstorming`                  | "let's build", "add feature", "design X", new code  |
 | `godmode:writing-plans`                  | Design approved, ready to implement multi-step task |
 | `godmode:test-driven-development`        | Any task that produces production Rust code         |

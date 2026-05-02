@@ -38,6 +38,17 @@ You are implementing tasks for crate: **`<CRATE>`**
 - Do NOT commit to `main`
 - Do NOT use `--no-verify`
 
+## Wave State Update
+
+On completion, update `.ctx/wave-status.json` for your entry:
+
+```bash
+# Read current state, then write your entry:
+# status: "done" or "blocked"
+# branch: $(git branch --show-current)
+# commits: [$(git log --oneline -3 | awk '{print $1}')]
+```
+
 ## Report Back
 
 - Tasks completed (with commit SHAs)
