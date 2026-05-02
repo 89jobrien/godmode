@@ -5,6 +5,8 @@ pub mod graph;
 pub mod integrations;
 pub mod model;
 pub mod plan;
+pub mod release;
+pub mod review;
 pub mod session;
 pub mod templates;
 pub mod verify;

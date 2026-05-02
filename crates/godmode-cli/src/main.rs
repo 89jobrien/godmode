@@ -1,6 +1,8 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use godmode_core::{builder, detect, dispatch, graph, integrations, model, plan, templates};
+use godmode_core::{
+    builder, detect, dispatch, graph, integrations, model, plan, release, review, templates,
+};
 
 #[derive(Parser)]
 #[command(
@@ -95,6 +97,45 @@ enum Cmd {
         #[command(subcommand)]
         action: GraphAction,
     },
+
+    /// Plugin conformance and consistency auditing.
+    Review {
+        #[command(subcommand)]
+        action: ReviewAction,
+    },
+
+    /// Plugin release: bump version, tag, push.
+    Release {
+        #[command(subcommand)]
+        action: ReleaseAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum ReviewAction {
+    /// Run all conformance checks (skills + agents + plugin.json).
+    #[command(name = "self")]
+    Self_,
+    /// Check skill dirs for SKILL.md, frontmatter, and link integrity.
+    Skills,
+    /// Check agent frontmatter completeness.
+    Agents,
+}
+
+#[derive(Subcommand)]
+enum ReleaseAction {
+    /// Show current plugin version.
+    Current,
+    /// Increment patch version in all files listed in .version-bump.json.
+    Bump {
+        /// Set an explicit version instead of auto-incrementing.
+        #[arg(long)]
+        version: Option<String>,
+    },
+    /// Create annotated git tag for the current version.
+    Tag,
+    /// Push current branch and version tag to origin.
+    Push,
 }
 
 #[derive(Subcommand)]
@@ -931,6 +972,71 @@ fn main() -> Result<()> {
                     if summary.next.is_empty() {
                         std::process::exit(1);
                     }
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Review { action } => {
+            let report = match action {
+                ReviewAction::Self_ => review::run_all(&root)?,
+                ReviewAction::Skills => review::check_skills(&root)?,
+                ReviewAction::Agents => review::check_agents(&root)?,
+            };
+            if json {
+                println!("{}", serde_json::to_string_pretty(&report)?);
+            } else if report.passed {
+                println!("{} checks passed.", report.checks);
+            } else {
+                for f in &report.findings {
+                    println!("{}", f.message);
+                }
+                println!(
+                    "\n{} checks failed out of {} total.",
+                    report.findings.len(),
+                    report.checks
+                );
+            }
+            if !report.passed {
+                std::process::exit(1);
+            }
+            Ok(())
+        }
+
+        Cmd::Release { action } => match action {
+            ReleaseAction::Current => {
+                let v = release::current_version(&root)?;
+                if json {
+                    println!(r#"{{"version":"{}"}}"#, v);
+                } else {
+                    println!("{}", v);
+                }
+                Ok(())
+            }
+            ReleaseAction::Bump { version } => {
+                let info = release::bump(&root, version.as_deref())?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&info)?);
+                } else {
+                    println!("{} → {}", info.old_version, info.new_version);
+                }
+                Ok(())
+            }
+            ReleaseAction::Tag => {
+                let tag = release::tag(&root)?;
+                if json {
+                    println!(r#"{{"tag":"{}"}}"#, tag);
+                } else {
+                    println!("Tagged {}", tag);
+                }
+                Ok(())
+            }
+            ReleaseAction::Push => {
+                release::push(&root)?;
+                if json {
+                    println!(r#"{{"ok":true}}"#);
+                } else {
+                    println!("Pushed branch and tag.");
                 }
                 Ok(())
             }
