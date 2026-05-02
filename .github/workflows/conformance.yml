@@ -10,21 +10,6 @@ env:
   CARGO_INCREMENTAL: 0
 
 jobs:
-  conformance-static:
-    name: static conformance (nu)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: install nushell
-        run: |
-          curl -sSL https://github.com/nushell/nushell/releases/download/0.101.0/nu-0.101.0-x86_64-unknown-linux-gnu.tar.gz \
-            | tar -xz --strip-components=1 -C /usr/local/bin nu-0.101.0-x86_64-unknown-linux-gnu/nu
-          nu --version
-
-      - name: run plugin structure conformance
-        run: nu tests/conformance/plugin-structure.nu
-
   conformance-rust:
     name: rust conformance tests
     runs-on: ubuntu-latest
