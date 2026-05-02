@@ -1,8 +1,8 @@
 {
-  "name": "godmode",
-  "version": "1.1.0",
   "author": {
     "name": "Joseph O'Brien"
   },
-  "description": "Rust-native development methodology: TDD, debugging, collaboration patterns, and proven techniques for Rust workspaces"
+  "description": "Rust-native development methodology: TDD, debugging, collaboration patterns, and proven techniques for Rust workspaces",
+  "name": "godmode",
+  "version": "1.1.1"
 }
