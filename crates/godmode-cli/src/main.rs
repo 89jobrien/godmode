@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use godmode_core::integrations::hook_runner;
 use godmode_core::{
     builder, detect, dispatch, graph, integrations, model, plan, release, review, templates,
 };
@@ -50,7 +51,11 @@ enum Cmd {
     },
 
     /// Show graph counts and next runnable task(s) — fast mid-session state check.
-    Status,
+    Status {
+        /// Emit the old single-line summary instead of the sectioned view.
+        #[arg(long)]
+        compact: bool,
+    },
 
     /// Ingest a plan and emit an orca-strait dispatch payload.
     Agent {
@@ -96,6 +101,12 @@ enum Cmd {
     Graph {
         #[command(subcommand)]
         action: GraphAction,
+    },
+
+    /// Hook observability: list, log, and test hooks.
+    Hook {
+        #[command(subcommand)]
+        action: HookAction,
     },
 
     /// Plugin conformance and consistency auditing.
@@ -220,9 +231,10 @@ enum TaskAction {
     /// List all tasks with status.
     List,
 
-    /// Add a new task.
+    /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
     Add {
-        id: String,
+        /// Task ID (e.g. t5). Auto-assigned if omitted.
+        id: Option<String>,
         title: String,
         #[arg(long, value_delimiter = ',')]
         depends_on: Vec<String>,
@@ -316,6 +328,23 @@ enum PlanAction {
     },
 }
 
+#[derive(Subcommand)]
+enum HookAction {
+    /// List all hooks registered in hooks/hooks.json.
+    List,
+    /// Print the last N lines from .ctx/GODMODE.hooks.log.
+    Log {
+        /// Number of lines to show (default 20).
+        #[arg(long, default_value = "20")]
+        tail: usize,
+    },
+    /// Run a hook script with synthetic stdin JSON and show exit code + stderr.
+    Test {
+        /// Path to the hook script to test.
+        script: String,
+    },
+}
+
 fn exit_empty(json: bool) -> ! {
     if json {
         println!("[]");
@@ -389,6 +418,7 @@ fn main() -> Result<()> {
                     depends_on,
                     crate_name,
                 } => {
+                    let id = id.unwrap_or_else(|| graph::next_task_id(&g));
                     let mut task = model::Task::new(id.clone(), title);
                     task.depends_on = depends_on;
                     task.crate_name = crate_name;
@@ -647,12 +677,27 @@ fn main() -> Result<()> {
             }
         },
 
-        Cmd::Status => {
+        Cmd::Status { compact } => {
             let g = graph::load(&root)?;
             let summary = g.summary();
             let next = graph::runnable(&g);
             let critical = dispatch::critical_path(&g);
+            let blocked_tasks: Vec<&model::Task> = g
+                .tasks
+                .iter()
+                .filter(|t| t.status == model::Status::Blocked)
+                .collect();
             if json {
+                let blocked_detail: Vec<serde_json::Value> = blocked_tasks
+                    .iter()
+                    .map(|t| {
+                        serde_json::json!({
+                            "id": t.id,
+                            "title": t.title,
+                            "reason": t.notes,
+                        })
+                    })
+                    .collect();
                 println!(
                     "{}",
                     serde_json::to_string_pretty(&serde_json::json!({
@@ -660,11 +705,12 @@ fn main() -> Result<()> {
                         "running": summary.running,
                         "pending": summary.pending,
                         "blocked": summary.blocked,
+                        "blocked_detail": blocked_detail,
                         "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
                         "critical_depth": critical.len(),
                     }))?
                 );
-            } else {
+            } else if compact {
                 println!(
                     "{} done  {} running  {} pending  {} blocked",
                     summary.done, summary.running, summary.pending, summary.blocked
@@ -677,6 +723,182 @@ fn main() -> Result<()> {
                         .map(|c| format!(" ({})", c))
                         .unwrap_or_default();
                     println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
+                }
+            } else {
+                println!("=== godmode status ===");
+                println!("  done     {}", summary.done);
+                println!("  running  {}", summary.running);
+                println!("  pending  {}", summary.pending);
+                if blocked_tasks.is_empty() {
+                    println!("  blocked  {}", summary.blocked);
+                } else {
+                    let blocked_inline: Vec<String> = blocked_tasks
+                        .iter()
+                        .map(|t| {
+                            if t.notes.is_empty() {
+                                format!("{}: (no reason)", t.id)
+                            } else {
+                                format!("{}: {}", t.id, t.notes)
+                            }
+                        })
+                        .collect();
+                    println!(
+                        "  blocked  {}  [{}]",
+                        summary.blocked,
+                        blocked_inline.join(", ")
+                    );
+                }
+                println!();
+                if !critical.is_empty() {
+                    let path_str: Vec<&str> = critical.iter().map(|t| t.id.as_str()).collect();
+                    println!(
+                        "  critical path ({} tasks): {}",
+                        critical.len(),
+                        path_str.join(" -> ")
+                    );
+                }
+                for t in &next {
+                    let crate_tag = t
+                        .crate_name
+                        .as_deref()
+                        .map(|c| format!(" ({})", c))
+                        .unwrap_or_default();
+                    println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
+                }
+            }
+            Ok(())
+        }
+
+        Cmd::Hook { action } => {
+            match action {
+                HookAction::List => {
+                    // Find hooks.json relative to repo root (or plugin root).
+                    let hooks_path = root.join("hooks").join("hooks.json");
+                    if !hooks_path.exists() {
+                        anyhow::bail!("hooks/hooks.json not found at {}", hooks_path.display());
+                    }
+                    let raw = std::fs::read_to_string(&hooks_path)?;
+                    let val: serde_json::Value = serde_json::from_str(&raw)?;
+                    let entries = hook_runner::list_hooks_from_json(&val);
+                    if json {
+                        let arr: Vec<serde_json::Value> = entries
+                            .iter()
+                            .map(|(ev, mat, scr)| {
+                                serde_json::json!({
+                                    "event": ev,
+                                    "matcher": mat,
+                                    "script": scr,
+                                })
+                            })
+                            .collect();
+                        println!("{}", serde_json::to_string_pretty(&arr)?);
+                    } else {
+                        println!("{:<20} {:<10} SCRIPT", "EVENT", "MATCHER");
+                        println!("{}", "-".repeat(80));
+                        for (ev, mat, scr) in &entries {
+                            println!("{:<20} {:<10} {}", ev, mat, scr);
+                        }
+                    }
+                }
+
+                HookAction::Log { tail } => {
+                    let lines = hook_runner::read_hook_log(&root, tail).unwrap_or_default();
+                    if lines.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No hook log entries.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        let vals: Vec<serde_json::Value> = lines
+                            .iter()
+                            .filter_map(|l| serde_json::from_str(l).ok())
+                            .collect();
+                        println!("{}", serde_json::to_string_pretty(&vals)?);
+                    } else {
+                        for line in &lines {
+                            // Pretty-print the JSONL line if parseable.
+                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+                                let hook = v["hook"].as_str().unwrap_or("?");
+                                let event = v["event"].as_str().unwrap_or("?");
+                                let code = v["exit_code"].as_i64().unwrap_or(-1);
+                                let ts = v["ts"].as_str().unwrap_or("?");
+                                let stderr = v["stderr"].as_str().unwrap_or("");
+                                if stderr.is_empty() {
+                                    println!("[{}] {} ({}) exit={}", ts, hook, event, code);
+                                } else {
+                                    println!(
+                                        "[{}] {} ({}) exit={} | {}",
+                                        ts, hook, event, code, stderr
+                                    );
+                                }
+                            } else {
+                                println!("{}", line);
+                            }
+                        }
+                    }
+                }
+
+                HookAction::Test { script } => {
+                    // Detect event type from script path heuristic.
+                    let script_lower = script.to_lowercase();
+                    let synthetic_stdin = if script_lower.contains("stop") {
+                        r#"{"stop_hook_active":false,"transcript_turns":[]}"#
+                    } else if script_lower.contains("session") {
+                        r#"{"session_id":"test-session"}"#
+                    } else {
+                        // Default: PreToolUse/Bash-style fixture
+                        r#"{"tool_input":{"command":"echo test"},"tool_response":{"exit_code":0}}"#
+                    };
+
+                    // Write synthetic stdin to a temp file and pipe into the script.
+                    let tmp = std::env::temp_dir().join("godmode_hook_test_stdin.json");
+                    std::fs::write(&tmp, synthetic_stdin)?;
+
+                    let output = std::process::Command::new("sh")
+                        .arg("-c")
+                        .arg(format!("{} < {}", script, tmp.display()))
+                        .output();
+
+                    match output {
+                        Ok(out) => {
+                            let exit_code = out.status.code().unwrap_or(-1);
+                            let stderr_text = String::from_utf8_lossy(&out.stderr).to_string();
+                            let stdout_text = String::from_utf8_lossy(&out.stdout).to_string();
+                            // Log to hook log as well.
+                            let _ = hook_runner::append_hook_event(
+                                &root,
+                                &script,
+                                "test",
+                                exit_code,
+                                &stderr_text,
+                            );
+                            if json {
+                                println!(
+                                    "{}",
+                                    serde_json::to_string_pretty(&serde_json::json!({
+                                        "script": script,
+                                        "exit_code": exit_code,
+                                        "stdout": stdout_text,
+                                        "stderr": stderr_text,
+                                    }))?
+                                );
+                            } else {
+                                println!("exit: {}", exit_code);
+                                if !stdout_text.is_empty() {
+                                    println!("stdout:\n{}", stdout_text);
+                                }
+                                if !stderr_text.is_empty() {
+                                    println!("stderr:\n{}", stderr_text);
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            anyhow::bail!("failed to run script '{}': {}", script, e);
+                        }
+                    }
                 }
             }
             Ok(())

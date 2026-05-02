@@ -251,6 +251,18 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
     None
 }
 
+/// Return the first unused task ID of the form "t1", "t2", …
+pub fn next_task_id(g: &TaskGraph) -> String {
+    let used: std::collections::HashSet<&str> = g.tasks.iter().map(|t| t.id.as_str()).collect();
+    for n in 1u64.. {
+        let candidate = format!("t{}", n);
+        if !used.contains(candidate.as_str()) {
+            return candidate;
+        }
+    }
+    unreachable!()
+}
+
 /// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
@@ -424,6 +436,16 @@ mod tests {
             err.to_string().contains("cycle"),
             "expected cycle error, got: {err}"
         );
+    }
+
+    #[test]
+    fn next_task_id_returns_first_unused() {
+        let mut g = TaskGraph::default();
+        assert_eq!(next_task_id(&g), "t1");
+        add(&mut g, Task::new("t1", "A")).unwrap();
+        assert_eq!(next_task_id(&g), "t2");
+        add(&mut g, Task::new("t3", "C")).unwrap(); // gap at t2
+        assert_eq!(next_task_id(&g), "t2");
     }
 
     #[test]
