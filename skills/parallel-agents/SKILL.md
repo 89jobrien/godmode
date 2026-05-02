@@ -67,6 +67,8 @@ Report: tasks completed, tasks blocked, commit SHAs.
 
 ### Step 3: Initialize wave state
 
+> (generate via `nu skills/_lib/dispatch.nu wave-state-init [<agent-names>]`)
+
 Before dispatching, write `.ctx/wave-status.json`:
 
 ```json
@@ -87,6 +89,8 @@ convergence without polling agent sessions.
 
 ### Step 4: Dispatch concurrently
 
+> (generate via `nu skills/_lib/dispatch.nu agent-prompt <repo_root> <issue> <title> <body>`)
+
 Cap at **5 concurrent agents**. If more than 5 independent units exist, queue the rest
 and dispatch each as a slot frees.
 
@@ -106,6 +110,8 @@ Instruct each agent to update wave state on finish:
 ```
 
 ### Step 5: Integrate results
+
+> (run via `nu skills/_lib/dispatch.nu integrate-branches <repo_root> [<branches>]`)
 
 After all agents report:
 
