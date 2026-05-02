@@ -36,19 +36,24 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 
 ## Available Skills
 
-| Skill                                    | When                                           |
-| ---------------------------------------- | ---------------------------------------------- |
-| `godmode:test-driven-development`        | Implementing any feature or fix                |
-| `godmode:systematic-debugging`           | Any bug, test failure, unexpected behavior     |
-| `godmode:brainstorm`                     | Before any creative or design work             |
-| `godmode:writing-plans`                  | Multi-step task with a spec or requirements    |
-| `godmode:verification-before-completion` | Before claiming work is done                   |
-| `godmode:task-management`                | Creating, tracking, or executing a task graph  |
-| `godmode:parallel-agents`                | 2+ independent tasks that can run concurrently |
-| `godmode:cap`                            | "cap", "commit and push", "ship it"            |
-| `godmode:ci-fix`                         | CI failing, "fix CI", broken pipeline          |
-| `godmode:tackle-issues`                  | Working on GitHub issues in parallel           |
-| `godmode:introspection`                  | Auditing skills for consistency after changes  |
+| Skill                                     | When                                           |
+| ----------------------------------------- | ---------------------------------------------- |
+| `godmode:test-driven-development`         | Implementing any feature or fix                |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior     |
+| `godmode:brainstorm`                      | Before any creative or design work             |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements    |
+| `godmode:verification-before-completion`  | Before claiming work is done                   |
+| `godmode:task-management`                 | Creating, tracking, or executing a task graph  |
+| `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently |
+| `godmode:cap`                             | "cap", "commit and push", "ship it"            |
+| `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline          |
+| `godmode:tackle-issues`                   | Working on GitHub issues in parallel           |
+| `godmode:code-review`                     | Before merge, after feature complete           |
+| `godmode:refactoring`                     | Restructuring code without changing behaviour  |
+| `godmode:receiving-review`                | Processing incoming review comments            |
+| `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents        |
+| `godmode:testing-philosophy`              | Designing test strategy for new code           |
+| `godmode:introspect`                      | Auditing skills for consistency after changes  |
 
 ## Always-Active Rules
 

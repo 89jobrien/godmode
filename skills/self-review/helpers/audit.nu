@@ -8,7 +8,7 @@ use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
 def main [] {
     let root = (repo-root)
     let skills_dir = $"($root)/skills"
-    let tid = (trace-start "introspection" "audit.nu")
+    let tid = (trace-start "introspect" "audit.nu")
 
     let skill_dirs = (ls $skills_dir | where type == "dir" | get name
         | where { |d| ($d | path basename) != "_lib" })

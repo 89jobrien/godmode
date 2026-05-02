@@ -1,5 +1,5 @@
 ---
-name: godmode:introspection
+name: godmode:introspect
 description: >
   Audit godmode skills, agents, and plugin files for internal consistency, broken
   references, stale commands, and cross-skill contradictions. Use when asked to
