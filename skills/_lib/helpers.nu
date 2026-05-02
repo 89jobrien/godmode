@@ -82,6 +82,31 @@ export def assert-not-main [] {
     $b
 }
 
+# ---------------------------------------------------------------------------
+# Trace helpers
+# ---------------------------------------------------------------------------
+
+# Load .ctx/GODMODE.trace.jsonl as a list<record>. Exits 0 with message if absent.
+export def open-trace [] {
+    let trace = $"(repo-root)/.ctx/GODMODE.trace.jsonl"
+    if not ($trace | path exists) { print "No trace file."; exit 0 }
+    open $trace | lines | each { from json }
+}
+
+# ---------------------------------------------------------------------------
+# Worktree helpers
+# ---------------------------------------------------------------------------
+
+# Return the canonical worktree path for a given issue number.
+export def worktree-path [root: string, issue: string] {
+    $"($root)/.worktrees/issue-($issue)"
+}
+
+# Return true if BLOCKED.md exists at the given path.
+export def is-blocked [wt_path: string] {
+    ($"($wt_path)/BLOCKED.md" | path exists)
+}
+
 # Return true if a worktree path has at least one commit.
 export def worktree-has-commits [wt_path: string] {
     let log = (run-external "git" "-C" $wt_path "log" "--oneline" "-1" | complete).stdout | str trim
