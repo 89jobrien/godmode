@@ -42,6 +42,9 @@ enum Cmd {
         /// Maximum concurrent agents.
         #[arg(long, default_value = "5")]
         max: usize,
+        /// Show the critical path instead of independent chains.
+        #[arg(long)]
+        critical_path: bool,
     },
 
     /// Show graph counts and next runnable task(s) — fast mid-session state check.
@@ -123,6 +126,9 @@ enum TaskAction {
 
     /// Mark completed tasks as done in doob (uses `doob:` UUID in notes field).
     PushDone,
+
+    /// Reset all blocked tasks to pending in one operation.
+    UnblockAll,
 }
 
 #[derive(Subcommand)]
@@ -334,7 +340,11 @@ fn main() -> Result<()> {
                     let tasks = integrations::doob::todos_to_tasks(&todos);
                     let count = tasks.len();
                     for task in tasks {
-                        graph::add(&mut g, task).ok(); // skip duplicates silently
+                        if let Err(e) = graph::add(&mut g, task)
+                            && !e.to_string().contains("already exists")
+                        {
+                            return Err(e);
+                        }
                     }
                     graph::save(&root, &g)?;
                     if json {
@@ -361,6 +371,18 @@ fn main() -> Result<()> {
                         println!("Pushed {} completed tasks to doob.", pushed);
                     }
                 }
+
+                TaskAction::UnblockAll => {
+                    let count = graph::unblock_all(&mut g);
+                    graph::save(&root, &g)?;
+                    if json {
+                        println!(r#"{{"ok":true,"unblocked":{}}}"#, count);
+                    } else if count == 0 {
+                        println!("No blocked tasks.");
+                    } else {
+                        println!("Unblocked {} task(s).", count);
+                    }
+                }
             }
             Ok(())
         }
@@ -372,7 +394,11 @@ fn main() -> Result<()> {
                 let count = tasks.len();
                 let mut g = graph::load(&root)?;
                 for task in tasks {
-                    graph::add(&mut g, task).ok(); // skip duplicates silently
+                    if let Err(e) = graph::add(&mut g, task)
+                        && !e.to_string().contains("already exists")
+                    {
+                        return Err(e);
+                    }
                 }
                 graph::save(&root, &g)?;
                 if json {
@@ -388,6 +414,7 @@ fn main() -> Result<()> {
             let g = graph::load(&root)?;
             let summary = g.summary();
             let next = graph::runnable(&g);
+            let critical = dispatch::critical_path(&g);
             if json {
                 println!(
                     "{}",
@@ -397,6 +424,7 @@ fn main() -> Result<()> {
                         "pending": summary.pending,
                         "blocked": summary.blocked,
                         "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
+                        "critical_depth": critical.len(),
                     }))?
                 );
             } else {
@@ -404,6 +432,7 @@ fn main() -> Result<()> {
                     "{} done  {} running  {} pending  {} blocked",
                     summary.done, summary.running, summary.pending, summary.blocked
                 );
+                println!("  critical: {} tasks deep", critical.len());
                 for t in &next {
                     let crate_tag = t
                         .crate_name
@@ -416,13 +445,37 @@ fn main() -> Result<()> {
             Ok(())
         }
 
-        Cmd::Dispatch { max } => {
+        Cmd::Dispatch {
+            max,
+            critical_path: cp,
+        } => {
             let g = graph::load(&root)?;
-            let chains = dispatch::independent_chains(&g, max);
-            if chains.is_empty() {
-                exit_empty(json);
+            if cp {
+                let path = dispatch::critical_path(&g);
+                if path.is_empty() {
+                    exit_empty(json);
+                }
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "critical_path": path,
+                            "depth": path.len(),
+                        }))?
+                    );
+                } else {
+                    println!("=== critical path ({} tasks) ===", path.len());
+                    for t in &path {
+                        println!("[{}] {}", t.id, t.title);
+                    }
+                }
+            } else {
+                let chains = dispatch::independent_chains(&g, max);
+                if chains.is_empty() {
+                    exit_empty(json);
+                }
+                println!("{}", serde_json::to_string_pretty(&chains)?);
             }
-            println!("{}", serde_json::to_string_pretty(&chains)?);
             Ok(())
         }
 
@@ -435,10 +488,11 @@ fn main() -> Result<()> {
             let mut g = graph::load(&root)?;
             let mut ingested = 0usize;
             for task in tasks {
-                if graph::add(&mut g, task).is_ok() {
-                    ingested += 1;
+                match graph::add(&mut g, task) {
+                    Ok(()) => ingested += 1,
+                    Err(e) if e.to_string().contains("already exists") => {} // idempotent
+                    Err(e) => return Err(e),
                 }
-                // silently skip duplicates — idempotent
             }
             graph::save(&root, &g)?;
             let chains = dispatch::independent_chains(&g, max);

@@ -115,6 +115,90 @@ pub fn independent_chains(graph: &TaskGraph, max_concurrent: usize) -> Vec<Chain
     chains
 }
 
+/// Return the longest dependency chain among pending/running tasks (critical path).
+/// Uses topological sort + DP on depth. Ties broken by insertion order.
+/// Returns tasks in root → tail execution order.
+pub fn critical_path(graph: &TaskGraph) -> Vec<TaskRef> {
+    let active: Vec<&Task> = graph
+        .tasks
+        .iter()
+        .filter(|t| matches!(t.status, Status::Pending | Status::Running))
+        .collect();
+
+    if active.is_empty() {
+        return vec![];
+    }
+
+    let active_ids: HashSet<&str> = active.iter().map(|t| t.id.as_str()).collect();
+
+    let mut in_degree: HashMap<&str, usize> = active.iter().map(|t| (t.id.as_str(), 0)).collect();
+    let mut rev: HashMap<&str, Vec<&str>> = HashMap::new();
+
+    for t in &active {
+        for dep in t
+            .depends_on
+            .iter()
+            .filter(|d| active_ids.contains(d.as_str()))
+        {
+            *in_degree.entry(t.id.as_str()).or_default() += 1;
+            rev.entry(dep.as_str()).or_default().push(t.id.as_str());
+        }
+    }
+
+    let mut depth: HashMap<&str, usize> = active.iter().map(|t| (t.id.as_str(), 1)).collect();
+    let mut parent: HashMap<&str, Option<&str>> =
+        active.iter().map(|t| (t.id.as_str(), None)).collect();
+
+    let mut queue: std::collections::VecDeque<&str> = active
+        .iter()
+        .filter(|t| in_degree[t.id.as_str()] == 0)
+        .map(|t| t.id.as_str())
+        .collect();
+
+    while let Some(id) = queue.pop_front() {
+        let d = depth[id];
+        if let Some(successors) = rev.get(id) {
+            for &succ in successors {
+                let new_d = d + 1;
+                if new_d > depth[succ] {
+                    depth.insert(succ, new_d);
+                    parent.insert(succ, Some(id));
+                }
+                let deg = in_degree.get_mut(succ).unwrap();
+                *deg -= 1;
+                if *deg == 0 {
+                    queue.push_back(succ);
+                }
+            }
+        }
+    }
+
+    // Pick the first task (insertion order) with maximum depth for stable tie-breaking.
+    let max_depth = active.iter().map(|t| depth[t.id.as_str()]).max().unwrap();
+    let tail = active
+        .iter()
+        .find(|t| depth[t.id.as_str()] == max_depth)
+        .map(|t| t.id.as_str())
+        .unwrap();
+
+    let mut path_ids: Vec<&str> = Vec::new();
+    let mut cur = Some(tail);
+    while let Some(id) = cur {
+        path_ids.push(id);
+        cur = parent[id];
+    }
+    path_ids.reverse();
+
+    path_ids
+        .iter()
+        .filter_map(|id| graph.tasks.iter().find(|t| t.id == *id))
+        .map(|t| TaskRef {
+            id: t.id.clone(),
+            title: t.title.clone(),
+        })
+        .collect()
+}
+
 fn infer_crate(ids: &[&str], graph: &TaskGraph) -> Option<String> {
     let crates: HashSet<Option<&str>> = ids
         .iter()
@@ -189,5 +273,50 @@ mod tests {
         let g = TaskGraph::default();
         let chains = independent_chains(&g, 5);
         assert!(chains.is_empty());
+    }
+
+    #[test]
+    fn critical_path_linear_chain() {
+        let g = make_graph(&[
+            ("t1", "A", &[], None),
+            ("t2", "B", &["t1"], None),
+            ("t3", "C", &["t2"], None),
+        ]);
+        let path = critical_path(&g);
+        let ids: Vec<&str> = path.iter().map(|t| t.id.as_str()).collect();
+        assert_eq!(ids, vec!["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn critical_path_diamond_picks_longer_side() {
+        let g = make_graph(&[
+            ("t1", "A", &[], None),
+            ("t2", "B", &["t1"], None),
+            ("t3", "C", &["t1"], None),
+            ("t4", "D", &["t2", "t3"], None),
+        ]);
+        let path = critical_path(&g);
+        assert_eq!(path.len(), 3);
+        assert_eq!(path[0].id, "t1");
+        assert_eq!(path.last().unwrap().id, "t4");
+    }
+
+    #[test]
+    fn critical_path_parallel_equal_length() {
+        let g = make_graph(&[
+            ("a1", "A1", &[], None),
+            ("a2", "A2", &["a1"], None),
+            ("b1", "B1", &[], None),
+            ("b2", "B2", &["b1"], None),
+        ]);
+        let path = critical_path(&g);
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].id, "a1");
+    }
+
+    #[test]
+    fn critical_path_empty_graph() {
+        let g = TaskGraph::default();
+        assert!(critical_path(&g).is_empty());
     }
 }
