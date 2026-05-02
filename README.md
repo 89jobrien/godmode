@@ -29,6 +29,9 @@ claude plugin install /Users/joe/dev/godmode
 | `godmode:verification-before-completion` | Before claiming work is done                 |
 | `godmode:task-management`                | Creating, tracking, executing a task graph   |
 | `godmode:parallel-agents`                | 2+ independent tasks to run concurrently     |
+| `godmode:code-review`                    | Quality pass before merge                    |
+| `godmode:refactoring`                    | Restructure code without changing behaviour  |
+| `godmode:receiving-review`               | Process incoming review feedback             |
 
 ## Agents
 
@@ -55,6 +58,8 @@ godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>
 godmode task remove <id>
 godmode task next                   # show next runnable task(s)
+godmode task pull [--project <name>] # import pending doob todos as tasks
+godmode task push-done               # mark completed tasks done in doob
 ```
 
 ### Plan ingestion

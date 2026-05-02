@@ -1,3 +1,4 @@
+pub mod cruxx;
 pub mod doob;
 pub mod hj;
 pub mod rx;

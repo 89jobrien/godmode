@@ -95,6 +95,16 @@ enum TaskAction {
 
     /// Run the shell command attached to a task's `run:` field.
     Run { id: String },
+
+    /// Pull pending doob todos into the task graph.
+    Pull {
+        /// Doob project name (defaults to Cargo.toml package name).
+        #[arg(long)]
+        project: Option<String>,
+    },
+
+    /// Mark completed tasks as done in doob (uses `doob:` UUID in notes field).
+    PushDone,
 }
 
 #[derive(Subcommand)]
@@ -187,7 +197,7 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Start { id } => {
-                    graph::start(&mut g, &id)?;
+                    graph::start_traced(&mut g, &id, Some(&root))?;
                     graph::save(&root, &g)?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"running"}}"#, id);
@@ -197,7 +207,13 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Done { id, commit, notes } => {
-                    graph::complete(&mut g, &id, commit.as_deref(), notes.as_deref())?;
+                    graph::complete_traced(
+                        &mut g,
+                        &id,
+                        commit.as_deref(),
+                        notes.as_deref(),
+                        Some(&root),
+                    )?;
                     graph::save(&root, &g)?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"done"}}"#, id);
@@ -268,6 +284,43 @@ fn main() -> Result<()> {
                     let status = integrations::rx::run_cmd(&run_cmd)?;
                     if !status.success() {
                         std::process::exit(status.code().unwrap_or(2));
+                    }
+                }
+
+                TaskAction::Pull { project } => {
+                    let project = match project {
+                        Some(p) => p,
+                        None => detect::package_name(&root)?,
+                    };
+                    let todos = integrations::doob::todo_list(&project)?;
+                    let tasks = integrations::doob::todos_to_tasks(&todos);
+                    let count = tasks.len();
+                    for task in tasks {
+                        graph::add(&mut g, task).ok(); // skip duplicates silently
+                    }
+                    graph::save(&root, &g)?;
+                    if json {
+                        println!(r#"{{"ok":true,"imported":{}}}"#, count);
+                    } else {
+                        println!(
+                            "Imported {} pending todos from doob project '{}'.",
+                            count, project
+                        );
+                    }
+                }
+
+                TaskAction::PushDone => {
+                    let mut pushed = 0usize;
+                    for task in g.tasks.iter().filter(|t| t.status == model::Status::Done) {
+                        if let Some(uuid) = task.notes.strip_prefix("doob:") {
+                            integrations::doob::todo_done(uuid.trim())?;
+                            pushed += 1;
+                        }
+                    }
+                    if json {
+                        println!(r#"{{"ok":true,"pushed":{}}}"#, pushed);
+                    } else {
+                        println!("Pushed {} completed tasks to doob.", pushed);
                     }
                 }
             }

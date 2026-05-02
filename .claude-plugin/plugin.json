@@ -25,7 +25,10 @@
     { "name": "writing-plans", "path": "skills/writing-plans" },
     { "name": "verification-before-completion", "path": "skills/verification-before-completion" },
     { "name": "task-management", "path": "skills/task-management" },
-    { "name": "parallel-agents", "path": "skills/parallel-agents" }
+    { "name": "parallel-agents", "path": "skills/parallel-agents" },
+    { "name": "code-review", "path": "skills/code-review" },
+    { "name": "refactoring", "path": "skills/refactoring" },
+    { "name": "receiving-review", "path": "skills/receiving-review" }
   ],
   "agents": [
     { "name": "tdd-crate-agent", "path": "agents/tdd-crate-agent.md" }

@@ -2,6 +2,7 @@ use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};
 
+use crate::integrations::cruxx::{self, EventKind, TaskEvent};
 use crate::model::{Status, Task, TaskGraph};
 
 /// Resolve the task file path relative to a repo root.
@@ -52,7 +53,12 @@ pub fn runnable(graph: &TaskGraph) -> Vec<&Task> {
 }
 
 /// Mark a task as running. Errors if the task is not pending or has unmet deps.
+/// Emits a cruxx trace event if `root` is provided.
 pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
+    start_traced(graph, id, None)
+}
+
+pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Result<()> {
     let done_ids: std::collections::HashSet<String> = graph
         .tasks
         .iter()
@@ -90,6 +96,17 @@ pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
         );
     }
     task.status = Status::Running;
+    if let Some(root) = root {
+        let event = TaskEvent {
+            kind: EventKind::Started,
+            task_id: task.id.clone(),
+            title: task.title.clone(),
+            crate_name: task.crate_name.clone(),
+            commit: None,
+            notes: None,
+        };
+        let _ = cruxx::append_event(root, &event); // non-fatal
+    }
     Ok(())
 }
 
@@ -99,6 +116,16 @@ pub fn complete(
     id: &str,
     commit: Option<&str>,
     notes: Option<&str>,
+) -> Result<()> {
+    complete_traced(graph, id, commit, notes, None)
+}
+
+pub fn complete_traced(
+    graph: &mut TaskGraph,
+    id: &str,
+    commit: Option<&str>,
+    notes: Option<&str>,
+    root: Option<&Path>,
 ) -> Result<()> {
     let task = graph
         .tasks
@@ -122,6 +149,21 @@ pub fn complete(
         && !n.is_empty()
     {
         task.notes = n.to_string();
+    }
+    if let Some(root) = root {
+        let event = TaskEvent {
+            kind: EventKind::Completed,
+            task_id: task.id.clone(),
+            title: task.title.clone(),
+            crate_name: task.crate_name.clone(),
+            commit: task.commit.clone(),
+            notes: if task.notes.is_empty() {
+                None
+            } else {
+                Some(task.notes.clone())
+            },
+        };
+        let _ = cruxx::append_event(root, &event); // non-fatal
     }
     Ok(())
 }

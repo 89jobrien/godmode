@@ -6,6 +6,7 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 
 use crate::detect;
+use crate::model::Task;
 
 // ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
@@ -58,4 +59,84 @@ pub fn todo_next(project: &str) -> Result<Option<serde_json::Value>> {
 pub fn todo_next_for_root(root: &Path) -> Result<Option<serde_json::Value>> {
     let project = detect::package_name(root)?;
     todo_next(&project)
+}
+
+// ---------------------------------------------------------------------------
+// Write — pure arg builders (testable without shelling out)
+// ---------------------------------------------------------------------------
+
+/// Build argv for `doob todo complete <uuid>`.
+pub fn todo_done_args(uuid: &str) -> Vec<String> {
+    vec!["todo".into(), "complete".into(), uuid.into()]
+}
+
+/// Build argv for `doob todo add -p <project> <title>`.
+pub fn todo_add_args(project: &str, title: &str) -> Vec<String> {
+    vec![
+        "todo".into(),
+        "add".into(),
+        "-p".into(),
+        project.into(),
+        title.into(),
+    ]
+}
+
+/// Convert pending doob todos into `Task` values for import into the task graph.
+///
+/// Completed todos are skipped. The doob UUID is stored in `task.notes` as `doob:<uuid>`
+/// so it can be resolved later for sync-back.
+pub fn todos_to_tasks(value: &serde_json::Value) -> Vec<Task> {
+    value
+        .get("todos")
+        .and_then(|t| t.as_array())
+        .map(|todos| {
+            todos
+                .iter()
+                .filter(|t| t.get("status").and_then(|s| s.as_str()) == Some("pending"))
+                .filter_map(|t| {
+                    let id = t.get("id")?.as_str()?;
+                    let title = t.get("content")?.as_str()?;
+                    let mut task = Task::new(format!("doob-{}", &id[..8.min(id.len())]), title);
+                    task.notes = format!("doob:{id}");
+                    Some(task)
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+// ---------------------------------------------------------------------------
+// Write — shell-out layer
+// ---------------------------------------------------------------------------
+
+/// Mark a doob todo as complete by UUID.
+pub fn todo_done(uuid: &str) -> Result<()> {
+    let args = todo_done_args(uuid);
+    let out = Command::new("doob")
+        .args(&args)
+        .output()
+        .context("doob not found on PATH")?;
+    if !out.status.success() {
+        bail!(
+            "doob todo complete failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    Ok(())
+}
+
+/// Add a new todo to doob for a given project.
+pub fn todo_add(project: &str, title: &str) -> Result<()> {
+    let args = todo_add_args(project, title);
+    let out = Command::new("doob")
+        .args(&args)
+        .output()
+        .context("doob not found on PATH")?;
+    if !out.status.success() {
+        bail!(
+            "doob todo add failed: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    Ok(())
 }
