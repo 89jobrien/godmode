@@ -1,7 +1,8 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::{
-    builder, detect, dispatch, graph, integrations, model, plan, release, review, templates,
+    agent_index, builder, detect, dispatch, graph, integrations, model, plan, release, review,
+    templates,
 };
 
 #[derive(Parser)]
@@ -52,13 +53,10 @@ enum Cmd {
     /// Show graph counts and next runnable task(s) — fast mid-session state check.
     Status,
 
-    /// Ingest a plan and emit an orca-strait dispatch payload.
+    /// Agent operations: list installed agents, generate index, or dispatch a plan.
     Agent {
-        /// Path to the plan markdown file.
-        path: String,
-        /// Maximum concurrent agent chains.
-        #[arg(long, default_value = "5")]
-        max: usize,
+        #[command(subcommand)]
+        action: AgentAction,
     },
 
     /// Run verification gate: nextest + clippy + fmt + non-empty git log.
@@ -108,6 +106,26 @@ enum Cmd {
     Release {
         #[command(subcommand)]
         action: ReleaseAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum AgentAction {
+    /// List available agents (table or JSON).
+    List {
+        /// Filter by name or description keyword (case-insensitive).
+        #[arg(long)]
+        filter: Option<String>,
+    },
+    /// Regenerate agents/INDEX.md.
+    Index,
+    /// Ingest a plan file and emit an orca-strait dispatch payload.
+    Dispatch {
+        /// Path to the plan markdown file.
+        path: String,
+        /// Maximum concurrent agent chains.
+        #[arg(long, default_value = "5")]
+        max: usize,
     },
 }
 
@@ -716,43 +734,84 @@ fn main() -> Result<()> {
             Ok(())
         }
 
-        Cmd::Agent { path, max } => {
-            let markdown = std::fs::read_to_string(&path)?;
-            let tasks = plan::parse(&markdown)?;
-            if tasks.is_empty() {
-                anyhow::bail!("no tasks found in {}", path);
-            }
-            let mut g = graph::load(&root)?;
-            let mut ingested = 0usize;
-            for task in tasks {
-                match graph::add(&mut g, task) {
-                    Ok(()) => ingested += 1,
-                    Err(e) if e.to_string().contains("already exists") => {} // idempotent
-                    Err(e) => return Err(e),
+        Cmd::Agent { action } => match action {
+            AgentAction::List { filter } => {
+                let mut agents = agent_index::list_agents(&root)?;
+                if let Some(kw) = &filter {
+                    agents = agent_index::filter_agents(agents, kw);
                 }
+                // Always regenerate INDEX.md
+                agent_index::generate_agent_index(&root, &agents)?;
+                if agents.is_empty() {
+                    if json {
+                        println!("[]");
+                    } else {
+                        println!("No agents found.");
+                    }
+                    return Ok(());
+                }
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&agents)?);
+                } else {
+                    println!("{:<36} {:<10} SKILLS", "NAME", "COLOR");
+                    for a in &agents {
+                        println!("{:<36} {:<10} {}", a.name, a.color, a.skills.join(", "));
+                    }
+                }
+                Ok(())
             }
-            graph::save(&root, &g)?;
-            let chains = dispatch::independent_chains(&g, max);
-            if json {
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&serde_json::json!({
-                        "plan": path,
-                        "ingested": ingested,
-                        "chains": chains,
-                    }))?
-                );
-            } else {
-                println!("=== godmode agent dispatch ===");
-                println!("Plan:    {}", path);
-                println!("Chains:  {}", chains.len());
-                println!();
-                println!("{}", serde_json::to_string_pretty(&chains)?);
-                println!();
-                println!("Paste the chains array into orca-strait or feed to godmode-crate-agent.");
+
+            AgentAction::Index => {
+                let agents = agent_index::list_agents(&root)?;
+                agent_index::generate_agent_index(&root, &agents)?;
+                if json {
+                    println!(r#"{{"ok":true,"entries":{}}}"#, agents.len());
+                } else {
+                    println!("Generated agents/INDEX.md with {} entries.", agents.len());
+                }
+                Ok(())
             }
-            Ok(())
-        }
+
+            AgentAction::Dispatch { path, max } => {
+                let markdown = std::fs::read_to_string(&path)?;
+                let tasks = plan::parse(&markdown)?;
+                if tasks.is_empty() {
+                    anyhow::bail!("no tasks found in {}", path);
+                }
+                let mut g = graph::load(&root)?;
+                let mut ingested = 0usize;
+                for task in tasks {
+                    match graph::add(&mut g, task) {
+                        Ok(()) => ingested += 1,
+                        Err(e) if e.to_string().contains("already exists") => {}
+                        Err(e) => return Err(e),
+                    }
+                }
+                graph::save(&root, &g)?;
+                let chains = dispatch::independent_chains(&g, max);
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "plan": path,
+                            "ingested": ingested,
+                            "chains": chains,
+                        }))?
+                    );
+                } else {
+                    println!("=== godmode agent dispatch ===");
+                    println!("Plan:    {}", path);
+                    println!("Chains:  {}", chains.len());
+                    println!();
+                    println!("{}", serde_json::to_string_pretty(&chains)?);
+                    println!();
+                    println!(
+                        "Paste the chains array into orca-strait or feed to godmode-crate-agent."
+                    );
+                }
+                Ok(())
+            }
+        },
 
         Cmd::Verify { crate_name } => {
             let report = godmode_core::verify::run(&root, crate_name.as_deref())?;

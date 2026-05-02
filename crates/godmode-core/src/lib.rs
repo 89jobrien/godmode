@@ -1,3 +1,4 @@
+pub mod agent_index;
 pub mod builder;
 pub mod detect;
 pub mod dispatch;

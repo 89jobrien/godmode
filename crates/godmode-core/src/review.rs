@@ -4,11 +4,19 @@ use std::process::Command;
 
 use anyhow::Result;
 
+#[derive(Debug, serde::Serialize, PartialEq)]
+pub enum Severity {
+    Blocking,
+    Suggestion,
+    Nitpick,
+}
+
 #[derive(Debug, serde::Serialize)]
 pub struct Finding {
     pub skill: String,
     pub check: String,
     pub message: String,
+    pub severity: Severity,
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -32,6 +40,7 @@ impl ReviewReport {
             skill: skill.into(),
             check: check.into(),
             message: msg.into(),
+            severity: Severity::Blocking,
         });
         self.passed = false;
     }
@@ -376,7 +385,10 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
 }
 
 /// Check agent frontmatter: name, model, tools fields all present and non-empty.
+/// Also checks description length, skill directory existence, and tools non-empty.
 pub fn check_agents(root: &Path) -> Result<ReviewReport> {
+    use crate::agent_index;
+
     let mut r = ReviewReport::new();
     let files = agent_files(root)?;
 
@@ -406,6 +418,77 @@ pub fn check_agents(root: &Path) -> Result<ReviewReport> {
                     );
                 }
                 _ => {}
+            }
+        }
+
+        // Check: description non-empty and > 20 chars
+        r.checks += 1;
+        let desc_raw = extract_fm_field(&content, "description").unwrap_or("");
+        // Multi-line block scalars ("> \n  text") need the full content section
+        let desc_text = desc_raw.trim();
+        // For block scalars the value may span multiple lines; fall back to parsing the entry
+        let effective_desc = if desc_text.is_empty() {
+            // try agent_index parser which handles block scalars
+            agent_index::list_agents(root)
+                .ok()
+                .and_then(|agents| {
+                    agents.into_iter().find(|a| {
+                        a.path.file_stem().and_then(|s| s.to_str()).unwrap_or("") == agent_name
+                    })
+                })
+                .map(|a| a.description)
+                .unwrap_or_default()
+        } else {
+            desc_text.to_string()
+        };
+        if effective_desc.is_empty() {
+            r.fail(
+                &agent_name,
+                "description empty",
+                format!("[{agent_name}] agent description is empty"),
+            );
+        } else if effective_desc.len() <= 20 {
+            r.fail(
+                &agent_name,
+                "description too short",
+                format!(
+                    "[{agent_name}] agent description is too short ({} chars, need > 20)",
+                    effective_desc.len()
+                ),
+            );
+        }
+
+        // Check: tools field non-empty (already checked for presence above, check length here)
+        let tools_val = extract_fm_field(&content, "tools").unwrap_or("");
+        r.checks += 1;
+        if tools_val.trim().is_empty() || tools_val.trim() == "[]" {
+            r.fail(
+                &agent_name,
+                "tools empty",
+                format!("[{agent_name}] agent tools field is empty"),
+            );
+        }
+
+        // Check: skills reference existing skill dirs
+        let skills_val = extract_fm_field(&content, "skills").unwrap_or("");
+        if !skills_val.is_empty() {
+            for skill in skills_val
+                .split(',')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+            {
+                r.checks += 1;
+                let skill_dir = root.join("skills").join(skill);
+                if !skill_dir.exists() {
+                    r.fail(
+                        &agent_name,
+                        "unknown skill reference",
+                        format!(
+                            "[{agent_name}] skill '{skill}' referenced but skills/{skill}/ does \
+                             not exist"
+                        ),
+                    );
+                }
             }
         }
     }
@@ -529,6 +612,9 @@ const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "plan ingest",
     "dispatch",
     "agent",
+    "agent list",
+    "agent index",
+    "agent dispatch",
     "verify",
     "wave init",
     "wave status",
