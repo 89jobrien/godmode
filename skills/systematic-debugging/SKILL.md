@@ -1,5 +1,5 @@
 ---
-name: systematic-debugging
+name: "godmode:systematic-debugging"
 description: >
   Use when encountering any bug, test failure, panic, or unexpected behavior — before
   proposing any fix. Triggers on error output, failing tests, "why is X not working",

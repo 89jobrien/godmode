@@ -1,5 +1,5 @@
 ---
-name: godmode:observability-as-infrastructure
+name: "godmode:observability-as-infrastructure"
 description: >
   Structured tracing for all godmode helpers and subagents. Every script
   invocation, branching decision, and agent lifecycle transition is recorded

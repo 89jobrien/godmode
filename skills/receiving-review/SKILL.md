@@ -1,5 +1,5 @@
 ---
-name: godmode:receiving-review
+name: "godmode:receiving-review"
 description: >
   How to process incoming code review feedback. Use when receiving review comments —
   from sentinel, a human reviewer, or clippy — before implementing changes.

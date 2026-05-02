@@ -1,5 +1,5 @@
 ---
-name: parallel-agents
+name: "godmode:parallel-agents"
 description: >
   Use when facing 2 or more independent tasks that have no shared state or sequential
   dependencies between them. Triggers on multiple failing tests from different root causes,

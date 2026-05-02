@@ -1,5 +1,5 @@
 ---
-name: godmode:cap
+name: "godmode:cap"
 description: >
   Commit and push workflow with pre-flight validation and hook recovery. Use when the user
   says "cap", "commit and push", or "ship it". Runs cargo test, fmt, clippy, stages all

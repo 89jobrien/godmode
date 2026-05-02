@@ -1,5 +1,5 @@
 ---
-name: tackle-issues
+name: "godmode:tackle-issues"
 description: >
   Use when the user wants to work on GitHub issues in parallel — "tackle issues", "fix these
   issues", "work on #7 #8 #9", "dispatch agents for open issues". Fetches issues, groups them

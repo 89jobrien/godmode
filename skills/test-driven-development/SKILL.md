@@ -1,5 +1,5 @@
 ---
-name: test-driven-development
+name: "godmode:test-driven-development"
 description: >
   Use when implementing any feature or bugfix, before writing implementation code. Triggers
   on "implement", "add feature", "fix bug", "write code for", or any task that produces

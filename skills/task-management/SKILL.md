@@ -1,5 +1,5 @@
 ---
-name: task-management
+name: "godmode:task-management"
 description: >
   Use when creating a task graph for a session, tracking progress across tasks, executing
   the next unblocked task, or managing causal dependencies between work items. Triggers on

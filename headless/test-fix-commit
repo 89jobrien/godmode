@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-claude -p "Run cargo nextest in all workspace crates, fix any failures, and commit fixes" --allowedTools "Edit,Read,Bash,Write" --max-turns 20

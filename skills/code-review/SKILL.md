@@ -1,5 +1,5 @@
 ---
-name: godmode:code-review
+name: "godmode:code-review"
 description: >
   Structured code review before merge. Use when implementation is complete and you need
   a systematic quality pass — correctness, safety, architecture, tests, and style.

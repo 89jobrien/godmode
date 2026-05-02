@@ -1,5 +1,5 @@
 ---
-name: godmode:testing-philosophy
+name: "godmode:testing-philosophy"
 description: >
   The five-dimension testing model for Rust. Use when designing a test strategy for new
   code, reviewing test coverage, deciding which test type to write next, or onboarding

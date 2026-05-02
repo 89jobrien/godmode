@@ -1,5 +1,5 @@
 ---
-name: using-godmode
+name: "godmode:using-godmode"
 description: >
   Use at the start of every conversation to orient to available skills and workspace rules.
   Replaces superpowers entirely. Triggers on session start, "/godmode", or "what skills do

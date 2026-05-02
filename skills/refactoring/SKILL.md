@@ -1,5 +1,5 @@
 ---
-name: godmode:refactoring
+name: "godmode:refactoring"
 description: >
   Guided refactoring with test discipline. Use when restructuring code without changing
   observable behaviour — extract, rename, reorganise, decouple.

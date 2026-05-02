@@ -1,5 +1,5 @@
 ---
-name: writing-plans
+name: "godmode:writing-plans"
 description: >
   Use when you have a spec, approved design, or requirements for a multi-step task, before
   touching any code. Triggers after brainstorming completes, or when given a feature spec

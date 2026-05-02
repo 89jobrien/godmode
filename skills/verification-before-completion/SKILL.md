@@ -1,5 +1,5 @@
 ---
-name: verification-before-completion
+name: "godmode:verification-before-completion"
 description: >
   Use before claiming any work is complete, fixed, or passing. Triggers before committing,
   before creating a PR, before reporting "done", or before saying tests pass.
