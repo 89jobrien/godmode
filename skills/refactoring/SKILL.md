@@ -35,7 +35,7 @@ regressions.
 ### 1. Confirm green baseline
 
 ```bash
-cargo test --workspace
+cargo nextest run --workspace
 cargo clippy --workspace -- -D warnings
 ```
 
@@ -56,7 +56,7 @@ Do not expand scope without surfacing to user.
 Each change:
 
 1. Edit code
-2. Run `cargo test --workspace` — must stay green
+2. Run `cargo nextest run --workspace` — must stay green
 3. If red, revert and diagnose before proceeding
 
 ### 4. Verify behaviour unchanged
@@ -70,7 +70,7 @@ Each change:
 ```bash
 cargo fmt --all --check
 cargo clippy --workspace -- -D warnings
-cargo test --workspace
+cargo nextest run --workspace
 ```
 
 ## Common Refactoring Patterns (Rust)

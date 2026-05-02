@@ -50,6 +50,7 @@ godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes "<text>"]
 godmode task block <id> "<reason>"
 godmode task unblock <id>
+godmode task unblock-all
 ```
 
 ### Remove a task

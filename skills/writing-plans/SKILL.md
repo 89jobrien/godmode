@@ -88,7 +88,7 @@ Expected: FAIL
 - **Consistent names**: types and method names must match across all tasks
 - **TDD for every task**: write failing test → verify failure → implement → verify pass → commit
 
-## introspection Before Saving
+## Pre-Save Checklist
 
 Check these before writing the file:
 - [ ] Every requirement maps to at least one task
