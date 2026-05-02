@@ -60,11 +60,12 @@ Resolve the repo root first:
 REPO_ROOT=$(git rev-parse --show-toplevel)
 ```
 
-Ensure `.worktrees/` is gitignored (add if absent):
+Ensure `.worktrees/` is gitignored (add if absent). Use the Grep tool to check, then append
+if missing:
 
 ```bash
-grep -q '.worktrees/' "$REPO_ROOT/.gitignore" \
-  || echo '.worktrees/' >> "$REPO_ROOT/.gitignore"
+# Check: Grep for '.worktrees/' in $REPO_ROOT/.gitignore
+# If not found: echo '.worktrees/' >> "$REPO_ROOT/.gitignore"
 ```
 
 For each slot, create a worktree branched from the latest main:
@@ -105,7 +106,7 @@ Workflow:
    c. Run: cargo clippy --workspace --manifest-path <REPO_ROOT>/Cargo.toml -- -D warnings
       Zero warnings.
 4. Commit:
-   git -C <REPO_ROOT>/.worktrees/issue-<N> add -p   # stage only your changes
+   git -C <REPO_ROOT>/.worktrees/issue-<N> add -A
    git -C <REPO_ROOT>/.worktrees/issue-<N> commit -m "feat: <summary> fixes #<N>"
 5. If a matching godmode task exists (check .ctx/GODMODE.tasks.yaml):
    godmode task done <task-id> --commit <sha>
@@ -172,11 +173,13 @@ git -C "$REPO_ROOT" log --oneline main | head -5   # verify merge commit present
 gh issue close <N> --repo <owner>/<repo> --comment "Implemented in <commit-sha>."
 ```
 
-7. Sync to godmode + doob:
+7. Sync to godmode: mark any running godmode tasks done per issue:
 
 ```bash
-godmode task push-done
+godmode task done <task-id> --commit <merge-sha>
 ```
+
+Skip if no matching task exists in `.ctx/GODMODE.tasks.yaml`.
 
 ## Guardrails
 

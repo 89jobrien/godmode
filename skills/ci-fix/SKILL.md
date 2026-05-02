@@ -56,8 +56,8 @@ cargo nextest run --workspace
 cargo clippy --workspace -- -D warnings
 cargo fmt --all --check
 
-# runner_environment — read the workflow file first
-cat .github/workflows/<file>.yml
+# runner_environment — read the workflow file first (use Read tool, not cat)
+# Read: .github/workflows/<file>.yml
 # then edit only the failing step
 ```
 
@@ -72,7 +72,7 @@ git push
 Then verify the new run passes:
 
 ```bash
-gh run watch   # or: gh run list --limit 3
+gh run list --limit 3   # polling fallback — gh run watch requires interactive TTY
 ```
 
 ## Guardrails

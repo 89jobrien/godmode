@@ -113,8 +113,8 @@ After all agents report:
    cargo nextest run --workspace
    cargo clippy --workspace -- -D warnings
    ```
-5. Integration failures (cross-crate) are fixed in the orchestrator session — do not
-   spawn another agent layer.
+5. Merge each branch sequentially with `--no-ff` (never octopus-merge). Integration failures
+   (cross-crate) are fixed in the orchestrator session — do not spawn another agent layer.
 6. Update `.ctx/GODMODE.tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
 7. Archive wave state: `mv .ctx/wave-status.json .ctx/wave-<N>-complete.json`
 

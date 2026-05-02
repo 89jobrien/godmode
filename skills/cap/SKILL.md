@@ -16,7 +16,7 @@ Run the full validation gate, commit, and push in one pass.
 
 ```bash
 cargo check --workspace
-cargo nextest run --workspace   # fallback: cargo test --workspace
+cargo nextest run --workspace   # preferred; fallback: cargo test --workspace
 cargo clippy --workspace -- -D warnings
 cargo fmt --all --check
 ```
@@ -52,7 +52,14 @@ Scope: crate name or module (e.g. `godmode-core`, `graph`, `cli`)
 
 Derive the message from the staged diff — do not ask the user to write it.
 
-### Step 4: Commit
+### Step 4: Verify branch and commit
+
+```bash
+git branch --show-current
+```
+
+If the output is `main` and the user did not explicitly ask to commit to main — stop and report.
+Do not proceed.
 
 ```bash
 git commit -m "<message>"
@@ -76,6 +83,16 @@ git push
 
 If push is rejected (non-fast-forward): report to user. Do not force-push without explicit
 instruction.
+
+### Step 6: Sync task state (if applicable)
+
+If a godmode task is currently `running`, mark it done with the commit SHA:
+
+```bash
+godmode task done <task-id> --commit <sha>
+```
+
+If no running task exists, skip this step.
 
 ## Guardrails
 

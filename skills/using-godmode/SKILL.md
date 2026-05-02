@@ -45,6 +45,9 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:verification-before-completion` | Before claiming work is done                   |
 | `godmode:task-management`                | Creating, tracking, or executing a task graph  |
 | `godmode:parallel-agents`                | 2+ independent tasks that can run concurrently |
+| `godmode:cap`                            | "cap", "commit and push", "ship it"            |
+| `godmode:ci-fix`                         | CI failing, "fix CI", broken pipeline          |
+| `godmode:tackle-issues`                  | Working on GitHub issues in parallel           |
 
 ## Always-Active Rules
 

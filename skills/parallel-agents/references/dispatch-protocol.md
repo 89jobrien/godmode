@@ -47,10 +47,10 @@ Cap at **5 concurrent agents**. Queue additional chains and dispatch as slots fr
 # 1. Verify all agents committed
 git log --oneline -5   # for each agent branch
 
-# 2. Cherry-pick sequentially (never octopus merge)
+# 2. Merge sequentially with --no-ff (never octopus merge)
 git checkout main
-git cherry-pick <sha-from-agent-1>
-git cherry-pick <sha-from-agent-2>
+git merge --no-ff agent/t1 -m "merge: <description>"
+git merge --no-ff agent/t2 -m "merge: <description>"
 
 # 3. Full workspace gate
 cargo nextest run --workspace
