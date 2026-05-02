@@ -212,11 +212,20 @@ enum TaskAction {
         auto_done: bool,
     },
 
-    /// Pull pending doob todos into the task graph.
+    /// Pull pending todos/issues into the task graph.
     Pull {
         /// Doob project name (defaults to Cargo.toml package name).
         #[arg(long)]
         project: Option<String>,
+        /// Pull from GitHub Issues instead of doob.
+        #[arg(long)]
+        github: bool,
+        /// GitHub repo (owner/repo) — defaults to current repo.
+        #[arg(long, requires = "github")]
+        repo: Option<String>,
+        /// Filter by label (GitHub only).
+        #[arg(long, requires = "github")]
+        label: Option<String>,
     },
 
     /// Mark completed tasks as done in doob (uses `doob:` UUID in notes field).
@@ -431,29 +440,37 @@ fn main() -> Result<()> {
                     }
                 }
 
-                TaskAction::Pull { project } => {
-                    let project = match project {
-                        Some(p) => p,
-                        None => detect::package_name(&root)?,
+                TaskAction::Pull {
+                    project,
+                    github,
+                    repo,
+                    label,
+                } => {
+                    let tasks = if github {
+                        integrations::gh::pull_issues(repo.as_deref(), label.as_deref())?
+                    } else {
+                        let project = match project {
+                            Some(p) => p,
+                            None => detect::package_name(&root)?,
+                        };
+                        let todos = integrations::doob::todo_list(&project)?;
+                        integrations::doob::todos_to_tasks(&todos)
                     };
-                    let todos = integrations::doob::todo_list(&project)?;
-                    let tasks = integrations::doob::todos_to_tasks(&todos);
-                    let count = tasks.len();
+                    let mut imported = 0usize;
                     for task in tasks {
-                        if let Err(e) = graph::add(&mut g, task)
-                            && !e.to_string().contains("already exists")
-                        {
-                            return Err(e);
+                        match graph::add(&mut g, task) {
+                            Ok(()) => imported += 1,
+                            Err(e) if e.to_string().contains("already exists") => {}
+                            Err(e) => return Err(e),
                         }
                     }
                     graph::save(&root, &g)?;
                     if json {
-                        println!(r#"{{"ok":true,"imported":{}}}"#, count);
+                        println!(r#"{{"ok":true,"imported":{}}}"#, imported);
+                    } else if github {
+                        println!("Imported {} issue(s) from GitHub.", imported);
                     } else {
-                        println!(
-                            "Imported {} pending todos from doob project '{}'.",
-                            count, project
-                        );
+                        println!("Imported {} pending todos from doob.", imported);
                     }
                 }
 

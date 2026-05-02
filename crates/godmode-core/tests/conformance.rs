@@ -1,5 +1,6 @@
 //! Conformance tests: verify `godmode` binary exit-code and JSON-output contracts.
 
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -127,6 +128,91 @@ fn plan_ingest_produces_tasks() {
         titles.iter().any(|t| t.contains("Refactor")),
         "expected task with 'Refactor' in title, got {titles:?}"
     );
+}
+
+// ── task_pull_github_imports_issues ──────────────────────────────────────────
+
+const GH_ISSUE_JSON: &str = r#"[
+  {"number": 42, "title": "Fix the thing", "body": "Some details", "labels": []},
+  {"number": 43, "title": "Another issue", "body": "", "labels": []}
+]"#;
+
+#[test]
+fn task_pull_github_imports_issues() {
+    let dir = TempDir::new().unwrap();
+
+    // Create a fake `gh` binary that returns fixture JSON.
+    let fake_gh = dir.path().join("gh");
+    let script = format!(
+        "#!/bin/sh\nprintf '%s' '{}'\nexit 0\n",
+        GH_ISSUE_JSON.replace('\'', "'\\''")
+    );
+    std::fs::write(&fake_gh, &script).unwrap();
+    std::fs::set_permissions(&fake_gh, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let path_with_fake = format!(
+        "{}:{}",
+        dir.path().to_str().unwrap(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+
+    let out = Command::new(godmode_bin())
+        .args(["task", "pull", "--github", "--json"])
+        .current_dir(dir.path())
+        .env("PATH", &path_with_fake)
+        .output()
+        .expect("failed to run godmode");
+    let code = out.status.code().unwrap_or(-1);
+    let stdout = String::from_utf8_lossy(&out.stdout).into_owned();
+    assert_eq!(
+        code,
+        0,
+        "task pull --github should exit 0; stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    // Should report how many were imported.
+    let v: serde_json::Value = serde_json::from_str(stdout.trim()).expect("valid JSON");
+    assert_eq!(v["ok"], true);
+    assert_eq!(v["imported"], 2);
+}
+
+#[test]
+fn task_pull_github_idempotent() {
+    let dir = TempDir::new().unwrap();
+
+    let fake_gh = dir.path().join("gh");
+    let script = format!(
+        "#!/bin/sh\nprintf '%s' '{}'\nexit 0\n",
+        GH_ISSUE_JSON.replace('\'', "'\\''")
+    );
+    std::fs::write(&fake_gh, &script).unwrap();
+    std::fs::set_permissions(&fake_gh, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let path_with_fake = format!(
+        "{}:{}",
+        dir.path().to_str().unwrap(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+
+    // First pull
+    let out1 = Command::new(godmode_bin())
+        .args(["task", "pull", "--github", "--json"])
+        .current_dir(dir.path())
+        .env("PATH", &path_with_fake)
+        .output()
+        .expect("run 1");
+    assert_eq!(out1.status.code().unwrap_or(-1), 0);
+
+    // Second pull — same data, should still exit 0 with imported=0 (skipped)
+    let out2 = Command::new(godmode_bin())
+        .args(["task", "pull", "--github", "--json"])
+        .current_dir(dir.path())
+        .env("PATH", &path_with_fake)
+        .output()
+        .expect("run 2");
+    assert_eq!(out2.status.code().unwrap_or(-1), 0);
+    let stdout2 = String::from_utf8_lossy(&out2.stdout).into_owned();
+    let v2: serde_json::Value = serde_json::from_str(stdout2.trim()).expect("valid JSON run 2");
+    assert_eq!(v2["imported"], 0, "second pull should import 0 new tasks");
 }
 
 // ── dispatch_json_shape ──────────────────────────────────────────────────────
