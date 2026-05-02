@@ -15,11 +15,15 @@ description: >
 
 ## Severity Levels
 
+> (canonical source: `nu skills/_lib/review-rules.nu severity-table`)
+
 | Level      | Action                          |
 | ---------- | ------------------------------- |
 | Blocking   | Must fix before merge           |
 | Suggestion | Should fix; explain if skipping |
 | Nitpick    | Optional; fix in one pass       |
+
+> (`review-rules.nu one-pass-rule`)
 
 **Apply all severity levels in one pass.** Do not commit after fixing only blocking
 issues and leave suggestions for a follow-up — that creates noisy fix histories.
@@ -86,6 +90,8 @@ issues and leave suggestions for a follow-up — that creates noisy fix historie
 6. Use `godmode:verification-before-completion` before claiming done
 
 ## False Positives
+
+> (`review-rules.nu false-positive-protocol`)
 
 When a reviewer (sentinel, clippy, obfsck) flags test data, string literals, or fixture
 content:
