@@ -6,3 +6,4 @@ pub mod model;
 pub mod plan;
 pub mod session;
 pub mod verify;
+pub mod wave;
