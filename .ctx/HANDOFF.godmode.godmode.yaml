@@ -6,7 +6,7 @@ items:
     doob_uuid: null
     name: null
     priority: P1
-    status: open
+    status: closed
     title: Define next feature scope for godmode plugin
     description: |
       Rust workspace is standing (godmode-core + godmode-cli, 19 tests passing). README written from real usage. Next step: determine what capabilities to add (e.g. task execution, crux integration, additional skill hooks).
@@ -14,9 +14,16 @@ items:
       - godmode-core/src/lib.rs
       - godmode-cli/src/main.rs
       - README.md
-    completed: null
-    extra: []
+    completed: 20260501
+    extra:
+      - date: 20260501:232757
+        type: note
+        note: "Fixed shell metacharacter execution in task run. Filed 6 GitHub issues for roadmap: task clear, plan ingest idempotency, task run --auto-done, task clear-done, godmode status, writing-plans docs."
 log:
+  - date: 20260501:232757
+    summary: Fixed shell metacharacter handling in task run (sh -c). Closed gm-001. Filed 6 roadmap issues.
+    commits: []
+    session: 2
   - date: 20260501:155222
     summary: Stood up Rust workspace (godmode-core + godmode-cli), 19 tests passing; wrote README from real usage
     commits:
