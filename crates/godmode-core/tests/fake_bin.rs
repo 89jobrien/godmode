@@ -57,9 +57,9 @@ impl FakeBinBuilder {
         let bin_path = dir.path().join(&self.name);
 
         let script = if self.echo_argv {
-            // Print argv as a JSON array (skip argv[0]).
+            // Print argv as a JSON array using echo to avoid printf format-string issues.
             format!(
-                "#!/bin/sh\nprintf '['; first=1; for a in \"$@\"; do [ $first -eq 0 ] && printf ','; printf '\"%%s\"' \"$a\"; first=0; done; printf ']\\n'; exit {}\n",
+                "#!/bin/sh\nout='['; sep=''; for a in \"$@\"; do out=\"${{out}}${{sep}}\\\"${{a}}\\\"\"; sep=','; done; out=\"${{out}}]\"; echo \"$out\"\nexit {}\n",
                 self.exit_code
             )
         } else {

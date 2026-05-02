@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Check for running tasks by running `godmode task list --json`. If any tasks have status 'running', block the stop and tell Claude to complete or hand off those tasks first. If no running tasks exist, approve the stop.",
+            "prompt": "Run `godmode task list --json` and check for tasks with status 'running'. Respond with JSON only: {\"decision\":\"block\",\"reason\":\"<task ids still running>\"} if any tasks are running, or {\"decision\":\"approve\"} if none are.",
             "timeout": 30
           }
         ]
