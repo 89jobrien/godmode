@@ -54,6 +54,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents        |
 | `godmode:testing-philosophy`              | Designing test strategy for new code           |
 | `godmode:introspection`                   | Auditing skills for consistency after changes  |
+| `godmode:moa`                             | Multi-model synthesis via Mixture of Agents    |
 
 ## Always-Active Rules
 
