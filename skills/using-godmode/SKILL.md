@@ -48,6 +48,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:cap`                            | "cap", "commit and push", "ship it"            |
 | `godmode:ci-fix`                         | CI failing, "fix CI", broken pipeline          |
 | `godmode:tackle-issues`                  | Working on GitHub issues in parallel           |
+| `godmode:self-review`                    | Auditing skills for consistency after changes  |
 
 ## Always-Active Rules
 
