@@ -275,7 +275,12 @@ fn main() -> Result<()> {
             match action {
                 TaskAction::List => {
                     if g.tasks.is_empty() {
-                        exit_empty(json);
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No tasks.");
+                        }
+                        return Ok(());
                     }
                     if json {
                         println!("{}", serde_json::to_string_pretty(&g.tasks)?);

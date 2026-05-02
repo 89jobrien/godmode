@@ -55,20 +55,13 @@ fn empty_graph_task_next_exits_1() {
 }
 
 // ── empty_graph_task_list_exits_0 ────────────────────────────────────────────
-// NOTE: the CLI calls exit_empty() (exit 1) when the task list is empty, which
-// matches the same convention as `task next`. The JSON output is still `[]`.
 
 #[test]
 fn empty_graph_task_list_exits_0() {
     let dir = TempDir::new().unwrap();
     let (code, stdout, _stderr) = run(dir.path(), &["task", "list", "--json"]);
-    // CLI exits 1 on an empty graph (consistent with task next) but still
-    // writes `[]` to stdout so callers can distinguish empty from error.
-    assert_eq!(
-        code, 1,
-        "task list on empty graph should exit 1 (empty sentinel)"
-    );
-    // stdout must still be a parseable empty JSON array.
+    assert_eq!(code, 0, "task list on empty graph should exit 0");
+    // stdout must be a parseable empty JSON array.
     let parsed: serde_json::Value =
         serde_json::from_str(stdout.trim()).expect("stdout should be valid JSON");
     assert!(
