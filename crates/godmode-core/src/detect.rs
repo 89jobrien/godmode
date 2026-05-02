@@ -23,6 +23,25 @@ pub fn root_or_cwd() -> Result<PathBuf> {
     repo_root(&cwd).or(Ok(cwd))
 }
 
+/// Read the `[package] name` from the nearest `Cargo.toml` at or above `root`.
+pub fn package_name(root: &Path) -> Result<String> {
+    let cargo_toml = root.join("Cargo.toml");
+    let raw = std::fs::read_to_string(&cargo_toml)
+        .with_context(|| format!("reading {}", cargo_toml.display()))?;
+    // Parse just enough to extract [package] name without a full TOML dep.
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if let Some(rest) = trimmed.strip_prefix("name") {
+            let rest = rest.trim().trim_start_matches('=').trim();
+            let name = rest.trim_matches('"').trim_matches('\'').to_string();
+            if !name.is_empty() {
+                return Ok(name);
+            }
+        }
+    }
+    bail!("could not find [package] name in {}", cargo_toml.display())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

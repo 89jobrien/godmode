@@ -25,6 +25,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
     let mut tasks: Vec<Task> = Vec::new();
     let mut current_title: Option<String> = None;
     let mut current_crate: Option<String> = None;
+    let mut current_run: Option<String> = None;
 
     for line in markdown.lines() {
         let trimmed = line.trim();
@@ -33,7 +34,7 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
         if let Some(rest) = trimmed.strip_prefix("### Task ") {
             // flush previous
             if let Some(title) = current_title.take() {
-                push_task(&mut tasks, title, current_crate.take());
+                push_task(&mut tasks, title, current_crate.take(), current_run.take());
             }
             // strip leading "N: " or "N. "
             let title = rest
@@ -57,21 +58,37 @@ pub fn parse(markdown: &str) -> Result<Vec<Task>> {
                 .to_string();
             current_crate = Some(crate_name);
         }
+
+        // Detect run annotation: `**Run**: `command``
+        if trimmed.starts_with("**Run**:") {
+            let run_cmd = trimmed
+                .trim_start_matches("**Run**:")
+                .trim()
+                .trim_matches('`')
+                .to_string();
+            current_run = Some(run_cmd);
+        }
     }
 
     // flush last
     if let Some(title) = current_title.take() {
-        push_task(&mut tasks, title, current_crate.take());
+        push_task(&mut tasks, title, current_crate.take(), current_run.take());
     }
 
     Ok(tasks)
 }
 
-fn push_task(tasks: &mut Vec<Task>, title: String, crate_name: Option<String>) {
+fn push_task(
+    tasks: &mut Vec<Task>,
+    title: String,
+    crate_name: Option<String>,
+    run: Option<String>,
+) {
     let idx = tasks.len() + 1;
     let id = format!("t{idx}");
     let mut task = Task::new(id, title);
     task.crate_name = crate_name;
+    task.run = run;
     // Sequential dependency: each task depends on the previous one.
     if idx > 1 {
         task.depends_on = vec![format!("t{}", idx - 1)];

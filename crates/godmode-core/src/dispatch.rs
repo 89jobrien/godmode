@@ -8,13 +8,20 @@ use std::collections::{HashMap, HashSet};
 
 use crate::model::{Status, Task, TaskGraph};
 
+/// A task reference with id and title for orca-strait agent consumption.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct TaskRef {
+    pub id: String,
+    pub title: String,
+}
+
 /// A group of tasks that must execute sequentially, targeting one crate.
 #[derive(Debug, serde::Serialize)]
 pub struct Chain {
     /// Crate this chain targets (if all tasks share a crate name).
     pub crate_name: Option<String>,
-    /// Tasks in execution order.
-    pub tasks: Vec<String>,
+    /// Tasks in execution order with id + title.
+    pub tasks: Vec<TaskRef>,
 }
 
 /// Decompose the graph into independent chains of runnable + pending tasks.
@@ -90,10 +97,15 @@ pub fn independent_chains(graph: &TaskGraph, max_concurrent: usize) -> Vec<Chain
         }
 
         let crate_name = infer_crate(&chain_ids, graph);
-        chains.push(Chain {
-            crate_name,
-            tasks: chain_ids.iter().map(|s| s.to_string()).collect(),
-        });
+        let tasks = chain_ids
+            .iter()
+            .filter_map(|id| graph.tasks.iter().find(|t| t.id == *id))
+            .map(|t| TaskRef {
+                id: t.id.clone(),
+                title: t.title.clone(),
+            })
+            .collect();
+        chains.push(Chain { crate_name, tasks });
 
         if chains.len() >= max_concurrent {
             break;
@@ -141,7 +153,8 @@ mod tests {
         ]);
         let chains = independent_chains(&g, 5);
         assert_eq!(chains.len(), 1);
-        assert_eq!(chains[0].tasks, vec!["t1", "t2"]);
+        let ids: Vec<&str> = chains[0].tasks.iter().map(|t| t.id.as_str()).collect();
+        assert_eq!(ids, vec!["t1", "t2"]);
         assert_eq!(chains[0].crate_name.as_deref(), Some("foo"));
     }
 

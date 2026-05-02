@@ -139,6 +139,26 @@ pub fn block(graph: &mut TaskGraph, id: &str, reason: &str) -> Result<()> {
     Ok(())
 }
 
+/// Reset a blocked task back to pending.
+pub fn unblock(graph: &mut TaskGraph, id: &str) -> Result<()> {
+    let task = graph
+        .tasks
+        .iter_mut()
+        .find(|t| t.id == id)
+        .with_context(|| format!("task '{id}' not found"))?;
+
+    if task.status != Status::Blocked {
+        bail!(
+            "task '{}' is {} — can only unblock blocked tasks",
+            id,
+            task.status
+        );
+    }
+    task.status = Status::Pending;
+    task.notes = String::new();
+    Ok(())
+}
+
 /// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {

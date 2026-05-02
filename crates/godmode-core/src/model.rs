@@ -40,6 +40,9 @@ pub struct Task {
     pub commit: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed: Option<NaiveDate>,
+    /// Shell command to run for this task. Prefix with `rx:` to invoke via rx registry.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run: Option<String>,
 }
 
 impl Task {
@@ -53,6 +56,7 @@ impl Task {
             crate_name: None,
             commit: None,
             completed: None,
+            run: None,
         }
     }
 }
