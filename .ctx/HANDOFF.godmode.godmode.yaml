@@ -3,6 +3,10 @@ id: godmode
 updated: 2026-05-02
 items: []
 log:
+  - date: 2026-05-02
+    summary: "tackled issues #7-#17 (hooks, _lib refactors, conformance suite, CI); added proptest suite (19 props); added optional cruxx-domain integration via --features crux; 96 tests passing"
+    commits:
+      - 2c3d41c
   - date: 20260501:233015
     summary: Installed godmode CLI. Fixed shell metacharacter execution in task run via sh -c. Smoke-tested end-to-end plan→task→run→done cycle. Created GitHub repo 89jobrien/godmode. Filed 6 roadmap issues (#1–#6). Closed gm-001.
     commits:
