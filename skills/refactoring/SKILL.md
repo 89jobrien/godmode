@@ -34,6 +34,8 @@ regressions.
 
 ### 1. Confirm green baseline
 
+> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+
 ```bash
 cargo nextest run --workspace
 cargo clippy --workspace -- -D warnings
@@ -66,6 +68,8 @@ Each change:
 - No behaviour changes smuggled into the refactor
 
 ### 5. Run full gate
+
+> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
 
 ```bash
 cargo fmt --all --check

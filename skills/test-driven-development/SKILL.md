@@ -48,6 +48,8 @@ cargo nextest run -p <crate>   # all tests must pass
 
 ### 3. REFACTOR — Clean up with tests green
 
+> Run via `nu skills/_lib/quality-gate.nu run-quality-gate <crate>` or use the commands below:
+
 ```bash
 cargo clippy -p <crate> -- -D warnings   # zero warnings required
 cargo fmt -p <crate>
@@ -58,6 +60,7 @@ Commit only when clippy is clean:
 
 1. Run: `git branch --show-current`
    Verify output matches the expected branch. Stop immediately if not.
+   (`guardrails.nu check-branch <expected>`)
 
 ```bash
 git commit -m "feat(<crate>): <what it does>"
