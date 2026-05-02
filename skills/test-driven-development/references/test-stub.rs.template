@@ -1,0 +1,125 @@
+// Test stubs — copy the relevant section into your crate.
+// Replace <thing>, <scenario>, <expected>, <Type>, <Trait>, <impl> throughout.
+// Each section corresponds to one dimension of the testing lifecycle:
+//   Unit → Property → Conformance → Integration → Regression
+
+// =============================================================================
+// UNIT — inline in src/<module>.rs
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- Happy path ---
+
+    #[test]
+    fn <thing>_<scenario>_returns_<expected>() {
+        // Arrange
+        let input = todo!("provide input");
+
+        // Act
+        let result = todo!("call the function");
+
+        // Assert — MUST FAIL before implementation exists
+        assert_eq!(result, todo!("expected value"));
+    }
+
+    // --- Error path ---
+
+    #[test]
+    fn <thing>_invalid_input_returns_err() {
+        let result: Result<_, _> = todo!("call with invalid input");
+        assert!(result.is_err());
+    }
+
+    // --- Edge case ---
+
+    #[test]
+    fn <thing>_empty_input_<expected>() {
+        todo!("implement edge case test");
+    }
+}
+
+// =============================================================================
+// PROPERTY — inline in src/<module>.rs, or tests/<module>_props.rs
+// Requires: proptest = "1" in [dev-dependencies]
+// =============================================================================
+
+#[cfg(test)]
+mod prop_tests {
+    use super::*;
+    use proptest::prelude::*;
+
+    prop_compose! {
+        // Build an arbitrary domain value from its fields.
+        // Use specific ranges/regexes — not unbounded primitives.
+        fn arb_<type>()(
+            field in "[a-z][a-z0-9-]{0,15}",
+        ) -> <Type> {
+            todo!("construct <Type> from fields")
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn <invariant>_holds_for_all_valid_inputs(value in arb_<type>()) {
+            // Assert an invariant — not a specific value.
+            // Good: output is sorted, round-trip is lossless, no panic.
+            prop_assert!(todo!("invariant expression"));
+        }
+    }
+}
+
+// =============================================================================
+// CONFORMANCE — tests/conformance_<trait>.rs
+// One suite per trait; call with every impl.
+// =============================================================================
+
+fn assert_<trait>_contract<T: <Trait>>(mut subject: T) {
+    // Assert every invariant the trait's doc comment promises.
+    // Example: add then get returns the same value.
+    let _ = todo!("contract assertion 1");
+    let _ = todo!("contract assertion 2");
+    // Example: duplicate add returns Err.
+    // Example: remove nonexistent returns Err.
+}
+
+#[test]
+fn <impl_name>_satisfies_<trait>_contract() {
+    assert_<trait>_contract(<ImplName>::default());
+}
+
+// =============================================================================
+// INTEGRATION — tests/<feature>_integration.rs
+// Tests wiring across a crate or module boundary.
+// Use real I/O; no fakes unless the test is not about that boundary.
+// =============================================================================
+
+#[test]
+fn <scenario>_across_<boundary>() {
+    // Arrange — real dependencies
+    let dir = tempfile::tempdir().expect("tempdir");
+
+    // Act — exercise the wiring
+    let result = todo!("call across boundary");
+
+    // Assert — verify connected behaviour
+    assert_eq!(result, todo!("expected"));
+}
+
+// =============================================================================
+// REGRESSION — inline or tests/, one test per bug
+// Minimal input that previously caused the failure.
+// Never delete regression tests.
+// =============================================================================
+
+#[test]
+fn regression_<bug_description>() {
+    // Reproduces: <issue / commit / PR reference>
+    // Previously caused: <panic | wrong result | silent data loss>
+    let input = todo!("minimal failing input");
+    let result = todo!("call the function");
+    // Must not panic, and must return the correct value:
+    assert_eq!(result, todo!("correct value"));
+}

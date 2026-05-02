@@ -31,7 +31,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 
 ## Skill Priority
 
-1. Process skills first: `godmode:brainstorming`, `godmode:systematic-debugging`
+1. Process skills first: `godmode:brainstorm`, `godmode:systematic-debugging`
 2. Implementation skills second: `godmode:test-driven-development`, `godmode:parallel-agents`
 
 ## Available Skills
@@ -40,7 +40,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | ---------------------------------------- | ---------------------------------------------- |
 | `godmode:test-driven-development`        | Implementing any feature or fix                |
 | `godmode:systematic-debugging`           | Any bug, test failure, unexpected behavior     |
-| `godmode:brainstorming`                  | Before any creative or design work             |
+| `godmode:brainstorm`                     | Before any creative or design work             |
 | `godmode:writing-plans`                  | Multi-step task with a spec or requirements    |
 | `godmode:verification-before-completion` | Before claiming work is done                   |
 | `godmode:task-management`                | Creating, tracking, or executing a task graph  |
@@ -48,7 +48,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:cap`                            | "cap", "commit and push", "ship it"            |
 | `godmode:ci-fix`                         | CI failing, "fix CI", broken pipeline          |
 | `godmode:tackle-issues`                  | Working on GitHub issues in parallel           |
-| `godmode:self-review`                    | Auditing skills for consistency after changes  |
+| `godmode:introspection`                  | Auditing skills for consistency after changes  |
 
 ## Always-Active Rules
 

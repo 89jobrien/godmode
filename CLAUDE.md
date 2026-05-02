@@ -78,6 +78,24 @@ Plan markdown must use `### Task N: <title>` headings. Optionally annotate with:
 `plan::parse` builds sequential `depends_on` chains automatically. `graph::add` is idempotent —
 re-ingesting a plan skips existing task IDs silently.
 
+### CLI subcommands
+
+```
+godmode handon                          # session-start triage summary
+godmode handoff                         # session-end validation
+godmode status                          # graph counts + next runnable tasks
+godmode task list / next / add / start / done / block / unblock / remove / clear
+godmode task run <id> [--auto-done]     # execute task's run: field via rx
+godmode task pull [--project <name>]    # import pending doob todos
+godmode task push-done                  # sync completed tasks back to doob
+godmode plan ingest <path>              # parse plan markdown into task graph
+godmode dispatch [--max N]             # emit parallel chains JSON
+godmode agent <path> [--max N]         # plan ingest + dispatch in one shot
+```
+
+`task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
+`task clear` requires `--done` (completed only) or `--all`.
+
 ## Plugin layout
 
 This repo is also a Claude Code plugin installed via bazaar:

@@ -1,12 +1,12 @@
 ---
-name: brainstorming
+name: "godmode:brainstorm"
 description: >
   Use before any creative work — new features, new components, architecture decisions,
   adding crates, designing APIs. Triggers on "let's build", "I want to add", "design X",
   "how should we structure", or any request that would produce new code structure.
 ---
 
-# Brainstorming
+# Brainstorm
 
 **Hard gate**: Do NOT write any code, scaffold any structure, or invoke any implementation
 skill until you have presented a design and the user has explicitly approved it. No

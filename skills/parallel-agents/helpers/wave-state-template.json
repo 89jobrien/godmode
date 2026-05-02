@@ -1,12 +1,12 @@
 {
-  "wave": 1,
-  "started_at": "",
-  "agents": {
-    "<crate-or-domain>": {
-      "status": "pending",
-      "branch": "",
-      "commits": [],
-      "blocked_reason": ""
+    "wave": 1,
+    "started_at": "",
+    "agents": {
+        "<crate-or-domain>": {
+            "status": "pending",
+            "branch": "",
+            "commits": [],
+            "blocked_reason": ""
+        }
     }
-  }
 }

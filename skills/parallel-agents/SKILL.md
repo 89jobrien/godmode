@@ -73,7 +73,11 @@ Before dispatching, write `.ctx/wave-status.json`:
 {
   "wave": 1,
   "agents": {
-    "<crate-or-domain>": { "status": "pending", "branch": "", "commits": [] }
+    "<crate-or-domain>": {
+      "status": "pending",
+      "branch": "",
+      "commits": []
+    }
   }
 }
 ```

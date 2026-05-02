@@ -1,6 +1,6 @@
 # godmode
 
-Self-contained Rust-native development methodology plugin for Claude Code. 
+Self-contained Rust-native development methodology plugin for Claude Code.
 
 > Inspired by and built on the ideas in [superpowers](https://github.com/obra/superpowers) by [obra](https://github.com/obra) — the original agentic skills framework for Claude Code. Godmode replaces the superpowers runtime with a Rust-backed CLI and task graph, but the methodology, skill structure, and session ritual are directly descended from that work.
 
