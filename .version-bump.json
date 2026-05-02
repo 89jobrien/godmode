@@ -1,0 +1,15 @@
+{
+  "files": [
+    {
+      "path": ".claude-plugin/plugin.json",
+      "field": "version"
+    }
+  ],
+  "audit": {
+    "exclude": [
+      "target",
+      "*.lock",
+      "CHANGELOG.md"
+    ]
+  }
+}
