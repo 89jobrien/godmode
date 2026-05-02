@@ -10,7 +10,7 @@
 
 # Return the git repository root, or error.
 export def repo-root [] {
-    let r = (run-external "git" "rev-parse" "--show-toplevel" | complete)
+    let r = (do { run-external "git" "rev-parse" "--show-toplevel" } | complete)
     if $r.exit_code != 0 { error make { msg: "not inside a git repo" } }
     $r.stdout | str trim
 }
@@ -26,7 +26,7 @@ export def run-checked [
     trace_id: string   # pass "" to skip tracing
     ...args: string
 ] {
-    let r = (run-external ...$args | complete)
+    let r = (do { run-external ...$args } | complete)
     if $r.exit_code != 0 {
         if not ($trace_id | is-empty) {
             use trace.nu *
@@ -69,7 +69,7 @@ export def cargo-test-gate [trace_id: string, --crate: string = ""] {
 
 # Return the current branch name.
 export def git-branch [] {
-    (run-external "git" "branch" "--show-current" | complete).stdout | str trim
+    (do { run-external "git" "branch" "--show-current" } | complete).stdout | str trim
 }
 
 # Assert the current branch is NOT main. Exits with error if it is.
@@ -109,6 +109,6 @@ export def is-blocked [wt_path: string] {
 
 # Return true if a worktree path has at least one commit.
 export def worktree-has-commits [wt_path: string] {
-    let log = (run-external "git" "-C" $wt_path "log" "--oneline" "-1" | complete).stdout | str trim
+    let log = (do { run-external "git" "-C" $wt_path "log" "--oneline" "-1" } | complete).stdout | str trim
     not ($log | is-empty)
 }

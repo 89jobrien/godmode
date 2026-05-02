@@ -39,5 +39,8 @@ jobs:
         with:
           tool: cargo-nextest
 
+      - name: build godmode-cli
+        run: cargo build -p godmode-cli
+
       - name: cargo nextest run (godmode-core conformance)
         run: cargo nextest run -p godmode-core --test conformance
