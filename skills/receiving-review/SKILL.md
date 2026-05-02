@@ -39,11 +39,15 @@ cargo nextest run --workspace
 
 If red before your changes, fix the pre-existing failures first and flag them separately.
 
+> (`review-rules.nu one-pass-rule`)
+
 ### 3. Fix all valid items in one pass
 
 - Blocking → Suggestion → Nitpick (in that order)
 - Do not commit after blocking-only fixes and leave suggestions for later
 - One review cycle = one fix commit
+
+> (`review-rules.nu false-positive-protocol`)
 
 ### 4. Handle false positives immediately
 
