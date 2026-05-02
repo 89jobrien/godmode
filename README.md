@@ -15,7 +15,7 @@ Tasks persist in `.ctx/GODMODE.tasks.yaml` (gitignored) across sessions via caus
 
 ```bash
 cargo install --path crates/godmode-cli --root ~/.local
-claude plugin install /Users/joe/dev/godmode
+claude plugin install .
 ```
 
 ## Skills
