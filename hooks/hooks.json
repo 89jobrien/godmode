@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "godmode handon",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/session-start.nu",
             "timeout": 15
           }
         ]
