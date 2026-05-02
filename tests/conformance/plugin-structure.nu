@@ -194,7 +194,9 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
-    # Check 8 (issue #14): CLI subcommand conformance
+    # Check 8 (issue #14): CLI subcommand conformance in SKILL.md files
+    # Extracts all `godmode <subcommand>` calls from code blocks and validates
+    # them against the canonical subcommand list.
     # -----------------------------------------------------------------------
     let canonical_subcommands = [
         "handon"
