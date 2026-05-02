@@ -256,8 +256,11 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
-    # Check 9 (issue #16): Merge strategy — git merge must use --no-ff
+    # Checks 9-12 (issue #16): Cross-skill consistency checks
+    # These verify invariants that must hold identically across all skills.
     # -----------------------------------------------------------------------
+
+    # Check 9: Merge strategy — git merge must use --no-ff
     for skill_path in $skill_dirs {
         let skill_name = ($skill_path | path basename)
         let skill_md = ($skill_path | path join "SKILL.md")
