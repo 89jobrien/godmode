@@ -14,6 +14,8 @@ Run the full validation gate, commit, and push in one pass.
 
 ### Step 1: Validate
 
+> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+
 ```bash
 cargo check --workspace
 cargo nextest run --workspace   # preferred; fallback: cargo test --workspace
@@ -53,6 +55,8 @@ Scope: crate name or module (e.g. `godmode-core`, `graph`, `cli`)
 Derive the message from the staged diff — do not ask the user to write it.
 
 ### Step 4: Verify branch and commit
+
+> (`guardrails.nu check-branch <expected>`)
 
 ```bash
 git branch --show-current

@@ -49,6 +49,8 @@ Apply the minimum targeted fix for the classified root cause. Do not refactor un
 
 Verify locally before pushing:
 
+> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+
 ```bash
 # compile_error / test_failure / clippy_warning / fmt_check
 cargo check --workspace
@@ -65,6 +67,7 @@ cargo fmt --all --check
 
 1. Run: `git branch --show-current`
    Verify output matches the expected branch. Stop immediately if not.
+   (`guardrails.nu check-branch <expected>`)
 
 ```bash
 git add -A
