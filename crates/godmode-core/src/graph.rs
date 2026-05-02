@@ -201,6 +201,20 @@ pub fn unblock(graph: &mut TaskGraph, id: &str) -> Result<()> {
     Ok(())
 }
 
+/// Reset all blocked tasks to pending, clearing their notes.
+/// Returns the count of tasks unblocked.
+pub fn unblock_all(graph: &mut TaskGraph) -> usize {
+    let mut count = 0;
+    for task in &mut graph.tasks {
+        if task.status == Status::Blocked {
+            task.status = Status::Pending;
+            task.notes = String::new();
+            count += 1;
+        }
+    }
+    count
+}
+
 /// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
@@ -319,6 +333,23 @@ mod tests {
         assert_eq!(removed, 1);
         assert_eq!(g.tasks.len(), 1);
         assert_eq!(g.tasks[0].id, "t2");
+    }
+
+    #[test]
+    fn unblock_all_resets_blocked_tasks() {
+        let mut g = TaskGraph::default();
+        let mut t1 = Task::new("t1", "A");
+        t1.status = Status::Blocked;
+        t1.notes = "reason".into();
+        let mut t2 = Task::new("t2", "B");
+        t2.status = Status::Done;
+        g.tasks.push(t1);
+        g.tasks.push(t2);
+        let count = unblock_all(&mut g);
+        assert_eq!(count, 1);
+        assert_eq!(g.tasks[0].status, Status::Pending);
+        assert!(g.tasks[0].notes.is_empty());
+        assert_eq!(g.tasks[1].status, Status::Done); // unchanged
     }
 
     #[test]

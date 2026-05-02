@@ -123,6 +123,9 @@ enum TaskAction {
 
     /// Mark completed tasks as done in doob (uses `doob:` UUID in notes field).
     PushDone,
+
+    /// Reset all blocked tasks to pending in one operation.
+    UnblockAll,
 }
 
 #[derive(Subcommand)]
@@ -359,6 +362,18 @@ fn main() -> Result<()> {
                         println!(r#"{{"ok":true,"pushed":{}}}"#, pushed);
                     } else {
                         println!("Pushed {} completed tasks to doob.", pushed);
+                    }
+                }
+
+                TaskAction::UnblockAll => {
+                    let count = graph::unblock_all(&mut g);
+                    graph::save(&root, &g)?;
+                    if json {
+                        println!(r#"{{"ok":true,"unblocked":{}}}"#, count);
+                    } else if count == 0 {
+                        println!("No blocked tasks.");
+                    } else {
+                        println!("Unblocked {} task(s).", count);
                     }
                 }
             }
