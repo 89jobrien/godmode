@@ -55,6 +55,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:testing-philosophy`              | Designing test strategy for new code           |
 | `godmode:introspection`                   | Auditing skills for consistency after changes  |
 | `godmode:moa`                             | Multi-model synthesis via Mixture of Agents    |
+| `godmode:wave-integration`                | Merge parallel agent branches sequentially     |
 
 ## Always-Active Rules
 
