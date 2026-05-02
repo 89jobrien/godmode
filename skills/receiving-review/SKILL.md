@@ -88,3 +88,8 @@ same commit.
 - Do not expand scope while fixing review items (no "while I'm here" changes)
 - Do not silently skip feedback — either fix it or document why you're not
 - Do not commit partial fixes and plan to address the rest "in a follow-up"
+
+## Additional Resources
+
+- **`references/triage-guide.md`** — classification table, false positive handling, disagreement protocol
+- **`helpers/fix-pass-template.md`** — track a full review cycle in one doc

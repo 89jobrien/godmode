@@ -100,3 +100,8 @@ After all agents report:
 - **Never octopus-merge.** If agents diverge, cherry-pick sequentially.
 - **Each agent must verify `git branch --show-current` before every commit.** If it
   returns `main`, stop — do not commit to main directly.
+
+## Additional Resources
+
+- **`references/dispatch-protocol.md`** — independence test, worktree setup, integration steps, BLOCKED.md protocol
+- **`helpers/agent-prompt-template.md`** — fill-in-the-blank prompt for each dispatched agent

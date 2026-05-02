@@ -84,3 +84,8 @@ Surface it to the user rather than continuing to patch.
 - Stack multiple fixes in one commit
 - Suppress compiler warnings to make a test pass
 - Use `unwrap()` to "fix" an error — propagate it properly
+
+## Additional Resources
+
+- **`references/rust-debug-checklist.md`** — environment checks, backtrace commands, async/lifetime failure patterns
+- **`helpers/repro-template.md`** — bug reproduction record to fill in during Phase 1

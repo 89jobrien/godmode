@@ -73,6 +73,11 @@ godmode handon      # triage: running tasks, next runnable, next doob todo
 godmode handoff     # warns on leaked running tasks, writes hj handoff
 ```
 
+## Additional Resources
+
+- **`references/skill-index.md`** — full trigger table, priority order, skill chain diagram
+- **`helpers/session-start.sh`** — run at session start to verify CLI and triage
+
 ## CLI Quick Reference
 
 ```bash

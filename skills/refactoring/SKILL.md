@@ -93,3 +93,8 @@ cargo test --workspace
 ## After Refactoring
 
 Run `godmode:code-review` on your own diff before committing.
+
+## Additional Resources
+
+- **`references/refactoring-patterns.md`** — extract function/module/trait, decouple I/O, rename patterns with code examples
+- **`helpers/refactor-checklist.md`** — before/during/after checklist and scope creep check

@@ -93,3 +93,8 @@ content:
 - Add a per-site `#[allow(...)]` or allowlist entry immediately
 - Do not change test content to work around the flag
 - Document why the allowlist entry was added
+
+## Additional Resources
+
+- **`references/review-checklist.md`** — full checklist with severity guide
+- **`helpers/review-report-template.md`** — structured report template to fill in

@@ -68,3 +68,8 @@ The only permitted next step after brainstorming is writing an implementation pl
 - Does this introduce a new external dependency? Can it be behind a feature flag?
 - Will this be tested with in-memory fakes or does it need integration tests?
 - Does this change the public API surface? Semver implications?
+
+## Additional Resources
+
+- **`references/design-principles.md`** — hexagonal architecture, YAGNI, Rust idioms reference
+- **`helpers/design-doc-template.md`** — blank design doc to fill in during Step 5

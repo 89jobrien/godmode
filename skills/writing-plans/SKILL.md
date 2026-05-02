@@ -101,4 +101,9 @@ Check these before writing the file:
 
 Update `.ctx/GODMODE.tasks.yaml` with a task entry for each plan task.
 See `godmode:task-management` for the schema.
+
+## Additional Resources
+
+- **`references/plan-format.md`** — full format spec, `**Run**:` annotation table, dep model
+- **`helpers/plan-template.md`** — blank plan to fill in
 ```

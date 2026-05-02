@@ -90,3 +90,8 @@ Never brute-force past 3 failures.
 | "Just keeping code as reference while writing tests" | You will adapt it — that's test-after                 |
 
 Any of these means you have left TDD. Delete the code and restart.
+
+## Additional Resources
+
+- **`references/test-patterns.md`** — unit/integration/async test patterns, naming conventions, fake vs mock
+- **`helpers/test-stub.rs`** — copy-paste starting point for a new test module

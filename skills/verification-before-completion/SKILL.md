@@ -58,3 +58,8 @@ git log --oneline -5
 ```
 
 An empty commit list means the subagent did not finish.
+
+## Additional Resources
+
+- **`references/verification-commands.md`** — per-crate and workspace gates, false "done" states, exit code gotchas
+- **`helpers/pre-commit-gate.sh`** — run before any completion claim: `sh helpers/pre-commit-gate.sh [crate]`

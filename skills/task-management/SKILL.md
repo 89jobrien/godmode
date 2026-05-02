@@ -102,3 +102,8 @@ godmode task start t2
 # ...
 godmode handoff
 ```
+
+## Additional Resources
+
+- **`references/godmode-cli.md`** — full CLI reference with all flags and task file schema
+- **`helpers/session-workflow.md`** — common session patterns copy-paste ready
