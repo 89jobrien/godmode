@@ -34,7 +34,7 @@ def session-id [] {
         (open $sf).session_id
     } else {
         let head = (run-external "git" "rev-parse" "--short" "HEAD" | complete).stdout | str trim
-        let id = $"($head)-($now-ms)"
+        let id = $"($head)-(now-ms)"
         { session_id: $id, started_at: (date now | format date "%+") } | to json | save --force $sf
         $id
     }
@@ -53,7 +53,7 @@ def append-event [record: record] {
 
 # Emit skill.start; returns a trace_id string for use with trace-end / trace-error.
 export def trace-start [skill: string, helper: string, ...args: string] {
-    let tid = $"($skill).($helper).($now-ms)"
+    let tid = $"($skill).($helper).(now-ms)"
     append-event {
         event:      "skill.start"
         trace_id:   $tid
