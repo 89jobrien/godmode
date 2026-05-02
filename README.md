@@ -20,25 +20,32 @@ claude plugin install godmode@bazaar
 
 ## Skills
 
-| Skill                                    | When                                         |
-| ---------------------------------------- | -------------------------------------------- |
-| `godmode:using-godmode`                  | Session orientation, available skills, rules |
-| `godmode:test-driven-development`        | Implementing any feature or fix              |
-| `godmode:systematic-debugging`           | Any bug, test failure, unexpected behavior   |
-| `godmode:brainstorming`                  | Before any creative or design work           |
-| `godmode:writing-plans`                  | Multi-step task with a spec or requirements  |
-| `godmode:verification-before-completion` | Before claiming work is done                 |
-| `godmode:task-management`                | Creating, tracking, executing a task graph   |
-| `godmode:parallel-agents`                | 2+ independent tasks to run concurrently     |
-| `godmode:code-review`                    | Quality pass before merge                    |
-| `godmode:refactoring`                    | Restructure code without changing behaviour  |
-| `godmode:receiving-review`               | Process incoming review feedback             |
+| Skill                                     | When                                          |
+| ----------------------------------------- | --------------------------------------------- |
+| `godmode:using-godmode`                   | Session orientation, available skills, rules  |
+| `godmode:test-driven-development`         | Implementing any feature or fix               |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior    |
+| `godmode:brainstorm`                      | Before any creative or design work            |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements   |
+| `godmode:verification-before-completion`  | Before claiming work is done                  |
+| `godmode:task-management`                 | Creating, tracking, executing a task graph    |
+| `godmode:parallel-agents`                 | 2+ independent tasks to run concurrently      |
+| `godmode:code-review`                     | Quality pass before merge                     |
+| `godmode:refactoring`                     | Restructure code without changing behaviour   |
+| `godmode:receiving-review`                | Process incoming review feedback              |
+| `godmode:cap`                             | Commit and push with validation               |
+| `godmode:ci-fix`                          | Fix a failing CI pipeline                     |
+| `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees      |
+| `godmode:testing-philosophy`              | Choose the right test type for the situation  |
+| `godmode:introspection`                   | Audit skills and plugin files for consistency |
+| `godmode:observability-as-infrastructure` | Query and tail the session trace log          |
 
 ## Agents
 
 | Agent             | Purpose                                   |
 | ----------------- | ----------------------------------------- |
 | `tdd-crate-agent` | TDD implementation in a single Rust crate |
+| `valerie`         | Task management and session orchestration |
 
 ## CLI Reference
 
@@ -127,11 +134,29 @@ tasks:
 ## Workflow
 
 ```
-brainstorming → writing-plans → plan ingest → handon
+brainstorm → writing-plans → plan ingest → handon
   → task next → task start → [tdd] → task done → task next → ...
   → dispatch (parallel chains) → parallel-agents
   → verification-before-completion → handoff
 ```
+
+## Commands
+
+Slash commands live in `commands/gm/` and map directly to skills. They can be invoked from
+the Claude Code command palette (e.g. `/gm:cap`, `/gm:tdd`, `/gm:debug`).
+
+## Helpers
+
+Nushell helper scripts live in `skills/<skill>/helpers/`. Shared utilities are in
+`skills/_lib/`:
+
+| Module       | Purpose                                                     |
+| ------------ | ----------------------------------------------------------- |
+| `helpers.nu` | `repo-root`, `run-checked`, `cargo-gate`, `assert-not-main` |
+| `trace.nu`   | Structured JSONL trace events (skill.start/complete/error)  |
+
+Trace output lands in `.ctx/GODMODE.trace.jsonl`. Use `godmode:observability-as-infrastructure`
+to query it.
 
 ## Development
 
