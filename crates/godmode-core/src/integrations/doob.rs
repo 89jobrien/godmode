@@ -1,11 +1,11 @@
 //! Integration with `doob` — the todo/backlog CLI.
 
 use std::path::Path;
-use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 
 use crate::detect;
+use crate::integrations::subprocess;
 use crate::model::Task;
 
 // ---------------------------------------------------------------------------
@@ -36,17 +36,12 @@ pub fn find_next_pending(value: &serde_json::Value) -> Option<serde_json::Value>
 
 /// Call `doob todo list -p <project> --json` and return the parsed JSON value.
 pub fn todo_list(project: &str) -> Result<serde_json::Value> {
-    let out = Command::new("doob")
-        .args(["todo", "list", "-p", project, "--json"])
-        .output()
-        .context("doob not found on PATH")?;
-    if !out.status.success() {
-        bail!(
-            "doob todo list failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
-    parse_todo_list(&out.stdout)
+    let raw = subprocess::run(
+        "doob",
+        &["todo", "list", "-p", project, "--json"],
+        "doob not found on PATH",
+    )?;
+    parse_todo_list(raw.as_bytes())
 }
 
 /// Return the highest-priority pending todo for a project, or None if empty.
@@ -112,31 +107,15 @@ pub fn todos_to_tasks(value: &serde_json::Value) -> Vec<Task> {
 /// Mark a doob todo as complete by UUID.
 pub fn todo_done(uuid: &str) -> Result<()> {
     let args = todo_done_args(uuid);
-    let out = Command::new("doob")
-        .args(&args)
-        .output()
-        .context("doob not found on PATH")?;
-    if !out.status.success() {
-        bail!(
-            "doob todo complete failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
+    let args_ref: Vec<&str> = args.iter().map(String::as_str).collect();
+    subprocess::run("doob", &args_ref, "doob not found on PATH")?;
     Ok(())
 }
 
 /// Add a new todo to doob for a given project.
 pub fn todo_add(project: &str, title: &str) -> Result<()> {
     let args = todo_add_args(project, title);
-    let out = Command::new("doob")
-        .args(&args)
-        .output()
-        .context("doob not found on PATH")?;
-    if !out.status.success() {
-        bail!(
-            "doob todo add failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
+    let args_ref: Vec<&str> = args.iter().map(String::as_str).collect();
+    subprocess::run("doob", &args_ref, "doob not found on PATH")?;
     Ok(())
 }

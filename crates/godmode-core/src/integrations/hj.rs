@@ -1,11 +1,11 @@
 //! Integration with `hj` — the handoff lifecycle CLI.
 
 use std::path::Path;
-use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::Result;
 
 use crate::detect;
+use crate::integrations::subprocess;
 
 // ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
@@ -44,15 +44,12 @@ pub fn build_handoff_args(
 /// Call `hj handon --project <name>` and return stdout.
 pub fn handon(root: &Path) -> Result<String> {
     let project = detect::package_name(root)?;
-    let out = Command::new("hj")
-        .args(["handon", "--project", &project])
-        .current_dir(root)
-        .output()
-        .context("hj not found on PATH — install hj to enable handoff integration")?;
-    if !out.status.success() {
-        bail!("hj handon failed: {}", String::from_utf8_lossy(&out.stderr));
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    subprocess::run_in(
+        "hj",
+        &["handon", "--project", &project],
+        root,
+        "install hj to enable handoff integration",
+    )
 }
 
 /// Call `hj handoff` with build/test state and return stdout.
@@ -65,16 +62,11 @@ pub fn handoff(
 ) -> Result<String> {
     let project = detect::package_name(root)?;
     let args = build_handoff_args(&project, build, tests, summary, commits);
-    let out = Command::new("hj")
-        .args(&args)
-        .current_dir(root)
-        .output()
-        .context("hj not found on PATH — install hj to enable handoff integration")?;
-    if !out.status.success() {
-        bail!(
-            "hj handoff failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    let args_ref: Vec<&str> = args.iter().map(String::as_str).collect();
+    subprocess::run_in(
+        "hj",
+        &args_ref,
+        root,
+        "install hj to enable handoff integration",
+    )
 }
