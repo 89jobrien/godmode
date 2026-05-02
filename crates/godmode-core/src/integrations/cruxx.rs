@@ -1,8 +1,8 @@
 //! Cruxx trace integration — emit JSONL task events to `.ctx/GODMODE.trace.jsonl`.
 //!
-//! Events are append-only. Each line is a self-contained JSON object compatible with
-//! the cruxx trace schema (subset). No cruxx dependency is required — we write the
-//! schema by hand against the stable JSONL format.
+//! Events are append-only JSONL, schema-compatible with the slashcrux vocabulary.
+//! Each line is a JSON object using `slashcrux::StepState` for the `state` field,
+//! keyed by `step_name` (task ID) and enriched with godmode-specific metadata.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -10,28 +10,72 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use slashcrux::StepState;
 
-/// The kind of task lifecycle event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum EventKind {
-    Started,
-    Completed,
-    Blocked,
-}
-
-/// A single task lifecycle event written to the cruxx trace file.
+/// A godmode task event, schema-compatible with the slashcrux step vocabulary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskEvent {
-    pub kind: EventKind,
-    pub task_id: String,
+    /// The task ID (e.g. `t1`).
+    pub step_name: String,
+    /// Human-readable task title.
     pub title: String,
+    /// Lifecycle state from the slashcrux vocabulary.
+    pub state: StepState,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub crate_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commit: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+impl TaskEvent {
+    pub fn started(task_id: impl Into<String>, title: impl Into<String>) -> Self {
+        Self {
+            step_name: task_id.into(),
+            title: title.into(),
+            state: StepState::Running,
+            crate_name: None,
+            commit: None,
+            notes: None,
+            reason: None,
+        }
+    }
+
+    pub fn completed(
+        task_id: impl Into<String>,
+        title: impl Into<String>,
+        commit: Option<String>,
+        notes: Option<String>,
+    ) -> Self {
+        Self {
+            step_name: task_id.into(),
+            title: title.into(),
+            state: StepState::Completed,
+            crate_name: None,
+            commit,
+            notes,
+            reason: None,
+        }
+    }
+
+    pub fn blocked(
+        task_id: impl Into<String>,
+        title: impl Into<String>,
+        reason: Option<String>,
+    ) -> Self {
+        Self {
+            step_name: task_id.into(),
+            title: title.into(),
+            state: StepState::Failed,
+            crate_name: None,
+            commit: None,
+            notes: None,
+            reason,
+        }
+    }
 }
 
 /// Resolve the trace file path: `<root>/.ctx/GODMODE.trace.jsonl`.

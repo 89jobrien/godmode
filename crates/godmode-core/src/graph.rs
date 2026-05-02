@@ -2,7 +2,7 @@ use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};
 
-use crate::integrations::cruxx::{self, EventKind, TaskEvent};
+use crate::integrations::cruxx::{self, TaskEvent};
 use crate::model::{Status, Task, TaskGraph};
 
 /// Resolve the task file path relative to a repo root.
@@ -97,14 +97,8 @@ pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Res
     }
     task.status = Status::Running;
     if let Some(root) = root {
-        let event = TaskEvent {
-            kind: EventKind::Started,
-            task_id: task.id.clone(),
-            title: task.title.clone(),
-            crate_name: task.crate_name.clone(),
-            commit: None,
-            notes: None,
-        };
+        let mut event = TaskEvent::started(task.id.clone(), task.title.clone());
+        event.crate_name = task.crate_name.clone();
         let _ = cruxx::append_event(root, &event); // non-fatal
     }
     Ok(())
@@ -151,18 +145,18 @@ pub fn complete_traced(
         task.notes = n.to_string();
     }
     if let Some(root) = root {
-        let event = TaskEvent {
-            kind: EventKind::Completed,
-            task_id: task.id.clone(),
-            title: task.title.clone(),
-            crate_name: task.crate_name.clone(),
-            commit: task.commit.clone(),
-            notes: if task.notes.is_empty() {
-                None
-            } else {
-                Some(task.notes.clone())
-            },
+        let notes = if task.notes.is_empty() {
+            None
+        } else {
+            Some(task.notes.clone())
         };
+        let mut event = TaskEvent::completed(
+            task.id.clone(),
+            task.title.clone(),
+            task.commit.clone(),
+            notes,
+        );
+        event.crate_name = task.crate_name.clone();
         let _ = cruxx::append_event(root, &event); // non-fatal
     }
     Ok(())
