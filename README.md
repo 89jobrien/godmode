@@ -42,10 +42,10 @@ claude plugin install godmode@bazaar
 
 ## Agents
 
-| Agent             | Purpose                                   |
-| ----------------- | ----------------------------------------- |
-| `tdd-crate-agent` | TDD implementation in a single Rust crate |
-| `valerie`         | Task management and session orchestration |
+| Agent                 | Purpose                                   |
+| --------------------- | ----------------------------------------- |
+| `godmode-crate-agent` | TDD implementation in a single Rust crate |
+| `valerie`             | Task management and session orchestration |
 
 ## CLI Reference
 

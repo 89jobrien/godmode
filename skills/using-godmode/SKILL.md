@@ -53,7 +53,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:receiving-review`                | Processing incoming review comments            |
 | `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents        |
 | `godmode:testing-philosophy`              | Designing test strategy for new code           |
-| `godmode:introspect`                      | Auditing skills for consistency after changes  |
+| `godmode:introspection`                   | Auditing skills for consistency after changes  |
 
 ## Always-Active Rules
 

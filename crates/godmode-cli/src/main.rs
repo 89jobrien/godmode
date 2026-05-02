@@ -458,7 +458,7 @@ fn main() -> Result<()> {
                 println!();
                 println!("{}", serde_json::to_string_pretty(&chains)?);
                 println!();
-                println!("Paste the chains array into orca-strait or feed to tdd-crate-agent.");
+                println!("Paste the chains array into orca-strait or feed to godmode-crate-agent.");
             }
             Ok(())
         }

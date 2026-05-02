@@ -23,7 +23,7 @@ Exit codes: 0 = success, 1 = empty/not-found, 2 = error.
 
 ### orca-strait dispatch format
 
-tdd-crate-agent expects task titles, not just IDs. Output shape:
+godmode-crate-agent expects task titles, not just IDs. Output shape:
 
 ```json
 [{ "crate_name": "godmode-core", "tasks": [{ "id": "t1", "title": "..." }] }]

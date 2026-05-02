@@ -78,7 +78,7 @@ godmode task list --json    # full JSON array — exit 1 if empty
 godmode dispatch [--max 5] --json
 ```
 
-Emits independent chains shaped for orca-strait tdd-crate-agent. Each chain targets one
+Emits independent chains shaped for orca-strait godmode-crate-agent. Each chain targets one
 crate. Feed directly to `godmode:parallel-agents`.
 
 ## Run a Task's Shell Command

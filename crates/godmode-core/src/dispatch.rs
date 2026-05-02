@@ -2,7 +2,7 @@
 //!
 //! Two chains are independent when no task in one chain appears in the `depends_on`
 //! of any task in the other chain (transitively). Each chain is dispatched to one
-//! `tdd-crate-agent`. Maximum 5 concurrent chains.
+//! `godmode-crate-agent`. Maximum 5 concurrent chains.
 
 use std::collections::{HashMap, HashSet};
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # audit.nu — inventory skills, check reference integrity, and flag missing index entries.
-# Usage: nu skills/self-review/helpers/audit.nu
+# Usage: nu skills/introspectionion/helpers/audit.nu
 
 use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
 use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
@@ -8,7 +8,7 @@ use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
 def main [] {
     let root = (repo-root)
     let skills_dir = $"($root)/skills"
-    let tid = (trace-start "introspect" "audit.nu")
+    let tid = (trace-start "introspection" "audit.nu")
 
     let skill_dirs = (ls $skills_dir | where type == "dir" | get name
         | where { |d| ($d | path basename) != "_lib" })
@@ -46,12 +46,31 @@ def main [] {
         }
     }
 
+    let date = (date now | format date "%Y-%m-%d")
+    let timestamp = (date now | format date "%Y-%m-%d %H:%M")
+    let ctx_dir = $"($root)/.ctx"
+    let report_path = $"($ctx_dir)/introspection-($date).md"
+
+    if not ($ctx_dir | path exists) {
+        mkdir $ctx_dir
+    }
+
+    let report = if ($issues | is-empty) {
+        $"# Introspect Report — ($timestamp)\n\n## No issues found\n- ($skill_dirs | length) skills checked. All references valid, index complete.\n"
+    } else {
+        let lines = ($issues | each { |i| $"- ($i)" } | str join "\n")
+        $"# Introspect Report — ($timestamp)\n\n## Blocking\n($lines)\n"
+    }
+
+    $report | save --force $report_path
+
     if ($issues | is-empty) {
         trace-end $tid
-        print $"($skill_dirs | length) skills checked. No issues."
+        print $"($skill_dirs | length) skills checked. No issues. Report: ($report_path)"
     } else {
         trace-error $tid 1 ($issues | str join "\n")
         for issue in $issues { print $issue }
+        print $"\nReport written: ($report_path)"
         exit 1
     }
 }

@@ -58,7 +58,7 @@ One sentence. What does this implement and why.
 
 <!-- repeat structure from Task 1 -->
 
-## Self-Review Checklist
+## introspection Checklist
 
 - [ ] Every requirement maps to at least one task
 - [ ] No placeholders or vague directives anywhere

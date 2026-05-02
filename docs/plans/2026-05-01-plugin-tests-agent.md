@@ -16,7 +16,7 @@ pattern: write minimal shell stubs to a temp dir, prepend to PATH, assert on std
 ## B — `godmode agent` command
 
 Takes a plan doc, ingests it, runs dispatch, emits a structured prompt that hands off to
-orca-strait tdd-crate-agent. The compositor command that closes the loop.
+orca-strait godmode-crate-agent. The compositor command that closes the loop.
 
 ---
 
@@ -112,7 +112,7 @@ Chains: <N>
 
 <JSON chains array>
 
-Paste the above into orca-strait or feed to tdd-crate-agent directly.
+Paste the above into orca-strait or feed to godmode-crate-agent directly.
 ```
 
 With `--json`: emit `{ "plan": "<path>", "chains": [...] }` only.

@@ -14,7 +14,7 @@
 | `godmode:verification-before-completion`  | Before any "done" claim, commit, or PR                      |
 | `godmode:task-management`                 | Creating, tracking, or executing a task graph               |
 | `godmode:code-review`                     | Before merge, after feature complete                        |
-| `godmode:introspect`                      | After adding skills, before plugin release, "audit godmode" |
+| `godmode:introspection`                   | After adding skills, before plugin release, "audit godmode" |
 | `godmode:refactoring`                     | Restructuring code without changing behaviour               |
 | `godmode:receiving-review`                | Processing incoming review comments                         |
 | `godmode:tackle-issues`                   | Working on GitHub issues in parallel                        |

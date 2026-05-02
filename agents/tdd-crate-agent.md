@@ -1,5 +1,5 @@
 ---
-name: "godmode:tdd-crate-agent"
+name: godmode-crate-agent
 description: >
   Use when implementing one or more tasks in a specific Rust workspace crate with strict
   TDD discipline. Triggered by the parallel-agents skill or directly when a crate + task
@@ -8,16 +8,16 @@ description: >
   <example>
   Context: Task graph has independent crates to implement.
   user: "Implement the RetryAdapter tasks in the cache crate"
-  assistant: "Dispatching tdd-crate-agent for the cache crate."
+  assistant: "Dispatching godmode-crate-agent for the cache crate."
   <commentary>
-  Specific crate + task list = canonical trigger for tdd-crate-agent.
+  Specific crate + task list = canonical trigger for godmode-crate-agent.
   </commentary>
   </example>
 
   <example>
   Context: Single crate issue to implement.
   user: "Work on issue #42 targeting the auth crate"
-  assistant: "Using tdd-crate-agent for auth with test-first discipline."
+  assistant: "Using godmode-crate-agent for auth with test-first discipline."
   <commentary>
   Single-crate work enforces TDD via this agent.
   </commentary>

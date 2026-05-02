@@ -1,12 +1,12 @@
 ---
-name: godmode:introspect
+name: godmode:introspection
 description: >
   Audit godmode skills, agents, and plugin files for internal consistency, broken
   references, stale commands, and cross-skill contradictions. Use when asked to
-  "self-review", "audit the skills", "review godmode", or after adding new skills.
+  "introspect", "audit the skills", "review godmode", or after adding new skills.
 ---
 
-# Self-Review
+# Introspection
 
 Audit all skill and plugin files as a system — not just individual files.
 
@@ -15,7 +15,7 @@ Audit all skill and plugin files as a system — not just individual files.
 - After adding or modifying skills
 - Before a release/tag of the godmode plugin
 - When a skill references a command that may not exist
-- When asked to "self-review" or "audit godmode"
+- When asked to "introspect" or "audit godmode"
 
 ## Step 1: Inventory
 
@@ -80,27 +80,42 @@ Every skill directory with a `SKILL.md` must have an entry in both. Flag any tha
 
 ## Step 7: Report
 
-Group findings by severity:
+Write a timestamped report to `.ctx/introspection-<YYYY-MM-DD>.md`:
 
-```
-## Self-Review Report — <date>
+```markdown
+# Introspect Report — <YYYY-MM-DD HH:MM>
 
-### Blocking (breaks agent execution)
+## Blocking (breaks agent execution)
+
 - [skill:line] <issue> — <why it matters>
 
-### Suggestion (degrades reliability)
+## Suggestion (degrades reliability)
+
 - [skill:line] <issue> — <recommendation>
 
-### Nitpick (cosmetic or minor)
+## Nitpick (cosmetic or minor)
+
 - [skill:line] <issue>
+
+## No issues found
+
+- <list items that were verified clean>
 ```
+
+If no issues are found in any category, write the report anyway — record what was verified.
+
+Use the Write tool to create `.ctx/introspection-<YYYY-MM-DD>.md`. Overwrite if the file
+already exists for today.
+
+Also print a summary to stdout.
 
 ## Step 8: Fix
 
 Apply all fixes in one pass. After fixing:
 
 1. Re-run this skill's Steps 2–6 to confirm no new issues were introduced.
-2. Commit with `fix(skills): self-review corrections — <summary>`.
+2. Update the report in `.ctx/introspection-<YYYY-MM-DD>.md` with a `## Fixes Applied` section.
+3. Commit with `fix(skills): introspect corrections — <summary>`.
 
 ## Guardrails
 
