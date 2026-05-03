@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Task execution status.
@@ -43,6 +43,9 @@ pub struct Task {
     /// Shell command to run for this task. Prefix with `rx:` to invoke via rx registry.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run: Option<String>,
+    /// Wall-clock time when the task was last started. Used to compute duration_ms.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub started_at: Option<DateTime<Utc>>,
 }
 
 impl Task {
@@ -57,6 +60,7 @@ impl Task {
             commit: None,
             completed: None,
             run: None,
+            started_at: None,
         }
     }
 }
@@ -74,6 +78,20 @@ pub struct GraphSummary {
     pub running: usize,
     pub pending: usize,
     pub blocked: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn task_started_at_roundtrips_yaml() {
+        let mut t = Task::new("t1", "A");
+        t.started_at = Some(Utc::now());
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        let back: Task = serde_yaml::from_str(&yaml).unwrap();
+        assert!(back.started_at.is_some());
+    }
 }
 
 impl TaskGraph {
