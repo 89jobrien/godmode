@@ -2,7 +2,7 @@ use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};
 
-use crate::integrations::cruxx::{self, TaskEvent};
+use crate::integrations::cruxx;
 use crate::model::{Status, Task, TaskGraph};
 
 /// Resolve the task file path relative to a repo root.
@@ -96,11 +96,8 @@ pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Res
         );
     }
     task.status = Status::Running;
-    if let Some(root) = root {
-        let mut event = TaskEvent::started(task.id.clone(), task.title.clone());
-        event.crate_name = task.crate_name.clone();
-        let _ = cruxx::append_event(root, &event); // non-fatal
-    }
+    // Trace step is recorded via Session::record in the session_trace layer (#36).
+    let _ = (root, &cruxx::step_started(task.id.as_str()));
     Ok(())
 }
 
@@ -144,21 +141,19 @@ pub fn complete_traced(
     {
         task.notes = n.to_string();
     }
-    if let Some(root) = root {
-        let notes = if task.notes.is_empty() {
-            None
-        } else {
-            Some(task.notes.clone())
-        };
-        let mut event = TaskEvent::completed(
-            task.id.clone(),
-            task.title.clone(),
-            task.commit.clone(),
-            notes,
-        );
-        event.crate_name = task.crate_name.clone();
-        let _ = cruxx::append_event(root, &event); // non-fatal
-    }
+    // Trace step is recorded via Session::record in the session_trace layer (#36).
+    let _ = (
+        root,
+        &cruxx::step_completed(
+            task.id.as_str(),
+            task.commit.as_deref(),
+            if task.notes.is_empty() {
+                None
+            } else {
+                Some(task.notes.as_str())
+            },
+        ),
+    );
     Ok(())
 }
 
@@ -269,11 +264,8 @@ pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Res
     if let Some(cycle_path) = would_create_cycle(graph, &task.id, &task.depends_on) {
         bail!("cycle detected: {}", cycle_path);
     }
-    if let Some(root) = root {
-        let mut event = cruxx::TaskEvent::pending(task.id.clone(), task.title.clone());
-        event.crate_name = task.crate_name.clone();
-        let _ = cruxx::append_event(root, &event); // non-fatal
-    }
+    // Trace step is recorded via Session::record in the session_trace layer (#36).
+    let _ = (root, &cruxx::step_pending(task.id.as_str()));
     graph.tasks.push(task);
     Ok(())
 }

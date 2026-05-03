@@ -1,129 +1,111 @@
-//! Cruxx trace integration — emit JSONL task events to `.ctx/GODMODE.trace.jsonl`.
+//! Cruxx trace integration — build `cruxx_core::Step` values for godmode task transitions.
 //!
-//! Events are append-only JSONL, schema-compatible with the slashcrux vocabulary.
-//! Each line is a JSON object using `slashcrux::StepState` for the `state` field,
-//! keyed by `step_name` (task ID) and enriched with godmode-specific metadata.
+//! Each constructor returns a `Step` ready to be recorded into a `Session` (see
+//! `session_trace`). The `trace_file` path helper is retained for the session layer.
 
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
 use chrono::Utc;
-use serde::{Deserialize, Serialize};
-use slashcrux::StepState;
+use cruxx_core::types::step::{Step, StepKind, StepStatus};
 
-fn now_rfc3339() -> String {
-    Utc::now().to_rfc3339()
+fn started_at() -> chrono::DateTime<Utc> {
+    Utc::now()
 }
 
-/// A godmode task event, schema-compatible with the slashcrux step vocabulary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TaskEvent {
-    /// The task ID (e.g. `t1`).
-    pub step_name: String,
-    /// Human-readable task title.
-    pub title: String,
-    /// Lifecycle state from the slashcrux vocabulary.
-    pub state: StepState,
-    /// RFC 3339 timestamp — set at construction time, always present in serialised output.
-    #[serde(default = "now_rfc3339")]
-    pub ts: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub crate_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notes: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
-}
-
-impl TaskEvent {
-    pub fn pending(task_id: impl Into<String>, title: impl Into<String>) -> Self {
-        Self {
-            step_name: task_id.into(),
-            title: title.into(),
-            state: StepState::Pending,
-            ts: now_rfc3339(),
-            crate_name: None,
-            commit: None,
-            notes: None,
-            reason: None,
-        }
-    }
-
-    pub fn started(task_id: impl Into<String>, title: impl Into<String>) -> Self {
-        Self {
-            step_name: task_id.into(),
-            title: title.into(),
-            state: StepState::Running,
-            ts: now_rfc3339(),
-            crate_name: None,
-            commit: None,
-            notes: None,
-            reason: None,
-        }
-    }
-
-    pub fn completed(
-        task_id: impl Into<String>,
-        title: impl Into<String>,
-        commit: Option<String>,
-        notes: Option<String>,
-    ) -> Self {
-        Self {
-            step_name: task_id.into(),
-            title: title.into(),
-            state: StepState::Completed,
-            ts: now_rfc3339(),
-            crate_name: None,
-            commit,
-            notes,
-            reason: None,
-        }
-    }
-
-    /// A task that is externally blocked (waiting on something outside godmode).
-    ///
-    /// Uses `StepState::Cancelled` — not `Failed` — because the task was not
-    /// attempted and found wanting; it was externally stopped before it could run.
-    pub fn blocked(
-        task_id: impl Into<String>,
-        title: impl Into<String>,
-        reason: Option<String>,
-    ) -> Self {
-        Self {
-            step_name: task_id.into(),
-            title: title.into(),
-            state: StepState::Cancelled,
-            ts: now_rfc3339(),
-            crate_name: None,
-            commit: None,
-            notes: None,
-            reason,
-        }
+/// Build a `Step` for a task entering the pending state (just added to the graph).
+pub fn step_pending(task_id: impl Into<String>) -> Step {
+    Step {
+        name: task_id.into(),
+        kind: StepKind::Plain,
+        status: StepStatus::Skipped, // pending = not yet started
+        confidence: 1.0,
+        started_at: started_at(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output: None,
+        error: None,
+        attempt: 0,
+        events: vec![],
     }
 }
 
-/// Resolve the trace file path: `<root>/.ctx/GODMODE.trace.jsonl`.
-pub fn trace_file(root: &Path) -> PathBuf {
-    root.join(".ctx").join("GODMODE.trace.jsonl")
+/// Build a `Step` for a task transitioning to running.
+pub fn step_started(task_id: impl Into<String>) -> Step {
+    Step {
+        name: task_id.into(),
+        kind: StepKind::Plain,
+        status: StepStatus::Ok,
+        confidence: 1.0,
+        started_at: started_at(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output: None,
+        error: None,
+        attempt: 1,
+        events: vec![],
+    }
 }
 
-/// Append one event as a JSONL line. Creates `.ctx/` and the file if needed.
+/// Build a `Step` for a task completing successfully.
 ///
-/// The `ts` field is already embedded in the event struct — no post-serialisation
-/// mutation is needed.
-pub fn append_event(root: &Path, event: &TaskEvent) -> Result<()> {
-    let path = trace_file(root);
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
+/// `commit` and `notes` are stored as JSON in `output`.
+pub fn step_completed(
+    task_id: impl Into<String>,
+    commit: Option<&str>,
+    notes: Option<&str>,
+) -> Step {
+    let output = if commit.is_some() || notes.is_some() {
+        let mut m = serde_json::Map::new();
+        if let Some(c) = commit {
+            m.insert("commit".into(), serde_json::Value::String(c.into()));
+        }
+        if let Some(n) = notes {
+            m.insert("notes".into(), serde_json::Value::String(n.into()));
+        }
+        Some(serde_json::Value::Object(m))
+    } else {
+        None
+    };
+    Step {
+        name: task_id.into(),
+        kind: StepKind::Plain,
+        status: StepStatus::Ok,
+        confidence: 1.0,
+        started_at: started_at(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output,
+        error: None,
+        attempt: 1,
+        events: vec![],
     }
-    let line = serde_json::to_string(event).context("serialise JSONL line")?;
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-        .with_context(|| format!("opening {}", path.display()))?;
-    writeln!(file, "{}", line).with_context(|| format!("writing {}", path.display()))
+}
+
+/// Build a `Step` for a task that has been externally blocked.
+///
+/// Uses `StepStatus::Err` with the reason in `error` — blocked means the task
+/// could not proceed due to an external dependency, not an internal failure.
+pub fn step_blocked(task_id: impl Into<String>, reason: Option<&str>) -> Step {
+    Step {
+        name: task_id.into(),
+        kind: StepKind::Plain,
+        status: StepStatus::Err,
+        confidence: 0.0,
+        started_at: started_at(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output: None,
+        error: reason.map(str::to_string),
+        attempt: 1,
+        events: vec![],
+    }
+}
+
+/// Resolve the session directory: `<root>/.ctx/sessions/`.
+pub fn sessions_dir(root: &Path) -> PathBuf {
+    root.join(".ctx").join("sessions")
 }
