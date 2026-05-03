@@ -16,9 +16,17 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 rayon = { workspace = true }
 similar = { workspace = true }
+slashcrux = { workspace = true }
+tempfile = "3"
 
 [dev-dependencies]
 tempfile = "3"
+proptest = "1"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "conformance_bench"
+harness = false
 
 [[bin]]
 name = "run-conformance"

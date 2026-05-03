@@ -1,0 +1,5 @@
+{
+  "description": "Two-task chain: only root task is initially runnable",
+  "initial_runnable": ["t1"],
+  "after_t1_done_runnable": ["t2"]
+}

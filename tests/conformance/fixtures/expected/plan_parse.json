@@ -1,0 +1,7 @@
+{
+  "description": "Three-task plan produces sequential dependency chain",
+  "input": "### Task 1: Alpha\n### Task 2: Beta\n### Task 3: Gamma\n",
+  "expected_ids": ["t1", "t2", "t3"],
+  "expected_titles": ["Alpha", "Beta", "Gamma"],
+  "expected_deps": [[], ["t1"], ["t2"]]
+}

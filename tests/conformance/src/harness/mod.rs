@@ -1,5 +1,6 @@
 pub mod comparison;
 pub mod context;
+pub mod fixtures;
 pub mod logging;
 pub mod runner;
 pub mod traits;
