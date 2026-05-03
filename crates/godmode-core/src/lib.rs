@@ -16,4 +16,5 @@ pub mod skill;
 pub mod templates;
 pub mod verify;
 pub mod wave;
+pub mod workflow;
 pub mod worktree;

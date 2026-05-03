@@ -40,6 +40,16 @@ pub struct AgentDef {
     pub hooks: Vec<AgentHook>,
     #[serde(default)]
     pub metadata: AgentMetadata,
+    #[serde(default)]
+    pub workflows: Vec<WorkflowRef>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowRef {
+    pub name: String,
+    pub path: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slash_command: Option<String>,
 }
 
 fn default_version() -> String {
@@ -132,6 +142,7 @@ pub fn migrate_md_to_yaml(md_path: &Path, out_dir: &Path) -> Result<PathBuf> {
         prompt: None,
         hooks: vec![],
         metadata: AgentMetadata::default(),
+        workflows: vec![],
     };
 
     let stem = md_path
@@ -197,6 +208,7 @@ mod tests {
             prompt: Some("You are a test agent.".to_string()),
             hooks: vec![],
             metadata: AgentMetadata::default(),
+            workflows: vec![],
         }
     }
 

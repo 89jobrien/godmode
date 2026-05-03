@@ -23,3 +23,6 @@ hooks: []
 metadata:
   author: ""
   tags: []
+workflows:
+  - name: cycle
+    path: workflows/tdd/cycle.yaml

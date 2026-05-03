@@ -19,3 +19,6 @@ hooks: []
 metadata:
   author: ""
   tags: []
+workflows:
+  - name: design
+    path: workflows/brainstorm/design.yaml

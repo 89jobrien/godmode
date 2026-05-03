@@ -1,0 +1,12 @@
+name: cycle
+description: TDD red-green-refactor cycle for a single crate.
+agent: godmode:tdd-crate-agent
+steps:
+  - id: red
+    run: "cargo nextest run --workspace"
+  - id: green
+    run: "cargo nextest run --workspace"
+    depends_on: [red]
+  - id: refactor
+    run: "cargo clippy --workspace -- -D warnings"
+    depends_on: [green]
