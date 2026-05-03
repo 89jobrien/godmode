@@ -3,6 +3,7 @@
 use std::process::{Command, ExitStatus};
 
 use anyhow::{Context, Result};
+use which::which;
 
 // ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
@@ -33,6 +34,62 @@ pub fn resolve_cmd(run: &str) -> (String, Vec<String>) {
 }
 
 // ---------------------------------------------------------------------------
+// rx registry — list and validate
+// ---------------------------------------------------------------------------
+
+/// Parse the stdout of `rx list` into script names.
+/// Each line is: `name\t-\tbin_path\tsource_path`
+pub(crate) fn parse_rx_list_output(output: &str) -> Vec<&str> {
+    output
+        .lines()
+        .filter_map(|line| line.split('\t').next())
+        .filter(|name| !name.is_empty())
+        .collect()
+}
+
+/// Return the names of all scripts registered in the rx registry.
+/// Returns an empty vec (not an error) if `rx` is not on PATH.
+pub fn list_scripts() -> Result<Vec<String>> {
+    if which("rx").is_err() {
+        return Ok(vec![]);
+    }
+    let out = Command::new("rx")
+        .arg("list")
+        .output()
+        .context("failed to run rx list")?;
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    Ok(parse_rx_list_output(&stdout)
+        .into_iter()
+        .map(str::to_string)
+        .collect())
+}
+
+/// Validate that a `run:` field referring to an rx script actually exists.
+///
+/// - Non-`rx:` strings: always `Ok(())`
+/// - `rx:` strings when `rx` not on PATH: `Ok(())` (graceful degradation)
+/// - `rx:` strings when script not found: `Err(...)`
+pub fn validate_run(run: &str) -> Result<()> {
+    let Some(script) = run.strip_prefix("rx:") else {
+        return Ok(());
+    };
+    let script = script.trim();
+    let scripts = list_scripts()?;
+    if scripts.is_empty() {
+        return Ok(());
+    }
+    if scripts.iter().any(|s| s == script) {
+        Ok(())
+    } else {
+        anyhow::bail!(
+            "rx script '{}' not found in registry (rx list returned {} scripts)",
+            script,
+            scripts.len()
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Shell-out layer
 // ---------------------------------------------------------------------------
 
@@ -52,6 +109,18 @@ pub fn run_cmd(run: &str) -> Result<ExitStatus> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn validate_run_passes_for_non_rx_command() {
+        assert!(validate_run("cargo test").is_ok());
+    }
+
+    #[test]
+    fn list_scripts_parses_tab_separated_output() {
+        let raw = "foo\t-\t/bin/foo\t/src/foo.nu\nbar\t-\t/bin/bar\t/src/bar.nu\n";
+        let names = parse_rx_list_output(raw);
+        assert_eq!(names, vec!["foo", "bar"]);
+    }
 
     #[test]
     fn plain_command_splits() {
