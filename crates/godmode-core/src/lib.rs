@@ -9,6 +9,7 @@ pub mod plan;
 pub mod release;
 pub mod review;
 pub mod session;
+pub mod session_trace;
 pub mod templates;
 pub mod verify;
 pub mod wave;
