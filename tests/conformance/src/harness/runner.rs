@@ -132,20 +132,20 @@ impl TestRunner {
     }
 
     fn passes_filters(&self, test: &dyn ConformanceTest) -> bool {
-        if let Some(ref cf) = self.crate_filter {
-            if test.crate_name() != cf {
-                return false;
-            }
+        if let Some(ref cf) = self.crate_filter
+            && test.crate_name() != cf
+        {
+            return false;
         }
-        if let Some(cat) = self.category_filter {
-            if test.category() != cat {
-                return false;
-            }
+        if let Some(cat) = self.category_filter
+            && test.category() != cat
+        {
+            return false;
         }
-        if let Some(ref nf) = self.name_filter {
-            if !test.name().contains(nf.as_str()) {
-                return false;
-            }
+        if let Some(ref nf) = self.name_filter
+            && !test.name().contains(nf.as_str())
+        {
+            return false;
         }
         true
     }

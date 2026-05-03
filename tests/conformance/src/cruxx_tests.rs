@@ -1,7 +1,29 @@
 //! Conformance tests for godmode_core::integrations::cruxx — Step constructor API.
 
-use cruxx_core::types::step::StepStatus;
+use chrono::Utc;
+use cruxx_core::types::crux_value::Crux;
+use cruxx_core::types::error::CruxErr;
+use cruxx_core::types::step::{Step, StepKind, StepStatus};
 use godmode_core::integrations::cruxx;
+use godmode_core::model::TaskGraph;
+use godmode_core::session_trace::Session;
+
+fn make_step(name: &str) -> Step {
+    Step {
+        name: name.to_string(),
+        kind: StepKind::Plain,
+        status: StepStatus::Ok,
+        confidence: 1.0,
+        started_at: Utc::now(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output: None,
+        error: None,
+        attempt: 1,
+        events: vec![],
+    }
+}
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
@@ -139,6 +161,58 @@ impl ConformanceTest for CruxxSessionsDirPath {
     }
 }
 
+pub struct CruxxSessionRoundtrip;
+impl ConformanceTest for CruxxSessionRoundtrip {
+    fn name(&self) -> &str {
+        "cruxx_session_roundtrip"
+    }
+    fn crate_name(&self) -> &str {
+        "cruxx"
+    }
+    fn category(&self) -> TestCategory {
+        TestCategory::Integration
+    }
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut session = Session::start("conformance-agent", dir.path()).unwrap();
+        session.record(make_step("s1"));
+        session.record(make_step("s2"));
+        session.record(make_step("s3"));
+        let path = session.finish().unwrap();
+
+        let json = std::fs::read_to_string(&path).unwrap();
+        let crux: Crux<TaskGraph> = serde_json::from_str(&json).unwrap();
+        ctx.assert_eq(&3usize, &crux.steps.len());
+        ctx.assert_eq(&true, &crux.value.is_ok());
+        ctx.result()
+    }
+}
+
+pub struct CruxxSessionFail;
+impl ConformanceTest for CruxxSessionFail {
+    fn name(&self) -> &str {
+        "cruxx_session_fail"
+    }
+    fn crate_name(&self) -> &str {
+        "cruxx"
+    }
+    fn category(&self) -> TestCategory {
+        TestCategory::Integration
+    }
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut session = Session::start("conformance-agent", dir.path()).unwrap();
+        session.record(make_step("s1"));
+        let err = CruxErr::step_failed("s1", "test failure");
+        let path = session.fail(err).unwrap();
+
+        let json = std::fs::read_to_string(&path).unwrap();
+        let crux: Crux<TaskGraph> = serde_json::from_str(&json).unwrap();
+        ctx.assert_eq(&true, &crux.value.is_err());
+        ctx.result()
+    }
+}
+
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(CruxxStepStartedIsOk),
@@ -147,5 +221,7 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(CruxxStepBlockedIsErr),
         Box::new(CruxxStepsSerializeRoundtrip),
         Box::new(CruxxSessionsDirPath),
+        Box::new(CruxxSessionRoundtrip),
+        Box::new(CruxxSessionFail),
     ]
 }

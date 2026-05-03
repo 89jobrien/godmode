@@ -732,7 +732,7 @@ fn captures_all<'a>(pattern: &str, text: &'a str) -> Vec<Captures<'a>> {
         let cap_inner = &inner[cap_start..cap_end]; // e.g. "godmode:[^`]+" or "references/[^`]+"
         // Literal prefix is everything before the first regex special char
         let prefix_end = cap_inner
-            .find(|c: char| matches!(c, '[' | '.' | '*' | '+' | '?' | '\\'))
+            .find(|c: char| "[.*+?\\".contains(c))
             .unwrap_or(cap_inner.len());
         let prefix = &cap_inner[..prefix_end];
         // Suffix outside the capture group (after last `)`)
@@ -790,24 +790,24 @@ fn captures_all<'a>(pattern: &str, text: &'a str) -> Vec<Captures<'a>> {
         // line-start patterns — handled by is_match only
         if pattern == r"^\s*godmode\s+\S" {
             let trimmed = text.trim_start();
-            if trimmed.starts_with("godmode") {
-                let after = trimmed["godmode".len()..].trim_start();
-                if !after.is_empty() {
-                    results.push(Captures {
-                        full: text,
-                        groups: vec![],
-                    });
-                }
+            if let Some(after) = trimmed.strip_prefix("godmode")
+                && !after.trim_start().is_empty()
+            {
+                results.push(Captures {
+                    full: text,
+                    groups: vec![],
+                });
             }
-        } else if pattern == r"^[-<$#]" {
-            if let Some(c) = text.chars().next() {
-                if matches!(c, '-' | '<' | '$' | '#') {
-                    results.push(Captures {
-                        full: text,
-                        groups: vec![],
-                    });
-                }
-            }
+        } else if pattern == r"^[-<$#]"
+            && text
+                .chars()
+                .next()
+                .is_some_and(|c| matches!(c, '-' | '<' | '$' | '#'))
+        {
+            results.push(Captures {
+                full: text,
+                groups: vec![],
+            });
         }
     }
     results

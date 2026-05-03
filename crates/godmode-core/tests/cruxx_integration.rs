@@ -1,5 +1,27 @@
-use cruxx_core::types::step::StepStatus;
+use chrono::Utc;
+use cruxx_core::types::crux_value::Crux;
+use cruxx_core::types::error::CruxErr;
+use cruxx_core::types::step::{Step, StepKind, StepStatus};
 use godmode_core::integrations::cruxx;
+use godmode_core::model::TaskGraph;
+use godmode_core::session_trace::Session;
+
+fn make_step(name: &str) -> Step {
+    Step {
+        name: name.to_string(),
+        kind: StepKind::Plain,
+        status: StepStatus::Ok,
+        confidence: 1.0,
+        started_at: Utc::now(),
+        duration_ms: 0,
+        input_hash: 0,
+        content_hash: None,
+        output: None,
+        error: None,
+        attempt: 1,
+        events: vec![],
+    }
+}
 
 #[test]
 fn sessions_dir_path_is_under_ctx() {
@@ -52,6 +74,43 @@ fn step_blocked_has_err_status_and_reason() {
 fn step_blocked_no_reason_has_no_error() {
     let step = cruxx::step_blocked("t1", None);
     assert!(step.error.is_none());
+}
+
+#[test]
+fn session_start_finish_writes_file_under_ctx_sessions() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let session = Session::start("test-agent", dir.path()).unwrap();
+    let path = session.finish().unwrap();
+
+    assert!(path.exists());
+    assert!(path.starts_with(dir.path().join(".ctx").join("sessions")));
+}
+
+#[test]
+fn session_finish_deserialises_to_crux_task_graph_with_correct_step_count() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let mut session = Session::start("test-agent", dir.path()).unwrap();
+    session.record(make_step("s1"));
+    session.record(make_step("s2"));
+    session.record(make_step("s3"));
+    let path = session.finish().unwrap();
+
+    let json = std::fs::read_to_string(&path).unwrap();
+    let crux: Crux<TaskGraph> = serde_json::from_str(&json).unwrap();
+    assert_eq!(crux.steps.len(), 3);
+}
+
+#[test]
+fn session_fail_writes_err_value() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let mut session = Session::start("test-agent", dir.path()).unwrap();
+    session.record(make_step("s1"));
+    let err = CruxErr::step_failed("s1", "something broke");
+    let path = session.fail(err).unwrap();
+
+    let json = std::fs::read_to_string(&path).unwrap();
+    let crux: Crux<TaskGraph> = serde_json::from_str(&json).unwrap();
+    assert!(crux.value.is_err());
 }
 
 #[test]
