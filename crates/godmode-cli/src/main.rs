@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
     agent_index, builder, detect, dispatch, graph, integrations, model, plan, release, review,
-    templates,
+    session::Session, templates,
 };
 
 #[derive(Parser)]
@@ -403,10 +403,10 @@ fn main() -> Result<()> {
         }
 
         Cmd::Task { action } => {
-            let mut g = graph::load(&root)?;
+            let mut session = Session::open(&root)?;
             match action {
                 TaskAction::List => {
-                    if g.tasks.is_empty() {
+                    if session.graph().tasks.is_empty() {
                         if json {
                             println!("[]");
                         } else {
@@ -415,9 +415,9 @@ fn main() -> Result<()> {
                         return Ok(());
                     }
                     if json {
-                        println!("{}", serde_json::to_string_pretty(&g.tasks)?);
+                        println!("{}", serde_json::to_string_pretty(&session.graph().tasks)?);
                     } else {
-                        for t in &g.tasks {
+                        for t in &session.graph().tasks {
                             let crate_tag = t
                                 .crate_name
                                 .as_deref()
@@ -440,12 +440,12 @@ fn main() -> Result<()> {
                     depends_on,
                     crate_name,
                 } => {
-                    let id = id.unwrap_or_else(|| graph::next_task_id(&g));
+                    let id = id.unwrap_or_else(|| graph::next_task_id(session.graph()));
                     let mut task = model::Task::new(id.clone(), title);
                     task.depends_on = depends_on;
                     task.crate_name = crate_name;
-                    graph::add(&mut g, task)?;
-                    graph::save(&root, &g)?;
+                    session.add_task(task)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}"}}"#, id);
                     } else {
@@ -454,8 +454,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Start { id } => {
-                    graph::start_traced(&mut g, &id, Some(&root))?;
-                    graph::save(&root, &g)?;
+                    session.start_task(&id)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"running"}}"#, id);
                     } else {
@@ -464,14 +464,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Done { id, commit, notes } => {
-                    graph::complete_traced(
-                        &mut g,
-                        &id,
-                        commit.as_deref(),
-                        notes.as_deref(),
-                        Some(&root),
-                    )?;
-                    graph::save(&root, &g)?;
+                    session.complete_task(&id, commit.as_deref(), notes.as_deref())?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"done"}}"#, id);
                     } else {
@@ -480,8 +474,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Block { id, reason } => {
-                    graph::block(&mut g, &id, &reason)?;
-                    graph::save(&root, &g)?;
+                    session.block_task(&id, &reason)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"blocked"}}"#, id);
                     } else {
@@ -490,8 +484,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Unblock { id } => {
-                    graph::unblock(&mut g, &id)?;
-                    graph::save(&root, &g)?;
+                    session.unblock_task(&id)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","status":"pending"}}"#, id);
                     } else {
@@ -500,8 +494,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Remove { id } => {
-                    graph::remove(&mut g, &id)?;
-                    graph::save(&root, &g)?;
+                    session.remove_task(&id)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"id":"{}","removed":true}}"#, id);
                     } else {
@@ -515,8 +509,8 @@ fn main() -> Result<()> {
                             "specify --done to clear completed tasks or --all to clear everything"
                         );
                     }
-                    let count = graph::clear(&mut g, done);
-                    graph::save(&root, &g)?;
+                    let count = graph::clear(session.graph_mut(), done);
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"removed":{}}}"#, count);
                     } else {
@@ -525,7 +519,7 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Next => {
-                    let next = graph::runnable(&g);
+                    let next = graph::runnable(session.graph());
                     if next.is_empty() {
                         exit_empty(json);
                     }
@@ -544,7 +538,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::Run { id, auto_done } => {
-                    let run_cmd = g
+                    let run_cmd = session
+                        .graph()
                         .tasks
                         .iter()
                         .find(|t| t.id == id)
@@ -554,8 +549,8 @@ fn main() -> Result<()> {
                         .ok_or_else(|| anyhow::anyhow!("task '{}' has no `run:` field", id))?;
                     let exit = integrations::rx::run_cmd(&run_cmd)?;
                     if exit.success() && auto_done {
-                        graph::complete_traced(&mut g, &id, None, None, Some(&root))?;
-                        graph::save(&root, &g)?;
+                        session.complete_task(&id, None, None)?;
+                        session.save()?;
                         if !json {
                             println!("Task '{}' marked done.", id);
                         }
@@ -582,13 +577,13 @@ fn main() -> Result<()> {
                     };
                     let mut imported = 0usize;
                     for task in tasks {
-                        match graph::add(&mut g, task) {
+                        match session.add_task(task) {
                             Ok(()) => imported += 1,
                             Err(e) if e.to_string().contains("already exists") => {}
                             Err(e) => return Err(e),
                         }
                     }
-                    graph::save(&root, &g)?;
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"imported":{}}}"#, imported);
                     } else if github {
@@ -600,7 +595,12 @@ fn main() -> Result<()> {
 
                 TaskAction::PushDone => {
                     let mut pushed = 0usize;
-                    for task in g.tasks.iter().filter(|t| t.status == model::Status::Done) {
+                    for task in session
+                        .graph()
+                        .tasks
+                        .iter()
+                        .filter(|t| t.status == model::Status::Done)
+                    {
                         if let Some(uuid) = task.notes.strip_prefix("doob:") {
                             integrations::doob::todo_done(uuid.trim())?;
                             pushed += 1;
@@ -614,8 +614,8 @@ fn main() -> Result<()> {
                 }
 
                 TaskAction::UnblockAll => {
-                    let count = graph::unblock_all(&mut g);
-                    graph::save(&root, &g)?;
+                    let count = session.unblock_all();
+                    session.save()?;
                     if json {
                         println!(r#"{{"ok":true,"unblocked":{}}}"#, count);
                     } else if count == 0 {
@@ -629,8 +629,8 @@ fn main() -> Result<()> {
                     let path = templates::find(&root, &name)?;
                     let tmpl = templates::load(&path, &vars)?;
                     let tmpl_name = tmpl.meta.name.clone();
-                    let (applied, skipped) = templates::apply(&mut g, tmpl)?;
-                    graph::save(&root, &g)?;
+                    let (applied, skipped) = templates::apply(session.graph_mut(), tmpl)?;
+                    session.save()?;
                     if json {
                         println!(
                             r#"{{"ok":true,"applied":{},"skipped":{}}}"#,

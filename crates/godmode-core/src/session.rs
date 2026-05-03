@@ -52,6 +52,10 @@ impl Session {
         &self.graph
     }
 
+    pub fn graph_mut(&mut self) -> &mut TaskGraph {
+        &mut self.graph
+    }
+
     /// Add a task to the graph.
     pub fn add_task(&mut self, task: Task) -> Result<()> {
         graph::add(&mut self.graph, task)
@@ -116,6 +120,11 @@ impl Session {
     /// Unblock a task.
     pub fn unblock_task(&mut self, id: &str) -> Result<()> {
         graph::unblock(&mut self.graph, id)
+    }
+
+    /// Unblock all blocked tasks. Returns count unblocked.
+    pub fn unblock_all(&mut self) -> usize {
+        graph::unblock_all(&mut self.graph)
     }
 
     /// Aggregate counts and per-task durations.

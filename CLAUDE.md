@@ -40,20 +40,20 @@ Two-crate workspace:
 
 ### Core modules (`godmode-core/src/`)
 
-| Module          | Responsibility                                                                                                                                           |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`         | `Task`, `TaskGraph`, `Status` — the data model. `TaskGraph` serializes to `.ctx/GODMODE.tasks.yaml`.                                                     |
-| `graph`         | Load/save task file, all task state transitions (`start`, `complete`, `block`, `unblock`, `add`, `remove`, `clear`), `runnable()` dependency resolution. |
-| `detect`        | Walks up from CWD to find git root; reads `[package] name` from `Cargo.toml`.                                                                            |
-| `plan`          | Parses plan markdown (`### Task N: <title>`) into `Task` structs with sequential deps.                                                                   |
-| `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                           |
-| `session`       | `handoff()` — validates session-end state (counts running tasks).                                                                                        |
-| `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: field dispatch), `cruxx` (trace event append).                             |
-| `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                    |
-| `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                      |
-| `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                   |
-| `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                  |
-| `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                               |
+| Module          | Responsibility                                                                                                                                                                     |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`         | `Task`, `TaskGraph`, `Status` — the data model. `TaskGraph` serializes to `.ctx/GODMODE.tasks.yaml`.                                                                               |
+| `graph`         | Load/save task file, all task state transitions (`start`, `complete`, `block`, `unblock`, `add`, `remove`, `clear`), `runnable()` dependency resolution.                           |
+| `detect`        | Walks up from CWD to find git root; reads `[package] name` from `Cargo.toml`.                                                                                                      |
+| `plan`          | Parses plan markdown (`### Task N: <title>`) into `Task` structs with sequential deps.                                                                                             |
+| `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                                                     |
+| `session`       | `Session` struct — owns all task transitions, duration tracking, cruxx trace writes, rx validation. `handon()`/`handoff()` are thin wrappers. `SessionSummary` emitted at handoff. |
+| `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: dispatch + `list_scripts`/`validate_run`), `cruxx` (Step constructors).                              |
+| `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                                              |
+| `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                                                |
+| `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                                             |
+| `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                                            |
+| `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                                                         |
 
 ### State file
 
@@ -62,8 +62,9 @@ Two-crate workspace:
 
 ### Trace events
 
-`start_traced` / `complete_traced` append JSONL to `.ctx/GODMODE.trace.jsonl` via the cruxx
-integration. All trace writes are non-fatal (`let _ = cruxx::append_event(...)`).
+`Session::start_task` / `Session::complete_task` append `cruxx_core::Step` JSONL to
+`.ctx/sessions/YYYY-MM-DD.jsonl`. `Session::handoff` writes a `SessionSummary` record to
+`.ctx/sessions/YYYY-MM-DD-summary.jsonl`. All trace writes are non-fatal (`let _ = ...`).
 
 ### Integration pattern
 
@@ -142,3 +143,7 @@ cause validation failure on `claude plugin install`.
   then `git add` again before committing or the pre-commit check will still fail.
 - `tests/conformance/` is a workspace member (`-p godmode-conformance`); add new test modules
   in `src/`, register in `lib.rs::all_tests()`, and add `pub mod` to `lib.rs`.
+- `Task::started_at` is set by `Session::start_task`, not `graph::start` — duration tracking
+  only works when transitions go through `Session`, not raw `graph::*` functions directly.
+- `rx::validate_run` fires inside `Session::start_task` before state mutation — if the script
+  doesn't exist and `rx` is on PATH, the task is rejected before being marked Running.
