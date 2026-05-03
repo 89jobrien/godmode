@@ -8,6 +8,9 @@ Read local memory: @`.claude.local.md`
 ## Build & Test
 
 ```bash
+cargo run -p godmode-conformance --bin run-conformance -- --verbose  # run conformance suite
+cargo test -p godmode-conformance                                     # property tests
+cargo bench -p godmode-conformance                                    # criterion benchmarks
 cargo build --workspace
 cargo check --workspace
 cargo clippy --workspace -- -D warnings
@@ -133,3 +136,9 @@ cause validation failure on `claude plugin install`.
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
 - `dispatch --critical-path` does not exist. Critical path is shown by `godmode status`.
 - Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.
+- `plan::parse` returns `Result<Vec<Task>>`, not `Vec<Task>` — always match/unwrap the Result.
+- `dispatch::independent_chains(graph, max)` returns `Vec<Chain>` — not `build_slots`.
+- `cargo fmt` PostToolUse hook runs automatically but does NOT auto-stage; run `cargo fmt --all`
+  then `git add` again before committing or the pre-commit check will still fail.
+- `tests/conformance/` is a workspace member (`-p godmode-conformance`); add new test modules
+  in `src/`, register in `lib.rs::all_tests()`, and add `pub mod` to `lib.rs`.
