@@ -1,0 +1,22 @@
+name: godmode:cap-agent
+version: 1.0.0
+description: |
+  Commit and push workflow. Use when the user says "cap", "commit and push", "ship it", or "ready to push". Runs cargo fmt + clippy + nextest, stages changes, generates a conventional commit message from the diff, commits (letting pre-commit hooks run), and pushes. Diagnoses and fixes pre-commit hook failures before retrying. Never uses --no-verify.
+triggers: []
+model: inherit
+color: yellow
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - cap
+  - verification-before-completion
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

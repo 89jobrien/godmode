@@ -2,8 +2,8 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
-    agent_index, builder, detect, dispatch, graph, integrations, model, plan, release, review,
-    session::Session, templates,
+    agent, agent_index, builder, detect, dispatch, graph, integrations, model, plan, registry,
+    release, review, session::Session, skill, templates,
 };
 
 #[derive(Parser)]
@@ -107,6 +107,12 @@ enum Cmd {
         action: HookAction,
     },
 
+    /// Skill registry management.
+    Skill {
+        #[command(subcommand)]
+        action: SkillAction,
+    },
+
     /// Plugin conformance and consistency auditing.
     Review {
         #[command(subcommand)]
@@ -137,6 +143,38 @@ enum AgentAction {
         /// Maximum concurrent agent chains.
         #[arg(long, default_value = "5")]
         max: usize,
+    },
+    /// Generate .md from agent YAML definitions.
+    Generate {
+        /// Name of a single agent YAML to generate (stem, no extension). Omit for --all.
+        name: Option<String>,
+        /// Generate .md for all agents/*.yaml files.
+        #[arg(long)]
+        all: bool,
+    },
+    /// Migrate agents/*.md frontmatter to agents/*.yaml stubs.
+    Migrate {
+        /// Name of a single agent .md to migrate (stem, no extension). Omit for --all.
+        name: Option<String>,
+        /// Migrate all agents/*.md files.
+        #[arg(long)]
+        all: bool,
+    },
+}
+
+#[derive(Subcommand)]
+enum SkillAction {
+    /// List all registered skills.
+    List,
+    /// Install a skill from a local directory path.
+    Install {
+        /// Absolute path to the skill directory.
+        path: String,
+    },
+    /// Remove a skill from the registry by name.
+    Uninstall {
+        /// Skill name to remove.
+        name: String,
     },
 }
 
@@ -1031,6 +1069,90 @@ fn main() -> Result<()> {
                 Ok(())
             }
 
+            AgentAction::Generate { name, all } => {
+                let agents_dir = root.join("agents");
+                if !agents_dir.exists() {
+                    anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
+                }
+                let yaml_files: Vec<std::path::PathBuf> = if all {
+                    std::fs::read_dir(&agents_dir)?
+                        .filter_map(|e| e.ok())
+                        .map(|e| e.path())
+                        .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
+                        .collect()
+                } else {
+                    let n = name
+                        .as_deref()
+                        .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
+                    vec![agents_dir.join(format!("{}.yaml", n))]
+                };
+                let mut generated = 0usize;
+                for yp in &yaml_files {
+                    let def = agent::load(yp)?;
+                    let md = agent::generate_md(&def);
+                    let out = yp.with_extension("md");
+                    std::fs::write(&out, &md)?;
+                    generated += 1;
+                    if !json {
+                        println!("Generated {}", out.display());
+                    }
+                }
+                if json {
+                    println!(r#"{{"ok":true,"generated":{}}}"#, generated);
+                }
+                Ok(())
+            }
+
+            AgentAction::Migrate { name, all } => {
+                let agents_dir = root.join("agents");
+                if !agents_dir.exists() {
+                    anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
+                }
+                let md_files: Vec<std::path::PathBuf> = if all {
+                    std::fs::read_dir(&agents_dir)?
+                        .filter_map(|e| e.ok())
+                        .map(|e| e.path())
+                        .filter(|p| {
+                            p.extension().and_then(|x| x.to_str()) == Some("md")
+                                && p.file_name()
+                                    .and_then(|n| n.to_str())
+                                    .map(|n| n != "INDEX.md")
+                                    .unwrap_or(false)
+                        })
+                        .collect()
+                } else {
+                    let n = name
+                        .as_deref()
+                        .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
+                    vec![agents_dir.join(format!("{}.md", n))]
+                };
+                let mut migrated = 0usize;
+                let mut errors = 0usize;
+                for mp in &md_files {
+                    match agent::migrate_md_to_yaml(mp, &agents_dir) {
+                        Ok(out) => {
+                            migrated += 1;
+                            if !json {
+                                println!("Migrated {} -> {}", mp.display(), out.display());
+                            }
+                        }
+                        Err(e) => {
+                            errors += 1;
+                            if !json {
+                                eprintln!("SKIP {}: {}", mp.display(), e);
+                            }
+                        }
+                    }
+                }
+                if json {
+                    println!(
+                        r#"{{"ok":true,"migrated":{},"errors":{}}}"#,
+                        migrated, errors
+                    );
+                }
+                Ok(())
+            }
+
             AgentAction::Dispatch { path, max } => {
                 let markdown = std::fs::read_to_string(&path)?;
                 let tasks = plan::parse(&markdown)?;
@@ -1290,6 +1412,71 @@ fn main() -> Result<()> {
                     if summary.next.is_empty() {
                         std::process::exit(1);
                     }
+                }
+                Ok(())
+            }
+        },
+
+        Cmd::Skill { action } => match action {
+            SkillAction::List => {
+                let skills_dir = root.join("skills");
+                let skills = skill::list_local(&skills_dir)?;
+                if skills.is_empty() {
+                    if json {
+                        println!("[]");
+                    } else {
+                        println!("No skills found.");
+                    }
+                    return Ok(());
+                }
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&skills)?);
+                } else {
+                    println!("{:<30} PATH", "NAME");
+                    for s in &skills {
+                        println!("{:<30} {}", s.name, s.path.display());
+                    }
+                }
+                Ok(())
+            }
+            SkillAction::Install { path } => {
+                let p = std::path::PathBuf::from(&path);
+                if !p.join("SKILL.md").exists() {
+                    anyhow::bail!("no SKILL.md found in {}", p.display());
+                }
+                let name = p
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .ok_or_else(|| anyhow::anyhow!("invalid path: {}", p.display()))?
+                    .to_string();
+                let mut reg = registry::Registry::load_global()?;
+                let entry = registry::RegistryEntry {
+                    name: name.clone(),
+                    kind: registry::EntryKind::Skill,
+                    path: p.canonicalize().unwrap_or(p),
+                    version: "1.0.0".to_string(),
+                };
+                let is_new = reg.install(entry);
+                reg.save_global()?;
+                if json {
+                    println!(r#"{{"ok":true,"name":"{}","new":{}}}"#, name, is_new);
+                } else if is_new {
+                    println!("Installed skill '{}'.", name);
+                } else {
+                    println!("Skill '{}' already registered.", name);
+                }
+                Ok(())
+            }
+            SkillAction::Uninstall { name } => {
+                let mut reg = registry::Registry::load_global()?;
+                let removed = reg.uninstall(&name);
+                reg.save_global()?;
+                if json {
+                    println!(r#"{{"ok":true,"name":"{}","removed":{}}}"#, name, removed);
+                } else if removed {
+                    println!("Uninstalled skill '{}'.", name);
+                } else {
+                    println!("Skill '{}' was not in the registry.", name);
                 }
                 Ok(())
             }

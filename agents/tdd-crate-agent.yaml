@@ -1,0 +1,25 @@
+name: godmode-crate-agent
+version: 1.0.0
+description: |
+  Use when implementing one or more tasks in a specific Rust workspace crate with strict TDD discipline. Triggered by the parallel-agents skill or directly when a crate + task list is ready.
+  <example> Context: Task graph has independent crates to implement. user: "Implement the RetryAdapter tasks in the cache crate" assistant: "Dispatching godmode-crate-agent for the cache crate." <commentary> Specific crate + task list = canonical trigger for godmode-crate-agent. </commentary> </example>
+  <example> Context: Single crate issue to implement. user: "Work on issue #42 targeting the auth crate" assistant: "Using godmode-crate-agent for auth with test-first discipline." <commentary> Single-crate work enforces TDD via this agent. </commentary> </example>
+triggers: []
+model: inherit
+color: purple
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Agent
+  - Task
+  - Bash(godmode:*)
+skills: []
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []
