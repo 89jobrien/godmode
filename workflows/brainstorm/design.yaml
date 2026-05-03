@@ -1,0 +1,12 @@
+name: design
+description: Brainstorm design workflow — explore, shape, and document a design decision.
+agent: godmode:brainstorm-agent
+steps:
+  - id: explore
+    run: "echo 'Exploring design space...'"
+  - id: shape
+    run: "echo 'Shaping design...'"
+    depends_on: [explore]
+  - id: document
+    run: "echo 'Documenting design decision...'"
+    depends_on: [shape]
