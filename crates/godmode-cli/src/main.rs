@@ -681,15 +681,15 @@ fn main() -> Result<()> {
                 let markdown = std::fs::read_to_string(&path)?;
                 let tasks = plan::parse(&markdown)?;
                 let count = tasks.len();
-                let mut g = graph::load(&root)?;
+                let mut session = Session::open(&root)?;
                 for task in tasks {
-                    if let Err(e) = graph::add(&mut g, task)
+                    if let Err(e) = session.add_task(task)
                         && !e.to_string().contains("already exists")
                     {
                         return Err(e);
                     }
                 }
-                graph::save(&root, &g)?;
+                session.save()?;
                 if json {
                     println!(r#"{{"ok":true,"ingested":{}}}"#, count);
                 } else {
@@ -1037,17 +1037,17 @@ fn main() -> Result<()> {
                 if tasks.is_empty() {
                     anyhow::bail!("no tasks found in {}", path);
                 }
-                let mut g = graph::load(&root)?;
+                let mut session = Session::open(&root)?;
                 let mut ingested = 0usize;
                 for task in tasks {
-                    match graph::add(&mut g, task) {
+                    match session.add_task(task) {
                         Ok(()) => ingested += 1,
                         Err(e) if e.to_string().contains("already exists") => {}
                         Err(e) => return Err(e),
                     }
                 }
-                graph::save(&root, &g)?;
-                let chains = dispatch::independent_chains(&g, max);
+                session.save()?;
+                let chains = dispatch::independent_chains(session.graph(), max);
                 if json {
                     println!(
                         "{}",
