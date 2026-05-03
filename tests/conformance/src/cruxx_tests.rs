@@ -63,10 +63,10 @@ impl ConformanceTest for CruxxCompletedEmitsState {
     }
 }
 
-pub struct CruxxBlockedEmitsFailed;
-impl ConformanceTest for CruxxBlockedEmitsFailed {
+pub struct CruxxBlockedEmitsCancelled;
+impl ConformanceTest for CruxxBlockedEmitsCancelled {
     fn name(&self) -> &str {
-        "cruxx_blocked_emits_failed"
+        "cruxx_blocked_emits_cancelled"
     }
     fn crate_name(&self) -> &str {
         "cruxx"
@@ -81,8 +81,33 @@ impl ConformanceTest for CruxxBlockedEmitsFailed {
 
         let content = std::fs::read_to_string(cruxx::trace_file(dir.path())).unwrap();
         let line: serde_json::Value = serde_json::from_str(content.trim()).unwrap();
-        ctx.assert_str_eq("failed", line["state"].as_str().unwrap_or(""));
+        // blocked = externally stopped, not internally failed → "cancelled"
+        ctx.assert_str_eq("cancelled", line["state"].as_str().unwrap_or(""));
         ctx.assert_str_eq("three attempts", line["reason"].as_str().unwrap_or(""));
+        ctx.result()
+    }
+}
+
+pub struct CruxxPendingEmitsPending;
+impl ConformanceTest for CruxxPendingEmitsPending {
+    fn name(&self) -> &str {
+        "cruxx_pending_emits_pending"
+    }
+    fn crate_name(&self) -> &str {
+        "cruxx"
+    }
+    fn category(&self) -> TestCategory {
+        TestCategory::Unit
+    }
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let dir = tempfile::TempDir::new().unwrap();
+        let event = cruxx::TaskEvent::pending("t0", "New task");
+        cruxx::append_event(dir.path(), &event).unwrap();
+
+        let content = std::fs::read_to_string(cruxx::trace_file(dir.path())).unwrap();
+        let line: serde_json::Value = serde_json::from_str(content.trim()).unwrap();
+        ctx.assert_str_eq("pending", line["state"].as_str().unwrap_or(""));
+        ctx.assert_str_eq("t0", line["step_name"].as_str().unwrap_or(""));
         ctx.result()
     }
 }
@@ -104,8 +129,10 @@ impl ConformanceTest for CruxxStateIsSlashcruxVocabulary {
         ctx.assert_eq(&StepState::Running, &e.state);
         let e = cruxx::TaskEvent::completed("t2", "x", None, None);
         ctx.assert_eq(&StepState::Completed, &e.state);
+        let e = cruxx::TaskEvent::pending("t0", "x");
+        ctx.assert_eq(&StepState::Pending, &e.state);
         let e = cruxx::TaskEvent::blocked("t3", "x", None);
-        ctx.assert_eq(&StepState::Failed, &e.state);
+        ctx.assert_eq(&StepState::Cancelled, &e.state);
         ctx.result()
     }
 }
@@ -138,7 +165,8 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(CruxxStartedEmitsRunning),
         Box::new(CruxxCompletedEmitsState),
-        Box::new(CruxxBlockedEmitsFailed),
+        Box::new(CruxxBlockedEmitsCancelled),
+        Box::new(CruxxPendingEmitsPending),
         Box::new(CruxxStateIsSlashcruxVocabulary),
         Box::new(CruxxAppendsMultipleLines),
     ]

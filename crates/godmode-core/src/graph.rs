@@ -257,13 +257,22 @@ pub fn next_task_id(g: &TaskGraph) -> String {
     unreachable!()
 }
 
-/// Add a new task to the graph.
+/// Add a new task to the graph. Emits a `pending` trace event when `root` is provided.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
+    add_traced(graph, task, None)
+}
+
+pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
         bail!("task '{}' already exists", task.id);
     }
     if let Some(cycle_path) = would_create_cycle(graph, &task.id, &task.depends_on) {
         bail!("cycle detected: {}", cycle_path);
+    }
+    if let Some(root) = root {
+        let mut event = cruxx::TaskEvent::pending(task.id.clone(), task.title.clone());
+        event.crate_name = task.crate_name.clone();
+        let _ = cruxx::append_event(root, &event); // non-fatal
     }
     graph.tasks.push(task);
     Ok(())
