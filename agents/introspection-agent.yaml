@@ -1,0 +1,19 @@
+name: godmode:introspection-agent
+version: 1.0.0
+description: |
+  Plugin audit agent. Use when asked to "audit skills", "introspect", "review godmode", or "check plugin consistency". Runs full conformance checks and reports all findings by severity. Read-only — never modifies files.
+triggers: []
+model: inherit
+color: white
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - introspection
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

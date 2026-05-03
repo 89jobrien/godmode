@@ -1,0 +1,21 @@
+name: godmode:refactoring-agent
+version: 1.0.0
+description: |
+  Refactoring specialist with strict test discipline. Triggers on "refactor", "extract", "rename", "reorganise", "decouple", "clean up". Use when restructuring code without changing observable behaviour. Never modifies behaviour and structure simultaneously.
+triggers: []
+model: inherit
+color: cyan
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - refactoring
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

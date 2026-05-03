@@ -1,0 +1,19 @@
+name: godmode:orientation-agent
+version: 1.0.0
+description: |
+  Godmode orientation and help agent. Triggers on "what skills", "how does godmode work", "godmode help", "/godmode", session start orientation, or any question about available capabilities. Read-only — explains, never modifies.
+triggers: []
+model: inherit
+color: white
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+skills:
+  - using-godmode
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

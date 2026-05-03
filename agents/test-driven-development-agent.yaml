@@ -1,0 +1,21 @@
+name: godmode:tdd-agent
+version: 1.0.0
+description: |
+  Strict TDD implementation agent. Triggers on "implement", "write code for", "add feature", "fix bug", or any request that produces production Rust code. Always writes a failing test before touching implementation files.
+triggers: []
+model: inherit
+color: purple
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - test-driven-development
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

@@ -1,3 +1,4 @@
+pub mod agent;
 pub mod agent_index;
 pub mod builder;
 pub mod detect;
@@ -6,10 +7,12 @@ pub mod graph;
 pub mod integrations;
 pub mod model;
 pub mod plan;
+pub mod registry;
 pub mod release;
 pub mod review;
 pub mod session;
 pub mod session_trace;
+pub mod skill;
 pub mod templates;
 pub mod verify;
 pub mod wave;

@@ -1,0 +1,21 @@
+name: godmode:writing-plans-agent
+version: 1.0.0
+description: |
+  Implementation plan specialist. Triggers on "write a plan", "create implementation plan", "turn this design into tasks", "convert this to tasks", or when a brainstorm design doc has been approved and task graph population is the next step.
+triggers: []
+model: inherit
+color: blue
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - writing-plans
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []
