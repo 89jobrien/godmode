@@ -1,6 +1,33 @@
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
+/// Task scheduling priority.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Priority {
+    High,
+    #[default]
+    Normal,
+    Low,
+}
+
+impl Priority {
+    /// Returns `true` when the priority is `Normal` — used by serde skip predicate.
+    pub fn is_normal(&self) -> bool {
+        matches!(self, Priority::Normal)
+    }
+}
+
+impl std::fmt::Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Priority::High => write!(f, "high"),
+            Priority::Normal => write!(f, "normal"),
+            Priority::Low => write!(f, "low"),
+        }
+    }
+}
+
 /// Task execution status.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -46,6 +73,9 @@ pub struct Task {
     /// Wall-clock time when the task was last started. Used to compute duration_ms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub started_at: Option<DateTime<Utc>>,
+    /// Scheduling priority. Defaults to Normal; omitted from YAML when Normal.
+    #[serde(default, skip_serializing_if = "Priority::is_normal")]
+    pub priority: Priority,
 }
 
 impl Task {
@@ -61,6 +91,7 @@ impl Task {
             completed: None,
             run: None,
             started_at: None,
+            priority: Priority::Normal,
         }
     }
 }
@@ -91,6 +122,57 @@ mod tests {
         let yaml = serde_yaml::to_string(&t).unwrap();
         let back: Task = serde_yaml::from_str(&yaml).unwrap();
         assert!(back.started_at.is_some());
+    }
+
+    // --- Priority tests (RED — fail before implementation) ---
+
+    #[test]
+    fn priority_default_is_normal() {
+        let t = Task::new("t1", "A");
+        assert_eq!(t.priority, Priority::Normal);
+    }
+
+    #[test]
+    fn priority_serializes_as_lowercase() {
+        let mut t = Task::new("t1", "A");
+        t.priority = Priority::High;
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        assert!(yaml.contains("priority: high"), "got: {yaml}");
+    }
+
+    #[test]
+    fn priority_normal_is_skipped_in_yaml() {
+        let t = Task::new("t1", "A");
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        assert!(
+            !yaml.contains("priority"),
+            "Normal priority should be omitted from YAML: {yaml}"
+        );
+    }
+
+    #[test]
+    fn priority_roundtrips_all_variants() {
+        for priority in [Priority::High, Priority::Normal, Priority::Low] {
+            let mut t = Task::new("t1", "A");
+            t.priority = priority.clone();
+            let yaml = serde_yaml::to_string(&t).unwrap();
+            let back: Task = serde_yaml::from_str(&yaml).unwrap();
+            assert_eq!(back.priority, priority);
+        }
+    }
+
+    #[test]
+    fn priority_deserializes_missing_field_as_normal() {
+        let yaml = "id: t1\ntitle: A\nstatus: pending\n";
+        let t: Task = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(t.priority, Priority::Normal);
+    }
+
+    #[test]
+    fn priority_display() {
+        assert_eq!(Priority::High.to_string(), "high");
+        assert_eq!(Priority::Normal.to_string(), "normal");
+        assert_eq!(Priority::Low.to_string(), "low");
     }
 }
 
