@@ -14,24 +14,9 @@ if $git_result.exit_code != 0 {
 let git_root = $git_result.stdout | str trim
 
 # Emit session.end trace event (unconditional — fires for all git repos)
-try {
-    let ctx_dir = $"($git_root)/.ctx"
-    let session_file = $"($ctx_dir)/GODMODE.session.json"
-    let session_id = if ($session_file | path exists) {
-        (open $session_file).session_id
-    } else {
-        ""
-    }
-    if not ($session_id | is-empty) {
-        let trace_file = $"($ctx_dir)/GODMODE.trace.jsonl"
-        let event = {
-            event: "session.end"
-            session_id: $session_id
-            ts: (date now | format date "%Y-%m-%dT%H:%M:%S%z")
-        }
-        $event | to json --raw | save --append $trace_file
-        "\n" | save --append $trace_file
-    }
+let trace_script = ($env.CLAUDE_PLUGIN_ROOT | path join "hooks/scripts/godmode-trace.rs")
+if ($trace_script | path exists) {
+    do { rust-script $trace_script end $git_root } | complete | ignore
 }
 
 let init_file = $"($git_root)/.ctx/.initialized"

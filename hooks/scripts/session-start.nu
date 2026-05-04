@@ -14,28 +14,9 @@ if $git_root_result.exit_code != 0 {
 let git_root = $git_root_result.stdout | str trim
 
 # Emit session.start trace event (unconditional — fires for all git repos)
-try {
-    let ctx_dir = $"($git_root)/.ctx"
-    mkdir $ctx_dir
-    let session_file = $"($ctx_dir)/GODMODE.session.json"
-    let session_id = if ($session_file | path exists) {
-        (open $session_file).session_id
-    } else {
-        let sha = (do { git rev-parse --short HEAD } | complete | get stdout | str trim)
-        let epoch_ms = (date now | into int | $in / 1_000_000 | into int)
-        let sid = $"($sha)-($epoch_ms)"
-        { session_id: $sid, started_at: (date now | format date "%+") } | to json | save --force $session_file
-        $sid
-    }
-    let trace_file = $"($ctx_dir)/GODMODE.trace.jsonl"
-    let event = {
-        event: "session.start"
-        session_id: $session_id
-        cwd: $git_root
-        ts: (date now | format date "%Y-%m-%dT%H:%M:%S%z")
-    }
-    $event | to json --raw | save --append $trace_file
-    "\n" | save --append $trace_file
+let trace_script = ($env.CLAUDE_PLUGIN_ROOT | path join "hooks/scripts/godmode-trace.rs")
+if ($trace_script | path exists) {
+    do { rust-script $trace_script start $git_root } | complete | ignore
 }
 
 let init_file = $"($git_root)/.ctx/.initialized"
