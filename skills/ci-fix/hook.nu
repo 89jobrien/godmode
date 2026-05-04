@@ -40,7 +40,7 @@ let run = $runs | first
 let status = $run | get status? | default ""
 
 if $status == "queued" or $status == "in_progress" {
-    print --stderr "[godmode:ci-fix] CI run started — watch with `gh run watch`"
+    print --stderr "[godmode:ci-fix] CI run started — check status with `gh run list --limit 3`"
 }
 
 exit 0

@@ -81,7 +81,7 @@ git rebase main
 ### 3. Test after each rebase
 
 ```bash
-cargo xtask test-unit 2>&1 | tail -20
+cargo nextest run --workspace 2>&1 | tail -20
 ```
 
 - If tests fail: debug and fix on the branch before proceeding to the next branch.
