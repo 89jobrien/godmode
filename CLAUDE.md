@@ -54,6 +54,13 @@ Two-crate workspace:
 | `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                                             |
 | `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                                            |
 | `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                                                         |
+| `workflow`      | Causal workflow DAGs per agent — YAML step definitions with `run:` and `depends_on` edges.                                                                                         |
+| `review`        | Plugin conformance auditing — checks skills, agents, and `plugin.json` for structural issues.                                                                                      |
+| `release`       | Version bump, annotated tag, push, and changelog generation from git commits since last tag.                                                                                       |
+| `skill`         | Skill registry — install/uninstall skills from local paths; persists to `~/.config/godmode/registry.json`.                                                                         |
+| `registry`      | `Registry` / `RegistryEntry` types; load/save `~/.config/godmode/registry.json`.                                                                                                   |
+| `agent_index`   | Regenerates `agents/INDEX.md` from agent YAML/MD files in `agents/`.                                                                                                               |
+| `session_trace` | Low-level JSONL append helpers used by `session` for trace writes.                                                                                                                 |
 
 ### State file
 
@@ -108,24 +115,49 @@ re-ingesting a plan skips existing task IDs silently.
 ### CLI subcommands
 
 ```
-godmode handon                          # session-start triage summary
-godmode handoff                         # session-end validation
-godmode status                          # graph counts + next runnable tasks
-godmode task list / next / add / start / done / block / unblock / remove / clear
-godmode task run <id> [--auto-done]     # execute task's run: field via rx
-godmode task pull [--project <name>]    # import pending doob todos
-godmode task apply <name> [--var k=v]  # expand a template into the task graph
-godmode task list-templates             # list available templates (local + global)
-godmode task push-done                  # sync completed tasks back to doob
-godmode plan ingest <path>              # parse plan markdown into task graph
-godmode dispatch [--max N]             # emit parallel chains JSON
-godmode agent <path> [--max N]         # plan ingest + dispatch in one shot
-godmode graph build [--input <tmpl>]   # interactive or file-driven graph construction
-godmode verify [--crate-name X]        # run quality gate (nextest + clippy + fmt + commits)
-godmode wave init/status/done/block/check
-godmode worktree add/remove
-godmode ci triage
-godmode issue list/close
+godmode handon                                  # session-start triage summary
+godmode handoff                                 # session-end validation
+godmode status [--compact]                      # graph counts + next runnable tasks
+godmode task list [--priority high|normal|low]
+godmode task next [--priority high|normal|low]
+godmode task add [<id>] <title> [--depends-on t1,t2] [--crate-name X]
+godmode task start <id>
+godmode task done <id> [--commit <sha>] [--notes <text>]
+godmode task block <id> <reason>
+godmode task unblock <id>
+godmode task unblock-all                        # reset all blocked tasks to pending
+godmode task remove <id>
+godmode task clear --done | --all
+godmode task run <id> [--auto-done]             # execute task's run: field via rx
+godmode task pull [--project <name>]            # import pending doob todos
+godmode task pull --github [--repo owner/repo] [--label <label>]
+godmode task apply <name> [--var k=v]           # expand a template into the task graph
+godmode task list-templates                     # list available templates (local + global)
+godmode task push-done                          # sync completed tasks back to doob
+godmode plan ingest <path>                      # parse plan markdown into task graph
+godmode dispatch [--max N] [--critical-path]    # emit parallel chains JSON
+godmode agent list [--filter <kw>]              # list installed agents
+godmode agent index                             # regenerate agents/INDEX.md
+godmode agent dispatch <path> [--max N]         # plan ingest + dispatch in one shot
+godmode agent generate [<name>] [--all]         # generate .md from agent YAML
+godmode agent migrate [<name>] [--all]          # migrate agent .md frontmatter to YAML stubs
+godmode graph build [--input <tmpl>] [--var k=v]
+godmode verify [--crate-name X]                 # nextest + clippy + fmt + commits
+godmode wave init --wave N --agents a,b,c
+godmode wave status / done <agent> / block <agent> / check
+godmode worktree add <branch> [--issue N]
+godmode worktree remove <branch>
+godmode ci triage [--run-id <id>]
+godmode issue list [--repo owner/repo] [--label <label>]
+godmode issue close <number> --commit <sha> [--repo owner/repo]
+godmode hook list / log [--tail N] / test <script> / migrate
+godmode skill list / install <path> / uninstall <name>
+godmode review self / skills / agents
+godmode release current / bump [--version X] / tag / push / changelog
+godmode session prune --older-than <days> [--dry-run]
+godmode workflow run <agent> <workflow>
+godmode workflow list [--agent <name>]
+godmode workflow status <name>
 ```
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
@@ -150,7 +182,7 @@ cause validation failure on `claude plugin install`.
   If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
 - `godmode task add <id> <title> --depends-on ""` registers an empty string as a dep,
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
-- `dispatch --critical-path` does not exist. Critical path is shown by `godmode status`.
+- `dispatch --critical-path` shows the critical path tasks; `godmode status` also surfaces it.
 - Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.
 - `plan::parse` returns `Result<Vec<Task>>`, not `Vec<Task>` — always match/unwrap the Result.
 - `dispatch::independent_chains(graph, max)` returns `Vec<Chain>` — not `build_slots`.

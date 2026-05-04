@@ -14,14 +14,17 @@ if $git_root_result.exit_code != 0 {
 let git_root = $git_root_result.stdout | str trim
 
 # Emit session.start trace event (unconditional — fires for all git repos)
-let trace_script = ($env.CLAUDE_PLUGIN_ROOT | path join "hooks/scripts/godmode-trace.rs")
-if ($trace_script | path exists) {
+let plugin_root = ($env | get -i CLAUDE_PLUGIN_ROOT | default "")
+let trace_script = if ($plugin_root | is-empty) { "" } else {
+    $plugin_root | path join "hooks/scripts/godmode-trace.rs"
+}
+if not ($trace_script | is-empty) and ($trace_script | path exists) {
     do { rust-script $trace_script start $git_root } | complete | ignore
 }
 
-let init_file = $"($git_root)/.ctx/.initialized"
+let task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
 
-if not ($init_file | path exists) {
+if not ($task_file | path exists) {
     exit 0
 }
 
