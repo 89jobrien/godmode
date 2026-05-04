@@ -113,7 +113,7 @@ godmode status                      # counts + next runnable, no external calls
 godmode plan ingest docs/plans/2026-05-01-my-feature.md
 ```
 
-Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential deps automatically. Idempotent —
+Parses `### Task N: <title>` headings, optional **Crate**: `name` and **Run**: `cmd` annotations. Builds sequential deps automatically. Idempotent —
 re-running a plan skips existing task IDs silently.
 
 ### Parallel dispatch
