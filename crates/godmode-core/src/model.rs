@@ -18,6 +18,19 @@ impl Priority {
     }
 }
 
+impl std::str::FromStr for Priority {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_ascii_lowercase().as_str() {
+            "high" => Ok(Priority::High),
+            "normal" => Ok(Priority::Normal),
+            "low" => Ok(Priority::Low),
+            other => anyhow::bail!("unknown priority '{other}'; expected high, normal, or low"),
+        }
+    }
+}
+
 impl std::fmt::Display for Priority {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

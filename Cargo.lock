@@ -492,6 +492,7 @@ dependencies = [
  "clap",
  "godmode-core",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]

@@ -312,7 +312,11 @@ enum IssueAction {
 #[derive(Subcommand)]
 enum TaskAction {
     /// List all tasks with status.
-    List,
+    List {
+        /// Filter to tasks with a specific priority (high, normal, low).
+        #[arg(long, value_name = "LEVEL")]
+        priority: Option<model::Priority>,
+    },
 
     /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
     Add {
@@ -357,7 +361,11 @@ enum TaskAction {
     },
 
     /// Show the next runnable task(s).
-    Next,
+    Next {
+        /// Filter to runnable tasks with a specific priority (high, normal, low).
+        #[arg(long, value_name = "LEVEL")]
+        priority: Option<model::Priority>,
+    },
 
     /// Run the shell command attached to a task's `run:` field.
     Run {
@@ -433,6 +441,17 @@ enum WorkflowAction {
     },
 }
 
+/// Filter a task slice to only those matching `priority` (if Some).
+fn filter_by_priority<'a>(
+    tasks: &'a [model::Task],
+    priority: Option<&model::Priority>,
+) -> Vec<&'a model::Task> {
+    match priority {
+        None => tasks.iter().collect(),
+        Some(p) => tasks.iter().filter(|t| &t.priority == p).collect(),
+    }
+}
+
 fn exit_empty(json: bool) -> ! {
     if json {
         println!("[]");
@@ -471,8 +490,10 @@ fn main() -> Result<()> {
         Cmd::Task { action } => {
             let mut session = Session::open(&root)?;
             match action {
-                TaskAction::List => {
-                    if session.graph().tasks.is_empty() {
+                TaskAction::List { priority } => {
+                    let tasks_all = &session.graph().tasks;
+                    let tasks: Vec<&model::Task> = filter_by_priority(tasks_all, priority.as_ref());
+                    if tasks.is_empty() {
                         if json {
                             println!("[]");
                         } else {
@@ -481,9 +502,9 @@ fn main() -> Result<()> {
                         return Ok(());
                     }
                     if json {
-                        println!("{}", serde_json::to_string_pretty(&session.graph().tasks)?);
+                        println!("{}", serde_json::to_string_pretty(&tasks)?);
                     } else {
-                        for t in &session.graph().tasks {
+                        for t in &tasks {
                             let crate_tag = t
                                 .crate_name
                                 .as_deref()
@@ -584,8 +605,12 @@ fn main() -> Result<()> {
                     }
                 }
 
-                TaskAction::Next => {
-                    let next = graph::runnable(session.graph());
+                TaskAction::Next { priority } => {
+                    let runnable = graph::runnable(session.graph());
+                    let next: Vec<&model::Task> = match &priority {
+                        None => runnable,
+                        Some(p) => runnable.into_iter().filter(|t| &t.priority == p).collect(),
+                    };
                     if next.is_empty() {
                         exit_empty(json);
                     }
