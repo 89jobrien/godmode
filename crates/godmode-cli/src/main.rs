@@ -29,6 +29,12 @@ enum Cmd {
     /// Validate session state at session end.
     Handoff,
 
+    /// Session file management (pruning, etc.).
+    Session {
+        #[command(subcommand)]
+        action: SessionAction,
+    },
+
     /// Task graph management.
     Task {
         #[command(subcommand)]
@@ -411,6 +417,19 @@ enum TaskAction {
 }
 
 #[derive(Subcommand)]
+enum SessionAction {
+    /// Delete session JSONL files older than N days.
+    Prune {
+        /// Delete files older than this many days.
+        #[arg(long, value_name = "DAYS")]
+        older_than: u64,
+        /// Print what would be deleted without removing anything.
+        #[arg(long)]
+        dry_run: bool,
+    },
+}
+
+#[derive(Subcommand)]
 enum PlanAction {
     /// Parse a plan markdown file and populate the task graph.
     Ingest {
@@ -486,6 +505,30 @@ fn main() -> Result<()> {
             }
             Ok(())
         }
+
+        Cmd::Session { action } => match action {
+            SessionAction::Prune {
+                older_than,
+                dry_run,
+            } => {
+                use godmode_core::integrations::cruxx;
+                use godmode_core::session::prune_sessions_older_than;
+                let sessions_dir = cruxx::sessions_dir(&root);
+                let pruned = prune_sessions_older_than(&sessions_dir, older_than, dry_run)?;
+                if json {
+                    let paths: Vec<String> =
+                        pruned.iter().map(|p| p.display().to_string()).collect();
+                    println!("{}", serde_json::to_string_pretty(&paths)?);
+                } else if pruned.is_empty() {
+                    println!("No session files to prune.");
+                } else if dry_run {
+                    println!("{} file(s) would be deleted.", pruned.len());
+                } else {
+                    println!("Pruned {} session file(s).", pruned.len());
+                }
+                Ok(())
+            }
+        },
 
         Cmd::Task { action } => {
             let mut session = Session::open(&root)?;

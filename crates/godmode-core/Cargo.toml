@@ -15,8 +15,11 @@ thiserror = { workspace = true }
 slashcrux = { workspace = true }
 cruxx-core = { workspace = true }
 which = "7"
+tracing = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"
 serde_json = { workspace = true }
 proptest = "1"
+tracing-test = { workspace = true }
+filetime = "0.2"

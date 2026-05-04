@@ -3,6 +3,7 @@
 use std::process::{Command, ExitStatus};
 
 use anyhow::{Context, Result};
+use tracing::instrument;
 use which::which;
 
 // ---------------------------------------------------------------------------
@@ -49,6 +50,7 @@ pub(crate) fn parse_rx_list_output(output: &str) -> Vec<&str> {
 
 /// Return the names of all scripts registered in the rx registry.
 /// Returns an empty vec (not an error) if `rx` is not on PATH.
+#[instrument(name = "rx::list_scripts", fields(integration = "rx"))]
 pub fn list_scripts() -> Result<Vec<String>> {
     if which("rx").is_err() {
         return Ok(vec![]);
@@ -69,6 +71,7 @@ pub fn list_scripts() -> Result<Vec<String>> {
 /// - Non-`rx:` strings: always `Ok(())`
 /// - `rx:` strings when `rx` not on PATH: `Ok(())` (graceful degradation)
 /// - `rx:` strings when script not found: `Err(...)`
+#[instrument(name = "rx::validate_run", fields(integration = "rx"))]
 pub fn validate_run(run: &str) -> Result<()> {
     let Some(script) = run.strip_prefix("rx:") else {
         return Ok(());
@@ -98,6 +101,7 @@ pub fn validate_run(run: &str) -> Result<()> {
 /// If the command starts with `rx:`, delegates to `rx run <script-name>`.
 /// Commands containing shell metacharacters are run via `sh -c`.
 /// Otherwise shells out directly.
+#[instrument(name = "rx::run_cmd", fields(integration = "rx"))]
 pub fn run_cmd(run: &str) -> Result<ExitStatus> {
     let (prog, args) = resolve_cmd(run);
     Command::new(&prog)

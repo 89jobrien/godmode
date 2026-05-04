@@ -3,6 +3,7 @@
 use std::path::Path;
 
 use anyhow::Result;
+use tracing::instrument;
 
 use crate::detect;
 use crate::integrations::subprocess;
@@ -42,6 +43,7 @@ pub fn build_handoff_args(
 // ---------------------------------------------------------------------------
 
 /// Call `hj handon --project <name>` and return stdout.
+#[instrument(name = "hj::handon", fields(integration = "hj"), skip(root))]
 pub fn handon(root: &Path) -> Result<String> {
     let project = detect::package_name(root)?;
     subprocess::run_in(
@@ -53,6 +55,7 @@ pub fn handon(root: &Path) -> Result<String> {
 }
 
 /// Call `hj handoff` with build/test state and return stdout.
+#[instrument(name = "hj::handoff", fields(integration = "hj"), skip(root, commits))]
 pub fn handoff(
     root: &Path,
     build: &str,

@@ -274,6 +274,47 @@ pub fn handoff(root: &Path) -> Result<GraphSummary> {
     Ok(graph.summary())
 }
 
+// ---------------------------------------------------------------------------
+// Session file pruning
+// ---------------------------------------------------------------------------
+
+/// Delete session JSONL files in `dir` that are older than `days` days.
+/// If `dry_run` is true, prints what would be deleted but makes no changes.
+/// Returns the list of paths that were (or would be) deleted.
+pub fn prune_sessions_older_than(dir: &Path, days: u64, dry_run: bool) -> Result<Vec<PathBuf>> {
+    use std::time::{Duration, SystemTime};
+
+    let cutoff = SystemTime::now()
+        .checked_sub(Duration::from_secs(days * 24 * 3600))
+        .unwrap_or(SystemTime::UNIX_EPOCH);
+
+    let mut pruned = Vec::new();
+
+    if !dir.exists() {
+        return Ok(pruned);
+    }
+
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("jsonl") {
+            continue;
+        }
+        let meta = std::fs::metadata(&path)?;
+        let modified = meta.modified()?;
+        if modified < cutoff {
+            if dry_run {
+                println!("would delete: {}", path.display());
+            } else {
+                std::fs::remove_file(&path)?;
+            }
+            pruned.push(path);
+        }
+    }
+
+    Ok(pruned)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -340,6 +381,62 @@ mod tests {
         s.save().unwrap();
         let s2 = Session::open(dir.path()).unwrap();
         assert_eq!(s2.graph().tasks.len(), 1);
+    }
+
+    #[test]
+    fn prune_deletes_old_files_keeps_new() {
+        use std::time::{Duration, SystemTime};
+        let dir = TempDir::new().unwrap();
+        let sessions = dir.path().join("sessions");
+        std::fs::create_dir_all(&sessions).unwrap();
+
+        // Write an "old" file and backdate its mtime to 10 days ago.
+        let old_file = sessions.join("2020-01-01.jsonl");
+        std::fs::write(&old_file, b"old").unwrap();
+        let old_time = SystemTime::now()
+            .checked_sub(Duration::from_secs(10 * 24 * 3600))
+            .unwrap();
+        filetime::set_file_mtime(&old_file, filetime::FileTime::from_system_time(old_time))
+            .unwrap();
+
+        // Write a "new" file (mtime = now).
+        let new_file = sessions.join("2099-01-01.jsonl");
+        std::fs::write(&new_file, b"new").unwrap();
+
+        let pruned = prune_sessions_older_than(&sessions, 7, false).unwrap();
+        assert_eq!(pruned.len(), 1);
+        assert_eq!(pruned[0], old_file);
+        assert!(!old_file.exists());
+        assert!(new_file.exists());
+    }
+
+    #[test]
+    fn prune_dry_run_makes_no_changes() {
+        use std::time::{Duration, SystemTime};
+        let dir = TempDir::new().unwrap();
+        let sessions = dir.path().join("sessions");
+        std::fs::create_dir_all(&sessions).unwrap();
+
+        let old_file = sessions.join("2020-01-01.jsonl");
+        std::fs::write(&old_file, b"old").unwrap();
+        let old_time = SystemTime::now()
+            .checked_sub(Duration::from_secs(10 * 24 * 3600))
+            .unwrap();
+        filetime::set_file_mtime(&old_file, filetime::FileTime::from_system_time(old_time))
+            .unwrap();
+
+        let pruned = prune_sessions_older_than(&sessions, 7, true).unwrap();
+        assert_eq!(pruned.len(), 1);
+        // File must still exist after dry-run.
+        assert!(old_file.exists());
+    }
+
+    #[test]
+    fn prune_missing_dir_returns_empty() {
+        let dir = TempDir::new().unwrap();
+        let sessions = dir.path().join("no-such-dir");
+        let pruned = prune_sessions_older_than(&sessions, 7, false).unwrap();
+        assert!(pruned.is_empty());
     }
 
     #[test]

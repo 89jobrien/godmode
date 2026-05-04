@@ -7,12 +7,18 @@ use std::path::{Path, PathBuf};
 
 use chrono::Utc;
 use cruxx_core::types::step::{Step, StepKind, StepStatus};
+use tracing::instrument;
 
 fn started_at() -> chrono::DateTime<Utc> {
     Utc::now()
 }
 
 /// Build a `Step` for a task entering the pending state (just added to the graph).
+#[instrument(
+    name = "cruxx::step_pending",
+    fields(integration = "cruxx"),
+    skip(task_id)
+)]
 pub fn step_pending(task_id: impl Into<String>) -> Step {
     Step {
         name: task_id.into(),
@@ -31,6 +37,11 @@ pub fn step_pending(task_id: impl Into<String>) -> Step {
 }
 
 /// Build a `Step` for a task transitioning to running.
+#[instrument(
+    name = "cruxx::step_started",
+    fields(integration = "cruxx"),
+    skip(task_id)
+)]
 pub fn step_started(task_id: impl Into<String>) -> Step {
     Step {
         name: task_id.into(),
@@ -51,6 +62,11 @@ pub fn step_started(task_id: impl Into<String>) -> Step {
 /// Build a `Step` for a task completing successfully.
 ///
 /// `commit` and `notes` are stored as JSON in `output`.
+#[instrument(
+    name = "cruxx::step_completed",
+    fields(integration = "cruxx"),
+    skip(task_id, commit, notes)
+)]
 pub fn step_completed(
     task_id: impl Into<String>,
     commit: Option<&str>,
@@ -88,6 +104,11 @@ pub fn step_completed(
 ///
 /// Uses `StepStatus::Err` with the reason in `error` — blocked means the task
 /// could not proceed due to an external dependency, not an internal failure.
+#[instrument(
+    name = "cruxx::step_blocked",
+    fields(integration = "cruxx"),
+    skip(task_id, reason)
+)]
 pub fn step_blocked(task_id: impl Into<String>, reason: Option<&str>) -> Step {
     Step {
         name: task_id.into(),

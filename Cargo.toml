@@ -22,3 +22,5 @@ slashcrux = "0.1.2"
 cruxx-core = { version = "0.2.5", features = ["tokio-runtime"] }
 rayon = "1"
 similar = "2"
+tracing = "0.1"
+tracing-test = "0.2"
