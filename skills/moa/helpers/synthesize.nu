@@ -7,10 +7,10 @@ def main [
     --model: string = "openai:gpt-4o"
 ] {
     let root = (git rev-parse --show-toplevel | str trim)
-    let ctx = $"($root)/.ctx"
+    let workdir = $"($root)/.ctx/_WORKING_DIR"
 
     let proposals = (
-        ls $ctx
+        ls $workdir
         | where name =~ "moa-proposal-"
         | sort-by name
         | each { |f|

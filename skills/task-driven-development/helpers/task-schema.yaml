@@ -1,0 +1,78 @@
+# tdd-tasks.yaml — annotated schema
+# Place at repo root or .ctx/tdd-tasks.yaml.
+# This file is the ground truth for task phase state.
+# The task-runner.nu helper reads and writes it directly.
+
+tasks:
+  - id: t1 # required; unique within this file
+    title: "short description" # required; used in commit messages
+    crate: my-crate # required; cargo -p target
+    test: "unit_test_name" # required; nextest -E 'test(<name>)' filter
+
+    # Phase progresses strictly: red -> green -> refactor -> done
+    # Never skip a phase. Never go backwards.
+    phase: red # red | green | refactor | done | pending
+
+    # Status reflects whether the task is currently active or finished
+    status: active # pending | active | done | failed
+
+    # Sequential chain: this task's status must be 'done' before dependent tasks start.
+    # Empty list = root task (no prerequisites).
+    depends_on: []
+
+    # Optional: link to a tracking issue. Closed automatically when status -> done.
+    issue: "gh:42" # gh:<number> | linear:<id> | "" (omit if none)
+
+    # Optional: freeform notes written by the runner or manually
+    notes: ""
+
+    # Set automatically by task-runner.nu — do not set manually
+    started_at: "" # ISO-8601 timestamp when phase moved to red
+    completed_at: "" # ISO-8601 timestamp when status moved to done
+    attempts: 0 # incremented each time red is re-entered after failure
+
+  - id: t2
+    title: "second task in chain"
+    crate: my-crate
+    test: "second_test_name"
+    phase: pending
+    status: pending
+    depends_on: [t1] # blocked until t1.status == done
+    issue: "gh:43"
+    notes: ""
+    started_at: ""
+    completed_at: ""
+    attempts: 0
+
+  - id: t3
+    title: "third task — independent of t1/t2"
+    crate: my-other-crate
+    test: "third_test_name"
+    phase: pending
+    status: pending
+    depends_on: [] # root task; can run in parallel with t1 chain
+    issue: ""
+    notes: ""
+    started_at: ""
+    completed_at: ""
+    attempts: 0
+
+# -----------------------------------------------------------------------
+# Valid phase transitions:
+#   pending  -> red       (task-runner red <id>)
+#   red      -> green     (task-runner green <id>  — requires all tests pass)
+#   green    -> refactor  (task-runner refactor <id> — requires clippy+fmt+nextest clean)
+#   refactor -> done      (task-runner refactor <id> completes on success)
+#   *        -> failed    (task-runner fail <id> --reason "...")
+#
+# Valid status values:
+#   pending   not yet started; may be blocked by depends_on
+#   active    currently being worked (phase is red, green, or refactor)
+#   done      all three phases complete; issue closed; committed
+#   failed    abandoned after 3 attempts; needs redesign or clarification
+#
+# Chain rules:
+#   A task is eligible when all tasks in its depends_on list have status: done.
+#   depends_on is ordered by convention but not enforced by the schema.
+#   Cycles are invalid — task-runner.nu detects and rejects them.
+# -----------------------------------------------------------------------

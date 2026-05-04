@@ -1,7 +1,7 @@
 // Test stubs — copy the relevant section into your crate.
 // Replace <thing>, <scenario>, <expected>, <Type>, <Trait>, <impl> throughout.
 // Each section corresponds to one dimension of the testing lifecycle:
-//   Unit → Property → Conformance → Integration → Regression
+//   Unit -> Property -> Conformance -> Integration -> Regression
 
 // =============================================================================
 // UNIT — inline in src/<module>.rs

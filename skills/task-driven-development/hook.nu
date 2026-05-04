@@ -1,5 +1,5 @@
 #!/usr/bin/env nu
-# test-driven-development/hook.nu — PreToolUse/Bash hook
+# task-driven-development/hook.nu — PreToolUse/Bash hook
 # If the command is `cargo build` or `cargo run` (not test/nextest/check/clippy)
 # and no test files were modified in the last git commit, warn.
 # Always exits 0 (warn only, never blocks).
@@ -46,7 +46,7 @@ let has_test_changes = (
 )
 
 if not $has_test_changes {
-    eprintln "[godmode:tdd] Building without tests — write a failing test first"
+    eprintln "[godmode:tdd] Building without tests — write a failing test first (see tdd-tasks.yaml)"
 }
 
 exit 0

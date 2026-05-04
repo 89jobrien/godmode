@@ -8,18 +8,18 @@ def main [
     --model: string = "openai:gpt-4o-mini"
 ] {
     let root = (git rev-parse --show-toplevel | str trim)
-    let ctx = $"($root)/.ctx"
-    mkdir $ctx
+    let workdir = $"($root)/.ctx/_WORKING_DIR"
+    mkdir $workdir
 
     # Clear old proposals
-    ls $ctx | where name =~ "moa-proposal-" | each { |f| rm $f.name }
+    ls $workdir | where name =~ "moa-proposal-" | each { |f| rm $f.name }
 
     print $"Dispatching ($count) proposers \(($model)\)..."
 
     let indices = (seq 1 $count | each { |i| $i })
 
     $indices | par-each { |i|
-        let out_file = $"($ctx)/moa-proposal-($i).txt"
+        let out_file = $"($workdir)/moa-proposal-($i).txt"
         let result = (do { aichat -m $model $prompt } | complete)
         if $result.exit_code == 0 {
             $result.stdout | save --force $out_file
@@ -30,5 +30,5 @@ def main [
         }
     }
 
-    print $"Proposals saved to ($ctx)/moa-proposal-*.txt"
+    print $"Proposals saved to ($workdir)/moa-proposal-*.txt"
 }

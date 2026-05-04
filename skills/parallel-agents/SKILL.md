@@ -59,7 +59,7 @@ Workflow (follow exactly):
    b. Implement minimum code to pass. Run: cargo nextest run -p <CRATE>. All green.
    c. Run: cargo clippy -p <CRATE> -- -D warnings. Fix all warnings.
    d. Commit: git commit -m "feat(<CRATE>): <summary>"
-3. If stuck after 3 attempts: write BLOCKED.md at repo root. Stop.
+3. If stuck after 3 attempts: write `.ctx/_WORKING_DIR/BLOCKED-<crate>.md`. Stop.
 4. Final check: cargo nextest run -p <CRATE> && cargo clippy -p <CRATE> -- -D warnings
 
 Report: tasks completed, tasks blocked, commit SHAs.
@@ -113,6 +113,9 @@ Instruct each agent to update wave state on finish:
 
 > (run via `nu skills/_lib/dispatch.nu integrate-branches <repo_root> [<branches>]`)
 
+Check `.ctx/_WORKING_DIR/BLOCKED-*.md` before merging — any present file means that agent did
+not finish. Treat blocked agents as incomplete work before proceeding.
+
 After all agents report:
 
 1. Read `.ctx/wave-status.json` — verify no agent has `status: "pending"`.
@@ -132,8 +135,8 @@ After all agents report:
 
 - **Crate isolation is the unit of parallelism.** Never dispatch two agents for the same
   crate simultaneously.
-- **BLOCKED.md stops the agent.** 3 failed attempts → write BLOCKED.md → stop. Do not
-  retry with identical parameters.
+- **BLOCKED file stops the agent.** 3 failed attempts → write `.ctx/_WORKING_DIR/BLOCKED-<crate>.md`
+  → stop. Do not retry with identical parameters.
 - **Agents don't inherit permissions.** Always pass `allowedTools` explicitly.
 - **Never octopus-merge.** If agents diverge, cherry-pick sequentially.
 - **Each agent must verify `git branch --show-current` before every commit.** If it
