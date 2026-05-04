@@ -182,6 +182,19 @@ Nushell helper scripts live in `skills/<skill>/helpers/`. Shared utilities are i
 Trace output lands in `.ctx/GODMODE.trace.jsonl`. Use `godmode:observability-as-infrastructure`
 to query it.
 
+### Session tracing
+
+Two hooks emit session lifecycle events automatically:
+
+- `hooks/scripts/session-start.nu` (SessionStart) — writes `session.start` to the trace
+- `hooks/scripts/stop-guard.nu` (Stop) — writes `session.end` on clean exit
+
+Both delegate to `hooks/scripts/godmode-trace.rs` (a `rust-script` binary) which owns all
+trace I/O. A fresh `session_id` (`<git-sha>-<epoch-ms>`) is generated each session and
+persisted to `.ctx/GODMODE.session.json`. The session file is read by `session.end` to
+correlate the pair. Both hooks degrade silently if not in a git repo or if `rust-script`
+is unavailable.
+
 ## Development
 
 ```bash
