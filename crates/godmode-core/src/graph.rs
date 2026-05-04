@@ -294,6 +294,38 @@ pub fn clear(graph: &mut TaskGraph, done_only: bool) -> usize {
     before - graph.tasks.len()
 }
 
+/// Convert the task graph to a `petgraph` directed graph.
+/// Each node is a task ID string; edges represent dependencies (dep → dependent).
+pub fn to_petgraph(graph: &TaskGraph) -> petgraph::stable_graph::StableDiGraph<String, ()> {
+    use petgraph::stable_graph::StableDiGraph;
+    use std::collections::HashMap;
+
+    let mut pg: StableDiGraph<String, ()> = StableDiGraph::new();
+    let mut idx: HashMap<&str, petgraph::stable_graph::NodeIndex> = HashMap::new();
+
+    for task in &graph.tasks {
+        let node = pg.add_node(task.id.clone());
+        idx.insert(task.id.as_str(), node);
+    }
+
+    for task in &graph.tasks {
+        for dep in &task.depends_on {
+            if let (Some(&from), Some(&to)) = (idx.get(dep.as_str()), idx.get(task.id.as_str())) {
+                pg.add_edge(from, to, ());
+            }
+        }
+    }
+
+    pg
+}
+
+/// Render the task graph as a DOT-format string.
+pub fn to_dot(graph: &TaskGraph) -> String {
+    use petgraph::dot::{Config, Dot};
+    let pg = to_petgraph(graph);
+    format!("{:?}", Dot::with_config(&pg, &[Config::EdgeNoLabel]))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -441,6 +473,24 @@ mod tests {
         assert_eq!(next_task_id(&g), "t2");
         add(&mut g, Task::new("t3", "C")).unwrap(); // gap at t2
         assert_eq!(next_task_id(&g), "t2");
+    }
+
+    #[test]
+    fn to_petgraph_node_and_edge_counts() {
+        let g = graph_with_chain();
+        let pg = to_petgraph(&g);
+        assert_eq!(pg.node_count(), 2, "expected 2 nodes");
+        assert_eq!(pg.edge_count(), 1, "expected 1 edge (t1→t2)");
+    }
+
+    #[test]
+    fn to_dot_contains_task_ids() {
+        let g = graph_with_chain();
+        let dot = to_dot(&g);
+        assert!(dot.contains("t1"), "DOT missing t1: {dot}");
+        assert!(dot.contains("t2"), "DOT missing t2: {dot}");
+        // Should have a directed edge indicator
+        assert!(dot.contains("->"), "DOT missing edge: {dot}");
     }
 
     #[test]

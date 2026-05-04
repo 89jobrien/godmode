@@ -7,6 +7,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::model::{Status, Task, TaskGraph};
+use crate::wave::{BlockOutcome, ConcurrencyTracker, SlotHealth, WaveConfig, on_blocked};
 
 /// A task reference with id and title for orca-strait agent consumption.
 #[derive(Debug, Clone, serde::Serialize)]
@@ -199,6 +200,69 @@ pub fn critical_path(graph: &TaskGraph) -> Vec<TaskRef> {
         .collect()
 }
 
+// ---------------------------------------------------------------------------
+// Gated dispatch — concurrency-limited chain execution simulation
+// ---------------------------------------------------------------------------
+
+/// Outcome for a single chain execution in `dispatch_with_config`.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ChainOutcome {
+    Completed,
+    Exhausted,
+}
+
+/// Simulate dispatching `chains` through a `WaveConfig`-gated concurrency tracker.
+///
+/// `execute` is called with each chain; it returns `Ok(())` on success or
+/// `Err(true)` for a transient block (retry-eligible) or `Err(false)` for permanent failure.
+///
+/// Returns the per-chain outcomes in chain order.
+pub fn dispatch_with_config<F>(
+    chains: &[Chain],
+    config: &WaveConfig,
+    mut execute: F,
+) -> Vec<ChainOutcome>
+where
+    F: FnMut(&Chain) -> Result<(), bool>,
+{
+    let mut tracker = ConcurrencyTracker::new(config.max_concurrency);
+    let mut outcomes = Vec::with_capacity(chains.len());
+
+    for chain in chains {
+        // Gate: block until a slot is available (synchronous simulation).
+        if !tracker.try_acquire() {
+            // In a real async runtime we'd await; here we record Exhausted for the chain.
+            outcomes.push(ChainOutcome::Exhausted);
+            continue;
+        }
+
+        let mut health = SlotHealth::default();
+        let mut result = execute(chain);
+
+        // Retry loop for transient blocks.
+        while let Err(true) = result {
+            match on_blocked(&mut health, config) {
+                BlockOutcome::Retry { .. } => {
+                    result = execute(chain);
+                }
+                BlockOutcome::Exhausted => {
+                    result = Err(false);
+                    break;
+                }
+            }
+        }
+
+        tracker.release();
+        outcomes.push(if result.is_ok() {
+            ChainOutcome::Completed
+        } else {
+            ChainOutcome::Exhausted
+        });
+    }
+
+    outcomes
+}
+
 fn infer_crate(ids: &[&str], graph: &TaskGraph) -> Option<String> {
     let crates: HashSet<Option<&str>> = ids
         .iter()
@@ -217,6 +281,8 @@ fn infer_crate(ids: &[&str], graph: &TaskGraph) -> Option<String> {
 mod tests {
     use super::*;
     use crate::model::Task;
+    use crate::wave::WaveConfig;
+    use std::sync::{Arc, Mutex};
 
     fn make_graph(specs: &[(&str, &str, &[&str], Option<&str>)]) -> TaskGraph {
         let mut g = TaskGraph::default();
@@ -318,5 +384,102 @@ mod tests {
     fn critical_path_empty_graph() {
         let g = TaskGraph::default();
         assert!(critical_path(&g).is_empty());
+    }
+
+    // --- dispatch_with_config tests ---
+
+    fn make_chains(n: usize) -> Vec<Chain> {
+        (0..n)
+            .map(|i| Chain {
+                crate_name: None,
+                tasks: vec![TaskRef {
+                    id: format!("t{i}"),
+                    title: format!("Task {i}"),
+                }],
+            })
+            .collect()
+    }
+
+    #[test]
+    fn dispatch_max_concurrency_2_runs_sequentially() {
+        // With max_concurrency=2 and 4 chains, each chain runs but slots are gated.
+        // The concurrency tracker is synchronous here so all 4 run (released after each).
+        let cfg = WaveConfig {
+            max_concurrency: 2,
+            max_retries: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(4);
+        // Track peak concurrency via a shared counter.
+        let peak = Arc::new(Mutex::new(0usize));
+        let current = Arc::new(Mutex::new(0usize));
+        let peak_c = peak.clone();
+        let current_c = current.clone();
+
+        let outcomes = dispatch_with_config(&chains, &cfg, move |_chain| {
+            let mut c = current_c.lock().unwrap();
+            *c += 1;
+            let mut p = peak_c.lock().unwrap();
+            if *c > *p {
+                *p = *c;
+            }
+            // simulate completion — release happens in dispatch_with_config
+            *c -= 1;
+            Ok(())
+        });
+
+        // All 4 chains should complete (synchronous, slots released between each).
+        assert_eq!(
+            outcomes
+                .iter()
+                .filter(|o| **o == ChainOutcome::Completed)
+                .count(),
+            4
+        );
+        // Peak concurrency never exceeded 2 — but since synchronous, each is 1.
+        assert!(*peak.lock().unwrap() <= 2);
+    }
+
+    #[test]
+    fn dispatch_transient_block_recovered_with_retry() {
+        // Fake agent: fails with transient block on first call, succeeds on retry.
+        let cfg = WaveConfig {
+            max_concurrency: 5,
+            max_retries: 3,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(1);
+        let call_count = Arc::new(Mutex::new(0usize));
+        let call_count_c = call_count.clone();
+
+        let outcomes = dispatch_with_config(&chains, &cfg, move |_chain| {
+            let mut c = call_count_c.lock().unwrap();
+            *c += 1;
+            if *c == 1 {
+                Err(true) // transient block
+            } else {
+                Ok(()) // success on retry
+            }
+        });
+
+        assert_eq!(outcomes[0], ChainOutcome::Completed);
+        assert_eq!(*call_count.lock().unwrap(), 2, "should have retried once");
+    }
+
+    #[test]
+    fn dispatch_permanent_block_exhausted() {
+        let cfg = WaveConfig {
+            max_concurrency: 5,
+            max_retries: 2,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(1);
+
+        // Always fails with transient block — should exhaust retries.
+        let outcomes = dispatch_with_config(&chains, &cfg, |_chain| Err(true));
+
+        assert_eq!(outcomes[0], ChainOutcome::Exhausted);
     }
 }
