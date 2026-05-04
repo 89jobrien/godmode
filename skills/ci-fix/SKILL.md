@@ -78,7 +78,7 @@ git push
 Then verify the new run passes:
 
 ```bash
-gh run list --limit 3   # polling fallback — gh run watch requires interactive TTY
+gh run list --limit 3   # polling fallback — interactive run watching requires a TTY
 ```
 
 ## Guardrails

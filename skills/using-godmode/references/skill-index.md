@@ -8,7 +8,6 @@
 | `godmode:cap`                             | "cap", "commit and push", "ship it"                              |
 | `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline after push                 |
 | `godmode:brainstorm`                      | "let's build", "add feature", "design X", new code               |
-| `godmode:test-driven-development`         | Any task that produces production Rust code                      |
 | `godmode:task-driven-development`         | TDD with serialized YAML task lists and sequential issue chains  |
 | `godmode:systematic-debugging`            | Bug, test failure, panic, unexpected behaviour                   |
 | `godmode:parallel-agents`                 | 2+ independent task chains or crates to implement                |
@@ -23,11 +22,12 @@
 | `godmode:testing-philosophy`              | Designing test strategy, reviewing test coverage                 |
 | `godmode:wave-integration`                | Merging parallel agent branches into a single integration commit |
 | `godmode:moa`                             | Mixture-of-agents patterns for multi-model reasoning             |
+| `godmode:todo-issue-sync`                 | Auditing inline TODOs and syncing uncovered items to issues      |
 
 ## Skill Priority Order
 
 1. Process skills first: `brainstorm`, `systematic-debugging`
-2. Implementation skills second: `test-driven-development`, `parallel-agents`
+2. Implementation skills second: `task-driven-development`, `parallel-agents`
 3. Quality gates last: `verification-before-completion`, `code-review`
 
 ## Red Flags (you are rationalising — stop)
@@ -46,7 +46,7 @@ godmode:brainstorm
   → writing-plans
     → plan ingest (godmode CLI)
       → task-management (handon, next, start, done loop)
-        → test-driven-development (per task)
+        → task-driven-development (per task)
           → parallel-agents (if independent chains exist)
             → verification-before-completion
               → code-review

@@ -32,30 +32,31 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 ## Skill Priority
 
 1. Process skills first: `godmode:brainstorm`, `godmode:systematic-debugging`
-2. Implementation skills second: `godmode:test-driven-development`, `godmode:parallel-agents`
+2. Implementation skills second: `godmode:task-driven-development`, `godmode:parallel-agents`
 
 ## Available Skills
 
-| Skill                                     | When                                           |
-| ----------------------------------------- | ---------------------------------------------- |
-| `godmode:test-driven-development`         | Implementing any feature or fix                |
-| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior     |
-| `godmode:brainstorm`                      | Before any creative or design work             |
-| `godmode:writing-plans`                   | Multi-step task with a spec or requirements    |
-| `godmode:verification-before-completion`  | Before claiming work is done                   |
-| `godmode:task-management`                 | Creating, tracking, or executing a task graph  |
-| `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently |
-| `godmode:cap`                             | "cap", "commit and push", "ship it"            |
-| `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline          |
-| `godmode:tackle-issues`                   | Working on GitHub issues in parallel           |
-| `godmode:code-review`                     | Before merge, after feature complete           |
-| `godmode:refactoring`                     | Restructuring code without changing behaviour  |
-| `godmode:receiving-review`                | Processing incoming review comments            |
-| `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents        |
-| `godmode:testing-philosophy`              | Designing test strategy for new code           |
-| `godmode:introspection`                   | Auditing skills for consistency after changes  |
-| `godmode:moa`                             | Multi-model synthesis via Mixture of Agents    |
-| `godmode:wave-integration`                | Merge parallel agent branches sequentially     |
+| Skill                                     | When                                            |
+| ----------------------------------------- | ----------------------------------------------- |
+| `godmode:task-driven-development`         | TDD with serialized task lists and issue chains |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior      |
+| `godmode:brainstorm`                      | Before any creative or design work              |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements     |
+| `godmode:verification-before-completion`  | Before claiming work is done                    |
+| `godmode:task-management`                 | Creating, tracking, or executing a task graph   |
+| `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently  |
+| `godmode:cap`                             | "cap", "commit and push", "ship it"             |
+| `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline           |
+| `godmode:tackle-issues`                   | Working on GitHub issues in parallel            |
+| `godmode:code-review`                     | Before merge, after feature complete            |
+| `godmode:refactoring`                     | Restructuring code without changing behaviour   |
+| `godmode:receiving-review`                | Processing incoming review comments             |
+| `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents         |
+| `godmode:testing-philosophy`              | Designing test strategy for new code            |
+| `godmode:introspection`                   | Auditing skills for consistency after changes   |
+| `godmode:moa`                             | Multi-model synthesis via Mixture of Agents     |
+| `godmode:todo-issue-sync`                 | Auditing inline TODOs against tracked issues    |
+| `godmode:wave-integration`                | Merge parallel agent branches sequentially      |
 
 ## Always-Active Rules
 

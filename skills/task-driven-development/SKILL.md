@@ -170,6 +170,6 @@ Never commit across multiple tasks in one shot. The task file documents what was
 ## Additional Resources
 
 - **`helpers/task-schema.yaml`** — annotated schema with all fields and valid values
-- **`helpers/task-runner.nu`** — CLI for advancing task phase state
+- **`helpers/task-runner.rs`** — CLI for advancing task phase state
 - **`references/test-patterns.md`** — unit/integration/async test patterns, naming conventions
 - **`references/test-stub.rs.template`** — copy-paste starting point for a new test module

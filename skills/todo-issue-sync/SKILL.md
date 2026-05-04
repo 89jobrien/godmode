@@ -13,23 +13,10 @@ or Linear.
 
 ## Step 1: Collect TODOs
 
-Grep the working tree for all TODO markers (exclude generated files, target/, .git/):
-
-```bash
-grep -rn "TODO" . \
-  --include="*.rs" --include="*.go" --include="*.nu" --include="*.ts" --include="*.py" \
-  --exclude-dir=target --exclude-dir=.git --exclude-dir=node_modules \
-  | grep -v "//! TODO: implement" | cat
-```
-
-Also run the broader form to catch all variants:
-
-```bash
-grep -rn "TODO\|FIXME\|HACK\|XXX" . \
-  --include="*.rs" --include="*.go" \
-  --exclude-dir=target --exclude-dir=.git \
-  | cat
-```
+Use the Grep tool to search the working tree for `TODO`, `FIXME`, `HACK`, and `XXX`
+markers. Limit the search to source file types such as `*.rs`, `*.go`, `*.nu`, `*.ts`,
+and `*.py`, and exclude generated or vendored paths such as `target/`, `.git/`,
+`node_modules/`, `vendor/`, and generated files.
 
 Deduplicate by file+line. Build a table:
 
