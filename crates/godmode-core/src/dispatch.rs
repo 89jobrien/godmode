@@ -242,7 +242,11 @@ where
         // Retry loop for transient blocks.
         while let Err(true) = result {
             match on_blocked(&mut health, config) {
-                BlockOutcome::Retry { .. } => {
+                BlockOutcome::Retry { attempt } => {
+                    if config.retry_backoff_ms > 0 {
+                        let delay = config.retry_backoff_ms * 2u64.pow(attempt as u32 - 1);
+                        std::thread::sleep(std::time::Duration::from_millis(delay));
+                    }
                     result = execute(chain);
                 }
                 BlockOutcome::Exhausted => {
@@ -465,6 +469,31 @@ mod tests {
 
         assert_eq!(outcomes[0], ChainOutcome::Completed);
         assert_eq!(*call_count.lock().unwrap(), 2, "should have retried once");
+    }
+
+    #[test]
+    fn dispatch_backoff_delays_retry() {
+        let cfg = WaveConfig {
+            max_concurrency: 5,
+            max_retries: 1,
+            retry_backoff_ms: 50,
+            ..Default::default()
+        };
+        let chains = make_chains(1);
+        let call_count = Arc::new(Mutex::new(0usize));
+        let cc = call_count.clone();
+        let start = std::time::Instant::now();
+        let outcomes = dispatch_with_config(&chains, &cfg, move |_| {
+            let mut c = cc.lock().unwrap();
+            *c += 1;
+            if *c == 1 { Err(true) } else { Ok(()) }
+        });
+        let elapsed = start.elapsed();
+        assert_eq!(outcomes[0], ChainOutcome::Completed);
+        assert!(
+            elapsed.as_millis() >= 50,
+            "expected backoff delay, got {elapsed:?}"
+        );
     }
 
     #[test]
