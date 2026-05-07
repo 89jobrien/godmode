@@ -208,6 +208,9 @@ pub fn critical_path(graph: &TaskGraph) -> Vec<TaskRef> {
 #[derive(Debug, PartialEq, Eq)]
 pub enum ChainOutcome {
     Completed,
+    /// Slot unavailable — concurrency limit hit; chain was not executed.
+    Skipped,
+    /// Retries exhausted after transient blocks; chain did not complete.
     Exhausted,
 }
 
@@ -231,8 +234,8 @@ where
     for chain in chains {
         // Gate: block until a slot is available (synchronous simulation).
         if !tracker.try_acquire() {
-            // In a real async runtime we'd await; here we record Exhausted for the chain.
-            outcomes.push(ChainOutcome::Exhausted);
+            // In a real async runtime we'd await; here we record Skipped for the chain.
+            outcomes.push(ChainOutcome::Skipped);
             continue;
         }
 
@@ -494,6 +497,20 @@ mod tests {
             elapsed.as_millis() >= 50,
             "expected backoff delay, got {elapsed:?}"
         );
+    }
+
+    #[test]
+    fn dispatch_slot_unavailable_yields_skipped() {
+        // max_concurrency=0 so every chain is skipped immediately
+        let cfg = WaveConfig {
+            max_concurrency: 0,
+            max_retries: 0,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(3);
+        let outcomes = dispatch_with_config(&chains, &cfg, |_| Ok(()));
+        assert!(outcomes.iter().all(|o| *o == ChainOutcome::Skipped));
     }
 
     #[test]
