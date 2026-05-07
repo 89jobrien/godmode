@@ -2,11 +2,15 @@
 # synthesize.nu — read proposals and run synthesizer via aichat (openai)
 # Usage: nu synthesize.nu <original-prompt> [--model <model>]
 
+use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
+use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+
 def main [
     original_prompt: string
-    --model: string = "openai:gpt-4o"
+    --model: string = "openai:gpt-5.2"
 ] {
-    let root = (git rev-parse --show-toplevel | str trim)
+    let root = (repo-root)
+    let tid = (trace-start "moa" "synthesize.nu" $"model=($model)")
     let workdir = $"($root)/.ctx/_WORKING_DIR"
 
     let proposals = (
@@ -22,6 +26,7 @@ def main [
     )
 
     if ($proposals | is-empty) {
+        trace-error $tid 1 "no proposals found in _WORKING_DIR"
         print "No proposals found. Run propose.nu first."
         exit 1
     }
@@ -37,5 +42,13 @@ Here are the responses:
 Your task: synthesize these into a single, high-quality response. Critically evaluate each, identify the strongest elements, correct any errors, and produce a unified answer that is better than any individual response."
 
     print "Running synthesizer..."
-    aichat -m $model $synth_prompt
+    let result = (do { run-external "aichat" "-m" $model $synth_prompt } | complete)
+    if $result.exit_code != 0 {
+        trace-error $tid $result.exit_code $result.stderr
+        print $"ERROR: synthesizer failed: ($result.stderr)"
+        exit $result.exit_code
+    }
+
+    trace-end $tid
+    print $result.stdout
 }

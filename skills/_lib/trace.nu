@@ -40,11 +40,11 @@ def session-id [] {
     }
 }
 
-# Append one JSON line to the trace file.
+# Append one JSON line to the trace file. Non-fatal — failures are silently swallowed.
 def append-event [record: record] {
     let root = (repo-root)
-    mkdir $"($root)/.ctx"
-    $record | to json --raw | $"($in)\n" | save --append (trace-file)
+    try { mkdir $"($root)/.ctx" }
+    try { $record | to json --raw | $"($in)\n" | save --append (trace-file) }
 }
 
 # ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ def append-event [record: record] {
 
 # Emit skill.start; returns a trace_id string for use with trace-end / trace-error.
 export def trace-start [skill: string, helper: string, ...args: string] {
-    let tid = $"($skill).($helper).(now-ms)"
+    let tid = $"($skill).($helper)#(now-ms)"
     append-event {
         event:      "skill.start"
         trace_id:   $tid
@@ -68,7 +68,7 @@ export def trace-start [skill: string, helper: string, ...args: string] {
 
 # Emit skill.complete.
 export def trace-end [trace_id: string] {
-    let parts = ($trace_id | split row ".")
+    let parts = ($trace_id | split row "#")
     let started_ms = ($parts | last | into int)
     let duration_ms = ((now-ms) - $started_ms)
     append-event {
@@ -82,7 +82,7 @@ export def trace-end [trace_id: string] {
 
 # Emit skill.error.
 export def trace-error [trace_id: string, exit_code: int, stderr_tail: string] {
-    let parts = ($trace_id | split row ".")
+    let parts = ($trace_id | split row "#")
     let started_ms = ($parts | last | into int)
     let duration_ms = ((now-ms) - $started_ms)
     append-event {
