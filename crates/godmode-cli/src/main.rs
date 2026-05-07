@@ -1797,6 +1797,9 @@ fn main() -> Result<()> {
                                 let _ = stdin.write_all(dot.as_bytes());
                             }
                             let output = child.wait_with_output()?;
+                            if !output.status.success() {
+                                anyhow::bail!("graphviz dot exited with {}", output.status);
+                            }
                             String::from_utf8_lossy(&output.stdout).into_owned()
                         }
                         Err(_) => {
