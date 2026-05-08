@@ -1,5 +1,5 @@
 ---
-name: "godmode:wave-agent"
+name: gm-wave
 description: >
   Wave integration agent. Triggers on "merge wave", "integrate branches", "wave complete",
   "parallel work done", or after parallel agents report back. Verifies commits, merges branches

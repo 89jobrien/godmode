@@ -1,5 +1,5 @@
 ---
-name: "godmode:testing-philosophy-agent"
+name: gm-testing
 description: >
   Test strategy advisor. Triggers on "what tests", "how to test", "test strategy", "test
   coverage", "what tests do I need", "how should I test this", or any question about which

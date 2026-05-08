@@ -1,5 +1,5 @@
 ---
-name: "godmode:issues-agent"
+name: gm-issues
 description: >
   GitHub issue dispatch agent. Triggers on "tackle issues", "fix these issues", "work on #N",
   "dispatch for issues", or any request to work on GitHub issues in parallel. Fetches open

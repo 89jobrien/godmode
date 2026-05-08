@@ -1,4 +1,4 @@
-name: godmode:dispatch-agent
+name: gm-dispatch
 version: 1.0.0
 description: |
   Parallel dispatch agent. Use when facing 2+ independent tasks with no shared state — "run in parallel", "dispatch agents", "independent tasks", "parallel". Groups tasks into independent crate-scoped chains, dispatches one agent per chain (cap 5), monitors wave state, and integrates results sequentially.

@@ -1,5 +1,5 @@
 ---
-name: "godmode:code-review-agent"
+name: "gm-code-review-agent"
 description: >
   Structured code review before merge. Use when asked to "review this", "code review",
   "check my changes", or "quality pass". Analyzes changes across correctness, safety,

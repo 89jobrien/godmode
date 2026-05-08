@@ -1,5 +1,5 @@
 ---
-name: "godmode:debug-agent"
+name: gm-debug
 description: >
   Systematic debugging specialist. Triggers on "why is this failing", "this is broken",
   "error:", "panic", "test failure", or any symptom description. Use BEFORE proposing any

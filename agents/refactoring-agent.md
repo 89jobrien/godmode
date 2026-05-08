@@ -1,5 +1,5 @@
 ---
-name: "godmode:refactoring-agent"
+name: gm-refactor
 description: >
   Refactoring specialist with strict test discipline. Triggers on "refactor", "extract",
   "rename", "reorganise", "decouple", "clean up". Use when restructuring code without

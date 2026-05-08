@@ -1,5 +1,5 @@
 ---
-name: "godmode:cap-agent"
+name: "gm-cap-agent"
 description: >
   Commit and push workflow. Use when the user says "cap", "commit and push", "ship it", or
   "ready to push". Runs cargo fmt + clippy + nextest, stages changes, generates a conventional

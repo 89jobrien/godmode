@@ -1,5 +1,5 @@
 ---
-name: "godmode:valerie"
+name: "valerie"
 description: >
   Task and todo management specialist. Use PROACTIVELY when users mention tasks, todos, project
   tracking, task completion, or ask what to work on next. Typical triggers include open-ended

@@ -1,5 +1,5 @@
 ---
-name: "godmode:ci-fix-agent"
+name: gm-ci-fix-agent
 description: >
   CI failure diagnosis and repair. Use when CI is failing, when asked to "fix CI", "pipeline
   broke", or "build failed". Fetches the latest failed run via godmode ci triage, classifies

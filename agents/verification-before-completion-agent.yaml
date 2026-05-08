@@ -1,4 +1,4 @@
-name: godmode:verify-agent
+name: gm-verify
 version: 1.0.0
 description: |
   Verification gate enforcer. Use before any completion claim — before saying "done", "ready to merge", "ship it", or "tests pass". Runs the full godmode verify gate and reports pass or fail with specific output. Never edits code — read-only analysis plus running verify.

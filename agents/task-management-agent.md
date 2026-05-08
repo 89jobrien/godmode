@@ -1,5 +1,5 @@
 ---
-name: "godmode:task-agent"
+name: gm-tasker
 description: >
   Task graph management specialist. Use PROACTIVELY when users mention "what's next", "create
   tasks", "task graph", "mark done", or at session start when GODMODE.tasks.yaml exists.

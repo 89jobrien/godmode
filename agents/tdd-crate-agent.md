@@ -1,5 +1,5 @@
 ---
-name: godmode-crate-agent
+name: gm-crate
 description: >
   Use when implementing one or more tasks in a specific Rust workspace crate with strict
   TDD discipline. Triggered by the parallel-agents skill or directly when a crate + task

@@ -1,5 +1,5 @@
 ---
-name: "godmode:orientation-agent"
+name: gm-orient
 description: >
   Godmode orientation and help agent. Triggers on "what skills", "how does godmode work",
   "godmode help", "/godmode", session start orientation, or any question about available

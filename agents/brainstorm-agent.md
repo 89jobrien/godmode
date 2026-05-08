@@ -1,5 +1,5 @@
 ---
-name: "godmode:brainstorm-agent"
+name: "gm-brainstorm-agent"
 description: >
   Design and architecture specialist. Triggers on "design", "architect", "how should we build",
   "brainstorm", "how should we structure", "let's build", "I want to add", or any request that

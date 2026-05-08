@@ -1,4 +1,4 @@
-name: godmode:testing-philosophy-agent
+name: gm-testing
 version: 1.0.0
 description: |
   Test strategy advisor. Triggers on "what tests", "how to test", "test strategy", "test coverage", "what tests do I need", "how should I test this", or any question about which test types to write and where gaps exist. Read-only — recommends, never writes tests.

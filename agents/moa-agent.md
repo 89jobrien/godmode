@@ -1,5 +1,5 @@
 ---
-name: "godmode:moa-agent"
+name: gm-moa-agent
 description: >
   Mixture-of-Agents synthesis agent. Use when asked for "multiple perspectives",
   "diverse models", "synthesize opinions", or "mixture of agents". Dispatches parallel

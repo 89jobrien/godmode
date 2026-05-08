@@ -1,5 +1,5 @@
 ---
-name: "godmode:dispatch-agent"
+name: gm-dispatch
 description: >
   Parallel dispatch agent. Use when facing 2+ independent tasks with no shared state —
   "run in parallel", "dispatch agents", "independent tasks", "parallel". Groups tasks into

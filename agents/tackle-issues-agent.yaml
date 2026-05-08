@@ -1,4 +1,4 @@
-name: godmode:issues-agent
+name: gm-issues
 version: 1.0.0
 description: |
   GitHub issue dispatch agent. Triggers on "tackle issues", "fix these issues", "work on #N", "dispatch for issues", or any request to work on GitHub issues in parallel. Fetches open issues, groups into independent slots, dispatches one agent per slot, integrates results sequentially, and closes issues with commit refs.

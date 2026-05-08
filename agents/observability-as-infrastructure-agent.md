@@ -1,5 +1,5 @@
 ---
-name: "godmode:trace-agent"
+name: gm-trace-agent
 description: >
   Trace analysis agent. Use when asked to "show traces", "what happened", "session history",
   "audit events", or "trace log". Reads GODMODE.trace.jsonl and produces a structured timeline.

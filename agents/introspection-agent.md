@@ -1,5 +1,5 @@
 ---
-name: "godmode:introspection-agent"
+name: "gm-introspection-agent"
 description: >
   Plugin audit agent. Use when asked to "audit skills", "introspect", "review godmode", or
   "check plugin consistency". Runs full conformance checks and reports all findings by severity.

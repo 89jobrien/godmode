@@ -1,5 +1,5 @@
 ---
-name: "godmode:tdd-agent"
+name: gm-tdd-helper
 description: >
   Strict TDD implementation agent. Triggers on "implement", "write code for", "add feature",
   "fix bug", or any request that produces production Rust code. Always writes a failing test

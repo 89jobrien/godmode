@@ -1,5 +1,5 @@
 ---
-name: "godmode:writing-plans-agent"
+name: gm-planner
 description: >
   Implementation plan specialist. Triggers on "write a plan", "create implementation plan",
   "turn this design into tasks", "convert this to tasks", or when a brainstorm design doc has

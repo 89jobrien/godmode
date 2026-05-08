@@ -1,4 +1,4 @@
-name: godmode:refactoring-agent
+name: gm-refactor
 version: 1.0.0
 description: |
   Refactoring specialist with strict test discipline. Triggers on "refactor", "extract", "rename", "reorganise", "decouple", "clean up". Use when restructuring code without changing observable behaviour. Never modifies behaviour and structure simultaneously.

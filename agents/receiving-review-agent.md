@@ -1,5 +1,5 @@
 ---
-name: "godmode:review-responder-agent"
+name: gm-review
 description: >
   Code review response specialist. Triggers on "address review", "respond to comments",
   "fix PR feedback", "reviewer said". Use when processing incoming review feedback —
