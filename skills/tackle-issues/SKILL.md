@@ -170,7 +170,7 @@ git -C "$REPO_ROOT" branch -d issue/<N>
 5. Confirm merge landed on main before closing:
 
 ```bash
-git -C "$REPO_ROOT" log --oneline main | head -5   # verify merge commit present
+git -C "$REPO_ROOT" log --oneline -5 main   # verify merge commit present
 ```
 
 6. Close issues:

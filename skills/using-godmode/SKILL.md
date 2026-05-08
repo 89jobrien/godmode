@@ -113,5 +113,5 @@ godmode task unblock <id>               # reset to pending
 godmode task unblock-all                # reset ALL blocked tasks to pending
 godmode task run <id>                   # run task's run: command
 godmode dispatch [--max 5] [--json]     # parallel chains for orca-strait
-godmode agent <plan.md> [--json]        # ingest + dispatch in one step
+godmode agent dispatch <path> [--max N] # ingest + dispatch in one step
 ```

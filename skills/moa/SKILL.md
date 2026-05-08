@@ -68,5 +68,5 @@ stdout. Files are gitignored and cleaned on the next `godmode handon`.
 
 ## Requirements
 
-- `aichat` installed and configured with OpenAI key (`/opt/homebrew/bin/aichat`)
+- `aichat` installed and on PATH, configured with OpenAI key
 - OpenAI key in `~/Library/Application Support/aichat/config.yaml`
