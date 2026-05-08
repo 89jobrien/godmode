@@ -63,6 +63,14 @@ impl std::fmt::Display for Status {
 }
 
 /// A single task in the execution graph.
+// TODO(feature): Task only supports `crate_name` for grouping. Consider adding a `tags:
+// Vec<String>` field (serde default empty, skip_serializing_if empty) so cross-crate
+// features and concerns can be grouped without abusing crate_name.
+//
+// TODO(feature): No `completed_at: Option<DateTime<Utc>>` field — duration_ms for done
+// tasks is re-derived from started_at against Utc::now() in summary(), which grows
+// unboundedly after completion. Store completed_at on task done and use it as the upper
+// bound when computing duration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,

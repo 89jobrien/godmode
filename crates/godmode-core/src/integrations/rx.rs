@@ -25,6 +25,8 @@ pub fn resolve_cmd(run: &str) -> (String, Vec<String>) {
     if let Some(script) = run.strip_prefix("rx:") {
         ("rx".into(), vec!["run".into(), script.trim().into()])
     } else if needs_shell(run) {
+        // TODO: hardcoded "sh" breaks on minimal containers that only have bash or dash.
+        // Consider probing $SHELL, then /bin/bash, then /bin/sh in order.
         ("sh".into(), vec!["-c".into(), run.to_string()])
     } else {
         let mut parts = run.split_whitespace();
@@ -84,6 +86,8 @@ pub fn validate_run(run: &str) -> Result<()> {
     if scripts.iter().any(|s| s == script) {
         Ok(())
     } else {
+        // TODO(ux): error message tells the user the script is missing but doesn't suggest
+        // how to register it. Add "run `rx install <path>` to register a new script" hint.
         anyhow::bail!(
             "rx script '{}' not found in registry (rx list returned {} scripts)",
             script,

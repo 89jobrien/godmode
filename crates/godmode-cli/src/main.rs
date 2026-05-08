@@ -471,6 +471,9 @@ enum WorkflowAction {
 }
 
 /// Filter a task slice to only those matching `priority` (if Some).
+// TODO(feature): only filters by priority; add --filter <keyword> support to search by
+// title, crate_name, and notes. Useful for large graphs where `task list` returns 20+
+// entries. Could be a simple case-insensitive substring match on title + notes.
 fn filter_by_priority<'a>(
     tasks: &'a [model::Task],
     priority: Option<&model::Priority>,
@@ -481,6 +484,9 @@ fn filter_by_priority<'a>(
     }
 }
 
+// TODO(ux): exit_empty always exits 1, making "no tasks found" indistinguishable from an
+// error. Scripts that want to detect an empty result set can't do so without parsing stderr.
+// Consider exit(0) for the "no results" case and exit(1) only on actual errors.
 fn exit_empty(json: bool) -> ! {
     if json {
         println!("[]");
@@ -587,6 +593,10 @@ fn main() -> Result<()> {
                     session.add_task(task)?;
                     session.save()?;
                     if json {
+                        // TODO(quality): raw r#"..."# JSON strings are used throughout this
+                        // file instead of serde_json serialization. A task id or title
+                        // containing `"` will produce invalid JSON. Replace with a small
+                        // helper struct + serde_json::to_string for all --json outputs.
                         println!(r#"{{"ok":true,"id":"{}"}}"#, id);
                     } else {
                         println!("Task '{}' added.", id);

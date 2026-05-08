@@ -32,6 +32,8 @@ pub fn save(root: &Path, graph: &TaskGraph) -> Result<()> {
 }
 
 /// Return all tasks whose dependencies are all `Done` and whose own status is `Pending`.
+// TODO(perf): done_ids is rebuilt on every call; consider caching it on TaskGraph or
+// passing it in when the caller already has it (e.g. start_traced rebuilds independently).
 pub fn runnable(graph: &TaskGraph) -> Vec<&Task> {
     let done_ids: std::collections::HashSet<&str> = graph
         .tasks
@@ -218,6 +220,9 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
     adj.insert(new_id, deps.iter().map(|s| s.as_str()).collect());
 
     // DFS from each dep; if we reach new_id, there is a cycle.
+    // TODO(perf): path.clone() inside the loop is O(depth) per node, giving O(n²) total
+    // allocations for deep graphs. Replace with an explicit visited set + parent pointer map
+    // to reconstruct the cycle path only on detection.
     let mut stack: Vec<(Vec<&str>, &str)> = deps
         .iter()
         .map(|d| (vec![new_id, d.as_str()], d.as_str()))
@@ -241,6 +246,9 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
 }
 
 /// Return the first unused task ID of the form "t1", "t2", …
+// TODO: the unreachable!() here is technically sound (u64::MAX tasks is impossible in
+// practice) but it suppresses the return-type exhaustiveness. If task IDs ever become
+// configurable or user-supplied, consider returning Result<String> with a proper error.
 pub fn next_task_id(g: &TaskGraph) -> String {
     let used: std::collections::HashSet<&str> = g.tasks.iter().map(|t| t.id.as_str()).collect();
     for n in 1u64.. {
@@ -271,6 +279,9 @@ pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Res
 }
 
 /// Remove a task by id.
+// TODO: removing a task does not clean up `depends_on` references to it in other tasks.
+// Callers that remove a task mid-graph should also call a (currently missing) orphan-ref
+// cleanup pass, or `runnable()` will silently never unblock tasks that depended on it.
 pub fn remove(graph: &mut TaskGraph, id: &str) -> Result<()> {
     let before = graph.tasks.len();
     graph.tasks.retain(|t| t.id != id);

@@ -98,6 +98,8 @@ pub fn independent_chains(graph: &TaskGraph, max_concurrent: usize) -> Vec<Chain
         }
 
         let crate_name = infer_crate(&chain_ids, graph);
+        // TODO(perf): two O(n) scans per chain id (infer_crate + this filter_map).
+        // Build a HashMap<&str, &Task> once before the outer loop and reuse it.
         let tasks = chain_ids
             .iter()
             .filter_map(|id| graph.tasks.iter().find(|t| t.id == *id))
@@ -233,6 +235,10 @@ where
 
     for chain in chains {
         // Gate: block until a slot is available (synchronous simulation).
+        // TODO(async): this entire dispatch loop is a synchronous simulation. For real
+        // parallel agent execution this should use tokio::spawn + a Semaphore. The
+        // ConcurrencyTracker + SlotHealth pattern is the right shape; just needs an
+        // async executor underneath. See wave::ConcurrencyTracker for the sync version.
         if !tracker.try_acquire() {
             // In a real async runtime we'd await; here we record Skipped for the chain.
             outcomes.push(ChainOutcome::Skipped);
