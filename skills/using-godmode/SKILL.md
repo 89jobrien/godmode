@@ -56,6 +56,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:introspection`                   | Auditing skills for consistency after changes   |
 | `godmode:moa`                             | Multi-model synthesis via Mixture of Agents     |
 | `godmode:todo-issue-sync`                 | Auditing inline TODOs against tracked issues    |
+| `godmode:self-reflect`                    | End-of-session retrospective — "reflect"        |
 | `godmode:wave-integration`                | Merge parallel agent branches sequentially      |
 
 ## Always-Active Rules
@@ -83,6 +84,12 @@ godmode handon      # triage: running tasks, next runnable, next doob todo
 
 ```bash
 godmode handoff     # warns on leaked running tasks, writes hj handoff
+```
+
+Or with reflection:
+
+```bash
+godmode handoff && godmode:self-reflect   # handoff + structured retrospective
 ```
 
 ## Additional Resources

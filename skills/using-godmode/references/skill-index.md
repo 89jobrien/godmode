@@ -23,6 +23,7 @@
 | `godmode:wave-integration`                | Merging parallel agent branches into a single integration commit |
 | `godmode:moa`                             | Mixture-of-agents patterns for multi-model reasoning             |
 | `godmode:todo-issue-sync`                 | Auditing inline TODOs and syncing uncovered items to issues      |
+| `godmode:self-reflect`                    | End-of-session retrospective — "reflect", "what did we do"       |
 
 ## Skill Priority Order
 
