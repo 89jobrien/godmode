@@ -27,7 +27,7 @@ regressions.
 ## When NOT to Use
 
 - When you're tempted to refactor and add a feature simultaneously — split the work
-- When tests don't exist yet — write tests first (`godmode:test-driven-development`)
+- When tests don't exist yet — write tests first (`godmode:task-driven-development`)
 - When the "refactor" would change public API behaviour — that's a feature change
 
 ## Process

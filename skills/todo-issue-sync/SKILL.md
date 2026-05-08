@@ -64,7 +64,7 @@ Before creating new issues, sync the godmode task graph from GitHub to pick up a
 that were created outside this session:
 
 ```bash
-godmode task pull --github --repo <owner>/<repo>
+godmode task pull --project <project-name>
 ```
 
 This updates `.ctx/GODMODE.tasks.yaml` with any open GitHub issues not yet in the graph.

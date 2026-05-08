@@ -55,7 +55,7 @@ to exactly one test. Group related tasks into sequential chains using `depends_o
 
 ```bash
 # Bootstrap a task file for the current work unit
-./skills/task-driven-development/helpers/task-runner.rs init "feat: parser" --crate godmode-core
+rust-script skills/task-driven-development/helpers/task-runner.rs init "feat: parser" --crate godmode-core
 ```
 
 Or write `tdd-tasks.yaml` manually using the schema above.
@@ -65,7 +65,7 @@ Or write `tdd-tasks.yaml` manually using the schema above.
 Advance the next `pending` task to `phase: red, status: active`:
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs red t1
+rust-script skills/task-driven-development/helpers/task-runner.rs red t1
 ```
 
 Write the test. Run it and confirm it fails for the right reason — not a compile error:
@@ -81,7 +81,7 @@ The runner sets `phase: red` and records `started_at` in the task file.
 Write the least code to make the test pass. Then advance:
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs green t1
+rust-script skills/task-driven-development/helpers/task-runner.rs green t1
 ```
 
 This runs `cargo nextest run -p <crate>` and only advances the task if all tests pass.
@@ -90,7 +90,7 @@ On success: `phase: green`.
 ### 3. REFACTOR — clean up with tests green
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs refactor t1
+rust-script skills/task-driven-development/helpers/task-runner.rs refactor t1
 ```
 
 Runs clippy + fmt + nextest. On success: `phase: done, status: done`, `completed_at` recorded.
@@ -99,7 +99,7 @@ The next task in the chain (tasks with `depends_on: [t1]`) becomes eligible.
 ### 4. Advance the chain
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs next
+rust-script skills/task-driven-development/helpers/task-runner.rs next
 # prints the next eligible task ID
 ```
 
@@ -110,7 +110,7 @@ Repeat from step 1 for each task in the list.
 If a test is still failing after 3 red→green attempts, mark the task `status: failed` and stop:
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs fail t1 --reason "architecture needs redesign"
+rust-script skills/task-driven-development/helpers/task-runner.rs fail t1 --reason "architecture needs redesign"
 ```
 
 Then either redesign or ask the user. Never brute-force past 3 failures.
@@ -142,7 +142,7 @@ When tasks correspond to GitHub or Linear issues, add `issue:` to each entry:
 Close issues as tasks reach `status: done`:
 
 ```bash
-./skills/task-driven-development/helpers/task-runner.rs close-issues
+rust-script skills/task-driven-development/helpers/task-runner.rs close-issues
 # closes all gh: issues whose task.status == done
 ```
 
