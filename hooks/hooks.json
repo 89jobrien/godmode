@@ -33,6 +33,11 @@
           },
           {
             "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-commit-gate.nu",
+            "timeout": 30
+          },
+          {
+            "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/skills/test-driven-development/hook.nu",
             "timeout": 10
           },
