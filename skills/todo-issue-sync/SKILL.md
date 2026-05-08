@@ -38,6 +38,9 @@ A TODO is **covered** if an open issue mentions the file path or the TODO text.
 
 ### Linear (if the project uses Linear)
 
+**Note:** Requires Linear MCP server — verify `mcp__claude_ai_Linear__*` tools are available
+before proceeding.
+
 Use the `mcp__claude_ai_Linear__list_issues` tool with a query matching the file name
 or TODO description. A TODO is covered if a matching non-completed issue exists.
 
@@ -99,6 +102,9 @@ godmode task add gh-<N> "<title>"
 Use `gh-<N>` as the task ID (e.g. `gh-42`) so it is traceable back to the GitHub issue.
 
 ### Linear
+
+**Note:** Requires Linear MCP server — verify `mcp__claude_ai_Linear__*` tools are available
+before proceeding.
 
 Use `mcp__claude_ai_Linear__save_issue` with team inferred from repo/project context.
 After creating, add to the task graph:

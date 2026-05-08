@@ -35,8 +35,8 @@ from each other (resolve those manually before invoking this skill).
 Run the helper:
 
 ```bash
-wave-integrate --branches "feat/a feat/b feat/c" --base main
-wave-integrate --branches "feat/a feat/b" --dry-run   # rebase+test only, no merge
+nu skills/wave-integration/helpers/wave-integrate.nu --branches "feat/a feat/b feat/c" --base main
+nu skills/wave-integration/helpers/wave-integrate.nu --branches "feat/a feat/b" --dry-run   # rebase+test only, no merge
 ```
 
 ---
@@ -47,13 +47,14 @@ wave-integrate --branches "feat/a feat/b" --dry-run   # rebase+test only, no mer
 
 ```bash
 git fetch --all
-git branch -r | grep -E "<wave-prefix>"
+git branch -r | rg "<wave-prefix>"
 ```
 
 For each branch confirm it compiles before touching it:
 
 ```bash
-git checkout <branch> && cargo check --workspace 2>&1 | tail -3
+git checkout <branch>
+cargo check --workspace
 ```
 
 ### 2. Rebase each branch onto current main (in dependency order)
@@ -61,7 +62,8 @@ git checkout <branch> && cargo check --workspace 2>&1 | tail -3
 Process branches one at a time — never attempt an octopus merge.
 
 ```bash
-git checkout main && git pull
+git checkout main
+git pull
 git checkout <branch>
 git rebase main
 ```
@@ -81,7 +83,7 @@ git rebase main
 ### 3. Test after each rebase
 
 ```bash
-cargo nextest run --workspace 2>&1 | tail -20
+cargo nextest run --workspace
 ```
 
 - If tests fail: debug and fix on the branch before proceeding to the next branch.
@@ -116,7 +118,7 @@ One row per file per conflict. Be specific about intent, not just "kept both".
 
 ### 6. Final integration commit
 
-After all branches are merged and `cargo test --workspace` passes:
+After all branches are merged and `cargo nextest run --workspace` passes:
 
 ```bash
 git commit --allow-empty -m "chore(integration): wave N integration
