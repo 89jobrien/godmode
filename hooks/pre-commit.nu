@@ -76,7 +76,72 @@ if ($godmode_path | is-empty) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 2: cargo gates — fmt-check, clippy, nextest
+# Step 2: plugin.json version bump validation
+# ---------------------------------------------------------------------------
+#
+# Enforces that vX.Y.Z increments by exactly 1 in at most one component.
+# Prevents accidental jumps like 0.5.0 → 1.1.0 or 0.5.0 → 0.7.0.
+
+let plugin_json_path = $"($env.PWD)/.claude-plugin/plugin.json"
+
+if ($plugin_json_path | path exists) {
+    # Version in the working tree (staged)
+    let staged_raw = (
+        try { open $plugin_json_path | get version? | default "" }
+        catch { "" }
+    )
+
+    # Version in HEAD (last commit)
+    let head_result = (run-external "git" "show" "HEAD:.claude-plugin/plugin.json" | complete)
+    let head_raw = if $head_result.exit_code == 0 {
+        try { $head_result.stdout | from json | get version? | default "" }
+        catch { "" }
+    } else {
+        # No previous commit — skip check (initial commit)
+        ""
+    }
+
+    if not ($staged_raw | is-empty) and not ($head_raw | is-empty) and ($staged_raw != $head_raw) {
+        def parse-version [v: string] {
+            let parts = ($v | split row "." | each { |p| $p | into int })
+            if ($parts | length) != 3 {
+                error make { msg: $"pre-commit: invalid version format: ($v)" }
+            }
+            $parts
+        }
+
+        let prev = (parse-version $head_raw)
+        let next = (parse-version $staged_raw)
+
+        let major_diff = ($next.0 - $prev.0)
+        let minor_diff = ($next.1 - $prev.1)
+        let patch_diff = ($next.2 - $prev.2)
+
+        # Each component must not decrease, and no component may jump by more than 1
+        let any_decrease = ($major_diff < 0) or ($minor_diff < 0) or ($patch_diff < 0)
+        let any_jump     = ($major_diff > 1) or ($minor_diff > 1) or ($patch_diff > 1)
+
+        # When a higher component increments, lower components must reset to 0
+        let major_bumped = $major_diff == 1
+        let minor_bumped = $minor_diff == 1
+        let bad_reset = (
+            ($major_bumped and ($next.1 != 0 or $next.2 != 0))
+            or ($minor_bumped and not $major_bumped and $next.2 != 0)
+        )
+
+        if $any_decrease or $any_jump or $bad_reset {
+            print $"pre-commit: invalid version bump ($head_raw) → ($staged_raw)"
+            print "  Rules: increment exactly one component by 1; reset lower components to 0."
+            print "  Examples: 0.5.0 → 0.5.1  |  0.5.0 → 0.6.0  |  0.5.0 → 1.0.0"
+            exit 1
+        }
+
+        print $"pre-commit: version bump ($head_raw) → ($staged_raw) ok"
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Step 3: cargo gates — fmt-check, clippy, nextest
 # ---------------------------------------------------------------------------
 
 print "pre-commit: running cargo fmt --check ..."
@@ -87,5 +152,6 @@ run-gate "cargo" "clippy" "--workspace" "--" "-D" "warnings"
 
 print "pre-commit: running cargo nextest ..."
 run-gate "cargo" "nextest" "run" "--workspace"
+
 
 print "pre-commit: all checks passed."
