@@ -79,14 +79,14 @@ cargo nextest run --workspace
 
 ## Common Refactoring Patterns (Rust)
 
-| Pattern          | Signal                               | Approach                              |
-| ---------------- | ------------------------------------ | ------------------------------------- |
-| Extract function | Block of code used 2+ times          | Move to `fn`, pass args               |
-| Extract module   | File > ~300 lines, mixed concerns    | Split by responsibility               |
-| Extract trait    | Two types share identical method set | Define trait, impl on each            |
-| Inline variable  | Variable used once, name adds noise  | Inline the expression                 |
-| Decouple I/O     | Pure logic calls `std::fs`           | Pass `&Path` or `Read` trait bound    |
-| Rename           | Name misleads or contradicts usage   | `sed`/IDE rename, check all callsites |
+| Pattern          | Signal                               | Approach                                |
+| ---------------- | ------------------------------------ | --------------------------------------- |
+| Extract function | Block of code used 2+ times          | Move to `fn`, pass args                 |
+| Extract module   | File > ~300 lines, mixed concerns    | Split by responsibility                 |
+| Extract trait    | Two types share identical method set | Define trait, impl on each              |
+| Inline variable  | Variable used once, name adds noise  | Inline the expression                   |
+| Decouple I/O     | Pure logic calls `std::fs`           | Pass `&Path` or `Read` trait bound      |
+| Rename           | Name misleads or contradicts usage   | Edit tool + Grep tool to find callsites |
 
 ## Scope Rules
 

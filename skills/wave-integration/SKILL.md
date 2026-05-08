@@ -1,6 +1,6 @@
 ---
 name: "godmode:wave-integration"
-description:
+description: >
   Use when merging multiple parallel agent branches (waves) into a single integration
   commit — rebasing each onto main, resolving conflicts while preserving intent, running tests
   per branch, and producing a clean summary commit with a conflict resolution log.

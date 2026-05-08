@@ -14,10 +14,10 @@ task list — the file is the ground truth. Move tasks forward; never skip phase
 
 ## Task List Schema
 
-Each unit of work is a task entry in `tdd-tasks.yaml` (at the repo root or `.ctx/`):
+Each unit of work is a task entry in `GODMODE.tasks.yaml` (at the repo root or `.ctx/`):
 
 ```yaml
-# tdd-tasks.yaml
+# GODMODE.tasks.yaml
 tasks:
   - id: t1
     title: "parser rejects empty input"
@@ -58,7 +58,7 @@ to exactly one test. Group related tasks into sequential chains using `depends_o
 rust-script skills/task-driven-development/helpers/task-runner.rs init "feat: parser" --crate godmode-core
 ```
 
-Or write `tdd-tasks.yaml` manually using the schema above.
+Or write `GODMODE.tasks.yaml` manually using the schema above.
 
 ### 1. RED — write a failing test
 
