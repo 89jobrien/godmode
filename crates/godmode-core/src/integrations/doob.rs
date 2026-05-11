@@ -129,17 +129,73 @@ pub fn todo_add(project: &str, title: &str) -> Result<()> {
 }
 
 /// Sync a HANDOFF YAML file into doob's handoff_item table.
+///
+/// Doob derives the project name from the YAML file's parent directory,
+/// so we copy to a temp dir named after the project before syncing.
+/// After sync, stale items (in doob but not in the YAML) are marked done.
 #[instrument(name = "doob::handoff_sync", fields(integration = "doob"))]
-pub fn handoff_sync(yaml_path: &Path) -> Result<()> {
-    let path_str = yaml_path
+pub fn handoff_sync(yaml_path: &Path, project: &str, current_item_ids: &[String]) -> Result<()> {
+    // Copy YAML into /tmp/<project>/ so doob picks up the correct project name
+    let tmp_dir = std::env::temp_dir().join(project);
+    let _ = std::fs::create_dir_all(&tmp_dir);
+    let tmp_file = tmp_dir.join(
+        yaml_path
+            .file_name()
+            .context("HANDOFF YAML has no filename")?,
+    );
+    std::fs::copy(yaml_path, &tmp_file)?;
+
+    let tmp_str = tmp_file
         .to_str()
-        .context("HANDOFF YAML path is not valid UTF-8")?;
+        .context("temp HANDOFF path is not valid UTF-8")?;
     subprocess::run(
         "doob",
-        &["handoff", "sync", "--file", path_str],
+        &["handoff", "sync", "--file", tmp_str],
         "doob not found on PATH",
     )?;
+
+    // Clean up temp file
+    let _ = std::fs::remove_file(&tmp_file);
+    let _ = std::fs::remove_dir(&tmp_dir);
+
+    // Mark stale items as done — items in doob for this project that are
+    // no longer in the current YAML
+    cleanup_stale_items(project, current_item_ids);
+
     Ok(())
+}
+
+/// Query doob for handoff items in this project and mark any that are not
+/// in `current_ids` as done.
+fn cleanup_stale_items(project: &str, current_ids: &[String]) {
+    let out = subprocess::run(
+        "doob",
+        &["handoff", "list", "--project", project, "--json"],
+        "doob not found",
+    );
+    let Ok(raw) = out else { return };
+    let Ok(items) = serde_json::from_str::<Vec<serde_json::Value>>(&raw) else {
+        return;
+    };
+
+    for item in &items {
+        let Some(handoff_id) = item.get("handoff_id").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let status = item.get("status").and_then(|v| v.as_str()).unwrap_or("");
+        // Skip items already done/parked
+        if status == "done" || status == "parked" {
+            continue;
+        }
+        // If this item is not in the current set, mark it done
+        if !current_ids.iter().any(|id| id == handoff_id) {
+            let _ = subprocess::run(
+                "doob",
+                &["handoff", "update-status", handoff_id, "done"],
+                "doob not found",
+            );
+        }
+    }
 }
 
 #[cfg(test)]

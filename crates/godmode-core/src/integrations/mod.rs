@@ -144,12 +144,13 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
             "done={} running={} pending={} blocked={}",
             summary.done, summary.running, summary.pending, summary.blocked
         );
-        if let Ok(handoff_path) =
+        if let Ok((handoff_path, item_ids)) =
             handoff_yaml::write_handoff(root, &g.tasks, &dirty_files, &session_summary, &cfg)
             && cfg.handoff.doob_sync
             && cfg.integrations.doob
         {
-            let _ = doob::handoff_sync(&handoff_path);
+            let project = cfg.project_name(root);
+            let _ = doob::handoff_sync(&handoff_path, &project, &item_ids);
         }
     }
 

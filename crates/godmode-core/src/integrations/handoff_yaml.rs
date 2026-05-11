@@ -176,14 +176,14 @@ pub fn recent_commits(root: &Path) -> Vec<String> {
 }
 
 /// Write the HANDOFF YAML file, merging with any existing content.
-/// Returns the path to the written file on success.
+/// Returns `(path, item_ids)` on success.
 pub fn write_handoff(
     root: &Path,
     tasks: &[Task],
     dirty_files: &[String],
     summary_text: &str,
     cfg: &Config,
-) -> Result<PathBuf> {
+) -> Result<(PathBuf, Vec<String>)> {
     let project = cfg.project_name(root);
     let ctx_dir = root.join(".ctx");
     let _ = std::fs::create_dir_all(&ctx_dir);
@@ -231,9 +231,57 @@ pub fn write_handoff(
     handoff.updated = today;
     handoff.log.insert(0, log_entry);
 
+    let item_ids: Vec<String> = handoff.items.iter().map(|i| i.id.clone()).collect();
     let yaml = serde_yaml::to_string(&handoff)?;
     std::fs::write(&path, yaml)?;
-    Ok(path)
+
+    // Render HANDOFF.md from the YAML data
+    let _ = write_handoff_md(root, &handoff);
+
+    Ok((path, item_ids))
+}
+
+/// Render `HANDOFF.md` from the handoff file as a human-readable summary.
+pub fn write_handoff_md(root: &Path, handoff: &HandoffFile) -> Result<()> {
+    let path = root.join(".ctx").join("HANDOFF.md");
+    let mut md = format!("# Handoff — {} ({})\n\n", handoff.project, handoff.updated);
+
+    // Items table
+    if handoff.items.is_empty() {
+        md.push_str("No outstanding items.\n");
+    } else {
+        md.push_str("| ID | P | Status | Title |\n|---|---|---|---|\n");
+        for item in &handoff.items {
+            md.push_str(&format!(
+                "| {} | {} | {} | {} |\n",
+                item.id, item.priority, item.status, item.title
+            ));
+        }
+    }
+
+    // Recent log
+    if !handoff.log.is_empty() {
+        md.push_str("\n## Log\n\n");
+        for entry in handoff.log.iter().take(5) {
+            let commits = if entry.commits.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    " [{}]",
+                    entry
+                        .commits
+                        .iter()
+                        .map(|c| &c[..7.min(c.len())])
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
+            };
+            md.push_str(&format!("- {}: {}{}\n", entry.date, entry.summary, commits));
+        }
+    }
+
+    std::fs::write(&path, md)?;
+    Ok(())
 }
 
 fn slug(title: &str) -> String {
