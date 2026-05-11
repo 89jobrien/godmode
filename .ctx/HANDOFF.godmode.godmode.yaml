@@ -3,100 +3,80 @@ id: godmode
 updated: 2026-05-11
 items:
   - id: uncommitted-work
-    doob_uuid: 2bd79aeb-3d7a-4b94-814d-3293a384f894
     name: uncommitted-work
     priority: P1
     status: open
-    title: Uncommitted changes (16 files)
+    title: Uncommitted changes (2 files)
     description: |-
       Working tree has uncommitted changes:
+      .ctx/HANDOFF.godmode.godmode.state.yaml
       .ctx/HANDOFF.godmode.godmode.yaml
-      Cargo.lock
-      crates/godmode-cli/src/main.rs
-      crates/godmode-core/Cargo.toml
-      crates/godmode-core/src/dispatch.rs
-      crates/godmode-core/src/integrations/doob.rs
-      crates/godmode-core/src/integrations/mod.rs
-      crates/godmode-core/src/integrations/output.rs
-      crates/godmode-core/src/lib.rs
-      crates/godmode-core/src/release.rs
-      crates/godmode-core/src/review.rs
-      .godmode.toml
-      crates/godmode-core/src/config.rs
-      crates/godmode-core/src/integrations/handoff_yaml.rs
-      scripts/aichat-plan.nu
-      templates/
     files:
+      - .ctx/HANDOFF.godmode.godmode.state.yaml
       - .ctx/HANDOFF.godmode.godmode.yaml
-      - Cargo.lock
-      - crates/godmode-cli/src/main.rs
-      - crates/godmode-core/Cargo.toml
-      - crates/godmode-core/src/dispatch.rs
-      - crates/godmode-core/src/integrations/doob.rs
-      - crates/godmode-core/src/integrations/mod.rs
-      - crates/godmode-core/src/integrations/output.rs
-      - crates/godmode-core/src/lib.rs
-      - crates/godmode-core/src/release.rs
-      - crates/godmode-core/src/review.rs
-      - .godmode.toml
-      - crates/godmode-core/src/config.rs
-      - crates/godmode-core/src/integrations/handoff_yaml.rs
-      - scripts/aichat-plan.nu
-      - templates/
-    extra: []
 log:
+  - date: "20260511.235101"
+    summary: done=8 running=0 pending=0 blocked=0
+    commits:
+      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
+      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
+      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
+      - 5beb9a2be396823200988a8001ba0e16904c998e
+      - 29f959f77d43fe487849f4678bd108d58068ea0e
+      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
+      - 11a5147875e171c86697cc8b00383b94933c43a5
+      - eda07580fd6236a425b9157cb4aa6bda2721a02e
+      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
+      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
+  - date: "20260511.235101"
+    summary: done=8 running=0 pending=0 blocked=0
+    commits:
+      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
+      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
+      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
+      - 5beb9a2be396823200988a8001ba0e16904c998e
+      - 29f959f77d43fe487849f4678bd108d58068ea0e
+      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
+      - 11a5147875e171c86697cc8b00383b94933c43a5
+      - eda07580fd6236a425b9157cb4aa6bda2721a02e
+      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
+      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
+  - date: "20260511.234944"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234940"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234904"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234838"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234809"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234543"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234337"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234337"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234306"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234046"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.234030"
+    summary: done=8 running=1 pending=1 blocked=1
+  - date: "20260511.233956"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.233307"
+    summary: done=8 running=0 pending=0 blocked=0
+  - date: "20260511.233307"
+    summary: done=8 running=0 pending=0 blocked=0
   - date: "20260511.233057"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
-      - d84829ff2e7349eafe0d029c58c033c4a3bbbf17
-      - 14106ef44975e9b344a63117ac8f850758d3df5c
   - date: "20260511.233034"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
-      - d84829ff2e7349eafe0d029c58c033c4a3bbbf17
-      - 14106ef44975e9b344a63117ac8f850758d3df5c
   - date: "20260511.232649"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
-      - d84829ff2e7349eafe0d029c58c033c4a3bbbf17
-      - 14106ef44975e9b344a63117ac8f850758d3df5c
   - date: "20260511.232624"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
-      - d84829ff2e7349eafe0d029c58c033c4a3bbbf17
-      - 14106ef44975e9b344a63117ac8f850758d3df5c
   - date: 20260501:233015
     summary: Installed godmode CLI. Fixed shell metacharacter execution in task run via sh -c. Smoke-tested end-to-end plan→task→run→done cycle. Created GitHub repo 89jobrien/godmode. Filed 6 roadmap issues (#1–#6). Closed gm-001.
     session: 3
