@@ -15,6 +15,7 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 slashcrux = { workspace = true }
 cruxx-core = { workspace = true }
+toml = "0.8"
 which = "7"
 tracing = { workspace = true }
 

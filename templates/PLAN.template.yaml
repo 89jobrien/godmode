@@ -1,0 +1,52 @@
+meta:
+  name: PLAN
+  description: "Standard aichat-planned feature: brainstorm → plan → implement → verify"
+  vars:
+    - name: feature
+      required: true
+      # Short slug for the feature, used in task IDs (e.g. "priority-filter")
+    - name: crate
+      required: true
+      # Primary crate being changed (e.g. "godmode-core")
+    - name: prefix
+      default: "t"
+      # Task ID prefix (default: t → t1, t2, ...)
+
+tasks:
+  - id: "{{prefix}}1"
+    title: "Brainstorm: design {{feature}}"
+    status: pending
+    depends_on: []
+    crate_name: "{{crate}}"
+    notes: "Run godmode:brainstorm or aichat-plan.nu to explore approaches before coding"
+
+  - id: "{{prefix}}2"
+    title: "Plan: write implementation steps for {{feature}}"
+    status: pending
+    depends_on: ["{{prefix}}1"]
+    crate_name: "{{crate}}"
+    notes: "Use aichat-plan.nu to generate ordered step list; review before proceeding"
+
+  - id: "{{prefix}}3"
+    title: "Implement: {{feature}} (TDD — red)"
+    status: pending
+    depends_on: ["{{prefix}}2"]
+    crate_name: "{{crate}}"
+    run: "cargo nextest run -p {{crate}}"
+    notes: "Write failing tests first — do not touch implementation until tests are red"
+
+  - id: "{{prefix}}4"
+    title: "Implement: {{feature}} (TDD — green)"
+    status: pending
+    depends_on: ["{{prefix}}3"]
+    crate_name: "{{crate}}"
+    run: "cargo nextest run -p {{crate}}"
+    notes: "Write minimum implementation to make tests pass"
+
+  - id: "{{prefix}}5"
+    title: "Verify: clippy + nextest + fmt for {{feature}}"
+    status: pending
+    depends_on: ["{{prefix}}4"]
+    crate_name: "{{crate}}"
+    run: "cargo clippy --workspace -- -D warnings && cargo nextest run --workspace"
+    notes: "Run godmode verify; fix all warnings before committing"

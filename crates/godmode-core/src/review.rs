@@ -157,6 +157,7 @@ pub fn run_all(root: &Path) -> Result<ReviewReport> {
     let mut report = ReviewReport::new();
     report.merge(check_skills(root)?);
     report.merge(check_agents(root)?);
+    report.merge(check_agent_naming(root)?);
     report.merge(check_plugin_json(root)?);
     report.merge(check_lib(root)?);
     Ok(report)
@@ -496,6 +497,38 @@ pub fn check_agents(root: &Path) -> Result<ReviewReport> {
     Ok(r)
 }
 
+/// Check agent naming conventions: all agents should use `gm-*` prefix.
+pub fn check_agent_naming(root: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let files = agent_files(root)?;
+
+    for path in &files {
+        let content = fs::read_to_string(path)?;
+        let agent_file = path
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        if let Some(name) = extract_fm_name(&content) {
+            r.checks += 1;
+            // Allow special cases: valerie, godmode-crate-agent
+            let is_exception =
+                name == "valerie" || name == "godmode-crate-agent" || name == "gm-crate";
+            if !name.starts_with("gm-") && !is_exception {
+                r.findings.push(Finding {
+                    skill: agent_file,
+                    check: "naming convention".into(),
+                    message: format!("[{name}] agent name does not follow gm-* convention"),
+                    severity: Severity::Suggestion,
+                });
+            }
+        }
+    }
+
+    Ok(r)
+}
+
 /// Check plugin.json allowed fields and _lib/*.nu parse.
 pub fn check_plugin_json(root: &Path) -> Result<ReviewReport> {
     let mut r = ReviewReport::new();
@@ -634,6 +667,22 @@ const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "release bump",
     "release tag",
     "release push",
+    "release validate",
+    "release changelog",
+    "session prune",
+    "agent generate",
+    "agent migrate",
+    "skill list",
+    "skill install",
+    "skill uninstall",
+    "hook list",
+    "hook log",
+    "hook test",
+    "hook migrate",
+    "workflow run",
+    "workflow list",
+    "workflow status",
+    "visualize-graph",
 ];
 
 /// Extract a backtick-quoted path that starts with the given prefix from a line.
@@ -838,6 +887,52 @@ mod tests {
         .unwrap();
         let r = check_plugin_json(root).unwrap();
         assert!(r.passed, "findings: {:?}", r.findings);
+    }
+
+    #[test]
+    fn agent_naming_flags_non_gm_prefix() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let agents_dir = root.join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        fs::write(
+            agents_dir.join("bad-agent.md"),
+            "---\nname: my-custom-agent\nmodel: sonnet\ntools: [Read]\ndescription: does things and more stuff\n---\n\nBody.\n",
+        )
+        .unwrap();
+        let r = check_agent_naming(root).unwrap();
+        assert_eq!(r.findings.len(), 1);
+        assert_eq!(r.findings[0].check, "naming convention");
+    }
+
+    #[test]
+    fn agent_naming_allows_gm_prefix() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let agents_dir = root.join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        fs::write(
+            agents_dir.join("good-agent.md"),
+            "---\nname: gm-review\nmodel: sonnet\ntools: [Read]\ndescription: does reviews of code changes\n---\n\nBody.\n",
+        )
+        .unwrap();
+        let r = check_agent_naming(root).unwrap();
+        assert!(r.findings.is_empty());
+    }
+
+    #[test]
+    fn agent_naming_allows_exceptions() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let agents_dir = root.join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        fs::write(
+            agents_dir.join("valerie.md"),
+            "---\nname: valerie\nmodel: sonnet\ntools: [Read]\ndescription: task management specialist agent\n---\n\nBody.\n",
+        )
+        .unwrap();
+        let r = check_agent_naming(root).unwrap();
+        assert!(r.findings.is_empty());
     }
 
     #[test]

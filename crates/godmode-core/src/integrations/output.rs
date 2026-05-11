@@ -24,6 +24,9 @@ pub struct HandoffOutput {
     pub graph: GraphOut,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hj: Option<String>,
+    /// Untracked or modified files in the working tree.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub dirty_files: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]

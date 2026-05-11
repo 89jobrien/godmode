@@ -276,6 +276,23 @@ where
     outcomes
 }
 
+/// Check if any two chains target the same crate, which would cause merge
+/// conflicts when dispatched in parallel. Returns pairs of conflicting chain
+/// indices with the shared crate name.
+pub fn file_overlap_warnings(chains: &[Chain]) -> Vec<(usize, usize, String)> {
+    let mut warnings = Vec::new();
+    for (i, a) in chains.iter().enumerate() {
+        for (j, b) in chains.iter().enumerate().skip(i + 1) {
+            if let (Some(ca), Some(cb)) = (&a.crate_name, &b.crate_name)
+                && ca == cb
+            {
+                warnings.push((i, j, ca.clone()));
+            }
+        }
+    }
+    warnings
+}
+
 fn infer_crate(ids: &[&str], graph: &TaskGraph) -> Option<String> {
     let crates: HashSet<Option<&str>> = ids
         .iter()
@@ -517,6 +534,57 @@ mod tests {
         let chains = make_chains(3);
         let outcomes = dispatch_with_config(&chains, &cfg, |_| Ok(()));
         assert!(outcomes.iter().all(|o| *o == ChainOutcome::Skipped));
+    }
+
+    #[test]
+    fn file_overlap_warnings_detects_shared_crate() {
+        let chains = vec![
+            Chain {
+                crate_name: Some("auth".into()),
+                tasks: vec![TaskRef {
+                    id: "t1".into(),
+                    title: "A".into(),
+                }],
+            },
+            Chain {
+                crate_name: Some("auth".into()),
+                tasks: vec![TaskRef {
+                    id: "t2".into(),
+                    title: "B".into(),
+                }],
+            },
+            Chain {
+                crate_name: Some("cache".into()),
+                tasks: vec![TaskRef {
+                    id: "t3".into(),
+                    title: "C".into(),
+                }],
+            },
+        ];
+        let warnings = super::file_overlap_warnings(&chains);
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0], (0, 1, "auth".to_string()));
+    }
+
+    #[test]
+    fn file_overlap_warnings_none_when_distinct() {
+        let chains = vec![
+            Chain {
+                crate_name: Some("auth".into()),
+                tasks: vec![TaskRef {
+                    id: "t1".into(),
+                    title: "A".into(),
+                }],
+            },
+            Chain {
+                crate_name: Some("cache".into()),
+                tasks: vec![TaskRef {
+                    id: "t2".into(),
+                    title: "B".into(),
+                }],
+            },
+        ];
+        assert!(super::file_overlap_warnings(&chains).is_empty());
     }
 
     #[test]

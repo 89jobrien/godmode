@@ -24,7 +24,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Cmd {
     /// Print triage summary at session start.
-    Handon,
+    Handon {
+        /// Emit a single-line summary instead of the full triage.
+        #[arg(long)]
+        compact: bool,
+    },
 
     /// Validate session state at session end.
     Handoff,
@@ -227,6 +231,8 @@ enum ReleaseAction {
     Push,
     /// Generate and prepend a changelog entry from commits since last tag.
     Changelog,
+    /// Cross-check plugin.json, Cargo.toml, and git tag versions.
+    Validate,
 }
 
 #[derive(Subcommand)]
@@ -502,10 +508,16 @@ fn main() -> Result<()> {
     let root = detect::root_or_cwd()?;
 
     match cli.cmd {
-        Cmd::Handon => {
+        Cmd::Handon { compact } => {
             let out = integrations::handon(&root)?;
             if json {
                 println!("{}", serde_json::to_string_pretty(&out)?);
+            } else if compact {
+                let g = &out.graph;
+                println!(
+                    "godmode: {}D {}R {}P {}B",
+                    g.done, g.running, g.pending, g.blocked
+                );
             } else {
                 print!("{}", out.human);
             }
@@ -1671,6 +1683,22 @@ fn main() -> Result<()> {
                     );
                 } else {
                     println!("Updated CHANGELOG.md for version {}.", entry.version);
+                }
+                Ok(())
+            }
+
+            ReleaseAction::Validate => {
+                let warnings = release::validate_versions(&root)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&warnings)?);
+                } else if warnings.is_empty() {
+                    println!("All versions consistent.");
+                } else {
+                    println!("Version drift detected:");
+                    for w in &warnings {
+                        println!("  - {w}");
+                    }
+                    std::process::exit(1);
                 }
                 Ok(())
             }

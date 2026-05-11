@@ -1,0 +1,12 @@
+# project_name auto-resolves from Cargo.toml > git remote > dirname
+
+[integrations]
+doob = true
+hj = false
+cruxx = true
+rx = true
+
+[handoff]
+enabled = true
+doob_sync = true
+max_commits = 10

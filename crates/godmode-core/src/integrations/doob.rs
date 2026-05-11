@@ -128,6 +128,20 @@ pub fn todo_add(project: &str, title: &str) -> Result<()> {
     Ok(())
 }
 
+/// Sync a HANDOFF YAML file into doob's handoff_item table.
+#[instrument(name = "doob::handoff_sync", fields(integration = "doob"))]
+pub fn handoff_sync(yaml_path: &Path) -> Result<()> {
+    let path_str = yaml_path
+        .to_str()
+        .context("HANDOFF YAML path is not valid UTF-8")?;
+    subprocess::run(
+        "doob",
+        &["handoff", "sync", "--file", path_str],
+        "doob not found on PATH",
+    )?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

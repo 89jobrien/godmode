@@ -42,6 +42,15 @@ pub fn current_version(root: &Path) -> Result<String> {
 /// Increment the patch component across all files in `.version-bump.json`.
 /// Pass `explicit` to set an exact version instead of auto-incrementing.
 pub fn bump(root: &Path, explicit: Option<&str>) -> Result<ReleaseInfo> {
+    // Pre-flight: warn on version drift before bumping
+    let drift = validate_versions(root).unwrap_or_default();
+    if !drift.is_empty() {
+        eprintln!("Warning: version drift detected before bump:");
+        for w in &drift {
+            eprintln!("  - {w}");
+        }
+    }
+
     let cfg = load_config(root)?;
     if cfg.files.is_empty() {
         bail!("no files listed in .version-bump.json");
@@ -279,6 +288,96 @@ pub fn write_changelog(root: &Path, entry: &ChangelogEntry) -> Result<()> {
 }
 
 // ---------------------------------------------------------------------------
+// Version cross-validation
+// ---------------------------------------------------------------------------
+
+/// Cross-check plugin.json version, Cargo.toml workspace version, and latest git tag.
+/// Returns a list of warnings (empty = all consistent).
+pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
+    let mut warnings = Vec::new();
+
+    // 1. Plugin version from .version-bump.json
+    let plugin_version = current_version(root)?;
+
+    // 2. Cargo.toml workspace version
+    let cargo_toml = root.join("Cargo.toml");
+    let cargo_version = if cargo_toml.exists() {
+        let content = fs::read_to_string(&cargo_toml)?;
+        extract_cargo_workspace_version(&content)
+    } else {
+        None
+    };
+
+    // 3. Latest git tag
+    let tag_version = latest_tag_version(root);
+
+    // Cross-check plugin vs Cargo
+    if let Some(ref cv) = cargo_version
+        && *cv != plugin_version
+    {
+        warnings.push(format!(
+            "version mismatch: plugin.json={plugin_version}, Cargo.toml={cv}"
+        ));
+    }
+
+    // Cross-check plugin vs git tag
+    if let Some(ref tv) = tag_version
+        && *tv != plugin_version
+    {
+        warnings.push(format!(
+            "version mismatch: plugin.json={plugin_version}, latest tag=v{tv}"
+        ));
+    }
+
+    // Cross-check Cargo vs git tag
+    if let Some(ref cv) = cargo_version
+        && let Some(ref tv) = tag_version
+        && cv != tv
+    {
+        warnings.push(format!(
+            "version mismatch: Cargo.toml={cv}, latest tag=v{tv}"
+        ));
+    }
+
+    Ok(warnings)
+}
+
+fn extract_cargo_workspace_version(content: &str) -> Option<String> {
+    let mut in_workspace_package = false;
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed == "[workspace.package]" {
+            in_workspace_package = true;
+        } else if trimmed.starts_with('[') {
+            in_workspace_package = false;
+        } else if in_workspace_package && let Some(rest) = trimmed.strip_prefix("version") {
+            let rest = rest.trim().strip_prefix('=')?;
+            let rest = rest.trim().trim_matches('"');
+            return Some(rest.to_string());
+        }
+    }
+    None
+}
+
+fn latest_tag_version(root: &Path) -> Option<String> {
+    let out = Command::new("git")
+        .args([
+            "-C",
+            root.to_str().unwrap_or("."),
+            "describe",
+            "--tags",
+            "--abbrev=0",
+        ])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let tag = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    Some(tag.strip_prefix('v').unwrap_or(&tag).to_string())
+}
+
+// ---------------------------------------------------------------------------
 // Internals
 // ---------------------------------------------------------------------------
 
@@ -401,5 +500,36 @@ mod tests {
     fn bump_fails_on_missing_version_bump_json() {
         let tmp = tempfile::tempdir().unwrap();
         assert!(bump(tmp.path(), None).is_err());
+    }
+
+    #[test]
+    fn extract_cargo_workspace_version_parses() {
+        let toml = r#"
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.6.0"
+edition = "2024"
+"#;
+        assert_eq!(
+            extract_cargo_workspace_version(toml),
+            Some("0.6.0".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_cargo_workspace_version_returns_none_if_missing() {
+        let toml = "[workspace]\nmembers = [\"crates/*\"]\n";
+        assert_eq!(extract_cargo_workspace_version(toml), None);
+    }
+
+    #[test]
+    fn validate_versions_reports_no_warnings_when_consistent() {
+        let tmp = make_fixture("1.0.0");
+        // No git repo, so tag check returns None — only plugin version is checked
+        let warnings = validate_versions(tmp.path()).unwrap();
+        // No Cargo.toml → no cross-check, no git tag → no cross-check
+        assert!(warnings.is_empty());
     }
 }

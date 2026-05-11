@@ -1,6 +1,7 @@
 pub mod cruxx;
 pub mod doob;
 pub mod gh;
+pub mod handoff_yaml;
 pub mod hj;
 pub mod hook_migrate;
 pub mod hook_runner;
@@ -14,15 +15,28 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use crate::{graph, model::Status, session};
+use crate::{config::Config, graph, model::Status, session};
 
 /// Run the full handon sequence: hj handon + doob next todo + local graph triage.
 pub fn handon(root: &Path) -> Result<HandonOutput> {
+    let cfg = Config::load(root);
+
+    // Ensure sessions dir exists so trace writes don't silently fail
+    let _ = std::fs::create_dir_all(cruxx::sessions_dir(root));
+
     let g = graph::load(root)?;
     let summary = g.summary();
 
-    let hj_out = hj::handon(root).ok();
-    let next_todo = doob::todo_next_for_root(root).ok().flatten();
+    let hj_out = if cfg.integrations.hj {
+        hj::handon(root).ok()
+    } else {
+        None
+    };
+    let next_todo = if cfg.integrations.doob {
+        doob::todo_next_for_root(root).ok().flatten()
+    } else {
+        None
+    };
 
     let running_tasks: Vec<String> = g
         .tasks
@@ -78,8 +92,9 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
     })
 }
 
-/// Run the full handoff sequence: local graph check + hj handoff.
+/// Run the full handoff sequence: local graph check + hj handoff + dirty tree.
 pub fn handoff(root: &Path) -> Result<HandoffOutput> {
+    let cfg = Config::load(root);
     let summary = session::handoff(root)?;
 
     let g = graph::load(root)?;
@@ -90,7 +105,14 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
         .map(|t| format!("[{}] {}", t.id, t.title))
         .collect();
 
-    let hj_out = hj::handoff(root, "unknown", "unknown", "session closed", &[]).ok();
+    let hj_out = if cfg.integrations.hj {
+        hj::handoff(root, "unknown", "unknown", "session closed", &[]).ok()
+    } else {
+        None
+    };
+
+    // Detect uncommitted/untracked files
+    let dirty_files = detect_dirty_files(root);
 
     let mut human = String::new();
     if !running_tasks.is_empty() {
@@ -103,10 +125,34 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
         }
         human.push_str("Mark them done or blocked before closing.\n");
     }
+    if !dirty_files.is_empty() {
+        human.push_str(&format!(
+            "Warning: {} uncommitted file(s) in working tree:\n",
+            dirty_files.len()
+        ));
+        for f in &dirty_files {
+            human.push_str(&format!("  {f}\n"));
+        }
+    }
     if let Some(ref hj) = hj_out {
         human.push_str(hj);
         human.push('\n');
     }
+    // Write native HANDOFF YAML from task graph state, then sync to doob db
+    if cfg.handoff.enabled {
+        let session_summary = format!(
+            "done={} running={} pending={} blocked={}",
+            summary.done, summary.running, summary.pending, summary.blocked
+        );
+        if let Ok(handoff_path) =
+            handoff_yaml::write_handoff(root, &g.tasks, &dirty_files, &session_summary, &cfg)
+            && cfg.handoff.doob_sync
+            && cfg.integrations.doob
+        {
+            let _ = doob::handoff_sync(&handoff_path);
+        }
+    }
+
     human.push_str(&format!(
         "Session closed. done={} running={} pending={} blocked={}\n",
         summary.done, summary.running, summary.pending, summary.blocked
@@ -122,5 +168,21 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
             running_tasks,
         },
         hj: hj_out,
+        dirty_files,
     })
+}
+
+/// Run `git status --porcelain` and return the list of dirty files.
+fn detect_dirty_files(root: &Path) -> Vec<String> {
+    let out = std::process::Command::new("git")
+        .args(["-C", root.to_str().unwrap_or("."), "status", "--porcelain"])
+        .output();
+    match out {
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .lines()
+            .filter(|l| !l.is_empty())
+            .map(|l| l.to_string())
+            .collect(),
+        _ => vec![],
+    }
 }
