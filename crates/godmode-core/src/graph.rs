@@ -135,6 +135,7 @@ pub fn complete_traced(
         }
         task.status = Status::Done;
         task.completed = Some(Local::now().date_naive());
+        task.completed_at = Some(chrono::Utc::now());
         if let Some(sha) = commit {
             task.commit = Some(sha.to_string());
         }

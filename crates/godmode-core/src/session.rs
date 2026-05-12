@@ -128,10 +128,6 @@ impl Session {
     }
 
     /// Aggregate counts and per-task durations.
-    // TODO(#57): summary() computes duration_ms from started_at for all tasks including
-    // still-running ones. For completed tasks this double-counts time if started_at was not
-    // cleared. Consider storing a separate completed_at timestamp on Task, or clamping
-    // duration_ms to the completed timestamp when status == Done.
     pub fn summary(&self) -> SessionSummary {
         let mut s = SessionSummary::default();
         for task in &self.graph.tasks {
@@ -141,14 +137,10 @@ impl Session {
                 Status::Pending => s.pending += 1,
                 Status::Blocked => s.blocked += 1,
             }
+            let end = task.completed_at.unwrap_or_else(Utc::now);
             let duration_ms = task
                 .started_at
-                .map(|start| {
-                    Utc::now()
-                        .signed_duration_since(start)
-                        .num_milliseconds()
-                        .max(0) as u64
-                })
+                .map(|start| end.signed_duration_since(start).num_milliseconds().max(0) as u64)
                 .unwrap_or(0);
             s.tasks.push(TaskTiming {
                 id: task.id.clone(),
@@ -444,6 +436,53 @@ mod tests {
         let sessions = dir.path().join("no-such-dir");
         let pruned = prune_sessions_older_than(&sessions, 7, false).unwrap();
         assert!(pruned.is_empty());
+    }
+
+    #[test]
+    fn completed_at_set_on_task_done() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        assert!(
+            s.graph().tasks[0].completed_at.is_none(),
+            "completed_at should be None before completion"
+        );
+        s.start_task("t1").unwrap();
+        s.complete_task("t1", None, None).unwrap();
+        let task = s.graph().tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert!(
+            task.completed_at.is_some(),
+            "completed_at should be set after completion"
+        );
+    }
+
+    #[test]
+    fn summary_uses_completed_at_for_done_tasks() {
+        use chrono::Duration;
+
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        let mut task = Task::new("t1", "A");
+        // Simulate: started 10 seconds ago, completed 5 seconds ago.
+        let now = Utc::now();
+        task.status = Status::Done;
+        task.started_at = Some(now - Duration::seconds(10));
+        task.completed_at = Some(now - Duration::seconds(5));
+        s.graph_mut().tasks.push(task);
+
+        let summary = s.summary();
+        let timing = &summary.tasks[0];
+        // Duration should be ~5000ms (completed_at - started_at), NOT ~10000ms (now - started_at).
+        assert!(
+            timing.duration_ms < 7000,
+            "duration_ms should use completed_at, got {}",
+            timing.duration_ms
+        );
+        assert!(
+            timing.duration_ms >= 4000,
+            "duration_ms too small: {}",
+            timing.duration_ms
+        );
     }
 
     #[test]

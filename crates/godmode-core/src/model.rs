@@ -63,10 +63,6 @@ impl std::fmt::Display for Status {
 }
 
 /// A single task in the execution graph.
-// TODO(#50): No `completed_at: Option<DateTime<Utc>>` field — duration_ms for done
-// tasks is re-derived from started_at against Utc::now() in summary(), which grows
-// unboundedly after completion. Store completed_at on task done and use it as the upper
-// bound when computing duration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
@@ -90,6 +86,9 @@ pub struct Task {
     /// Wall-clock time when the task was last started. Used to compute duration_ms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub started_at: Option<DateTime<Utc>>,
+    /// Wall-clock time when the task was completed. Used to bound duration_ms.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<DateTime<Utc>>,
     /// Scheduling priority. Defaults to Normal; omitted from YAML when Normal.
     #[serde(default, skip_serializing_if = "Priority::is_normal")]
     pub priority: Priority,
@@ -111,6 +110,7 @@ impl Task {
             completed: None,
             run: None,
             started_at: None,
+            completed_at: None,
             priority: Priority::Normal,
             tags: vec![],
         }
@@ -256,6 +256,29 @@ mod tests {
         let yaml = "id: t1\ntitle: A\nstatus: pending\n";
         let t: Task = serde_yaml::from_str(yaml).unwrap();
         assert!(t.tags.is_empty());
+    }
+
+    #[test]
+    fn completed_at_none_by_default_and_roundtrips() {
+        let t = Task::new("t1", "A");
+        assert!(t.completed_at.is_none());
+
+        let mut t2 = Task::new("t2", "B");
+        t2.completed_at = Some(Utc::now());
+        let yaml = serde_yaml::to_string(&t2).unwrap();
+        assert!(yaml.contains("completed_at"), "got: {yaml}");
+        let back: Task = serde_yaml::from_str(&yaml).unwrap();
+        assert!(back.completed_at.is_some());
+    }
+
+    #[test]
+    fn completed_at_skipped_when_none() {
+        let t = Task::new("t1", "A");
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        assert!(
+            !yaml.contains("completed_at"),
+            "None completed_at should be omitted: {yaml}"
+        );
     }
 
     #[test]

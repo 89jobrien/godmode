@@ -6,58 +6,108 @@ items:
     name: uncommitted-work
     priority: P1
     status: open
-    title: Uncommitted changes (4 files)
+    title: Uncommitted changes (2 files)
     description: |-
       Working tree has uncommitted changes:
-      crates/godmode-cli/src/main.rs
-      crates/godmode-core/src/graph.rs
-      tests/conformance/src/graph_tests.rs
-      tests/conformance/src/property_tests.rs
+      .ctx/HANDOFF.godmode.godmode.yaml
+      crates/godmode-core/src/cache.rs
     files:
-      - crates/godmode-cli/src/main.rs
-      - crates/godmode-core/src/graph.rs
-      - tests/conformance/src/graph_tests.rs
-      - tests/conformance/src/property_tests.rs
+      - .ctx/HANDOFF.godmode.godmode.yaml
+      - crates/godmode-core/src/cache.rs
 log:
+  - date: "20260512.041250"
+    summary: done=12 running=0 pending=7 blocked=0
+    commits:
+      - 0b169ac858165845dbd4475bdc0b94e044a1b94e
+      - b717f3394f62fb4560e7624ae0017c358de6ef05
+      - e3935d28c37f0ae85d4d0d12fd6aecf8e9722a5b
+      - af69e14f450db603081369a0a76b9db04e59e3f1
+      - 8616f8a8596d4f64eadbff918b4967438453d8b0
+      - 59094eb48c4c3ea0c9c8b0ad630559fa1854aae5
+      - a1472013ac0309bb1cacd24729dd7af9afc63fbb
+      - dfff87c1fcd555ec28812dce58d58f63ff9a7dd8
+      - 9568d8046014549c19d8f59e3f4f198a46bfb8b4
+      - 55b6d89fdd6502c357070524fc89763382bd18cb
+  - date: "20260512.041250"
+    summary: done=12 running=0 pending=7 blocked=0
+    commits:
+      - 0b169ac858165845dbd4475bdc0b94e044a1b94e
+      - b717f3394f62fb4560e7624ae0017c358de6ef05
+      - e3935d28c37f0ae85d4d0d12fd6aecf8e9722a5b
+      - af69e14f450db603081369a0a76b9db04e59e3f1
+      - 8616f8a8596d4f64eadbff918b4967438453d8b0
+      - 59094eb48c4c3ea0c9c8b0ad630559fa1854aae5
+      - a1472013ac0309bb1cacd24729dd7af9afc63fbb
+      - dfff87c1fcd555ec28812dce58d58f63ff9a7dd8
+      - 9568d8046014549c19d8f59e3f4f198a46bfb8b4
+      - 55b6d89fdd6502c357070524fc89763382bd18cb
+  - date: "20260512.041246"
+    summary: done=12 running=0 pending=7 blocked=0
+    commits:
+      - 0b169ac858165845dbd4475bdc0b94e044a1b94e
+      - b717f3394f62fb4560e7624ae0017c358de6ef05
+      - e3935d28c37f0ae85d4d0d12fd6aecf8e9722a5b
+      - af69e14f450db603081369a0a76b9db04e59e3f1
+      - 8616f8a8596d4f64eadbff918b4967438453d8b0
+      - 59094eb48c4c3ea0c9c8b0ad630559fa1854aae5
+      - a1472013ac0309bb1cacd24729dd7af9afc63fbb
+      - dfff87c1fcd555ec28812dce58d58f63ff9a7dd8
+      - 9568d8046014549c19d8f59e3f4f198a46bfb8b4
+      - 55b6d89fdd6502c357070524fc89763382bd18cb
+  - date: "20260512.040953"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040905"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040824"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040745"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040745"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040558"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040558"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040407"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040336"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040321"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040321"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040207"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040203"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040116"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.040116"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.035938"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.035920"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030921"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030706"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030706"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030608"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030608"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030349"
+    summary: done=12 running=0 pending=7 blocked=0
+  - date: "20260512.030109"
+    summary: done=5 running=0 pending=14 blocked=0
   - date: "20260512.025711"
     summary: done=0 running=0 pending=0 blocked=0
-    commits:
-      - ccd8f5c408af0aec5dd0903430ff0490c8055341
-      - d4903a2fe4541adf18508d6e02a8917f49fbf2f1
-      - 951a05aa2066355382b261ccc81164ce6218f109
-      - 79329c6ca59463b1258245917524df818caba579
-      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
-      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
   - date: "20260511.235101"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
-      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
   - date: "20260511.235101"
     summary: done=8 running=0 pending=0 blocked=0
-    commits:
-      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
-      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
-      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
-      - 5beb9a2be396823200988a8001ba0e16904c998e
-      - 29f959f77d43fe487849f4678bd108d58068ea0e
-      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
-      - 11a5147875e171c86697cc8b00383b94933c43a5
-      - eda07580fd6236a425b9157cb4aa6bda2721a02e
-      - 5f39ece4a43b7e217b2b2a138073c4afd476a035
-      - e715ae9d6d0b5c9f21dca561dd4e8a7535ec6207
   - date: "20260511.234944"
     summary: done=8 running=0 pending=0 blocked=0
   - date: "20260511.234940"
