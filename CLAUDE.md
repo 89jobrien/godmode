@@ -27,9 +27,11 @@ cargo test -p godmode-core runnable_returns_tasks
 ## Install the CLI
 
 ```bash
-cargo install --path crates/godmode-cli --root ~/.local
-# binary lands at ~/.local/bin/godmode
+cargo build --release -p godmode-cli && cp target/release/godmode ~/.cargo/bin/godmode
 ```
+
+Note: `which godmode` resolves to `~/.cargo/bin/`, not `~/.local/bin/`. Always copy to
+`~/.cargo/bin/` when rebuilding.
 
 ## Architecture
 
@@ -117,10 +119,11 @@ re-ingesting a plan skips existing task IDs silently.
 ```
 godmode handon                                  # session-start triage summary
 godmode handoff                                 # session-end validation
+godmode context [--json]                        # full session context for hooks/agents
 godmode status [--compact]                      # graph counts + next runnable tasks
 godmode task list [--priority high|normal|low]
 godmode task next [--priority high|normal|low]
-godmode task add [<id>] <title> [--depends-on t1,t2] [--crate-name X]
+godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X]
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>
@@ -180,7 +183,7 @@ cause validation failure on `claude plugin install`.
 
 - `godmode plan ingest` skips tasks whose IDs already exist — plans reuse `t1`/`t2`/etc.
   If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
-- `godmode task add <id> <title> --depends-on ""` registers an empty string as a dep,
+- `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
 - `dispatch --critical-path` shows the critical path tasks; `godmode status` also surfaces it.
 - Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.

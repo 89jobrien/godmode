@@ -12,7 +12,7 @@ let cmd = ($ctx.input | get tool_input?.command? | default "")
 # Skip godmode commands themselves to avoid recursion noise
 if ($cmd | str starts-with "godmode") { exit 0 }
 
-if ($ctx.running | length) == 0 and ($ctx.pending | length) > 0 {
+if ($ctx.running | length) == 0 and $ctx.pending_count > 0 {
     let next_result = do { godmode task next --json } | complete
     let next_ids = if $next_result.exit_code == 0 {
         try {
@@ -21,7 +21,7 @@ if ($ctx.running | length) == 0 and ($ctx.pending | length) > 0 {
             | str join ", "
         } catch { "" }
     } else { "" }
-    eprintln $"[godmode] No task running. ($ctx.pending | length) pending. Start one: godmode task start ($next_ids)"
+    eprintln $"[godmode] No task running. ($ctx.pending_count) pending. Start one: godmode task start ($next_ids)"
 }
 
 exit 0

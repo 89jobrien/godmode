@@ -345,9 +345,11 @@ enum TaskAction {
 
     /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
     Add {
-        /// Task ID (e.g. t5). Auto-assigned if omitted.
-        id: Option<String>,
+        /// Task title (required).
         title: String,
+        /// Task ID (e.g. t5). Auto-assigned if omitted.
+        #[arg(long)]
+        id: Option<String>,
         #[arg(long, value_delimiter = ',')]
         depends_on: Vec<String>,
         #[arg(long)]

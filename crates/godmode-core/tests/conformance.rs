@@ -253,3 +253,205 @@ fn dispatch_json_shape() {
         "dispatch --json output should be a JSON array, got: {stdout}"
     );
 }
+
+// ── status_exits_0 ───────────────────────────────────────────────────────────
+
+#[test]
+fn status_exits_0() {
+    let dir = TempDir::new().unwrap();
+    let (code, _stdout, _stderr) = run(dir.path(), &["status"]);
+    assert_eq!(code, 0, "status should exit 0");
+}
+
+// ── status_json_shape ────────────────────────────────────────────────────────
+
+#[test]
+fn status_json_shape() {
+    let dir = TempDir::new().unwrap();
+    let (code, stdout, _stderr) = run(dir.path(), &["status", "--json"]);
+    assert_eq!(code, 0, "status --json should exit 0");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&stdout).expect("status --json output should be valid JSON");
+    assert!(
+        parsed.is_object(),
+        "status --json output should be a JSON object"
+    );
+    let obj = parsed.as_object().unwrap();
+    for key in &["done", "running", "pending", "blocked"] {
+        assert!(obj.contains_key(*key), "status --json missing key: {key}");
+    }
+}
+
+// ── context_exits_0 ──────────────────────────────────────────────────────────
+
+#[test]
+fn context_exits_0() {
+    let dir = TempDir::new().unwrap();
+    let (code, _stdout, _stderr) = run(dir.path(), &["context"]);
+    assert_eq!(code, 0, "context should exit 0 even on empty graph");
+}
+
+// ── context_json_shape ───────────────────────────────────────────────────────
+
+#[test]
+fn context_json_shape() {
+    let dir = TempDir::new().unwrap();
+    let (code, stdout, _stderr) = run(dir.path(), &["context", "--json"]);
+    assert_eq!(code, 0, "context --json should exit 0");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&stdout).expect("context --json output should be valid JSON");
+    assert!(parsed.is_object(), "context --json should be a JSON object");
+    let obj = parsed.as_object().unwrap();
+    for key in &["git_root", "project", "running", "pending_count", "blocked"] {
+        assert!(obj.contains_key(*key), "context --json missing key: {key}");
+    }
+    assert!(obj["running"].is_array(), "running should be an array");
+    assert!(obj["blocked"].is_array(), "blocked should be an array");
+}
+
+// ── task_add_appears_in_list ─────────────────────────────────────────────────
+
+#[test]
+fn task_add_appears_in_list() {
+    let dir = TempDir::new().unwrap();
+    let (code, _stdout, _stderr) = run(
+        dir.path(),
+        &["task", "add", "Test task title", "--id", "my-task"],
+    );
+    assert_eq!(code, 0, "task add should exit 0");
+
+    let (code2, stdout2, _) = run(dir.path(), &["task", "list", "--json"]);
+    assert_eq!(code2, 0, "task list should exit 0 after add");
+    let tasks: serde_json::Value = serde_json::from_str(&stdout2).expect("valid JSON");
+    let arr = tasks.as_array().expect("array");
+    assert_eq!(arr.len(), 1, "expected 1 task after add");
+    assert_eq!(arr[0]["id"].as_str().unwrap_or(""), "my-task");
+    assert_eq!(arr[0]["title"].as_str().unwrap_or(""), "Test task title");
+}
+
+// ── task_start_shows_running ─────────────────────────────────────────────────
+
+#[test]
+fn task_start_shows_running() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+
+    let (code, _stdout, _stderr) = run(dir.path(), &["task", "start", "t1"]);
+    assert_eq!(code, 0, "task start should exit 0");
+
+    let (_, stdout, _) = run(dir.path(), &["task", "list", "--json"]);
+    let tasks: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let arr = tasks.as_array().expect("array");
+    assert_eq!(arr[0]["status"].as_str().unwrap_or(""), "running");
+}
+
+// ── task_done_removes_from_running ───────────────────────────────────────────
+
+#[test]
+fn task_done_removes_from_running() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+    run(dir.path(), &["task", "start", "t1"]);
+
+    let (code, _stdout, _stderr) = run(dir.path(), &["task", "done", "t1"]);
+    assert_eq!(code, 0, "task done should exit 0");
+
+    let (_, stdout, _) = run(dir.path(), &["task", "list", "--json"]);
+    let tasks: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let arr = tasks.as_array().expect("array");
+    assert_eq!(arr[0]["status"].as_str().unwrap_or(""), "done");
+}
+
+// ── task_block_unblock_roundtrip ─────────────────────────────────────────────
+
+#[test]
+fn task_block_unblock_roundtrip() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+
+    let (code_b, _stdout, _stderr) = run(dir.path(), &["task", "block", "t1", "waiting on dep"]);
+    assert_eq!(code_b, 0, "task block should exit 0");
+    let (_, stdout_b, _) = run(dir.path(), &["task", "list", "--json"]);
+    let tasks_b: serde_json::Value = serde_json::from_str(&stdout_b).expect("valid JSON");
+    assert_eq!(
+        tasks_b.as_array().unwrap()[0]["status"]
+            .as_str()
+            .unwrap_or(""),
+        "blocked"
+    );
+
+    let (code_u, _stdout, _stderr) = run(dir.path(), &["task", "unblock", "t1"]);
+    assert_eq!(code_u, 0, "task unblock should exit 0");
+    let (_, stdout_u, _) = run(dir.path(), &["task", "list", "--json"]);
+    let tasks_u: serde_json::Value = serde_json::from_str(&stdout_u).expect("valid JSON");
+    assert_eq!(
+        tasks_u.as_array().unwrap()[0]["status"]
+            .as_str()
+            .unwrap_or(""),
+        "pending"
+    );
+}
+
+// ── task_remove ──────────────────────────────────────────────────────────────
+
+#[test]
+fn task_remove() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+
+    let (code, _stdout, _stderr) = run(dir.path(), &["task", "remove", "t1"]);
+    assert_eq!(code, 0, "task remove should exit 0");
+
+    let (code2, _stdout2, _) = run(dir.path(), &["task", "list", "--json"]);
+    assert_eq!(code2, 0, "task list on empty graph should exit 0");
+}
+
+// ── task_clear_all ───────────────────────────────────────────────────────────
+
+#[test]
+fn task_clear_all() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+    run(dir.path(), &["task", "add", "Task two", "--id", "t2"]);
+
+    let (_, stdout_pre, _) = run(dir.path(), &["task", "list", "--json"]);
+    let pre: serde_json::Value = serde_json::from_str(&stdout_pre).expect("valid JSON");
+    assert_eq!(pre.as_array().unwrap().len(), 2);
+
+    let (code, _stdout, _stderr) = run(dir.path(), &["task", "clear", "--all"]);
+    assert_eq!(code, 0, "task clear --all should exit 0");
+
+    let (code2, _stdout2, _) = run(dir.path(), &["task", "list", "--json"]);
+    assert_eq!(
+        code2, 0,
+        "task list on empty graph should exit 0 after clear"
+    );
+}
+
+// ── handoff_with_running_task_exits_0_and_warns ──────────────────────────────
+
+#[test]
+fn handoff_with_running_task_exits_0_and_warns() {
+    let dir = TempDir::new().unwrap();
+    run(dir.path(), &["task", "add", "Task one", "--id", "t1"]);
+    run(dir.path(), &["task", "start", "t1"]);
+
+    let (code, _stdout, stderr) = run(dir.path(), &["handoff"]);
+    assert_eq!(code, 0, "handoff exits 0 (warns but does not block)");
+    assert!(
+        stderr.contains("running") || _stdout.contains("running"),
+        "handoff should mention running tasks"
+    );
+}
+
+// ── dispatch_empty_exits_2 ───────────────────────────────────────────────────
+
+#[test]
+fn dispatch_empty_exits_2() {
+    let dir = TempDir::new().unwrap();
+    let (code, _stdout, _stderr) = run(dir.path(), &["dispatch", "--json"]);
+    assert_eq!(
+        code, 2,
+        "dispatch on empty graph should exit 2 (empty result)"
+    );
+}
