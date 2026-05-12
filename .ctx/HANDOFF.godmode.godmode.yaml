@@ -1,20 +1,48 @@
 project: godmode
 id: godmode
-updated: 2026-05-11
+updated: 2026-05-12
 items:
   - id: uncommitted-work
     name: uncommitted-work
     priority: P1
     status: open
-    title: Uncommitted changes (2 files)
+    title: Uncommitted changes (3 files)
     description: |-
       Working tree has uncommitted changes:
-      .ctx/HANDOFF.godmode.godmode.state.yaml
       .ctx/HANDOFF.godmode.godmode.yaml
+      crates/godmode-core/src/integrations/rx.rs
+      crates/godmode-core/tests/rx_integration.rs
     files:
-      - .ctx/HANDOFF.godmode.godmode.state.yaml
       - .ctx/HANDOFF.godmode.godmode.yaml
+      - crates/godmode-core/src/integrations/rx.rs
+      - crates/godmode-core/tests/rx_integration.rs
 log:
+  - date: "20260512.025803"
+    summary: done=0 running=0 pending=0 blocked=0
+    commits:
+      - ccd8f5c408af0aec5dd0903430ff0490c8055341
+      - d4903a2fe4541adf18508d6e02a8917f49fbf2f1
+      - 951a05aa2066355382b261ccc81164ce6218f109
+      - 79329c6ca59463b1258245917524df818caba579
+      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
+      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
+      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
+      - 5beb9a2be396823200988a8001ba0e16904c998e
+      - 29f959f77d43fe487849f4678bd108d58068ea0e
+      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
+  - date: "20260512.025735"
+    summary: done=0 running=0 pending=0 blocked=0
+    commits:
+      - ccd8f5c408af0aec5dd0903430ff0490c8055341
+      - d4903a2fe4541adf18508d6e02a8917f49fbf2f1
+      - 951a05aa2066355382b261ccc81164ce6218f109
+      - 79329c6ca59463b1258245917524df818caba579
+      - d4925f9b88f5cb6e3e93d864fa4655eef42ce5c2
+      - 8ae61f1846d08a4b82117a13cbc8fc2259a42ba5
+      - 1a3e54297b7ed036069e2e0dc384ec6b4f5fd8d1
+      - 5beb9a2be396823200988a8001ba0e16904c998e
+      - 29f959f77d43fe487849f4678bd108d58068ea0e
+      - 620733f86e0ec28a11d8a11ed191cb77ebc838dd
   - date: "20260511.235101"
     summary: done=8 running=0 pending=0 blocked=0
     commits:

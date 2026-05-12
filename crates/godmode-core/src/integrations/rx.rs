@@ -16,6 +16,27 @@ fn needs_shell(run: &str) -> bool {
     run.contains(SHELL_METACHARACTERS)
 }
 
+/// Detect the best available shell for running commands with metacharacters.
+///
+/// Checks `$SHELL` env var first, then `/bin/bash`, then falls back to `"sh"`.
+fn detect_shell() -> String {
+    detect_shell_with(
+        std::env::var("SHELL").ok(),
+        std::path::Path::new("/bin/bash").exists(),
+    )
+}
+
+/// Pure-logic shell detection, testable without environment side effects.
+fn detect_shell_with(shell_env: Option<String>, bash_exists: bool) -> String {
+    if let Some(shell) = shell_env.filter(|s| !s.is_empty()) {
+        return shell;
+    }
+    if bash_exists {
+        return "/bin/bash".to_string();
+    }
+    "sh".to_string()
+}
+
 /// Resolve a `run:` string into `(program, args)`.
 ///
 /// `rx:<script>`        → `("rx", ["run", "<script>"])`
@@ -25,9 +46,7 @@ pub fn resolve_cmd(run: &str) -> (String, Vec<String>) {
     if let Some(script) = run.strip_prefix("rx:") {
         ("rx".into(), vec!["run".into(), script.trim().into()])
     } else if needs_shell(run) {
-        // TODO: hardcoded "sh" breaks on minimal containers that only have bash or dash.
-        // Consider probing $SHELL, then /bin/bash, then /bin/sh in order.
-        ("sh".into(), vec!["-c".into(), run.to_string()])
+        (detect_shell(), vec!["-c".into(), run.to_string()])
     } else {
         let mut parts = run.split_whitespace();
         let prog = parts.next().unwrap_or(run).to_string();
@@ -86,10 +105,9 @@ pub fn validate_run(run: &str) -> Result<()> {
     if scripts.iter().any(|s| s == script) {
         Ok(())
     } else {
-        // TODO(ux): error message tells the user the script is missing but doesn't suggest
-        // how to register it. Add "run `rx install <path>` to register a new script" hint.
         anyhow::bail!(
-            "rx script '{}' not found in registry (rx list returned {} scripts)",
+            "rx script '{}' not found in registry ({} scripts registered). \
+             Run `rx install <path-to-script>` to register a new script.",
             script,
             scripts.len()
         )
@@ -145,16 +163,47 @@ mod tests {
     }
 
     #[test]
-    fn redirect_uses_shell() {
+    fn redirect_uses_detected_shell() {
         let (prog, args) = resolve_cmd("echo hi > /tmp/out");
-        assert_eq!(prog, "sh");
+        // Should use detect_shell(), not hardcoded "sh"
+        let expected_shell = detect_shell();
+        assert_eq!(prog, expected_shell);
         assert_eq!(args, vec!["-c", "echo hi > /tmp/out"]);
     }
 
     #[test]
-    fn pipe_uses_shell() {
+    fn pipe_uses_detected_shell() {
         let (prog, args) = resolve_cmd("ls | wc -l");
-        assert_eq!(prog, "sh");
+        let expected_shell = detect_shell();
+        assert_eq!(prog, expected_shell);
         assert_eq!(args, vec!["-c", "ls | wc -l"]);
+    }
+
+    #[test]
+    fn detect_shell_returns_nonempty_string() {
+        let shell = detect_shell();
+        assert!(
+            !shell.is_empty(),
+            "detect_shell must return a non-empty string"
+        );
+    }
+
+    #[test]
+    fn detect_shell_fallback_without_env() {
+        // Test the fallback logic directly
+        let shell = detect_shell_with(None, false);
+        assert_eq!(shell, "sh");
+    }
+
+    #[test]
+    fn detect_shell_uses_env_var() {
+        let shell = detect_shell_with(Some("/bin/zsh".to_string()), false);
+        assert_eq!(shell, "/bin/zsh");
+    }
+
+    #[test]
+    fn detect_shell_falls_back_to_bash_when_exists() {
+        let shell = detect_shell_with(None, true);
+        assert_eq!(shell, "/bin/bash");
     }
 }
