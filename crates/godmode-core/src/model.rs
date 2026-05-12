@@ -63,7 +63,7 @@ impl std::fmt::Display for Status {
 }
 
 /// A single task in the execution graph.
-// TODO(feature): No `completed_at: Option<DateTime<Utc>>` field — duration_ms for done
+// TODO(#50): No `completed_at: Option<DateTime<Utc>>` field — duration_ms for done
 // tasks is re-derived from started_at against Utc::now() in summary(), which grows
 // unboundedly after completion. Store completed_at on task done and use it as the upper
 // bound when computing duration.

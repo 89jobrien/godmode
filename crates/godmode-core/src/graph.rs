@@ -32,7 +32,7 @@ pub fn save(root: &Path, graph: &TaskGraph) -> Result<()> {
 }
 
 /// Return all tasks whose dependencies are all `Done` and whose own status is `Pending`.
-// TODO(perf): done_ids is rebuilt on every call; consider caching it on TaskGraph or
+// TODO(#51): done_ids is rebuilt on every call; consider caching it on TaskGraph or
 // passing it in when the caller already has it (e.g. start_traced rebuilds independently).
 pub fn runnable(graph: &TaskGraph) -> Vec<&Task> {
     let done_ids: std::collections::HashSet<&str> = graph
@@ -220,7 +220,7 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
     adj.insert(new_id, deps.iter().map(|s| s.as_str()).collect());
 
     // DFS from each dep; if we reach new_id, there is a cycle.
-    // TODO(perf): path.clone() inside the loop is O(depth) per node, giving O(n²) total
+    // TODO(#52): path.clone() inside the loop is O(depth) per node, giving O(n²) total
     // allocations for deep graphs. Replace with an explicit visited set + parent pointer map
     // to reconstruct the cycle path only on detection.
     let mut stack: Vec<(Vec<&str>, &str)> = deps

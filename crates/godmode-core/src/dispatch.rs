@@ -236,7 +236,7 @@ where
 
     for chain in chains {
         // Gate: block until a slot is available (synchronous simulation).
-        // TODO(async): this entire dispatch loop is a synchronous simulation. For real
+        // TODO(#56): this entire dispatch loop is a synchronous simulation. For real
         // parallel agent execution this should use tokio::spawn + a Semaphore. The
         // ConcurrencyTracker + SlotHealth pattern is the right shape; just needs an
         // async executor underneath. See wave::ConcurrencyTracker for the sync version.

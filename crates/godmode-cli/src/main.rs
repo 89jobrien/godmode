@@ -707,7 +707,7 @@ fn main() -> Result<()> {
                     session.add_task(task)?;
                     session.save()?;
                     if json {
-                        // TODO(quality): raw r#"..."# JSON strings are used throughout this
+                        // TODO(#48): raw r#"..."# JSON strings are used throughout this
                         // file instead of serde_json serialization. A task id or title
                         // containing `"` will produce invalid JSON. Replace with a small
                         // helper struct + serde_json::to_string for all --json outputs.

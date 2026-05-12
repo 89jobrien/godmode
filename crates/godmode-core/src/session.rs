@@ -128,7 +128,7 @@ impl Session {
     }
 
     /// Aggregate counts and per-task durations.
-    // TODO(feature): summary() computes duration_ms from started_at for all tasks including
+    // TODO(#57): summary() computes duration_ms from started_at for all tasks including
     // still-running ones. For completed tasks this double-counts time if started_at was not
     // cleared. Consider storing a separate completed_at timestamp on Task, or clamping
     // duration_ms to the completed timestamp when status == Done.
@@ -161,7 +161,7 @@ impl Session {
     }
 
     /// Persist the graph to disk. Caller decides when to call.
-    // TODO: session state is only flushed when the caller explicitly calls save(). A crash
+    // TODO(#58): session state is only flushed when the caller explicitly calls save(). A crash
     // between start_task() and save() loses the Running status. Consider an auto-save
     // after every state-mutating method, or a Drop impl that flushes if dirty.
     pub fn save(&self) -> Result<()> {
