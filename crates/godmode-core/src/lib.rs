@@ -20,3 +20,6 @@ pub mod verify;
 pub mod wave;
 pub mod workflow;
 pub mod worktree;
+
+#[cfg(feature = "testing")]
+pub mod testing;
