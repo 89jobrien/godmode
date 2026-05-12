@@ -74,6 +74,9 @@ pub fn independent_chains(graph: &TaskGraph, max_concurrent: usize) -> Vec<Chain
         }
     }
 
+    // O(n) index built once; used for O(1) lookups in chain construction below.
+    let task_index: HashMap<&str, &Task> = graph.tasks.iter().map(|t| (t.id.as_str(), t)).collect();
+
     for root in roots {
         if claimed.contains(root) {
             continue;
@@ -97,12 +100,10 @@ pub fn independent_chains(graph: &TaskGraph, max_concurrent: usize) -> Vec<Chain
             }
         }
 
-        let crate_name = infer_crate(&chain_ids, graph);
-        // TODO(perf): two O(n) scans per chain id (infer_crate + this filter_map).
-        // Build a HashMap<&str, &Task> once before the outer loop and reuse it.
+        let crate_name = infer_crate(&chain_ids, &task_index);
         let tasks = chain_ids
             .iter()
-            .filter_map(|id| graph.tasks.iter().find(|t| t.id == *id))
+            .filter_map(|id| task_index.get(id))
             .map(|t| TaskRef {
                 id: t.id.clone(),
                 title: t.title.clone(),
@@ -293,10 +294,10 @@ pub fn file_overlap_warnings(chains: &[Chain]) -> Vec<(usize, usize, String)> {
     warnings
 }
 
-fn infer_crate(ids: &[&str], graph: &TaskGraph) -> Option<String> {
+fn infer_crate(ids: &[&str], task_index: &HashMap<&str, &Task>) -> Option<String> {
     let crates: HashSet<Option<&str>> = ids
         .iter()
-        .filter_map(|id| graph.tasks.iter().find(|t| t.id == *id))
+        .filter_map(|id| task_index.get(id))
         .map(|t| t.crate_name.as_deref())
         .collect();
     // If all tasks share exactly one crate name, return it.
