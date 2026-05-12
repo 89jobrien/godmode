@@ -35,12 +35,3 @@ if not $godmode_found {
 }
 
 do { godmode handon } | complete | ignore
-
-# Version check — warn if plugin version doesn't match installed binary
-let bin_version = (do { godmode --version } | complete | get stdout | str trim | split row " " | last | default "")
-let plugin_version = (
-    try { open ($git_root + "/.claude-plugin/plugin.json") | get version } catch { "" }
-)
-if not ($bin_version | is-empty) and not ($plugin_version | is-empty) and $bin_version != $plugin_version {
-    print $"[godmode] Version mismatch: binary=($bin_version) plugin=($plugin_version) — run `cargo install --path crates/godmode-cli --root ~/.local` to update"
-}

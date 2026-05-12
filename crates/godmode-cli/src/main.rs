@@ -2,8 +2,8 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
-    agent, agent_index, builder, detect, dispatch, graph, integrations, model, plan, registry,
-    release, review, session::Session, skill, templates, workflow,
+    agent, agent_index, builder, context, detect, dispatch, graph, integrations, model, plan,
+    registry, release, review, session::Session, skill, templates, workflow,
 };
 
 #[derive(Parser)]
@@ -60,6 +60,9 @@ enum Cmd {
         #[arg(long)]
         critical_path: bool,
     },
+
+    /// Emit full session context for hooks and subagents.
+    Context,
 
     /// Show graph counts and next runnable task(s) — fast mid-session state check.
     Status {
@@ -490,16 +493,15 @@ fn filter_by_priority<'a>(
     }
 }
 
-// TODO(ux): exit_empty always exits 1, making "no tasks found" indistinguishable from an
-// error. Scripts that want to detect an empty result set can't do so without parsing stderr.
-// Consider exit(0) for the "no results" case and exit(1) only on actual errors.
+/// Exit with code 2 for empty result sets. Code 1 is reserved for actual errors.
+/// Convention: 0 = success with results, 1 = error, 2 = success but empty.
 fn exit_empty(json: bool) -> ! {
     if json {
         println!("[]");
     } else {
         println!("No results.");
     }
-    std::process::exit(1);
+    std::process::exit(2);
 }
 
 fn main() -> Result<()> {
@@ -864,6 +866,41 @@ fn main() -> Result<()> {
                 Ok(())
             }
         },
+
+        Cmd::Context => {
+            let ctx = context::build(&root)?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&ctx)?);
+            } else {
+                println!("project: {}", ctx.project);
+                if ctx.running.is_empty() {
+                    println!("running: (none)");
+                } else {
+                    for t in &ctx.running {
+                        let crate_info = t
+                            .crate_name
+                            .as_deref()
+                            .map(|c| format!(" [{}]", c))
+                            .unwrap_or_default();
+                        println!("running: {} — {}{}", t.id, t.title, crate_info);
+                    }
+                }
+                println!("pending: {}", ctx.pending_count);
+                if !ctx.blocked.is_empty() {
+                    for b in &ctx.blocked {
+                        println!("blocked: {} — {}", b.id, b.reason);
+                    }
+                }
+                println!("critical path: {} tasks deep", ctx.critical_path_depth);
+                if !ctx.recent_commits.is_empty() {
+                    println!("recent:");
+                    for c in &ctx.recent_commits {
+                        println!("  {c}");
+                    }
+                }
+            }
+            Ok(())
+        }
 
         Cmd::Status { compact } => {
             let g = graph::load(&root)?;

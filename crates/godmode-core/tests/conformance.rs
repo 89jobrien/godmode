@@ -46,13 +46,16 @@ fn run(dir: &std::path::Path, args: &[&str]) -> (i32, String, String) {
     (code, stdout, stderr)
 }
 
-// ── empty_graph_task_next_exits_1 ────────────────────────────────────────────
+// ── empty_graph_task_next_exits_2 ────────────────────────────────────────────
 
 #[test]
-fn empty_graph_task_next_exits_1() {
+fn empty_graph_task_next_exits_2() {
     let dir = TempDir::new().unwrap();
     let (code, _stdout, _stderr) = run(dir.path(), &["task", "next", "--json"]);
-    assert_eq!(code, 1, "task next on empty graph should exit 1");
+    assert_eq!(
+        code, 2,
+        "task next on empty graph should exit 2 (empty result)"
+    );
 }
 
 // ── empty_graph_task_list_exits_0 ────────────────────────────────────────────
