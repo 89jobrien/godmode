@@ -1,6 +1,7 @@
 pub mod agent;
 pub mod agent_index;
 pub mod builder;
+pub mod cache;
 pub mod config;
 pub mod context;
 pub mod detect;
