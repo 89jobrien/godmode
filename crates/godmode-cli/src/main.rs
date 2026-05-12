@@ -707,11 +707,7 @@ fn main() -> Result<()> {
                     session.add_task(task)?;
                     session.save()?;
                     if json {
-                        // TODO(#48): raw r#"..."# JSON strings are used throughout this
-                        // file instead of serde_json serialization. A task id or title
-                        // containing `"` will produce invalid JSON. Replace with a small
-                        // helper struct + serde_json::to_string for all --json outputs.
-                        println!(r#"{{"ok":true,"id":"{}"}}"#, id);
+                        println!("{}", serde_json::json!({"ok": true, "id": id}));
                     } else {
                         println!("Task '{}' added.", id);
                     }
@@ -721,7 +717,10 @@ fn main() -> Result<()> {
                     session.start_task(&id)?;
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"id":"{}","status":"running"}}"#, id);
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "id": id, "status": "running"})
+                        );
                     } else {
                         println!("Task '{}' is now running.", id);
                     }
@@ -731,7 +730,10 @@ fn main() -> Result<()> {
                     session.complete_task(&id, commit.as_deref(), notes.as_deref())?;
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"id":"{}","status":"done"}}"#, id);
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "id": id, "status": "done"})
+                        );
                     } else {
                         println!("Task '{}' marked done.", id);
                     }
@@ -741,7 +743,10 @@ fn main() -> Result<()> {
                     session.block_task(&id, &reason)?;
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"id":"{}","status":"blocked"}}"#, id);
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "id": id, "status": "blocked"})
+                        );
                     } else {
                         println!("Task '{}' blocked: {}", id, reason);
                     }
@@ -751,7 +756,10 @@ fn main() -> Result<()> {
                     session.unblock_task(&id)?;
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"id":"{}","status":"pending"}}"#, id);
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "id": id, "status": "pending"})
+                        );
                     } else {
                         println!("Task '{}' unblocked.", id);
                     }
@@ -761,7 +769,10 @@ fn main() -> Result<()> {
                     session.remove_task(&id)?;
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"id":"{}","removed":true}}"#, id);
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "id": id, "removed": true})
+                        );
                     } else {
                         println!("Task '{}' removed.", id);
                     }
@@ -776,7 +787,7 @@ fn main() -> Result<()> {
                     let count = graph::clear(session.graph_mut(), done);
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"removed":{}}}"#, count);
+                        println!("{}", serde_json::json!({"ok": true, "removed": count}));
                     } else {
                         println!("Removed {} task(s).", count);
                     }
@@ -853,7 +864,7 @@ fn main() -> Result<()> {
                     }
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"imported":{}}}"#, imported);
+                        println!("{}", serde_json::json!({"ok": true, "imported": imported}));
                     } else if github {
                         println!("Imported {} issue(s) from GitHub.", imported);
                     } else {
@@ -875,7 +886,7 @@ fn main() -> Result<()> {
                         }
                     }
                     if json {
-                        println!(r#"{{"ok":true,"pushed":{}}}"#, pushed);
+                        println!("{}", serde_json::json!({"ok": true, "pushed": pushed}));
                     } else {
                         println!("Pushed {} completed tasks to doob.", pushed);
                     }
@@ -885,7 +896,7 @@ fn main() -> Result<()> {
                     let count = session.unblock_all();
                     session.save()?;
                     if json {
-                        println!(r#"{{"ok":true,"unblocked":{}}}"#, count);
+                        println!("{}", serde_json::json!({"ok": true, "unblocked": count}));
                     } else if count == 0 {
                         println!("No blocked tasks.");
                     } else {
@@ -901,8 +912,8 @@ fn main() -> Result<()> {
                     session.save()?;
                     if json {
                         println!(
-                            r#"{{"ok":true,"applied":{},"skipped":{}}}"#,
-                            applied, skipped
+                            "{}",
+                            serde_json::json!({"ok": true, "applied": applied, "skipped": skipped})
                         );
                     } else {
                         println!(
@@ -959,7 +970,7 @@ fn main() -> Result<()> {
                 }
                 session.save()?;
                 if json {
-                    println!(r#"{{"ok":true,"ingested":{}}}"#, count);
+                    println!("{}", serde_json::json!({"ok": true, "ingested": count}));
                 } else {
                     println!("Ingested {} tasks from {}.", count, path);
                 }
@@ -1327,7 +1338,10 @@ fn main() -> Result<()> {
                 let agents = agent_index::list_agents(&root)?;
                 agent_index::generate_agent_index(&root, &agents)?;
                 if json {
-                    println!(r#"{{"ok":true,"entries":{}}}"#, agents.len());
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "entries": agents.len()})
+                    );
                 } else {
                     println!("Generated agents/INDEX.md with {} entries.", agents.len());
                 }
@@ -1363,7 +1377,10 @@ fn main() -> Result<()> {
                     }
                 }
                 if json {
-                    println!(r#"{{"ok":true,"generated":{}}}"#, generated);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "generated": generated})
+                    );
                 }
                 Ok(())
             }
@@ -1411,8 +1428,8 @@ fn main() -> Result<()> {
                 }
                 if json {
                     println!(
-                        r#"{{"ok":true,"migrated":{},"errors":{}}}"#,
-                        migrated, errors
+                        "{}",
+                        serde_json::json!({"ok": true, "migrated": migrated, "errors": errors})
                     );
                 }
                 Ok(())
@@ -1526,7 +1543,10 @@ fn main() -> Result<()> {
             WaveAction::Done { agent, commits } => {
                 godmode_core::wave::mark_done(&root, &agent, commits)?;
                 if json {
-                    println!(r#"{{"ok":true,"agent":"{}","status":"done"}}"#, agent);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "agent": agent, "status": "done"})
+                    );
                 } else {
                     println!("Agent '{}' marked done.", agent);
                 }
@@ -1535,7 +1555,10 @@ fn main() -> Result<()> {
             WaveAction::Block { agent } => {
                 godmode_core::wave::mark_blocked(&root, &agent)?;
                 if json {
-                    println!(r#"{{"ok":true,"agent":"{}","status":"blocked"}}"#, agent);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "agent": agent, "status": "blocked"})
+                    );
                 } else {
                     println!("Agent '{}' marked blocked.", agent);
                 }
@@ -1546,9 +1569,8 @@ fn main() -> Result<()> {
                 let settled = godmode_core::wave::check(&state);
                 if json {
                     println!(
-                        r#"{{"settled":{},"all_done":{}}}"#,
-                        settled,
-                        godmode_core::wave::all_done(&state)
+                        "{}",
+                        serde_json::json!({"settled": settled, "all_done": godmode_core::wave::all_done(&state)})
                     );
                 } else if settled {
                     println!(
@@ -1576,9 +1598,8 @@ fn main() -> Result<()> {
                 let info = godmode_core::worktree::add(&root, &branch, issue)?;
                 if json {
                     println!(
-                        r#"{{"ok":true,"branch":"{}","path":"{}"}}"#,
-                        info.branch,
-                        info.path.display()
+                        "{}",
+                        serde_json::json!({"ok": true, "branch": info.branch, "path": info.path.display().to_string()})
                     );
                 } else {
                     println!(
@@ -1592,7 +1613,10 @@ fn main() -> Result<()> {
             WorktreeAction::Remove { branch } => {
                 godmode_core::worktree::remove(&root, &branch)?;
                 if json {
-                    println!(r#"{{"ok":true,"branch":"{}","removed":true}}"#, branch);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "branch": branch, "removed": true})
+                    );
                 } else {
                     println!("Worktree removed: {}", branch);
                 }
@@ -1645,7 +1669,7 @@ fn main() -> Result<()> {
             } => {
                 godmode_core::integrations::gh::issue_close(number, repo.as_deref(), &commit)?;
                 if json {
-                    println!(r#"{{"ok":true,"number":{}}}"#, number);
+                    println!("{}", serde_json::json!({"ok": true, "number": number}));
                 } else {
                     println!("Issue #{} closed (commit {}).", number, commit);
                 }
@@ -1724,7 +1748,10 @@ fn main() -> Result<()> {
                 let is_new = reg.install(entry);
                 reg.save_global()?;
                 if json {
-                    println!(r#"{{"ok":true,"name":"{}","new":{}}}"#, name, is_new);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "name": name, "new": is_new})
+                    );
                 } else if is_new {
                     println!("Installed skill '{}'.", name);
                 } else {
@@ -1737,7 +1764,10 @@ fn main() -> Result<()> {
                 let removed = reg.uninstall(&name);
                 reg.save_global()?;
                 if json {
-                    println!(r#"{{"ok":true,"name":"{}","removed":{}}}"#, name, removed);
+                    println!(
+                        "{}",
+                        serde_json::json!({"ok": true, "name": name, "removed": removed})
+                    );
                 } else if removed {
                     println!("Uninstalled skill '{}'.", name);
                 } else {
@@ -1777,7 +1807,7 @@ fn main() -> Result<()> {
             ReleaseAction::Current => {
                 let v = release::current_version(&root)?;
                 if json {
-                    println!(r#"{{"version":"{}"}}"#, v);
+                    println!("{}", serde_json::json!({"version": v}));
                 } else {
                     println!("{}", v);
                 }
@@ -1795,7 +1825,7 @@ fn main() -> Result<()> {
             ReleaseAction::Tag => {
                 let tag = release::tag(&root)?;
                 if json {
-                    println!(r#"{{"tag":"{}"}}"#, tag);
+                    println!("{}", serde_json::json!({"tag": tag}));
                 } else {
                     println!("Tagged {}", tag);
                 }
@@ -1804,7 +1834,7 @@ fn main() -> Result<()> {
             ReleaseAction::Push => {
                 release::push(&root)?;
                 if json {
-                    println!(r#"{{"ok":true}}"#);
+                    println!("{}", serde_json::json!({"ok": true}));
                 } else {
                     println!("Pushed branch and tag.");
                 }
@@ -1815,8 +1845,8 @@ fn main() -> Result<()> {
                 release::write_changelog(&root, &entry)?;
                 if json {
                     println!(
-                        r#"{{"ok":true,"version":"{}","date":"{}"}}"#,
-                        entry.version, entry.date
+                        "{}",
+                        serde_json::json!({"ok": true, "version": entry.version, "date": entry.date})
                     );
                 } else {
                     println!("Updated CHANGELOG.md for version {}.", entry.version);
