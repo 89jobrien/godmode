@@ -547,6 +547,7 @@ dependencies = [
  "slashcrux",
  "tempfile",
  "thiserror",
+ "tokio",
  "toml",
  "tracing",
  "tracing-test",
