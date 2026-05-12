@@ -63,10 +63,6 @@ impl std::fmt::Display for Status {
 }
 
 /// A single task in the execution graph.
-// TODO(feature): Task only supports `crate_name` for grouping. Consider adding a `tags:
-// Vec<String>` field (serde default empty, skip_serializing_if empty) so cross-crate
-// features and concerns can be grouped without abusing crate_name.
-//
 // TODO(feature): No `completed_at: Option<DateTime<Utc>>` field — duration_ms for done
 // tasks is re-derived from started_at against Utc::now() in summary(), which grows
 // unboundedly after completion. Store completed_at on task done and use it as the upper
@@ -97,6 +93,9 @@ pub struct Task {
     /// Scheduling priority. Defaults to Normal; omitted from YAML when Normal.
     #[serde(default, skip_serializing_if = "Priority::is_normal")]
     pub priority: Priority,
+    /// Freeform tags for flexible grouping beyond `crate_name`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 impl Task {
@@ -113,6 +112,7 @@ impl Task {
             run: None,
             started_at: None,
             priority: Priority::Normal,
+            tags: vec![],
         }
     }
 }
@@ -180,6 +180,36 @@ mod tests {
             let back: Task = serde_yaml::from_str(&yaml).unwrap();
             assert_eq!(back.priority, priority);
         }
+    }
+
+    #[test]
+    fn tags_roundtrip_yaml() {
+        let mut t = Task::new("t1", "A");
+        t.tags = vec!["frontend".into(), "urgent".into()];
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        assert!(
+            yaml.contains("tags:"),
+            "tags field missing from YAML: {yaml}"
+        );
+        let back: Task = serde_yaml::from_str(&yaml).unwrap();
+        assert_eq!(back.tags, vec!["frontend", "urgent"]);
+    }
+
+    #[test]
+    fn tags_empty_skipped_in_yaml() {
+        let t = Task::new("t1", "A");
+        let yaml = serde_yaml::to_string(&t).unwrap();
+        assert!(
+            !yaml.contains("tags"),
+            "Empty tags should be omitted from YAML: {yaml}"
+        );
+    }
+
+    #[test]
+    fn tags_deserializes_missing_field_as_empty() {
+        let yaml = "id: t1\ntitle: A\nstatus: pending\n";
+        let t: Task = serde_yaml::from_str(yaml).unwrap();
+        assert!(t.tags.is_empty());
     }
 
     #[test]
