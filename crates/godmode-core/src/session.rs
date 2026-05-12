@@ -447,6 +447,24 @@ mod tests {
     }
 
     #[test]
+    fn completed_at_set_on_task_done() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        assert!(
+            s.graph().tasks[0].completed_at.is_none(),
+            "completed_at should be None before completion"
+        );
+        s.start_task("t1").unwrap();
+        s.complete_task("t1", None, None).unwrap();
+        let task = s.graph().tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert!(
+            task.completed_at.is_some(),
+            "completed_at should be set after completion"
+        );
+    }
+
+    #[test]
     fn session_summary_counts_correctly() {
         let dir = TempDir::new().unwrap();
         let mut s = Session::open(dir.path()).unwrap();
