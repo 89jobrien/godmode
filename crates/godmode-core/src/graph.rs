@@ -246,18 +246,15 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
 }
 
 /// Return the first unused task ID of the form "t1", "t2", …
-// TODO: the unreachable!() here is technically sound (u64::MAX tasks is impossible in
-// practice) but it suppresses the return-type exhaustiveness. If task IDs ever become
-// configurable or user-supplied, consider returning Result<String> with a proper error.
-pub fn next_task_id(g: &TaskGraph) -> String {
+pub fn next_task_id(g: &TaskGraph) -> Result<String> {
     let used: std::collections::HashSet<&str> = g.tasks.iter().map(|t| t.id.as_str()).collect();
     for n in 1u64.. {
         let candidate = format!("t{}", n);
         if !used.contains(candidate.as_str()) {
-            return candidate;
+            return Ok(candidate);
         }
     }
-    unreachable!()
+    bail!("exhausted u64 task ID space")
 }
 
 /// Add a new task to the graph. Emits a `pending` trace event when `root` is provided.
@@ -278,15 +275,15 @@ pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Res
     Ok(())
 }
 
-/// Remove a task by id.
-// TODO: removing a task does not clean up `depends_on` references to it in other tasks.
-// Callers that remove a task mid-graph should also call a (currently missing) orphan-ref
-// cleanup pass, or `runnable()` will silently never unblock tasks that depended on it.
+/// Remove a task by id, cleaning up any `depends_on` references to it in remaining tasks.
 pub fn remove(graph: &mut TaskGraph, id: &str) -> Result<()> {
     let before = graph.tasks.len();
     graph.tasks.retain(|t| t.id != id);
     if graph.tasks.len() == before {
         bail!("task '{id}' not found");
+    }
+    for task in &mut graph.tasks {
+        task.depends_on.retain(|dep| dep != id);
     }
     Ok(())
 }
@@ -479,11 +476,31 @@ mod tests {
     #[test]
     fn next_task_id_returns_first_unused() {
         let mut g = TaskGraph::default();
-        assert_eq!(next_task_id(&g), "t1");
+        assert_eq!(next_task_id(&g).unwrap(), "t1");
         add(&mut g, Task::new("t1", "A")).unwrap();
-        assert_eq!(next_task_id(&g), "t2");
+        assert_eq!(next_task_id(&g).unwrap(), "t2");
         add(&mut g, Task::new("t3", "C")).unwrap(); // gap at t2
-        assert_eq!(next_task_id(&g), "t2");
+        assert_eq!(next_task_id(&g).unwrap(), "t2");
+    }
+
+    #[test]
+    fn remove_cleans_up_depends_on_refs() {
+        let mut g = TaskGraph::default();
+        add(&mut g, Task::new("a", "Task A")).unwrap();
+        let mut b = Task::new("b", "Task B");
+        b.depends_on = vec!["a".into()];
+        add(&mut g, b).unwrap();
+
+        remove(&mut g, "a").unwrap();
+
+        let task_b = g.tasks.iter().find(|t| t.id == "b").unwrap();
+        assert!(
+            task_b.depends_on.is_empty(),
+            "depends_on should be empty after removing dep"
+        );
+        let r = runnable(&g);
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].id, "b", "b should now be runnable");
     }
 
     #[test]

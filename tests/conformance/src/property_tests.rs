@@ -28,7 +28,7 @@ mod graph_properties {
                     g.tasks.push(Task::new(id.clone(), "x"));
                 }
             }
-            let next = graph::next_task_id(&g);
+            let next = graph::next_task_id(&g).unwrap();
             prop_assert!(!g.tasks.iter().any(|t| t.id == next));
         }
 

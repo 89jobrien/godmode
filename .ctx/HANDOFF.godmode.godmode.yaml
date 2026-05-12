@@ -6,14 +6,20 @@ items:
     name: uncommitted-work
     priority: P1
     status: open
-    title: Uncommitted changes (1 file)
+    title: Uncommitted changes (4 files)
     description: |-
       Working tree has uncommitted changes:
-      crates/godmode-core/src/dispatch.rs
+      crates/godmode-cli/src/main.rs
+      crates/godmode-core/src/graph.rs
+      tests/conformance/src/graph_tests.rs
+      tests/conformance/src/property_tests.rs
     files:
-      - crates/godmode-core/src/dispatch.rs
+      - crates/godmode-cli/src/main.rs
+      - crates/godmode-core/src/graph.rs
+      - tests/conformance/src/graph_tests.rs
+      - tests/conformance/src/property_tests.rs
 log:
-  - date: "20260512.025717"
+  - date: "20260512.025711"
     summary: done=0 running=0 pending=0 blocked=0
     commits:
       - ccd8f5c408af0aec5dd0903430ff0490c8055341

@@ -696,7 +696,10 @@ fn main() -> Result<()> {
                     depends_on,
                     crate_name,
                 } => {
-                    let id = id.unwrap_or_else(|| graph::next_task_id(session.graph()));
+                    let id = match id {
+                        Some(id) => id,
+                        None => graph::next_task_id(session.graph())?,
+                    };
                     let mut task = model::Task::new(id.clone(), title);
                     task.depends_on = depends_on;
                     task.crate_name = crate_name;

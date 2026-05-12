@@ -258,11 +258,11 @@ impl ConformanceTest for NextTaskIdSequential {
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let mut g = TaskGraph::default();
-        ctx.assert_str_eq("t1", &graph::next_task_id(&g));
+        ctx.assert_str_eq("t1", &graph::next_task_id(&g).unwrap());
         graph::add(&mut g, Task::new("t1", "A")).unwrap();
-        ctx.assert_str_eq("t2", &graph::next_task_id(&g));
+        ctx.assert_str_eq("t2", &graph::next_task_id(&g).unwrap());
         graph::add(&mut g, Task::new("t3", "C")).unwrap(); // gap
-        ctx.assert_str_eq("t2", &graph::next_task_id(&g)); // fills gap
+        ctx.assert_str_eq("t2", &graph::next_task_id(&g).unwrap()); // fills gap
         ctx.result()
     }
 }
