@@ -78,6 +78,7 @@ impl Session {
             task.started_at = Some(Utc::now());
         }
         let _ = self.append_step(cruxx::step_started(id));
+        self.auto_save();
         Ok(())
     }
 
@@ -107,6 +108,7 @@ impl Session {
         let mut step = cruxx::step_completed(id, commit, notes);
         step.duration_ms = duration_ms;
         let _ = self.append_step(step);
+        self.auto_save();
         Ok(())
     }
 
@@ -114,17 +116,24 @@ impl Session {
     pub fn block_task(&mut self, id: &str, reason: &str) -> Result<()> {
         graph::block(&mut self.graph, id, reason)?;
         let _ = self.append_step(cruxx::step_blocked(id, Some(reason)));
+        self.auto_save();
         Ok(())
     }
 
     /// Unblock a task.
     pub fn unblock_task(&mut self, id: &str) -> Result<()> {
-        graph::unblock(&mut self.graph, id)
+        graph::unblock(&mut self.graph, id)?;
+        self.auto_save();
+        Ok(())
     }
 
     /// Unblock all blocked tasks. Returns count unblocked.
     pub fn unblock_all(&mut self) -> usize {
-        graph::unblock_all(&mut self.graph)
+        let count = graph::unblock_all(&mut self.graph);
+        if count > 0 {
+            self.auto_save();
+        }
+        count
     }
 
     /// Aggregate counts and per-task durations.
@@ -153,9 +162,6 @@ impl Session {
     }
 
     /// Persist the graph to disk. Caller decides when to call.
-    // TODO(#58): session state is only flushed when the caller explicitly calls save(). A crash
-    // between start_task() and save() loses the Running status. Consider an auto-save
-    // after every state-mutating method, or a Drop impl that flushes if dirty.
     pub fn save(&self) -> Result<()> {
         graph::save(&self.root, &self.graph)
     }
@@ -178,6 +184,14 @@ impl Session {
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
+
+    /// Best-effort flush of graph state to disk after each transition.
+    /// Errors are logged but never abort the caller.
+    fn auto_save(&self) {
+        if let Err(e) = graph::save(&self.root, &self.graph) {
+            eprintln!("godmode: auto-save failed: {e}");
+        }
+    }
 
     fn append_step(&self, step: cruxx_core::types::step::Step) -> Result<()> {
         use std::io::Write;
@@ -483,6 +497,55 @@ mod tests {
             "duration_ms too small: {}",
             timing.duration_ms
         );
+    }
+
+    #[test]
+    fn start_task_auto_flushes_to_disk() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        // No explicit save() — reload from disk and verify state was flushed.
+        let reloaded = graph::load(dir.path()).unwrap();
+        let task = reloaded.tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert_eq!(task.status, Status::Running);
+    }
+
+    #[test]
+    fn complete_task_auto_flushes_to_disk() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        s.complete_task("t1", None, None).unwrap();
+        let reloaded = graph::load(dir.path()).unwrap();
+        let task = reloaded.tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert_eq!(task.status, Status::Done);
+    }
+
+    #[test]
+    fn block_task_auto_flushes_to_disk() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        s.block_task("t1", "stuck").unwrap();
+        let reloaded = graph::load(dir.path()).unwrap();
+        let task = reloaded.tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert_eq!(task.status, Status::Blocked);
+    }
+
+    #[test]
+    fn unblock_task_auto_flushes_to_disk() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        s.block_task("t1", "stuck").unwrap();
+        s.unblock_task("t1").unwrap();
+        let reloaded = graph::load(dir.path()).unwrap();
+        let task = reloaded.tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert_eq!(task.status, Status::Pending);
     }
 
     #[test]
