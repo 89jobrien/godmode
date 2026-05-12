@@ -5,6 +5,10 @@
 //! `godmode-crate-agent`. Maximum 5 concurrent chains.
 
 use std::collections::{HashMap, HashSet};
+use std::future::Future;
+use std::sync::Arc;
+
+use tokio::sync::Semaphore;
 
 use crate::model::{Status, Task, TaskGraph};
 use crate::wave::{BlockOutcome, ConcurrencyTracker, SlotHealth, WaveConfig, on_blocked};
@@ -236,10 +240,8 @@ where
 
     for chain in chains {
         // Gate: block until a slot is available (synchronous simulation).
-        // TODO(#56): this entire dispatch loop is a synchronous simulation. For real
-        // parallel agent execution this should use tokio::spawn + a Semaphore. The
-        // ConcurrencyTracker + SlotHealth pattern is the right shape; just needs an
-        // async executor underneath. See wave::ConcurrencyTracker for the sync version.
+        // For true parallel execution, use `async_dispatch_with_config` which uses
+        // tokio::spawn + Semaphore. This sync version is kept for backward compatibility.
         if !tracker.try_acquire() {
             // In a real async runtime we'd await; here we record Skipped for the chain.
             outcomes.push(ChainOutcome::Skipped);
@@ -274,6 +276,88 @@ where
         });
     }
 
+    outcomes
+}
+
+/// Async dispatch: run chains concurrently up to `config.max_concurrency` using
+/// a tokio semaphore. Each chain is spawned as a task; the `execute` future factory
+/// is called per-chain. Retries use `tokio::time::sleep` instead of `thread::sleep`.
+///
+/// Returns per-chain outcomes in the same order as input chains.
+pub async fn async_dispatch_with_config<F, Fut>(
+    chains: &[Chain],
+    config: &WaveConfig,
+    execute: F,
+) -> Vec<ChainOutcome>
+where
+    F: Fn(Vec<TaskRef>) -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = Result<(), bool>> + Send + 'static,
+{
+    if chains.is_empty() {
+        return vec![];
+    }
+
+    let semaphore = Arc::new(Semaphore::new(config.max_concurrency));
+    let max_retries = config.max_retries;
+    let backoff_ms = config.retry_backoff_ms;
+    let execute = Arc::new(execute);
+
+    let mut handles = Vec::with_capacity(chains.len());
+
+    for chain in chains {
+        let sem = semaphore.clone();
+        let tasks = chain.tasks.clone();
+        let exec = execute.clone();
+
+        let handle = tokio::spawn(async move {
+            // Acquire semaphore permit.
+            let permit = match sem.acquire().await {
+                Ok(p) => p,
+                Err(_) => return ChainOutcome::Skipped,
+            };
+
+            let mut health = SlotHealth::default();
+            let mut result = exec(tasks.clone()).await;
+
+            // Retry loop for transient blocks.
+            let wave_cfg = WaveConfig {
+                max_concurrency: 0,
+                max_retries,
+                retry_backoff_ms: backoff_ms,
+                ..Default::default()
+            };
+
+            while let Err(true) = result {
+                match on_blocked(&mut health, &wave_cfg) {
+                    BlockOutcome::Retry { attempt } => {
+                        if backoff_ms > 0 {
+                            let delay = backoff_ms * 2u64.pow(attempt as u32 - 1);
+                            tokio::time::sleep(std::time::Duration::from_millis(delay)).await;
+                        }
+                        result = exec(tasks.clone()).await;
+                    }
+                    BlockOutcome::Exhausted => {
+                        result = Err(false);
+                        break;
+                    }
+                }
+            }
+
+            drop(permit);
+            if result.is_ok() {
+                ChainOutcome::Completed
+            } else {
+                ChainOutcome::Exhausted
+            }
+        });
+
+        handles.push(handle);
+    }
+
+    let mut outcomes = Vec::with_capacity(handles.len());
+    for handle in handles {
+        outcomes.push(handle.await.unwrap_or(ChainOutcome::Exhausted));
+    }
     outcomes
 }
 
@@ -586,6 +670,118 @@ mod tests {
             },
         ];
         assert!(super::file_overlap_warnings(&chains).is_empty());
+    }
+
+    // --- async_dispatch_with_config tests ---
+
+    #[tokio::test]
+    async fn async_dispatch_runs_chains_concurrently() {
+        let cfg = WaveConfig {
+            max_concurrency: 3,
+            max_retries: 0,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(3);
+
+        let peak = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let current = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let peak_c = peak.clone();
+        let current_c = current.clone();
+
+        let outcomes = super::async_dispatch_with_config(&chains, &cfg, move |_tasks| {
+            let p = peak_c.clone();
+            let c = current_c.clone();
+            async move {
+                let prev = c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                // Update peak.
+                let _ = p.fetch_max(prev + 1, std::sync::atomic::Ordering::SeqCst);
+                // Simulate work so other tasks can start concurrently.
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                c.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            }
+        })
+        .await;
+
+        assert_eq!(outcomes.len(), 3);
+        assert!(outcomes.iter().all(|o| *o == ChainOutcome::Completed));
+        // With concurrency=3 and 3 chains, peak should be >1 (true parallelism).
+        assert!(
+            peak.load(std::sync::atomic::Ordering::SeqCst) > 1,
+            "expected concurrent execution, peak was {}",
+            peak.load(std::sync::atomic::Ordering::SeqCst)
+        );
+    }
+
+    #[tokio::test]
+    async fn async_dispatch_respects_concurrency_limit() {
+        let cfg = WaveConfig {
+            max_concurrency: 1,
+            max_retries: 0,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(3);
+
+        let peak = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let current = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let peak_c = peak.clone();
+        let current_c = current.clone();
+
+        let outcomes = super::async_dispatch_with_config(&chains, &cfg, move |_tasks| {
+            let p = peak_c.clone();
+            let c = current_c.clone();
+            async move {
+                let prev = c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                let _ = p.fetch_max(prev + 1, std::sync::atomic::Ordering::SeqCst);
+                tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                c.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            }
+        })
+        .await;
+
+        assert!(outcomes.iter().all(|o| *o == ChainOutcome::Completed));
+        assert_eq!(
+            peak.load(std::sync::atomic::Ordering::SeqCst),
+            1,
+            "concurrency limit of 1 should mean peak=1"
+        );
+    }
+
+    #[tokio::test]
+    async fn async_dispatch_retries_transient_failure() {
+        let cfg = WaveConfig {
+            max_concurrency: 5,
+            max_retries: 3,
+            retry_backoff_ms: 0,
+            ..Default::default()
+        };
+        let chains = make_chains(1);
+        let call_count = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let cc = call_count.clone();
+
+        let outcomes = super::async_dispatch_with_config(&chains, &cfg, move |_tasks| {
+            let c = cc.clone();
+            async move {
+                let n = c.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                if n == 0 { Err(true) } else { Ok(()) }
+            }
+        })
+        .await;
+
+        assert_eq!(outcomes[0], ChainOutcome::Completed);
+        assert_eq!(call_count.load(std::sync::atomic::Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn async_dispatch_empty_chains() {
+        let cfg = WaveConfig::default();
+        let chains: Vec<super::Chain> = vec![];
+        let outcomes =
+            super::async_dispatch_with_config(&chains, &cfg, |_tasks| async { Ok(()) }).await;
+        assert!(outcomes.is_empty());
     }
 
     #[test]
