@@ -341,6 +341,9 @@ enum TaskAction {
         /// Filter to tasks with a specific priority (high, normal, low).
         #[arg(long, value_name = "LEVEL")]
         priority: Option<model::Priority>,
+        /// Case-insensitive keyword filter on title, crate_name, and notes.
+        #[arg(long)]
+        filter: Option<String>,
     },
 
     /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
@@ -481,17 +484,107 @@ enum WorkflowAction {
     },
 }
 
-/// Filter a task slice to only those matching `priority` (if Some).
-// TODO(feature): only filters by priority; add --filter <keyword> support to search by
-// title, crate_name, and notes. Useful for large graphs where `task list` returns 20+
-// entries. Could be a simple case-insensitive substring match on title + notes.
-fn filter_by_priority<'a>(
+/// Filter a task slice by optional priority and optional keyword.
+///
+/// Priority filtering is applied first, then keyword filtering (case-insensitive
+/// substring match on title, crate_name, and notes).
+fn filter_tasks<'a>(
     tasks: &'a [model::Task],
     priority: Option<&model::Priority>,
+    keyword: Option<&str>,
 ) -> Vec<&'a model::Task> {
-    match priority {
+    let mut result: Vec<&model::Task> = match priority {
         None => tasks.iter().collect(),
         Some(p) => tasks.iter().filter(|t| &t.priority == p).collect(),
+    };
+    if let Some(kw) = keyword {
+        let kw_lower = kw.to_lowercase();
+        result.retain(|t| {
+            t.title.to_lowercase().contains(&kw_lower)
+                || t.crate_name
+                    .as_deref()
+                    .is_some_and(|c| c.to_lowercase().contains(&kw_lower))
+                || t.notes.to_lowercase().contains(&kw_lower)
+        });
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_task(id: &str, title: &str, crate_name: Option<&str>, notes: &str) -> model::Task {
+        model::Task {
+            id: id.to_string(),
+            title: title.to_string(),
+            status: model::Status::Pending,
+            depends_on: vec![],
+            notes: notes.to_string(),
+            crate_name: crate_name.map(|s| s.to_string()),
+            commit: None,
+            completed: None,
+            priority: model::Priority::Normal,
+            run: None,
+            started_at: None,
+        }
+    }
+
+    #[test]
+    fn filter_tasks_no_filters_returns_all() {
+        let tasks = vec![make_task("t1", "Alpha", None, "")];
+        let result = filter_tasks(&tasks, None, None);
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_title() {
+        let tasks = vec![
+            make_task("t1", "Add logging", None, ""),
+            make_task("t2", "Fix bug", None, ""),
+        ];
+        let result = filter_tasks(&tasks, None, Some("log"));
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].id, "t1");
+    }
+
+    #[test]
+    fn filter_tasks_keyword_case_insensitive() {
+        let tasks = vec![make_task("t1", "Add LOGGING", None, "")];
+        let result = filter_tasks(&tasks, None, Some("logging"));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_crate_name() {
+        let tasks = vec![make_task("t1", "Something", Some("godmode-core"), "")];
+        let result = filter_tasks(&tasks, None, Some("core"));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_notes() {
+        let tasks = vec![make_task("t1", "Task", None, "needs review before merge")];
+        let result = filter_tasks(&tasks, None, Some("review"));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_no_match() {
+        let tasks = vec![make_task("t1", "Alpha", None, "beta")];
+        let result = filter_tasks(&tasks, None, Some("gamma"));
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn filter_tasks_priority_and_keyword_combined() {
+        let tasks = vec![
+            make_task("t1", "Add logging", None, ""),
+            make_task("t2", "Add metrics", None, ""),
+        ];
+        // t1 is Normal priority (default), filter by High should exclude both
+        let result = filter_tasks(&tasks, Some(&model::Priority::High), Some("add"));
+        assert_eq!(result.len(), 0);
     }
 }
 
@@ -565,9 +658,10 @@ fn main() -> Result<()> {
         Cmd::Task { action } => {
             let mut session = Session::open(&root)?;
             match action {
-                TaskAction::List { priority } => {
+                TaskAction::List { priority, filter } => {
                     let tasks_all = &session.graph().tasks;
-                    let tasks: Vec<&model::Task> = filter_by_priority(tasks_all, priority.as_ref());
+                    let tasks: Vec<&model::Task> =
+                        filter_tasks(tasks_all, priority.as_ref(), filter.as_deref());
                     if tasks.is_empty() {
                         if json {
                             println!("[]");
