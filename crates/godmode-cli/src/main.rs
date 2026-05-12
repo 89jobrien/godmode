@@ -527,6 +527,7 @@ mod tests {
             priority: model::Priority::Normal,
             run: None,
             started_at: None,
+            tags: vec![],
         }
     }
 
