@@ -2,6 +2,7 @@ use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};
 
+use crate::cache;
 use crate::integrations::cruxx;
 use crate::model::{Status, Task, TaskGraph};
 
@@ -28,7 +29,16 @@ pub fn save(root: &Path, graph: &TaskGraph) -> Result<()> {
         std::fs::create_dir_all(parent)?;
     }
     let raw = serde_yaml::to_string(graph)?;
-    std::fs::write(&path, raw).with_context(|| format!("writing {}", path.display()))
+    std::fs::write(&path, raw).with_context(|| format!("writing {}", path.display()))?;
+
+    // Best-effort: update starship status cache
+    let project = root
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("unknown");
+    let _ = cache::write_status_cache(graph, project);
+
+    Ok(())
 }
 
 /// Return all tasks whose dependencies are all `Done` and whose own status is `Pending`.
