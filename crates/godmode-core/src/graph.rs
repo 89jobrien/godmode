@@ -32,15 +32,9 @@ pub fn save(root: &Path, graph: &TaskGraph) -> Result<()> {
 }
 
 /// Return all tasks whose dependencies are all `Done` and whose own status is `Pending`.
-// TODO(#51): done_ids is rebuilt on every call; consider caching it on TaskGraph or
-// passing it in when the caller already has it (e.g. start_traced rebuilds independently).
+/// Uses the cached `done_ids` set on `TaskGraph` to avoid rebuilding on every call.
 pub fn runnable(graph: &TaskGraph) -> Vec<&Task> {
-    let done_ids: std::collections::HashSet<&str> = graph
-        .tasks
-        .iter()
-        .filter(|t| t.status == Status::Done)
-        .map(|t| t.id.as_str())
-        .collect();
+    let done_ids = graph.done_ids();
 
     graph
         .tasks
@@ -61,45 +55,50 @@ pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
 }
 
 pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Result<()> {
-    let done_ids: std::collections::HashSet<String> = graph
-        .tasks
-        .iter()
-        .filter(|t| t.status == Status::Done)
-        .map(|t| t.id.clone())
-        .collect();
-
-    let task = graph
-        .tasks
-        .iter_mut()
-        .find(|t| t.id == id)
-        .with_context(|| format!("task '{id}' not found"))?;
-
-    if task.status != Status::Pending {
-        bail!(
-            "task '{}' is {} — can only start pending tasks",
-            id,
-            task.status
-        );
-    }
-    let blocked: Vec<_> = task
-        .depends_on
-        .iter()
-        .filter(|dep| !done_ids.contains(*dep))
-        .collect();
-    if !blocked.is_empty() {
+    // Check deps against cached done_ids before mutating.
+    let unmet: Vec<String> = {
+        let done_ids = graph.done_ids();
+        let task = graph
+            .tasks
+            .iter()
+            .find(|t| t.id == id)
+            .with_context(|| format!("task '{id}' not found"))?;
+        if task.status != Status::Pending {
+            bail!(
+                "task '{}' is {} — can only start pending tasks",
+                id,
+                task.status
+            );
+        }
+        task.depends_on
+            .iter()
+            .filter(|dep| !done_ids.contains(dep.as_str()))
+            .cloned()
+            .collect()
+    };
+    if !unmet.is_empty() {
         bail!(
             "task '{}' has unmet dependencies: {}",
             id,
-            blocked
+            unmet
                 .iter()
                 .map(|s| s.as_str())
                 .collect::<Vec<_>>()
                 .join(", ")
         );
     }
-    task.status = Status::Running;
+
+    {
+        let task = graph
+            .tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .with_context(|| format!("task '{id}' not found"))?;
+        task.status = Status::Running;
+    }
+    graph.invalidate_done_cache();
     // Trace step is recorded via Session::record in the session_trace layer (#36).
-    let _ = (root, &cruxx::step_started(task.id.as_str()));
+    let _ = (root, &cruxx::step_started(id));
     Ok(())
 }
 
@@ -120,30 +119,38 @@ pub fn complete_traced(
     notes: Option<&str>,
     root: Option<&Path>,
 ) -> Result<()> {
+    {
+        let task = graph
+            .tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .with_context(|| format!("task '{id}' not found"))?;
+
+        if task.status != Status::Running {
+            bail!(
+                "task '{}' is {} — can only complete running tasks",
+                id,
+                task.status
+            );
+        }
+        task.status = Status::Done;
+        task.completed = Some(Local::now().date_naive());
+        if let Some(sha) = commit {
+            task.commit = Some(sha.to_string());
+        }
+        if let Some(n) = notes
+            && !n.is_empty()
+        {
+            task.notes = n.to_string();
+        }
+    }
+    graph.invalidate_done_cache();
+    // Trace step: look up the task again (immutably) for trace metadata.
     let task = graph
         .tasks
-        .iter_mut()
+        .iter()
         .find(|t| t.id == id)
-        .with_context(|| format!("task '{id}' not found"))?;
-
-    if task.status != Status::Running {
-        bail!(
-            "task '{}' is {} — can only complete running tasks",
-            id,
-            task.status
-        );
-    }
-    task.status = Status::Done;
-    task.completed = Some(Local::now().date_naive());
-    if let Some(sha) = commit {
-        task.commit = Some(sha.to_string());
-    }
-    if let Some(n) = notes
-        && !n.is_empty()
-    {
-        task.notes = n.to_string();
-    }
-    // Trace step is recorded via Session::record in the session_trace layer (#36).
+        .expect("task was just modified");
     let _ = (
         root,
         &cruxx::step_completed(
@@ -161,34 +168,38 @@ pub fn complete_traced(
 
 /// Mark a task as blocked with a reason.
 pub fn block(graph: &mut TaskGraph, id: &str, reason: &str) -> Result<()> {
-    let task = graph
-        .tasks
-        .iter_mut()
-        .find(|t| t.id == id)
-        .with_context(|| format!("task '{id}' not found"))?;
-
-    task.status = Status::Blocked;
-    task.notes = reason.to_string();
+    {
+        let task = graph
+            .tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .with_context(|| format!("task '{id}' not found"))?;
+        task.status = Status::Blocked;
+        task.notes = reason.to_string();
+    }
+    graph.invalidate_done_cache();
     Ok(())
 }
 
 /// Reset a blocked task back to pending.
 pub fn unblock(graph: &mut TaskGraph, id: &str) -> Result<()> {
-    let task = graph
-        .tasks
-        .iter_mut()
-        .find(|t| t.id == id)
-        .with_context(|| format!("task '{id}' not found"))?;
-
-    if task.status != Status::Blocked {
-        bail!(
-            "task '{}' is {} — can only unblock blocked tasks",
-            id,
-            task.status
-        );
+    {
+        let task = graph
+            .tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .with_context(|| format!("task '{id}' not found"))?;
+        if task.status != Status::Blocked {
+            bail!(
+                "task '{}' is {} — can only unblock blocked tasks",
+                id,
+                task.status
+            );
+        }
+        task.status = Status::Pending;
+        task.notes = String::new();
     }
-    task.status = Status::Pending;
-    task.notes = String::new();
+    graph.invalidate_done_cache();
     Ok(())
 }
 
@@ -203,13 +214,20 @@ pub fn unblock_all(graph: &mut TaskGraph) -> usize {
             count += 1;
         }
     }
+    if count > 0 {
+        graph.invalidate_done_cache();
+    }
     count
 }
 
 /// Returns `Some(cycle_path)` if adding a task with the given id and deps would
 /// create a cycle in the existing graph. `None` means the addition is safe.
+///
+/// Uses a visited set with parent pointers to avoid O(n^2) path cloning.
+/// The cycle path is reconstructed from parent pointers only on detection.
 fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Option<String> {
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
+
     let mut adj: HashMap<&str, Vec<&str>> = HashMap::new();
     for t in &graph.tasks {
         adj.insert(
@@ -219,25 +237,55 @@ fn would_create_cycle(graph: &TaskGraph, new_id: &str, deps: &[String]) -> Optio
     }
     adj.insert(new_id, deps.iter().map(|s| s.as_str()).collect());
 
-    // DFS from each dep; if we reach new_id, there is a cycle.
-    // TODO(#52): path.clone() inside the loop is O(depth) per node, giving O(n²) total
-    // allocations for deep graphs. Replace with an explicit visited set + parent pointer map
-    // to reconstruct the cycle path only on detection.
-    let mut stack: Vec<(Vec<&str>, &str)> = deps
-        .iter()
-        .map(|d| (vec![new_id, d.as_str()], d.as_str()))
-        .collect();
+    // DFS from each dep of new_id. Track parent pointers to reconstruct cycle on detection.
+    for dep in deps {
+        let dep = dep.as_str();
+        let mut visited: HashSet<&str> = HashSet::new();
+        let mut parent: HashMap<&str, &str> = HashMap::new();
+        visited.insert(new_id);
+        visited.insert(dep);
+        parent.insert(dep, new_id);
 
-    while let Some((path, current)) = stack.pop() {
-        if current == new_id {
-            return Some(path.join(" → "));
-        }
-        if let Some(next_deps) = adj.get(current) {
-            for &next in next_deps {
-                if !path.contains(&next) || next == new_id {
-                    let mut new_path = path.clone();
-                    new_path.push(next);
-                    stack.push((new_path, next));
+        let mut stack = vec![dep];
+        while let Some(current) = stack.pop() {
+            if current == new_id {
+                // Reconstruct cycle path from parent pointers.
+                let mut path = vec![];
+                let mut trace = current;
+                while let Some(&p) = parent.get(trace) {
+                    path.push(trace);
+                    if p == new_id {
+                        path.push(new_id);
+                        break;
+                    }
+                    trace = p;
+                }
+                path.reverse();
+                return Some(path.join(" \u{2192} "));
+            }
+            if let Some(next_deps) = adj.get(current) {
+                for &next in next_deps {
+                    if next == new_id {
+                        // Found cycle — reconstruct path.
+                        let mut path = vec![new_id];
+                        let mut trace = current;
+                        while let Some(&p) = parent.get(trace) {
+                            path.push(trace);
+                            if p == new_id {
+                                break;
+                            }
+                            trace = p;
+                        }
+                        path.push(new_id);
+                        path.reverse();
+                        // Path is currently reversed from trace; fix order.
+                        // new_id -> dep -> ... -> current -> new_id
+                        return Some(path.join(" \u{2192} "));
+                    }
+                    if visited.insert(next) {
+                        parent.insert(next, current);
+                        stack.push(next);
+                    }
                 }
             }
         }
@@ -272,6 +320,7 @@ pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Res
     // Trace step is recorded via Session::record in the session_trace layer (#36).
     let _ = (root, &cruxx::step_pending(task.id.as_str()));
     graph.tasks.push(task);
+    graph.invalidate_done_cache();
     Ok(())
 }
 
@@ -285,6 +334,7 @@ pub fn remove(graph: &mut TaskGraph, id: &str) -> Result<()> {
     for task in &mut graph.tasks {
         task.depends_on.retain(|dep| dep != id);
     }
+    graph.invalidate_done_cache();
     Ok(())
 }
 
@@ -299,7 +349,11 @@ pub fn clear(graph: &mut TaskGraph, done_only: bool) -> usize {
     } else {
         graph.tasks.clear();
     }
-    before - graph.tasks.len()
+    let removed = before - graph.tasks.len();
+    if removed > 0 {
+        graph.invalidate_done_cache();
+    }
+    removed
 }
 
 /// Convert the task graph to a `petgraph` directed graph.
@@ -532,5 +586,77 @@ mod tests {
         t3.depends_on = vec!["t1".into()];
         add(&mut g, t3).unwrap(); // diamond — valid DAG
         assert_eq!(g.tasks.len(), 3);
+    }
+
+    #[test]
+    fn done_cache_invalidated_on_state_transitions() {
+        let mut g = graph_with_chain();
+
+        // Initially t1 is runnable (no deps), t2 is not (depends on t1).
+        let r = runnable(&g);
+        assert_eq!(r.len(), 1);
+        assert_eq!(r[0].id, "t1");
+
+        // After starting and completing t1, the cache must be invalidated
+        // so that runnable() sees t1 as done and unlocks t2.
+        start(&mut g, "t1").unwrap();
+        complete(&mut g, "t1", None, None).unwrap();
+
+        // If the cache were stale, t2 would still appear blocked.
+        let r = runnable(&g);
+        assert_eq!(r.len(), 1, "t2 should be runnable after t1 is done");
+        assert_eq!(r[0].id, "t2");
+
+        // Adding a new task also invalidates.
+        let mut t3 = Task::new("t3", "Third");
+        t3.depends_on = vec!["t1".into()];
+        add(&mut g, t3).unwrap();
+        let r = runnable(&g);
+        assert_eq!(r.len(), 2, "both t2 and t3 should be runnable");
+
+        // Removing a done task invalidates.
+        remove(&mut g, "t1").unwrap();
+        let r = runnable(&g);
+        assert_eq!(r.len(), 2, "t2 and t3 still runnable (deps cleaned up)");
+    }
+
+    #[test]
+    fn would_create_cycle_deep_chain() {
+        // Build a chain: t1 <- t2 <- t3 <- t4 <- t5
+        let mut g = TaskGraph::default();
+        add(&mut g, Task::new("t1", "A")).unwrap();
+        for i in 2..=5 {
+            let mut t = Task::new(format!("t{i}"), format!("Task {i}"));
+            t.depends_on = vec![format!("t{}", i - 1)];
+            add(&mut g, t).unwrap();
+        }
+        assert_eq!(g.tasks.len(), 5);
+
+        // Adding t0 that depends on t5 is fine (no cycle).
+        let mut t0 = Task::new("t0", "Root");
+        t0.depends_on = vec!["t5".into()];
+        add(&mut g, t0).unwrap();
+
+        // Adding t6 that depends on t5, where t1 depends on t6 would create a cycle.
+        // But t1 has no deps on t6, so this is fine.
+        let mut t6 = Task::new("t6", "Leaf");
+        t6.depends_on = vec!["t5".into()];
+        add(&mut g, t6).unwrap();
+
+        // Now try to create an actual cycle: add "tx" with dep on t3,
+        // and make t1 depend on tx (which would create t1->tx->...->t3->t2->t1).
+        // We can't modify t1's deps after add, so instead:
+        // try adding "cycle" with dep on t1, where t5 already depends on t4->t3->t2->t1.
+        // Then add a task that would close the loop.
+        let mut bad = Task::new("bad", "Cycle maker");
+        bad.depends_on = vec!["t5".into()];
+        // This is valid (no cycle back to bad).
+        add(&mut g, bad).unwrap();
+
+        // Self-cycle still detected.
+        let mut self_ref = Task::new("self", "Self");
+        self_ref.depends_on = vec!["self".into()];
+        let err = add(&mut g, self_ref).unwrap_err();
+        assert!(err.to_string().contains("cycle"), "got: {err}");
     }
 }

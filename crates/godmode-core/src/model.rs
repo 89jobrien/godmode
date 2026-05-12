@@ -118,9 +118,55 @@ impl Task {
 }
 
 /// The full task graph stored in `.ctx/GODMODE.tasks.yaml`.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TaskGraph {
     pub tasks: Vec<Task>,
+    /// Cached set of task IDs with `Status::Done`. Invalidated on any state transition.
+    #[serde(skip)]
+    done_cache: std::cell::RefCell<Option<std::collections::HashSet<String>>>,
+}
+
+impl Default for TaskGraph {
+    fn default() -> Self {
+        Self {
+            tasks: Vec::new(),
+            done_cache: std::cell::RefCell::new(None),
+        }
+    }
+}
+
+impl Clone for TaskGraph {
+    fn clone(&self) -> Self {
+        Self {
+            tasks: self.tasks.clone(),
+            done_cache: std::cell::RefCell::new(None),
+        }
+    }
+}
+
+impl TaskGraph {
+    /// Returns the cached done-ID set, rebuilding if invalidated.
+    pub fn done_ids(&self) -> std::cell::Ref<'_, std::collections::HashSet<String>> {
+        {
+            let cache = self.done_cache.borrow();
+            if cache.is_some() {
+                return std::cell::Ref::map(cache, |c| c.as_ref().unwrap());
+            }
+        }
+        let set: std::collections::HashSet<String> = self
+            .tasks
+            .iter()
+            .filter(|t| t.status == Status::Done)
+            .map(|t| t.id.clone())
+            .collect();
+        *self.done_cache.borrow_mut() = Some(set);
+        std::cell::Ref::map(self.done_cache.borrow(), |c| c.as_ref().unwrap())
+    }
+
+    /// Invalidate the done-ID cache. Must be called after any task state change.
+    pub fn invalidate_done_cache(&mut self) {
+        *self.done_cache.get_mut() = None;
+    }
 }
 
 /// Summary counts for display.
