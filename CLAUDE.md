@@ -63,6 +63,11 @@ Two-crate workspace:
 | `registry`      | `Registry` / `RegistryEntry` types; load/save `~/.config/godmode/registry.json`.                                                                                                   |
 | `agent_index`   | Regenerates `agents/INDEX.md` from agent YAML/MD files in `agents/`.                                                                                                               |
 | `session_trace` | Low-level JSONL append helpers used by `session` for trace writes.                                                                                                                 |
+| `config`        | Loads `.godmode.toml` (repo-local) or `~/.config/godmode/config.toml` (global fallback). Fields: `project_name`, `integrations` (doob/hj/rx toggles), `handoff` output settings.   |
+| `context`       | `SessionContext` struct — assembled by `godmode context [--json]`; exposes running tasks, blocked summary, recent commits, critical-path depth for hooks and subagents.            |
+| `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                             |
+| `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from agent YAML stubs; used by `agent_index`, `agent generate`, and `agent migrate`.                                     |
+| `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.         |
 
 ### State file
 
