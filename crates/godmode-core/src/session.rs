@@ -107,6 +107,18 @@ impl Session {
 
         let mut step = cruxx::step_completed(id, commit, notes);
         step.duration_ms = duration_ms;
+        if duration_ms < 100 {
+            let warn = serde_json::json!({
+                "warn": "suspiciously short duration — was this a real task?"
+            });
+            step.output = Some(match step.output.take() {
+                Some(serde_json::Value::Object(mut map)) => {
+                    map.extend(warn.as_object().unwrap().clone());
+                    serde_json::Value::Object(map)
+                }
+                _ => warn,
+            });
+        }
         let _ = self.append_step(step);
         self.auto_save();
         Ok(())
@@ -245,7 +257,12 @@ pub fn handon(root: &Path) -> Result<()> {
                 .as_deref()
                 .map(|c| format!(" ({})", c))
                 .unwrap_or_default();
-            println!("  [{}] {}{}", t.id, t.title, tag);
+            let stale_hint = if t.started_at.is_none() {
+                " [never started]"
+            } else {
+                ""
+            };
+            println!("  [{}] {}{}{}", t.id, t.title, tag, stale_hint);
         }
     }
     let blocked: Vec<_> = graph
@@ -259,6 +276,7 @@ pub fn handon(root: &Path) -> Result<()> {
             println!("  [{}] {} — {}", t.id, t.title, t.notes);
         }
     }
+
     Ok(())
 }
 

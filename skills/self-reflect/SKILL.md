@@ -140,3 +140,7 @@ Do not invent tasks to fill the graph — only add what was genuinely discovered
 - If the session had no commits, say so — an empty "Shipped" section is honest and useful.
 - The reflection is for the next session's benefit, not performance review. Be precise,
   not flattering.
+- **Never write `(fill in next session)` or any deferred placeholder.** Every section must
+  contain actual content from this session. If a section genuinely has nothing to report,
+  write `- Nothing notable.` — not a deferral. Deferred placeholders make the reflection
+  useless to the next agent.

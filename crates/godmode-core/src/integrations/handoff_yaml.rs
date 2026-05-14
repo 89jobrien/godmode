@@ -229,7 +229,16 @@ pub fn write_handoff(
     // Replace items (current state is source of truth)
     handoff.items = items;
     handoff.updated = today;
-    handoff.log.insert(0, log_entry);
+
+    // Deduplicate: skip if the most recent log entry has the same summary and
+    // was written on the same calendar day (first 8 chars of the date stamp).
+    let today_prefix = Utc::now().format("%Y%m%d").to_string();
+    let is_duplicate = handoff.log.first().map_or(false, |last| {
+        last.summary == log_entry.summary && last.date.starts_with(&today_prefix)
+    });
+    if !is_duplicate {
+        handoff.log.insert(0, log_entry);
+    }
 
     let item_ids: Vec<String> = handoff.items.iter().map(|i| i.id.clone()).collect();
     let yaml = serde_yaml::to_string(&handoff)?;
@@ -360,6 +369,36 @@ mod tests {
     fn slug_generation() {
         assert_eq!(slug("Fix the Bug"), "fix-the-bug");
         assert_eq!(slug("  spaces  "), "spaces");
+    }
+
+    #[test]
+    fn write_handoff_deduplicates_same_summary_same_day() {
+        use crate::config::Config;
+        use tempfile::TempDir;
+
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        // init git so recent_commits doesn't fail
+        let _ = std::process::Command::new("git")
+            .args(["init", root.to_str().unwrap()])
+            .output();
+
+        let cfg = Config::default();
+        let summary = "done=1 running=0 pending=0 blocked=0";
+
+        write_handoff(root, &[], &[], summary, &cfg).unwrap();
+        write_handoff(root, &[], &[], summary, &cfg).unwrap();
+
+        let path = root
+            .join(".ctx")
+            .join(format!("HANDOFF.{p}.{p}.yaml", p = cfg.project_name(root)));
+        let raw = std::fs::read_to_string(&path).unwrap();
+        let hf: HandoffFile = serde_yaml::from_str(&raw).unwrap();
+        assert_eq!(
+            hf.log.len(),
+            1,
+            "duplicate same-day entries should be suppressed"
+        );
     }
 
     #[test]
