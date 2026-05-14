@@ -4,6 +4,7 @@ target/
 # handoff-begin
 .ctx/*
 !.ctx/HANDOFF.*.yaml
+.ctx/HANDOFF.godmode.*.yaml
 .ctx/HANDOFF.*.state.json
 !.ctx/handoff.*.config.toml.example
 .ctx/HANDOFF.*.*.state.json
