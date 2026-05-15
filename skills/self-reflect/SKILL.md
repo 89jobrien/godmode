@@ -27,17 +27,25 @@ Gather the raw material for the reflection:
 git log --oneline --since="24 hours ago"
 
 # Files changed across those commits
-git diff --stat HEAD~$(git log --oneline --since="24 hours ago" | wc -l | tr -d ' ') HEAD 2>/dev/null \
-  || git diff --stat HEAD~1 HEAD
+git diff --stat HEAD~1 HEAD
+```
 
-# Current task graph state
-godmode status --compact
+Use the Glob tool to list any files in the working scratch dir:
 
-# Any files in the working scratch dir
-ls .ctx/_WORKING_DIR/ 2>/dev/null || true
+```
+Glob: pattern=".ctx/_WORKING_DIR/*"
+```
 
-# Outstanding blocked tasks
-godmode task list 2>/dev/null | grep blocked || true
+Current task graph state — use `godmode task list`:
+
+```bash
+godmode task list
+```
+
+Outstanding blocked tasks:
+
+```bash
+godmode task list --json | rg blocked
 ```
 
 Also read `.ctx/HANDOFF.*.yaml` if present — it captures intent from session start.
@@ -97,11 +105,8 @@ Write to `.ctx/reflect-<YYYY-MM-DD>.md` (overwrite if exists for today):
 - <concrete suggestion — a missing test, a flaky tool, an unclear spec>
 
 ## Task graph snapshot
-```
 
-<paste output of `godmode status --compact`>
-
-```
+<paste output of `godmode task list`>
 
 ## Open questions
 

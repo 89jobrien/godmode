@@ -63,15 +63,16 @@ Ask for confirmation before creating issues: "Create issues for all N uncovered 
 
 ## Step 4: On-demand task graph sync
 
-Before creating new issues, sync the godmode task graph from GitHub to pick up any issues
-that were created outside this session:
+Before creating new issues, check for open GitHub issues created outside this session that
+may already cover some TODOs:
 
 ```bash
-godmode task pull --project <project-name>
+gh issue list --state open --limit 100 --json number,title,body
 ```
 
-This updates `.ctx/GODMODE.tasks.yaml` with any open GitHub issues not yet in the graph.
-Re-check coverage after the pull — a previously uncovered TODO may now be tracked.
+Cross-reference the fresh list against uncovered TODOs from Step 3. A TODO is covered if
+any open issue mentions its file path or description. Re-check coverage before proceeding —
+a previously uncovered TODO may now be tracked.
 
 ## Step 5: Create missing issues
 
