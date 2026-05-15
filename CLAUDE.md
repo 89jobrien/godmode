@@ -202,3 +202,71 @@ cause validation failure on `claude plugin install`.
   only works when transitions go through `Session`, not raw `graph::*` functions directly.
 - `rx::validate_run` fires inside `Session::start_task` before state mutation — if the script
   doesn't exist and `rx` is on PATH, the task is rejected before being marked Running.
+
+## Rust Conventions
+
+- Run `cargo check --workspace` before committing.
+- Fix clippy warnings proactively — treat `-D warnings` as the standard.
+- Run `cargo test` (or `cargo nextest run`) if test files were modified.
+- Do not investigate rust-analyzer or IDE diagnostics unless explicitly asked — they are often
+  stale.
+
+## CI
+
+Watch the latest run on main:
+
+```nu
+gh run watch (gh run list --branch (git branch --show-current) --limit 1 --json databaseId | from json | get 0.databaseId)
+```
+
+```bash
+gh run watch $(gh run list --branch $(git branch --show-current) --limit 1 --json databaseId --jq '.[0].databaseId')
+```
+
+## Git Operations
+
+- NEVER use `--no-verify` on git commits. Always let pre-commit hooks run.
+- Before claiming a branch is merged, verify with `git log --oneline main..branch` — empty
+  output means fully merged.
+- Never drop git stashes without showing the diff and getting explicit confirmation.
+- Scope staged changes precisely to the current task. Do not stage unrelated changes.
+
+## Subagent Guardrails
+
+When dispatching subagents:
+
+- Each subagent must run `git branch --show-current` immediately before every `git commit`.
+  If the answer is `main`, STOP — do not commit to main directly.
+- Worktree subagents MUST merge their branch back and remove the worktree before reporting done.
+  An orphaned worktree means the task is incomplete.
+- After subagents complete, verify their changes were committed (`git log --oneline -3`).
+  A HANDOFF with `commits: []` is incomplete.
+- Never use octopus merges across subagents — cherry-pick sequentially if branches diverge.
+- Cap parallel subagents at 5 concurrent to avoid API rate limits.
+- Never use `--no-verify` in subagent git operations.
+- If tests fail, debug and retry up to 3 times before escalating.
+
+## Sentinel Reviews
+
+Apply ALL severity levels (blocking, suggestion, nitpick) in one pass before committing.
+Do not commit after fixing only blocking issues and leave suggestions for a follow-up — that
+creates noisy multi-pass fix histories. One sentinel run, one fix commit.
+
+## Nushell
+
+Hook scripts in this repo are Nushell. Key syntax rules:
+
+- `const` cannot reference `$env` — use `let` or read at runtime with `$env.VAR`
+- `&&` is not valid — use `;` to chain commands
+- `open --raw /dev/stdin | from json` to read stdin in hook scripts
+- `do { ... } | complete` captures stdout + exit code for fallible commands
+- Never use bash-isms: no `$()`, no `export VAR=val`, no `if [ ... ]`
+- Test syntax with `nu -c '<snippet>'` before writing to a file
+
+## Output Style
+
+- No superlatives in generated output. Do not use "impressive", "beautifully", "remarkable",
+  "industrial-scale", or similar inflated language. State facts plainly.
+- No emojis unless explicitly requested.
+- No sycophantic openers ("Great question!", "Absolutely!").
+- Act first, explain later. When a task is clear, do it — don't narrate the approach first.
