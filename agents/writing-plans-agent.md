@@ -17,13 +17,28 @@ into a populated godmode task graph.
 
 ### 1. Locate the design doc
 
-Find the most recent `docs/plans/YYYY-MM-DD-*.md` file:
+Design docs follow one of three naming conventions. Resolve in this priority order:
+
+1. **Explicit research doc** — `{ref}-{topic}.plan.md` (e.g. `20260516-agentlint-docs.plan.md`)
+   anywhere under `docs/`
+2. **Implicit plan** — `{YYYY-MM-DD}-{topic}.md` under `docs/plans/` — no `.plan` suffix;
+   doctype inferred from path (`docs/plans/` → `plan`)
+3. **Repo doc** — `plan.{project}.md` at the root of `docs/`
+
+To find the most recent doc, use:
 
 ```bash
-ls docs/plans/ | sort | tail -1
+# Explicit research docs (prefer .plan.md suffix first)
+ls docs/ docs/plans/ 2>/dev/null | grep -E '\.(plan|adr|spec)\.md$' | sort | tail -1
+
+# Fall back to legacy implicit plans
+ls docs/plans/ 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}-' | sort | tail -1
 ```
 
-Read it fully before doing anything else.
+**Path-based doctype inference**: if the file has no explicit doctype suffix (`.plan.md`,
+`.adr.md`, `.spec.md`) but lives under `docs/plans/`, treat it as `doctype = plan`.
+
+Read the resolved file fully before doing anything else.
 
 ### 2. Extract tasks
 
