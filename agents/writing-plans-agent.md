@@ -19,14 +19,14 @@ into a populated godmode task graph.
 
 **Input — find the spec.** Specs are formal design docs. Resolve in this order:
 
-1. **Explicit spec** — `{YYYYMMDD}-{topic}.spec.md` anywhere under `docs/`
+1. **Explicit spec** — `{YYYYMMDD}-{topic}.spec.md` under `docs/specs/`
 2. **Legacy design doc** — `{YYYY-MM-DD}-{topic}.md` under `docs/plans/` (no doctype suffix;
    infer `doctype = spec` from path)
 3. **Repo spec** — `spec.{project}.md` under `docs/`
 
 ```bash
 # Find most recent explicit spec
-ls docs/ docs/plans/ 2>/dev/null | grep -E '\.spec\.md$' | sort | tail -1
+ls docs/specs/ 2>/dev/null | grep -E '\.spec\.md$' | sort | tail -1
 
 # Fall back to legacy implicit design docs
 ls docs/plans/ 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}-' | sort | tail -1
@@ -37,8 +37,10 @@ Read the resolved spec fully before doing anything else.
 **Output — write a plan.** Once you have extracted tasks, write an implementation plan to:
 
 ```
-docs/{YYYYMMDD}-{topic}.plan.md
+docs/plans/{YYYYMMDD}-{topic}.plan.md
 ```
+
+Path inference: any `.md` under `docs/plans/` is implicitly `doctype = plan`.
 
 Frontmatter:
 
@@ -51,7 +53,7 @@ status: active
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 meta:
-  spec: {YYYYMMDD}-{topic}.spec.md
+  spec: docs/specs/{YYYYMMDD}-{topic}.spec.md
 ---
 ```
 

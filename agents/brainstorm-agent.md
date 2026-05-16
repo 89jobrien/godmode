@@ -57,6 +57,8 @@ approved — write a lightweight idea capture to:
 docs/ideas/{YYYYMMDD}-{topic}.idea.md
 ```
 
+Path inference: any `.md` under `docs/ideas/` is implicitly `doctype = idea`.
+
 Include: the question being explored, options considered, trade-offs noted, and any open
 questions. This is a scratchpad, not a commitment. Frontmatter:
 
@@ -76,8 +78,10 @@ updated: YYYY-MM-DD
 Once the user explicitly approves a design, write the formal spec to:
 
 ```
-docs/{YYYYMMDD}-{topic}.spec.md
+docs/specs/{YYYYMMDD}-{topic}.spec.md
 ```
+
+Path inference: any `.md` under `docs/specs/` is implicitly `doctype = spec`.
 
 Include:
 
@@ -103,7 +107,7 @@ updated: YYYY-MM-DD
 
 After the spec is written, tell the user:
 
-> "Spec written to `docs/{YYYYMMDD}-{topic}.spec.md`. Invoke `/godmode:writing-plans-agent`
+> "Spec written to `docs/specs/{YYYYMMDD}-{topic}.spec.md`. Invoke `/godmode:writing-plans-agent`
 > to convert this into an implementation plan."
 
 Do not proceed further. The writing-plans agent owns the next step.
