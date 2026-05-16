@@ -6,8 +6,17 @@
 let input = open --raw /dev/stdin | from json
 let cmd = ($input | get --optional tool_input.command | default "")
 
-# Only act on git commit commands
-if not ($cmd | str contains "git commit") {
+# Split the command on pipeline operators (&&, ;, |) and check whether any
+# segment is a git commit invocation. Naive str-contains would trigger on
+# commands like `cargo fmt --all && git commit -m "..."`, blocking the fmt
+# step before it could run.
+let segments = ($cmd | split row -r '&&|;|\|' | each { str trim })
+let is_commit = ($segments | any { |seg|
+    ($seg | str starts-with "git commit") or
+    (($seg | str starts-with "git -C") and ($seg | str contains "commit"))
+})
+
+if not $is_commit {
     print '{"decision":"approve"}'
     exit 0
 }
