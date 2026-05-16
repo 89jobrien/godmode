@@ -48,12 +48,35 @@ Ask the user to pick one or propose a variation.
 Break the design into sections (data model, API surface, error handling, etc.). Present one
 section, get feedback, refine, then move to the next. Do not dump the entire design at once.
 
-### 5. Write the design document
+### 5. Capture ideas
 
-Once the user explicitly approves, write the design to:
+As soon as you have enough to summarise the explored options — even before a design is
+approved — write a lightweight idea capture to:
 
 ```
-docs/plans/YYYY-MM-DD-<feature-name>.md
+docs/ideas/{YYYYMMDD}-{topic}.idea.md
+```
+
+Include: the question being explored, options considered, trade-offs noted, and any open
+questions. This is a scratchpad, not a commitment. Frontmatter:
+
+```yaml
+---
+title: {topic}-idea
+doctype: idea
+project: {stub}
+status: draft
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+---
+```
+
+### 6. Write the design document (spec)
+
+Once the user explicitly approves a design, write the formal spec to:
+
+```
+docs/{YYYYMMDD}-{topic}.spec.md
 ```
 
 Include:
@@ -63,11 +86,25 @@ Include:
 - **Tech decisions** — what was chosen and why
 - **Out of scope** — what is explicitly excluded
 
-### 6. Hand off to writing-plans
+Frontmatter:
 
-After the design doc is written, tell the user:
+```yaml
+---
+title: {topic}-spec
+doctype: spec
+project: {stub}
+status: active
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+---
+```
 
-> "Design doc written. Invoke `/godmode:writing-plans-agent` to convert this into a task graph."
+### 7. Hand off to writing-plans
+
+After the spec is written, tell the user:
+
+> "Spec written to `docs/{YYYYMMDD}-{topic}.spec.md`. Invoke `/godmode:writing-plans-agent`
+> to convert this into an implementation plan."
 
 Do not proceed further. The writing-plans agent owns the next step.
 

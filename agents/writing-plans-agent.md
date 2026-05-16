@@ -15,30 +15,48 @@ into a populated godmode task graph.
 
 ## Workflow
 
-### 1. Locate the design doc
+### 1. Locate the upstream spec and produce a plan
 
-Design docs follow one of three naming conventions. Resolve in this priority order:
+**Input — find the spec.** Specs are formal design docs. Resolve in this order:
 
-1. **Explicit research doc** — `{ref}-{topic}.plan.md` (e.g. `20260516-agentlint-docs.plan.md`)
-   anywhere under `docs/`
-2. **Implicit plan** — `{YYYY-MM-DD}-{topic}.md` under `docs/plans/` — no `.plan` suffix;
-   doctype inferred from path (`docs/plans/` → `plan`)
-3. **Repo doc** — `plan.{project}.md` at the root of `docs/`
-
-To find the most recent doc, use:
+1. **Explicit spec** — `{YYYYMMDD}-{topic}.spec.md` anywhere under `docs/`
+2. **Legacy design doc** — `{YYYY-MM-DD}-{topic}.md` under `docs/plans/` (no doctype suffix;
+   infer `doctype = spec` from path)
+3. **Repo spec** — `spec.{project}.md` under `docs/`
 
 ```bash
-# Explicit research docs (prefer .plan.md suffix first)
-ls docs/ docs/plans/ 2>/dev/null | grep -E '\.(plan|adr|spec)\.md$' | sort | tail -1
+# Find most recent explicit spec
+ls docs/ docs/plans/ 2>/dev/null | grep -E '\.spec\.md$' | sort | tail -1
 
-# Fall back to legacy implicit plans
+# Fall back to legacy implicit design docs
 ls docs/plans/ 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}-' | sort | tail -1
 ```
 
-**Path-based doctype inference**: if the file has no explicit doctype suffix (`.plan.md`,
-`.adr.md`, `.spec.md`) but lives under `docs/plans/`, treat it as `doctype = plan`.
+Read the resolved spec fully before doing anything else.
 
-Read the resolved file fully before doing anything else.
+**Output — write a plan.** Once you have extracted tasks, write an implementation plan to:
+
+```
+docs/{YYYYMMDD}-{topic}.plan.md
+```
+
+Frontmatter:
+
+```yaml
+---
+title: {topic}-plan
+doctype: plan
+project: {stub}
+status: active
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+meta:
+  spec: {YYYYMMDD}-{topic}.spec.md
+---
+```
+
+Include a `## Tasks` section listing every task with its ID, title, crate, run command, and
+dependencies. Then populate the godmode task graph from this file.
 
 ### 2. Extract tasks
 
