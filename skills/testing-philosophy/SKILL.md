@@ -1,10 +1,10 @@
 ---
 name: "godmode:testing-philosophy"
 description: >
-  The five-dimension testing model for Rust. Use when designing a test strategy for new
+  The six-dimension testing model for Rust. Use when designing a test strategy for new
   code, reviewing test coverage, deciding which test type to write next, or onboarding
   to the project's testing conventions. Triggers on "what tests do I need", "how should
-  I test this", "test coverage", or any question about test strategy.
+  I test this", "test coverage", "fuzz", or any question about test strategy.
 ---
 
 # Testing Philosophy
@@ -13,19 +13,21 @@ Tests are not a checklist — they are a progression. Each dimension unlocks con
 at a different stage of the lifecycle. Applying the wrong dimension at the wrong stage
 wastes effort. Skipping a dimension leaves a gap that will surface later.
 
-## The Five Dimensions
+## The Six Dimensions
 
 ```
-Idea → Unit → Property → Conformance → Integration → Regression
-         ↑         ↑            ↑              ↑            ↑
-      always   non-trivial   new impl      wiring        bug fixed
-               input space   Trait         complete
+Idea → Unit → Property → Fuzz → Conformance → Integration → Regression
+         ↑         ↑       ↑          ↑              ↑            ↑
+      always   non-trivial |       new impl        wiring       bug fixed
+               input space unsafe/parser           complete
+                           boundary
 ```
 
 | Dimension   | Lifecycle stage                        | Question it answers                                     |
 | ----------- | -------------------------------------- | ------------------------------------------------------- |
 | Unit        | Design — function exists               | Does this function do what I think it does?             |
 | Property    | Design — input space understood        | Does this invariant hold for all valid inputs?          |
+| Fuzz        | Design — unsafe/parser/protocol code   | Does this code survive malformed or adversarial input?  |
 | Conformance | Design — trait contract defined        | Does this impl satisfy the contract the trait promises? |
 | Integration | Build — components wired together      | Do these parts work correctly when connected?           |
 | Regression  | Maintenance — bug reproduced and fixed | Will this specific failure mode ever recur?             |
@@ -52,6 +54,33 @@ prove invariants hold for inputs you didn't think of.
 - Test invariants, not specific values: "output is always sorted", "round-trip is lossless"
 - Commit `proptest-regressions/` — these are found counterexamples, never delete them
 - Good candidates: parsers, graph operations, serialisation, arithmetic, sorting
+
+### Fuzz — for unsafe, parsers, and protocol boundaries
+
+If a function touches raw bytes, parses external input, handles untrusted data, or
+contains `unsafe`, fuzz it. Property tests generate structured inputs; fuzz tests
+generate arbitrary byte sequences. They find panics, integer overflows, and logic
+errors that structured generation misses.
+
+- Use `cargo-fuzz` (libFuzzer) or `afl.rs`; targets live in `fuzz/fuzz_targets/`
+- Seed corpus in `fuzz/corpus/<target>/` — commit representative inputs
+- Run locally with: `cargo fuzz run <target> -- -max_total_time=60`
+- Good candidates: tar extraction, OCI manifest parsing, socket framing, path validation,
+  any function that calls `unsafe`, any function that deserialises untrusted bytes
+- A fuzz target that finds no crash in 60s on first run is table stakes, not done —
+  add it to CI with a short time budget (`-max_total_time=30`)
+
+```rust
+// fuzz/fuzz_targets/fuzz_parse_manifest.rs
+#![no_main]
+use libfuzzer_sys::fuzz_target;
+
+fuzz_target!(|data: &[u8]| {
+    if let Ok(s) = std::str::from_utf8(data) {
+        let _ = minibox_core::image::parse_manifest(s);
+    }
+});
+```
 
 ### Conformance — for every new `impl Trait`
 
@@ -107,6 +136,8 @@ recur.
   hide which component is wrong
 - Do not write Property tests before understanding the invariant — `proptest` finds
   counterexamples; you must know what to assert
+- Fuzz targets are required for any function that parses external bytes or contains `unsafe`
+- Fuzz corpus files in `fuzz/corpus/` are permanent — never delete them
 - Conformance tests belong to the trait, not the impl — one suite, multiple impls
 - Regression tests are permanent — never delete a regression file or test
 - `unwrap()` in tests must have `expect("why this can't fail")` — no silent panics
