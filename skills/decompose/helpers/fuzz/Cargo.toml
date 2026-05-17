@@ -1,0 +1,30 @@
+[package]
+name = "decompose-fuzz"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+
+[dev-dependencies]
+
+[[bin]]
+name = "fuzz_classify_concern"
+path = "fuzz_targets/fuzz_classify_concern.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_verify_coverage"
+path = "fuzz_targets/fuzz_verify_coverage.rs"
+test = false
+doc = false
+
+[profile.release]
+debug = true
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies.libfuzzer-sys]
+version = "0.4"
