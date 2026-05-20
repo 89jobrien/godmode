@@ -24,6 +24,13 @@
 | `godmode:moa`                             | Mixture-of-agents patterns for multi-model reasoning             |
 | `godmode:todo-issue-sync`                 | Auditing inline TODOs and syncing uncovered items to issues      |
 | `godmode:self-reflect`                    | End-of-session retrospective — "reflect", "what did we do"       |
+| `godmode:merge`                           | Merge branch, create/merge PR, squash, worktree cleanup          |
+| `godmode:rust-conventions`                | Rust conventions for writing/reviewing \*.rs code                |
+| `godmode:context-map`                     | Map relevant files before any implementation task                |
+| `godmode:decompose`                       | Split large diff/PR/branch into smaller independent units        |
+| `godmode:doublecheck`                     | Three-layer verification pipeline for factual claims             |
+| `godmode:mini-context-graph`              | Persistent knowledge base with entity graph and wiki pages       |
+| `godmode:agent-governance`                | Governance, safety, and trust patterns for AI agent systems      |
 
 ## Skill Priority Order
 

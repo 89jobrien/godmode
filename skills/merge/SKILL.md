@@ -224,8 +224,6 @@ git worktree list
 If the merged branch appears as a worktree path, remove it:
 
 ```bash
-godmode worktree remove <branch>
-# or manually:
 git worktree remove <path> --force
 git branch -d <branch>
 ```
