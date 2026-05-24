@@ -188,6 +188,8 @@ All commands output JSON to stdout. Use `--root <dir>` to override the data dire
 | `kgx wiki lint`                                                   | Health check                               | Periodic maintenance                 |
 | `kgx docs list`                                                   | List all ingested raw sources              | Audit / provenance checking          |
 | `kgx docs search <query>`                                         | Chunk-level search                         | Finding specific evidence            |
+| `kgx export --format json --output <dir>`                         | Export full context as JSON                | Snapshots, backups, data exchange    |
+| `kgx export --format markdown --output <dir>`                     | Export as Obsidian-compatible vault        | Human review, Obsidian integration   |
 | `kgx stats`                                                       | Node/edge/document counts                  | Quick overview                       |
 
 ---
