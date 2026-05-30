@@ -1,10 +1,11 @@
 ---
 name: "godmode:testing-philosophy"
 description: >
-  The six-dimension testing model for Rust. Use when designing a test strategy for new
+  The seven-dimension testing model for Rust. Use when designing a test strategy for new
   code, reviewing test coverage, deciding which test type to write next, or onboarding
   to the project's testing conventions. Triggers on "what tests do I need", "how should
-  I test this", "test coverage", "fuzz", or any question about test strategy.
+  I test this", "test coverage", "fuzz", "kani", "model check", or any question about
+  test strategy.
 ---
 
 # Testing Philosophy
@@ -13,24 +14,25 @@ Tests are not a checklist — they are a progression. Each dimension unlocks con
 at a different stage of the lifecycle. Applying the wrong dimension at the wrong stage
 wastes effort. Skipping a dimension leaves a gap that will surface later.
 
-## The Six Dimensions
+## The Seven Dimensions
 
 ```
-Idea → Unit → Property → Fuzz → Conformance → Integration → Regression
-         ↑         ↑       ↑          ↑              ↑            ↑
-      always   non-trivial |       new impl        wiring       bug fixed
-               input space unsafe/parser           complete
-                           boundary
+Idea → Unit → Property → Fuzz → Model Check → Conformance → Integration → Regression
+         ↑         ↑       ↑          ↑              ↑              ↑            ↑
+      always   non-trivial |       arithmetic      new impl        wiring       bug fixed
+               input space unsafe/parser           overflow/       complete
+                           boundary                invariant
 ```
 
-| Dimension   | Lifecycle stage                        | Question it answers                                     |
-| ----------- | -------------------------------------- | ------------------------------------------------------- |
-| Unit        | Design — function exists               | Does this function do what I think it does?             |
-| Property    | Design — input space understood        | Does this invariant hold for all valid inputs?          |
-| Fuzz        | Design — unsafe/parser/protocol code   | Does this code survive malformed or adversarial input?  |
-| Conformance | Design — trait contract defined        | Does this impl satisfy the contract the trait promises? |
-| Integration | Build — components wired together      | Do these parts work correctly when connected?           |
-| Regression  | Maintenance — bug reproduced and fixed | Will this specific failure mode ever recur?             |
+| Dimension   | Lifecycle stage                        | Question it answers                                                  |
+| ----------- | -------------------------------------- | -------------------------------------------------------------------- |
+| Unit        | Design — function exists               | Does this function do what I think it does?                          |
+| Property    | Design — input space understood        | Does this invariant hold for all valid inputs?                       |
+| Fuzz        | Design — unsafe/parser/protocol code   | Does this code survive malformed or adversarial input?               |
+| Model Check | Design — correctness proof needed      | Can this function violate safety invariants for any reachable input? |
+| Conformance | Design — trait contract defined        | Does this impl satisfy the contract the trait promises?              |
+| Integration | Build — components wired together      | Do these parts work correctly when connected?                        |
+| Regression  | Maintenance — bug reproduced and fixed | Will this specific failure mode ever recur?                          |
 
 ## When to Apply Each
 
@@ -80,6 +82,64 @@ fuzz_target!(|data: &[u8]| {
         let _ = minibox_core::image::parse_manifest(s);
     }
 });
+```
+
+### Model Check — for proving absence of bugs
+
+When fuzz testing reduces the input space statistically, model checking exhausts it
+symbolically within bounds. Use Kani when you need to prove that a function cannot violate
+a safety invariant for any reachable input — not just inputs you sampled.
+
+Apply when:
+
+- A function performs arithmetic on external inputs that could overflow
+- Array or slice indexing is conditional on runtime values
+- The code contains `unsafe` blocks with invariants that must hold
+- A state machine has reachability invariants that must be proven, not just tested
+- You need to guarantee "no possible input causes X" rather than "X hasn't happened yet"
+
+Setup:
+
+- Add `kani` crate as a dev-dependency or use the cargo-kani subcommand
+- Proof harnesses live in `#[cfg(kani)]` modules alongside the code they verify
+- Use `kani::any()` for symbolic inputs — like proptest strategies but exhaustive within bounds
+- Bound loops with `#[kani::unwind(N)]`; start low and increase until the proof is meaningful
+
+```rust
+#[cfg(kani)]
+mod kani_proofs {
+    use super::*;
+
+    #[kani::proof]
+    #[kani::unwind(5)]
+    fn check_no_overflow_in_score() {
+        let a: u32 = kani::any();
+        let b: u32 = kani::any();
+        kani::assume(a <= 1000);
+        kani::assume(b <= 1000);
+        let result = compute_score(a, b);
+        assert!(result <= 2000);
+    }
+}
+```
+
+Good candidates: score calculations, index arithmetic, state transitions, protocol framing
+sizes, any function with `checked_add`/`saturating_mul` or that should use them.
+
+Difference from fuzz: fuzz finds bugs by sampling arbitrary inputs; Kani proves absence by
+exhaustive symbolic execution within the specified bounds. They are complementary — fuzz first
+to find crashes, then model-check to prove the fixed invariant holds for all inputs.
+
+Run locally:
+
+```bash
+cargo kani --harness check_no_overflow_in_score
+```
+
+CI integration:
+
+```bash
+cargo kani --output-format terse
 ```
 
 ### Conformance — for every new `impl Trait`
@@ -138,11 +198,14 @@ recur.
   counterexamples; you must know what to assert
 - Fuzz targets are required for any function that parses external bytes or contains `unsafe`
 - Fuzz corpus files in `fuzz/corpus/` are permanent — never delete them
+- Model check proofs are required for any function that performs arithmetic on external inputs
+- `kani::assume()` bounds must reflect real domain constraints — over-constraining hides bugs
 - Conformance tests belong to the trait, not the impl — one suite, multiple impls
 - Regression tests are permanent — never delete a regression file or test
 - `unwrap()` in tests must have `expect("why this can't fail")` — no silent panics
 
 ## Additional Resources
 
-- **`references/dimension-examples.md`** — concrete Rust examples for each dimension
+- **`references/dimension-examples.md`** — concrete Rust examples for each dimension (unit,
+  property, fuzz, model check, conformance, integration, regression)
 - **`helpers/test-scaffold.nu`** — generate test module stubs for a given crate and dimension

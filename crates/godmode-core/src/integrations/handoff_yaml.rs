@@ -233,7 +233,7 @@ pub fn write_handoff(
     // Deduplicate: skip if the most recent log entry has the same summary and
     // was written on the same calendar day (first 8 chars of the date stamp).
     let today_prefix = Utc::now().format("%Y%m%d").to_string();
-    let is_duplicate = handoff.log.first().map_or(false, |last| {
+    let is_duplicate = handoff.log.first().is_some_and(|last| {
         last.summary == log_entry.summary && last.date.starts_with(&today_prefix)
     });
     if !is_duplicate {
