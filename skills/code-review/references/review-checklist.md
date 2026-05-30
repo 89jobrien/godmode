@@ -38,8 +38,8 @@
 
 ## Tests
 
-See **`godmode:testing-philosophy`** for the full five-dimension model and when to apply each.
-Quick reference: `Unit → Property → Conformance → Integration → Regression`
+See **`godmode:testing-philosophy`** for the full seven-dimension model and when to apply each.
+Quick reference: `Unit → Property → Fuzz → Model Check → Conformance → Integration → Regression`
 
 - [ ] Every new public function has at least one unit test
 - [ ] Happy path and at least one error/edge case covered

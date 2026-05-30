@@ -1,6 +1,6 @@
 # Test Dimension Examples
 
-Concrete Rust patterns for each of the five dimensions.
+Concrete Rust patterns for each of the seven testing dimensions.
 
 ## Unit
 
