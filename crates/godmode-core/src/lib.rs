@@ -7,6 +7,7 @@ pub mod context;
 pub mod detect;
 pub mod dispatch;
 pub mod graph;
+pub mod hooks;
 pub mod integrations;
 pub mod memory_banking;
 pub mod model;

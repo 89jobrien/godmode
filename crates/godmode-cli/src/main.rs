@@ -261,6 +261,11 @@ enum HookAction {
     },
     /// Run all numbered migration scripts in hooks/migrations/.
     Migrate,
+    /// Run a built-in hook by name (Rust implementation).
+    Run {
+        /// Hook name: stop-guard, auto-block, pre-commit, quality-gate.
+        name: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1256,6 +1261,76 @@ fn main() -> Result<()> {
                     }
                 }
 
+                HookAction::Run { name } => {
+                    use godmode_core::hooks;
+                    let stdin = std::io::read_to_string(std::io::stdin()).unwrap_or_default();
+                    match name.as_str() {
+                        "stop-guard" => {
+                            let decision = hooks::stop_guard::check(&root);
+                            let (msg, code) = hooks::stop_guard::format_decision(&decision);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                            std::process::exit(code);
+                        }
+                        "auto-block" => {
+                            if let Some(ctx) =
+                                hooks::hook_context::HookContext::load_with_root(&stdin, &root)
+                            {
+                                let result = hooks::auto_block::check(&ctx);
+                                if let Some(msg) = hooks::auto_block::format_result(&result) {
+                                    eprintln!("{msg}");
+                                }
+                                // Actually block the task in the graph
+                                if let hooks::auto_block::AutoBlockResult::Blocked {
+                                    ref task_id,
+                                    ref reason,
+                                } = result
+                                    && let Ok(mut g) = graph::load(&root)
+                                    && graph::block(&mut g, task_id, reason).is_ok()
+                                {
+                                    let _ = graph::save(&root, &g);
+                                }
+                            }
+                        }
+                        "pre-commit" => {
+                            let result = hooks::pre_commit::run(&root);
+                            let (msg, code) = hooks::pre_commit::format_result(&result);
+                            eprintln!("{msg}");
+                            std::process::exit(code);
+                        }
+                        "pre-commit-gate" => {
+                            let result = hooks::pre_commit::run_lint_gate(&root);
+                            let (msg, code) = hooks::pre_commit::format_result(&result);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                            if json {
+                                let decision = if code == 0 { "approve" } else { "block" };
+                                println!(
+                                    "{}",
+                                    serde_json::json!({"decision": decision, "reason": msg})
+                                );
+                            }
+                            std::process::exit(code);
+                        }
+                        "quality-gate" => {
+                            if let Err(e) = hooks::quality_gate::run(&root, None) {
+                                eprintln!("[godmode:quality-gate] {e}");
+                                std::process::exit(1);
+                            }
+                            eprintln!("[godmode:quality-gate] all gates passed.");
+                        }
+                        other => {
+                            eprintln!("Unknown hook: {other}");
+                            eprintln!(
+                                "Available: stop-guard, auto-block, pre-commit, \
+                                 pre-commit-gate, quality-gate"
+                            );
+                            std::process::exit(1);
+                        }
+                    }
+                }
                 HookAction::Migrate => {
                     let results = integrations::hook_migrate::run_migrations(&root)?;
                     if results.is_empty() {
