@@ -1,62 +1,46 @@
 project: godmode
 id: godmode
-updated: 2026-05-31
-items:
-- id: uncommitted-work
-  doob_uuid: null
-  name: uncommitted-work
-  priority: P1
-  status: open
-  title: Uncommitted changes (14 files)
-  description: |-
-    Working tree has uncommitted changes:
-    .gitignore
-    hooks/pre-commit.nu
-    skills/.DS_Store
-    skills/testing-philosophy/SKILL.md
-    skills/using-godmode/SKILL.md
-    skills/using-godmode/references/skill-index.md
-    skills/writing-plans/SKILL.md
-    skills/writing-plans/helpers/plan-template.md
-    .claude/
-    skills/agent-governance/
-    skills/context-map/
-    skills/doublecheck/
-    skills/rust-conventions/
-    skills/testing-philosophy/SKILL.testing.md
-  files:
-  - .gitignore
-  - hooks/pre-commit.nu
-  - skills/.DS_Store
-  - skills/testing-philosophy/SKILL.md
-  - skills/using-godmode/SKILL.md
-  - skills/using-godmode/references/skill-index.md
-  - skills/writing-plans/SKILL.md
-  - skills/writing-plans/helpers/plan-template.md
-  - .claude/
-  - skills/agent-governance/
-  - skills/context-map/
-  - skills/doublecheck/
-  - skills/rust-conventions/
-  - skills/testing-philosophy/SKILL.testing.md
-  completed: null
-  extra: []
+updated: '20260531.152000'
+items: []
 log:
-- date: 2026-05-31
-  summary: Planned Rust port of 5 core .nu hook scripts (hook_context, pre_commit, stop_guard, auto_block, quality_gate) — analysis complete, implementation not started
+- date: '20260531.152000'
+  session: 7
+  summary: Ported 5 core hook scripts from Nushell to Rust in crates/godmode-core/src/hooks/
   commits:
-  - !Object
-    sha: 906f106
+  - sha: 9c8b427
+    branch: main
+  - sha: c8709c6
+    branch: main
+  - sha: 5801201
+    branch: main
+- date: '20260531.174442'
+  session: 6
+  summary: Planned Rust port of 5 core .nu hook scripts — analysis complete, implementation not started
+  commits:
+  - sha: 8869e27
+    branch: main
+  - sha: 906f106
+    branch: main
+  - sha: 2fb42ef
+    branch: main
+  - sha: 275a645
+    branch: main
+  - sha: c1949ca
+    branch: main
+  - sha: d22e4d5
+    branch: main
+  - sha: 210a0aa
+    branch: main
+  - sha: 91c49e5
+    branch: main
+  - sha: 2314b8c
     branch: main
 - date: '20260530.113354'
+  session: 5
   summary: done=29 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260516.213500'
-  summary: done=1 running=0 pending=0 blocked=0
-  commits: []
-- date: '20260514.034012'
+  session: 4
   summary: done=29 running=0 pending=0 blocked=0
-  commits: []
-- date: 2026-05-31
-  summary: 'feat: add godmode:memory-banking skill with Rust CLI, templates, hooks, and unit tests'
-  commits: []
+- date: '20260514.034012'
+  session: 3
+  summary: done=29 running=0 pending=0 blocked=0
