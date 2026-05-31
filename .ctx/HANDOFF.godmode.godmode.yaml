@@ -1,30 +1,59 @@
 project: godmode
 id: godmode
-updated: 2026-05-16
+updated: 2026-05-31
 items:
-- id: pre-commit-gate-pipeline-fix
-  name: pre-commit-gate-pipeline-fix
+- id: uncommitted-work
+  doob_uuid: null
+  name: uncommitted-work
   priority: P1
-  status: completed
-  title: Fix pre-commit-gate deadlock on fmt+commit pipelines
+  status: open
+  title: Uncommitted changes (14 files)
   description: |-
-    Naive `str contains "git commit"` matched anywhere in the full command
-    string, causing `cargo fmt --all && git commit -m "..."` to be blocked
-    before the fmt step could run — a deadlock with no escape.
-    Fixed by splitting on pipeline operators (&&, ;, |) and checking whether
-    any segment starts with `git commit` or `git -C ... commit`.
-    Shipped in eebcf4b, discovered while working in agentlint repo.
+    Working tree has uncommitted changes:
+    .gitignore
+    hooks/pre-commit.nu
+    skills/.DS_Store
+    skills/testing-philosophy/SKILL.md
+    skills/using-godmode/SKILL.md
+    skills/using-godmode/references/skill-index.md
+    skills/writing-plans/SKILL.md
+    skills/writing-plans/helpers/plan-template.md
+    .claude/
+    skills/agent-governance/
+    skills/context-map/
+    skills/doublecheck/
+    skills/rust-conventions/
+    skills/testing-philosophy/SKILL.testing.md
   files:
-  - hooks/scripts/pre-commit-gate.nu
-  completed: '2026-05-16'
+  - .gitignore
+  - hooks/pre-commit.nu
+  - skills/.DS_Store
+  - skills/testing-philosophy/SKILL.md
+  - skills/using-godmode/SKILL.md
+  - skills/using-godmode/references/skill-index.md
+  - skills/writing-plans/SKILL.md
+  - skills/writing-plans/helpers/plan-template.md
+  - .claude/
+  - skills/agent-governance/
+  - skills/context-map/
+  - skills/doublecheck/
+  - skills/rust-conventions/
+  - skills/testing-philosophy/SKILL.testing.md
+  completed: null
   extra: []
 log:
-- date: '20260514.034012'
-  summary: done=29 running=0 pending=0 blocked=0
+- date: 2026-05-31
+  summary: 'feat: add godmode:memory-banking skill with Rust CLI, templates, hooks, and unit tests'
   commits:
-  - 4d400064808b1d6140fe1638ee40e12ffaa214a3
-  - 4c4fe52950d9b274ae5e16e024ff18221ed42511
+  - !Object
+    sha: c1949ca
+    branch: main
+- date: '20260530.113354'
+  summary: done=29 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260516.213500'
   summary: done=1 running=0 pending=0 blocked=0
-  commits:
-  - eebcf4b
+  commits: []
+- date: '20260514.034012'
+  summary: done=29 running=0 pending=0 blocked=0
+  commits: []

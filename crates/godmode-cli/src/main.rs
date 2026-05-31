@@ -2,8 +2,8 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
-    agent, agent_index, builder, context, detect, dispatch, graph, integrations, model, plan,
-    registry, release, review, session::Session, skill, templates, workflow,
+    agent, agent_index, builder, context, detect, dispatch, graph, integrations, memory_banking,
+    model, plan, registry, release, review, session::Session, skill, templates, workflow,
 };
 
 #[derive(Parser)]
@@ -152,6 +152,12 @@ enum Cmd {
         /// Write output to this file instead of stdout.
         #[arg(long)]
         out: Option<String>,
+    },
+
+    /// Memory banking: persistent source-backed project context.
+    MemoryBanking {
+        #[command(subcommand)]
+        action: MemoryBankingAction,
     },
 }
 
@@ -482,6 +488,18 @@ enum WorkflowAction {
         /// Workflow name.
         name: String,
     },
+}
+
+#[derive(Subcommand)]
+enum MemoryBankingAction {
+    /// Print memory-bank contents for context injection (SessionStart hook).
+    Inject,
+    /// Print update reminder if session had commits (Stop hook).
+    Remind,
+    /// Create .ctx/memory-banking/ with empty template files.
+    Init,
+    /// Show memory-banking status and staleness.
+    Status,
 }
 
 /// Filter a task slice by optional priority and optional keyword.
@@ -2027,6 +2045,15 @@ fn main() -> Result<()> {
                 }
             } else {
                 print!("{content}");
+            }
+            Ok(())
+        }
+        Cmd::MemoryBanking { action } => {
+            match action {
+                MemoryBankingAction::Inject => memory_banking::inject(&root, json)?,
+                MemoryBankingAction::Remind => memory_banking::remind(&root, json)?,
+                MemoryBankingAction::Init => memory_banking::init(&root)?,
+                MemoryBankingAction::Status => memory_banking::status(&root, json)?,
             }
             Ok(())
         }

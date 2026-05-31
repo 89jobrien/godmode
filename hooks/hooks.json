@@ -18,6 +18,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/skills/using-godmode/hook.nu",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-inject.nu",
+            "timeout": 15
           }
         ]
       }
@@ -179,6 +184,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/stop-guard.nu",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-update-remind.nu",
+            "timeout": 10
           },
           {
             "type": "command",
