@@ -1,0 +1,22 @@
+{
+  "doc_id": "<unique_id>",
+  "title": "<document title>",
+  "source": "<path or URL>",
+  "raw_content": "<full text>",
+  "entities": [
+    {
+      "name": "<lowercase entity name>",
+      "type": "<ontology type>",
+      "supporting_text": "<evidence from source>"
+    }
+  ],
+  "relations": [
+    {
+      "source": "<entity name>",
+      "target": "<entity name>",
+      "type": "<relation type>",
+      "confidence": 0.9,
+      "supporting_text": "<evidence from source>"
+    }
+  ]
+}

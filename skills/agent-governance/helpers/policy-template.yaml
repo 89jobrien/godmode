@@ -1,0 +1,14 @@
+# Governance policy template — fill in for your agent
+# See references/policy-example.yaml for a complete example
+
+name: "<agent-name>"
+allowed_tools:
+  - "<tool-1>"
+  - "<tool-2>"
+blocked_tools:
+  - shell_exec
+  - delete_record
+blocked_patterns:
+  - "(?i)(api[_-]?key|secret|password)\\s*[:=]"
+max_calls_per_request: 50
+require_human_approval: []

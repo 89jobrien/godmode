@@ -35,6 +35,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-agent-task-context.nu",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/agent-governance/hook.nu",
+            "timeout": 10
           }
         ]
       },
@@ -89,6 +94,16 @@
           {
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/skills/receiving-review/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/context-map/hook.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/rust-conventions/hook.nu",
             "timeout": 10
           }
         ]
@@ -157,6 +172,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/skills/observability-as-infrastructure/hook.nu",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/doublecheck/hook.nu",
+            "timeout": 10
           }
         ]
       },
@@ -172,6 +192,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-write-plan-ingest.nu",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/mini-context-graph/hook.nu",
+            "timeout": 10
           }
         ]
       }
