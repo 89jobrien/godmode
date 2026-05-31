@@ -147,7 +147,7 @@ def main [
     let log_path = $"($repo_root)/conflict-resolution-log.md"
     let timestamp = (date now | format date "%Y-%m-%d %H:%M")
     let branch_summary = ($integrated | each { |b|
-        let sha = ($integrated_shas | get -i $b | default "unknown")
+        let sha = ($integrated_shas | get -o $b | default "unknown")
         $"- ($b) \(($sha)\)"
     } | str join "\n")
     let failed_summary = if ($failed | is-empty) { "none" } else { $failed | str join ", " }
