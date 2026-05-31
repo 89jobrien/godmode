@@ -67,7 +67,7 @@ Report: tasks completed, tasks blocked, commit SHAs.
 
 ### Step 3: Initialize wave state
 
-> (generate via `nu skills/_lib/dispatch.nu wave-state-init [<agent-names>]`)
+> (generate via `godmode wave init --wave N --agents <agent-names>`)
 
 Before dispatching, write `.ctx/wave-status.json`:
 
@@ -89,7 +89,7 @@ convergence without polling agent sessions.
 
 ### Step 4: Dispatch concurrently
 
-> (generate via `nu skills/_lib/dispatch.nu agent-prompt <repo_root> <issue> <title> <body>`)
+> (generate via `godmode agent dispatch <plan> --max N`)
 
 Cap at **5 concurrent agents**. If more than 5 independent units exist, queue the rest
 and dispatch each as a slot frees.
@@ -111,7 +111,7 @@ Instruct each agent to update wave state on finish:
 
 ### Step 5: Integrate results
 
-> (run via `nu skills/_lib/dispatch.nu integrate-branches <repo_root> [<branches>]`)
+> (run via `godmode wave check` then merge sequentially)
 
 After all agents report:
 

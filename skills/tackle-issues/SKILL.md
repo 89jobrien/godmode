@@ -70,7 +70,7 @@ if missing:
 
 For each slot, create a worktree branched from the latest main:
 
-> (automate via `nu skills/_lib/dispatch.nu setup-worktree <repo_root> <N>`)
+> (automate via `godmode worktree add <branch> --issue <N>`)
 
 ```bash
 git -C "$REPO_ROOT" fetch origin main
@@ -84,7 +84,7 @@ commands use absolute paths anchored to `$REPO_ROOT`.
 
 Spawn one `godmode-crate-agent` per slot. Each agent prompt must be self-contained:
 
-> (generate via `nu skills/_lib/dispatch.nu agent-prompt <repo_root> <N> <title> <body>`)
+> (generate via `godmode agent dispatch <plan> --max N`)
 
 ```
 You are implementing GitHub issue #<N>: <title>
@@ -142,7 +142,7 @@ git -C "$REPO_ROOT/.worktrees/issue-<N>" log --oneline -3
 
 Empty log = agent did not finish. Escalate to user, do not proceed with that slot.
 
-> (automate via `nu skills/_lib/dispatch.nu integrate-branches <repo_root> [<branches>]`)
+> (automate via `godmode wave check` then merge sequentially)
 
 2. Merge each branch into main sequentially (never octopus):
 

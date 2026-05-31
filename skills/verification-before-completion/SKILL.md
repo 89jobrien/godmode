@@ -24,7 +24,7 @@ Before saying any task is done:
 
 ## Rust Verification Sequence
 
-> Run via `nu skills/_lib/quality-gate.nu run-quality-gate [<crate>]` or use the commands below:
+> Run via `godmode verify [--crate-name <crate>]` or use the commands below:
 
 ```bash
 cargo nextest run -p <crate>              # all tests green

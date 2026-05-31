@@ -34,7 +34,7 @@ regressions.
 
 ### 1. Confirm green baseline
 
-> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+> Run via `godmode verify` or use the commands below:
 
 ```bash
 cargo nextest run --workspace
@@ -69,7 +69,7 @@ Each change:
 
 ### 5. Run full gate
 
-> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+> Run via `godmode verify` or use the commands below:
 
 ```bash
 cargo fmt --all --check

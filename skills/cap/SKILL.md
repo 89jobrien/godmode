@@ -14,7 +14,7 @@ Run the full validation gate, commit, and push in one pass.
 
 ### Step 1: Validate
 
-> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+> Run via `godmode verify` or use the commands below:
 
 ```bash
 cargo check --workspace

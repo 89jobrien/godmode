@@ -49,7 +49,7 @@ Apply the minimum targeted fix for the classified root cause. Do not refactor un
 
 Verify locally before pushing:
 
-> Run via `nu skills/_lib/quality-gate.nu run-quality-gate` or use the commands below:
+> Run via `godmode verify` or use the commands below:
 
 ```bash
 # compile_error / test_failure / clippy_warning / fmt_check
