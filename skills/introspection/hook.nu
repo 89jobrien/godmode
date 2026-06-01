@@ -2,7 +2,8 @@
 # introspection/hook.nu — Stop hook: warn if plugin conformance check fails.
 # Warn-only; always exits 0.
 
-let _input = open --raw /dev/stdin | from json
+# Stop hooks run in a restricted PATH; prepend user binary dirs
+$env.PATH = ($env.PATH | prepend $"($env.HOME)/.cargo/bin" | prepend $"($env.HOME)/.local/bin")
 
 let git_result = do { git rev-parse --show-toplevel } | complete
 if $git_result.exit_code != 0 {

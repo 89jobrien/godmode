@@ -2,8 +2,6 @@
 # hook.nu — Stop hook: warn if godmode verify has not been run since last commit.
 # Warn only — always exits 0.
 
-let _input = open --raw /dev/stdin | from json
-
 # Degrade gracefully if not in a git repo
 let git_result = do { git rev-parse --show-toplevel } | complete
 if $git_result.exit_code != 0 {
