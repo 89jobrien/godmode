@@ -93,7 +93,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:doublecheck`                     | Three-layer verification of factual claims         |
 | `godmode:mini-context-graph`              | Persistent knowledge base with entity graph        |
 | `godmode:agent-governance`                | Governance/safety patterns for AI agent systems    |
-| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-banking/ context     |
+| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context        |
 
 ## Always-Active Rules
 

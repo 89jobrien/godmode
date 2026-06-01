@@ -1,7 +1,7 @@
 ---
 name: "godmode:memory-banking"
 description: >
-  Generate and maintain a `.ctx/memory-banking/` directory that captures project context backed
+  Generate and maintain a `.ctx/memory-bank/` directory that captures project context backed
   by source code. The memory bank is injected into prompts via lifecycle hooks and updated
   incrementally as work progresses. Use when starting a new project, onboarding to an unfamiliar
   codebase, or when context drift is detected.
@@ -9,13 +9,13 @@ description: >
 
 # Memory Banking
 
-A persistent, source-backed context layer that lives at `.ctx/memory-banking/` in any project.
+A persistent, source-backed context layer that lives at `.ctx/memory-bank/` in any project.
 It captures what the project is, how it works, what's done, and what's active — grounded in
 actual code, not assumptions.
 
 ## When to use
 
-- First session in a new or unfamiliar project (no `.ctx/memory-banking/` exists)
+- First session in a new or unfamiliar project (no `.ctx/memory-bank/` exists)
 - After major architectural changes that invalidate existing context
 - When the SessionStart hook reports stale memory-bank files
 - Explicitly via `/memory-bank` or "update the memory bank"
@@ -23,7 +23,7 @@ actual code, not assumptions.
 ## Directory structure
 
 ```
-.ctx/memory-banking/
+.ctx/memory-bank/
   project-brief.md      # what, who, done-criteria
   product-context.md    # why it exists, UX principles
   tech-context.md       # stack, deps, build commands, constraints
@@ -48,7 +48,7 @@ When creating or fully regenerating the memory bank:
 2. **Populate each file** using the templates in `references/`. Every claim must trace to a
    specific file path or git SHA. Do not invent features or state that isn't evidenced in code.
 
-3. **Write to `.ctx/memory-banking/`** — create the directory if absent. Overwrite existing files
+3. **Write to `.ctx/memory-bank/`** — create the directory if absent. Overwrite existing files
    only when regenerating; for incremental updates, use the Edit tool on individual files.
 
 ## Update rules
