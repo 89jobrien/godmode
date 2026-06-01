@@ -14,13 +14,46 @@ You have godmode — a self-contained Rust-native development methodology.
 2. Godmode skills — override defaults
 3. Default system prompt — lowest
 
-## The Rule
+## Phased Workflow
 
-Invoke relevant skills BEFORE any response or action. 1% chance it applies = invoke it.
+Every non-trivial task progresses through five phases. Short
+confirmations ("do it", "act", "go") advance to the next phase.
+
+<godmode-phase name="ORIENT" mode="read-only" response-header="# Phase: ORIENT" skills="godmode handon">
+Default phase. Read files, run `godmode handon`, summarize state. No modifications.
+</godmode-phase>
+
+<godmode-phase name="PLAN" mode="read-only" response-header="# Phase: PLAN" skills="brainstorm, writing-plans">
+Produce a written plan. Still read-only. End with "Type ACT to proceed."
+</godmode-phase>
+
+<godmode-phase name="ACT" mode="read-write" response-header="# Phase: ACT" skills="task-driven-development, parallel-agents">
+Edit files, run commands, dispatch subagents. Enter on user approval.
+</godmode-phase>
+
+<godmode-phase name="VERIFY" mode="read + test" response-header="# Phase: VERIFY" skills="verification-before-completion">
+Run tests and quality gates. Return to ACT if failures. Ask to SHIP when green.
+</godmode-phase>
+
+<godmode-phase name="SHIP" mode="commit/push" response-header="# Phase: SHIP" skills="cap, handoff">
+Commit, push, handoff. Only on explicit approval. Return to ORIENT after.
+</godmode-phase>
+
+**Phase transitions**: Users can skip phases ("just fix it" = all phases in one pass).
+After each ACT turn, default to VERIFY. Multiple ACT turns are fine.
+
+## Skill Invocation Rule
+
+Before responding in any phase, check if a skill applies.
+1% chance it's relevant = invoke it.
 
 ```
 Message received → skill applies? → YES: invoke Skill tool first → NO: respond
 ```
+
+**Priority**: Process skills first (`brainstorm`, `systematic-debugging`),
+then implementation skills (`task-driven-development`, `parallel-agents`),
+then quality gates (`verification-before-completion`, `code-review`).
 
 ## Red Flags (you are rationalizing — stop)
 
@@ -28,11 +61,6 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 - "I need context first" → skill check comes before exploration
 - "The skill is overkill" → if it exists, use it
 - "Just this one thing first" → check before acting
-
-## Skill Priority
-
-1. Process skills first: `godmode:brainstorm`, `godmode:systematic-debugging`
-2. Implementation skills second: `godmode:task-driven-development`, `godmode:parallel-agents`
 
 ## Available Skills
 
@@ -65,6 +93,7 @@ Message received → skill applies? → YES: invoke Skill tool first → NO: res
 | `godmode:doublecheck`                     | Three-layer verification of factual claims         |
 | `godmode:mini-context-graph`              | Persistent knowledge base with entity graph        |
 | `godmode:agent-governance`                | Governance/safety patterns for AI agent systems    |
+| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-banking/ context     |
 
 ## Always-Active Rules
 

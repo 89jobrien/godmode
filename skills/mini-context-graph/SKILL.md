@@ -64,51 +64,13 @@ A single document ingest typically touches 3-10 wiki pages.
 
 ```bash
 # Ingest a document with entities and relations
-cat <<'JSON' | kgx ingest
-{
-  "doc_id": "doc_001",
-  "title": "System Crash Analysis",
-  "source": "/docs/incident_report.pdf",
-  "raw_content": "System crashes due to memory leaks. Memory leaks occur when objects are not released.",
-  "entities": [
-    {"name": "memory leak",  "type": "issue", "supporting_text": "memory leaks cause crashes"},
-    {"name": "system crash", "type": "issue", "supporting_text": "system crashes due to memory leaks"}
-  ],
-  "relations": [
-    {
-      "source": "memory leak",
-      "target": "system crash",
-      "type": "causes",
-      "confidence": 1.0,
-      "supporting_text": "System crashes due to memory leaks."
-    }
-  ]
-}
-JSON
+'{"doc_id":"doc_001","title":"System Crash Analysis","source":"/docs/incident_report.pdf","raw_content":"System crashes due to memory leaks. Memory leaks occur when objects are not released.","entities":[{"name":"memory leak","type":"issue","supporting_text":"memory leaks cause crashes"},{"name":"system crash","type":"issue","supporting_text":"system crashes due to memory leaks"}],"relations":[{"source":"memory leak","target":"system crash","type":"causes","confidence":1.0,"supporting_text":"System crashes due to memory leaks."}]}' | kgx ingest
 # => {"doc_id": "doc_001", "chunk_count": 1, "nodes_added": 2, "edges_added": 1}
 
-# Write a wiki summary page (content on stdin)
-cat <<'MD' | kgx wiki write --category summary --title "System Crash Analysis Summary" \
+# Write a wiki summary page (content from a file)
+# Write the markdown to a temp file, then pipe it:
+open /tmp/wiki-page.md | kgx wiki write --category summary --title "System Crash Analysis Summary" \
   --summary "Incident report: memory leaks cause system crashes."
----
-title: System Crash Analysis
-source_document: doc_001
-tags: [summary, incident]
----
-
-# System Crash Analysis
-
-**Source:** incident_report.pdf
-
-## Key Claims
-
-- [[memory-leak]] causes [[system-crash]] (confidence: 1.0)
-
-## Entities
-
-- [[memory-leak]] (issue)
-- [[system-crash]] (issue)
-MD
 ```
 
 ---
