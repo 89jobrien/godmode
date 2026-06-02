@@ -1,6 +1,7 @@
 # Plan: Cycle detection in `graph::add` (#18)
 
 **Date:** 2026-05-02
+**Status**: done
 **Issue:** #18
 **Scope:** godmode-core
 

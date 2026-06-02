@@ -13,3 +13,4 @@ target/
 # handoff-end
 .worktrees/
 .DS_Store
+.idea/

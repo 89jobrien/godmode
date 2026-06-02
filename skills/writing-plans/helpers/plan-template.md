@@ -1,5 +1,39 @@
 # Plan: <Feature Name>
 
+## Context Map
+
+### Files to Modify
+
+| File                           | Purpose | Changes Needed |
+| ------------------------------ | ------- | -------------- |
+| `crates/<crate>/src/<file>.rs` |         |                |
+
+### Dependencies (may need updates)
+
+| File | Relationship |
+| ---- | ------------ |
+|      |              |
+
+### Test Coverage
+
+| Test | Covers |
+| ---- | ------ |
+|      |        |
+
+### Reference Patterns
+
+| File | Pattern to Follow |
+| ---- | ----------------- |
+|      |                   |
+
+### Risk
+
+- [ ] Public API change — all consumers listed above
+- [ ] Serialization format change — persisted state files affected
+- [ ] CLI `--json` output change — hook/agent consumers affected
+
+---
+
 ## Goal
 
 One sentence. What does this implement and why.

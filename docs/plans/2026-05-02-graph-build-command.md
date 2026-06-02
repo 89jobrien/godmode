@@ -1,5 +1,7 @@
 # Plan: `godmode graph build` — Interactive Graph Construction
 
+**Status**: done
+
 ## Goal
 
 A `godmode graph build` subcommand that guides a human through constructing and evolving

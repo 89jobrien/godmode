@@ -1,5 +1,7 @@
 # Plan: Session Struct — Cruxx Duration Tracking, Session Summary, and rx Validation
 
+**Status**: done
+
 ## Goal
 
 Introduce a `Session` type in `godmode-core` that owns all task state transitions, real

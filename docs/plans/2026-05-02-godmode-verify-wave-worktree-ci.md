@@ -1,5 +1,7 @@
 # Plan: godmode verify, wave, worktree, ci, issue subcommands
 
+**Status**: done
+
 ## Goal
 
 Extract repeated skill-side shell logic into godmode CLI subcommands so skills reference

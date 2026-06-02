@@ -1,36 +1,168 @@
 project: godmode
 id: godmode
-updated: '20260531.163706'
-items: []
+updated: 2026-06-02
+items:
+- id: uncommitted-work
+  name: uncommitted-work
+  priority: P1
+  status: open
+  title: Uncommitted changes (71 files)
+  description: |-
+    Working tree has uncommitted changes:
+    .claude-plugin/plugin.json
+    .ctx/HANDOFF.godmode.godmode.yaml
+    .gitignore
+    README.md
+    crates/godmode-core/src/lib.rs
+    docs/plans/2026-05-01-plugin-tests-agent.md
+    docs/plans/2026-05-01-tool-integration.md
+    docs/plans/2026-05-02-build-graph-skill.md
+    docs/plans/2026-05-02-critical-path.md
+    docs/plans/2026-05-02-cycle-detection.md
+    docs/plans/2026-05-02-godmode-verify-wave-worktree-ci.md
+    docs/plans/2026-05-02-graph-build-command.md
+    docs/plans/2026-05-02-hooks-keep-on-track.md
+    docs/plans/2026-05-02-session-struct-cruxx-rx.md
+    docs/plans/2026-05-02-session-struct-impl.md
+    docs/plans/2026-05-02-skill-registry.md
+    docs/plans/2026-05-02-skills-lib-refactor.md
+    docs/plans/2026-05-02-task-templates.md
+    docs/plans/2026-05-02-unblock-all.md
+    docs/plans/2026-05-11-agent-ux-improvements.plan.md
+    hooks/install.nu
+    hooks/lib/godmode-hook-lib.nu
+    hooks/pre-commit.nu
+    hooks/pre-push.nu
+    skills/.DS_Store
+    skills/writing-plans/SKILL.md
+    skills/writing-plans/helpers/plan-template.md
+    .claude/
+    agents/INDEX.md
+    agents/changelog-agent.md
+    agents/changelog-agent.yaml
+    agents/cross-issue-agent.md
+    agents/cross-issue-agent.yaml
+    agents/dead-code-agent.md
+    agents/dead-code-agent.yaml
+    agents/dep-audit-agent.md
+    agents/dep-audit-agent.yaml
+    agents/dep-bump-propagator-agent.md
+    agents/dep-bump-propagator-agent.yaml
+    agents/doc-maintainer-agent.md
+    agents/doc-maintainer-agent.yaml
+    agents/health-score-agent.md
+    agents/health-score-agent.yaml
+    agents/issue-triage-agent.md
+    agents/issue-triage-agent.yaml
+    agents/mistake-tracker-agent.md
+    agents/mistake-tracker-agent.yaml
+    agents/pattern-learner-agent.md
+    agents/pattern-learner-agent.yaml
+    agents/pr-author-agent.md
+    agents/pr-author-agent.yaml
+    agents/release-notes-agent.md
+    agents/release-notes-agent.yaml
+    agents/workspace-refactor-agent.md
+    agents/workspace-refactor-agent.yaml
+    crates/godmode-core/src/pipeline.rs
+    docs/plans/2026-06-02-skill-pipelines.md
+    hooks/post-commit.nu
+    skills/changelog/
+    skills/cross-issue/
+    skills/dead-code/
+    skills/dep-audit/
+    skills/dep-bump/
+    skills/doc-maintainer/
+    skills/health-score/
+    skills/issue-triage/
+    skills/mistake-tracker/
+    skills/pattern-learner/
+    skills/pr-author/
+    skills/release-notes/
+    skills/workspace-refactor/
+  files:
+  - .claude-plugin/plugin.json
+  - .ctx/HANDOFF.godmode.godmode.yaml
+  - .gitignore
+  - README.md
+  - crates/godmode-core/src/lib.rs
+  - docs/plans/2026-05-01-plugin-tests-agent.md
+  - docs/plans/2026-05-01-tool-integration.md
+  - docs/plans/2026-05-02-build-graph-skill.md
+  - docs/plans/2026-05-02-critical-path.md
+  - docs/plans/2026-05-02-cycle-detection.md
+  - docs/plans/2026-05-02-godmode-verify-wave-worktree-ci.md
+  - docs/plans/2026-05-02-graph-build-command.md
+  - docs/plans/2026-05-02-hooks-keep-on-track.md
+  - docs/plans/2026-05-02-session-struct-cruxx-rx.md
+  - docs/plans/2026-05-02-session-struct-impl.md
+  - docs/plans/2026-05-02-skill-registry.md
+  - docs/plans/2026-05-02-skills-lib-refactor.md
+  - docs/plans/2026-05-02-task-templates.md
+  - docs/plans/2026-05-02-unblock-all.md
+  - docs/plans/2026-05-11-agent-ux-improvements.plan.md
+  - hooks/install.nu
+  - hooks/lib/godmode-hook-lib.nu
+  - hooks/pre-commit.nu
+  - hooks/pre-push.nu
+  - skills/.DS_Store
+  - skills/writing-plans/SKILL.md
+  - skills/writing-plans/helpers/plan-template.md
+  - .claude/
+  - agents/INDEX.md
+  - agents/changelog-agent.md
+  - agents/changelog-agent.yaml
+  - agents/cross-issue-agent.md
+  - agents/cross-issue-agent.yaml
+  - agents/dead-code-agent.md
+  - agents/dead-code-agent.yaml
+  - agents/dep-audit-agent.md
+  - agents/dep-audit-agent.yaml
+  - agents/dep-bump-propagator-agent.md
+  - agents/dep-bump-propagator-agent.yaml
+  - agents/doc-maintainer-agent.md
+  - agents/doc-maintainer-agent.yaml
+  - agents/health-score-agent.md
+  - agents/health-score-agent.yaml
+  - agents/issue-triage-agent.md
+  - agents/issue-triage-agent.yaml
+  - agents/mistake-tracker-agent.md
+  - agents/mistake-tracker-agent.yaml
+  - agents/pattern-learner-agent.md
+  - agents/pattern-learner-agent.yaml
+  - agents/pr-author-agent.md
+  - agents/pr-author-agent.yaml
+  - agents/release-notes-agent.md
+  - agents/release-notes-agent.yaml
+  - agents/workspace-refactor-agent.md
+  - agents/workspace-refactor-agent.yaml
+  - crates/godmode-core/src/pipeline.rs
+  - docs/plans/2026-06-02-skill-pipelines.md
+  - hooks/post-commit.nu
+  - skills/changelog/
+  - skills/cross-issue/
+  - skills/dead-code/
+  - skills/dep-audit/
+  - skills/dep-bump/
+  - skills/doc-maintainer/
+  - skills/health-score/
+  - skills/issue-triage/
+  - skills/mistake-tracker/
+  - skills/pattern-learner/
+  - skills/pr-author/
+  - skills/release-notes/
+  - skills/workspace-refactor/
 log:
-- date: '20260531.163706'
-  summary: Ported session-start.nu and post-write-plan-ingest.nu to rust-script; deleted
-    3 superseded _lib/ scripts (dispatch.nu, quality-gate.nu, guardrails.nu); updated
-    hooks.json and 5 SKILL.md doc references
-  commits: []
-  session: 8
-- date: '20260531.174442'
-  summary: Planned Rust port of 5 core .nu hook scripts — analysis complete, implementation
-    not started
+- date: '20260602.093547'
+  summary: done=1 running=0 pending=7 blocked=0
   commits:
-  - sha: '8869e27'
-    branch: main
-  session: 6
-- date: '20260531.152000'
-  summary: Ported 5 core hook scripts from Nushell to Rust in crates/godmode-core/src/hooks/
-  commits:
-  - sha: 9c8b427
-    branch: main
-  - sha: c8709c6
-    branch: main
-  - sha: '5801201'
-    branch: main
-  session: 7
-- date: '20260530.113354'
-  summary: done=29 running=0 pending=0 blocked=0
-  commits: []
-  session: 5
-- date: '20260516.213500'
-  summary: done=29 running=0 pending=0 blocked=0
-  commits: []
-  session: 4
+  - a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
+  - 83c3f026700902bb988c0acc63febf755fb7462d
+  - b764de84408068b4c37fb72a5b3740298e919a09
+  - 694335e2f3b87ad73b183a54fe84a82137509ed4
+  - 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
+  - d1e76d8f7b665243cec7b56c9e5fa45aaa5f67f2
+  - c8a64a9226980e2e4088d9333ef7fb77a7bf11d1
+  - de7c7c265d84c8193bbd2de9bf271173b4a4d598
+  - 92e7f450f9c2738f29ca9372a1897f2e30b5a1f3
+  - 9c8b427225d0a275037b633106309c44710f9955

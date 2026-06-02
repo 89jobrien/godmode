@@ -1,5 +1,7 @@
 # Plan: Skills `_lib/` Refactoring
 
+**Status**: done
+
 ## Goal
 
 Extract duplicated prose and command sequences from skill SKILL.md files into a set of

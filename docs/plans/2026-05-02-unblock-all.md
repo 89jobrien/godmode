@@ -1,6 +1,7 @@
 # Plan: `godmode task unblock-all` (#19)
 
 **Date:** 2026-05-02
+**Status**: done
 **Issue:** #19
 **Scope:** godmode-core + godmode-cli
 

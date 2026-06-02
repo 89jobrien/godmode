@@ -1,5 +1,7 @@
 # Agent UX Improvements
 
+**Status**: done
+
 Five changes to reduce friction for Claude Code when using godmode as its task
 orchestration backbone. Ordered by time-saved-per-session.
 

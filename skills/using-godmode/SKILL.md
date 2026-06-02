@@ -94,6 +94,19 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:mini-context-graph`              | Persistent knowledge base with entity graph        |
 | `godmode:agent-governance`                | Governance/safety patterns for AI agent systems    |
 | `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context        |
+| `godmode:changelog`                       | Parse git history into structured changelogs       |
+| `godmode:cross-issue`                     | Cross-repo issue coordination and linking          |
+| `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs |
+| `godmode:dep-audit`                       | Audit deps via cargo outdated/deny/audit           |
+| `godmode:dep-bump`                        | Propagate workspace crate version bumps downstream |
+| `godmode:doc-maintainer`                  | Audit docs against source code for drift           |
+| `godmode:health-score`                    | Measure codebase health across seven metrics       |
+| `godmode:issue-triage`                    | Triage and prioritize GitHub issues                |
+| `godmode:mistake-tracker`                 | Catalog recurring mistakes and failure modes       |
+| `godmode:pattern-learner`                 | Cross-session pattern extraction from traces       |
+| `godmode:pr-author`                       | Compose PR descriptions from branch context        |
+| `godmode:release-notes`                   | Write user-facing release notes from git history   |
+| `godmode:workspace-refactor`              | Catalog breaking changes in shared crate APIs      |
 
 ## Always-Active Rules
 
@@ -130,7 +143,7 @@ godmode handoff && godmode:self-reflect   # handoff + structured retrospective
 
 ## Additional Resources
 
-- **`references/skill-index.md`** — full trigger table, priority order, skill chain diagram
+- **`references/skill-index.json`** — structured skill registry with triggers and phase mappings
 - **`helpers/session-start.sh`** — run at session start to verify CLI and triage
 
 ## CLI Quick Reference

@@ -1,6 +1,7 @@
 # Plan: Plugin Layer, Integration Tests, and Agent Command
 
 **Date:** 2026-05-01
+**Status**: done
 **Scope:** godmode plugin + godmode-core + godmode-cli
 
 ## A — Plugin layer

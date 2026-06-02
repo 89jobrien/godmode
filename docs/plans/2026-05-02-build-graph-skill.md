@@ -1,5 +1,7 @@
 # Plan: `godmode:build-graph` Skill
 
+**Status**: done
+
 ## Goal
 
 A skill that guides humans through constructing and evolving a task graph over a session.

@@ -1,6 +1,7 @@
 # Plan: Critical path calculation (#20)
 
 **Date:** 2026-05-02
+**Status**: done
 **Issue:** #20
 **Scope:** godmode-core + godmode-cli
 

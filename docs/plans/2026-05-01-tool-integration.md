@@ -1,6 +1,7 @@
 # Plan: First-Class Tool Integration
 
 **Date:** 2026-05-01
+**Status**: done
 **Scope:** godmode-core + godmode-cli
 **Goal:** Make doob, hj, rx, and orca-strait first-class citizens of the godmode CLI.
 godmode becomes the compositor — routes to the right tool, never reimplements what they own.

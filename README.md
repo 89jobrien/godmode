@@ -14,7 +14,7 @@ Tasks persist in `.ctx/GODMODE.tasks.yaml` (gitignored) across sessions via caus
 ## Install
 
 ```bash
-cargo install --path crates/godmode-cli --root ~/.local
+cargo build --release -p godmode-cli && cp target/release/godmode ~/.cargo/bin/godmode
 claude plugin install godmode@bazaar
 ```
 
@@ -66,13 +66,42 @@ cargo gates run.
 | `godmode:wave-integration`                | Merge parallel agent branches into one commit          |
 | `godmode:moa`                             | Multi-model reasoning via mixture of agents            |
 | `godmode:todo-issue-sync`                 | Audit inline TODOs and sync to GitHub issues           |
+| `godmode:self-reflect`                    | Session retrospective — patterns and surprises         |
+| `godmode:decompose`                       | Break a large diff/PR into smaller independent PRs     |
+| `godmode:merge`                           | Merge branches, resolve conflicts, create PRs          |
+| `godmode:agent-governance`                | Governance and trust controls for AI agent systems     |
+| `godmode:context-map`                     | Map all files relevant to a task before changes        |
+| `godmode:doublecheck`                     | Three-layer verification of AI-generated output        |
+| `godmode:rust-conventions`                | Rust coding conventions and best practices             |
+| `godmode:mini-context-graph`              | Persistent knowledge graph for codebase exploration    |
+| `godmode:memory-banking`                  | Generate and maintain .ctx/memory-bank/ context        |
 
 ## Agents
 
-| Agent                 | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `godmode-crate-agent` | TDD implementation in a single Rust crate |
-| `valerie`             | Task management and session orchestration |
+| Agent              | Purpose                                            |
+| ------------------ | -------------------------------------------------- |
+| `gm-crate`         | TDD implementation in a single Rust crate          |
+| `gm-tdd-helper`    | Strict TDD — failing test before implementation    |
+| `gm-dispatch`      | Parallel dispatch of independent task chains       |
+| `gm-wave`          | Merge parallel agent branches into main            |
+| `gm-debug`         | Systematic debugging — root cause before fix       |
+| `gm-brainstorm`    | Design and architecture specialist                 |
+| `gm-planner`       | Convert approved designs into implementation plans |
+| `gm-orchestrator`  | Planning and TDD workflow orchestrator             |
+| `gm-tasker`        | Task graph management and session progress         |
+| `gm-verify`        | Verification gate before completion claims         |
+| `gm-refactor`      | Refactoring with strict test discipline            |
+| `gm-review`        | Process incoming code review feedback              |
+| `gm-code-review`   | Structured quality pass before merge               |
+| `gm-cap`           | Commit and push with cargo gates                   |
+| `gm-ci-fix`        | CI failure diagnosis and repair                    |
+| `gm-issues`        | Dispatch GitHub issues to parallel agents          |
+| `gm-orient`        | Godmode orientation and help                       |
+| `gm-testing`       | Test strategy advisor (read-only)                  |
+| `gm-trace`         | Session trace analysis (read-only)                 |
+| `gm-introspection` | Plugin audit and conformance checks                |
+| `gm-moa`           | Mixture-of-Agents synthesis                        |
+| `valerie`          | Task and todo management specialist                |
 
 ## CLI Reference
 
@@ -87,7 +116,7 @@ godmode handoff     # validate at session end — warns on tasks left running
 
 ```bash
 godmode task list
-godmode task add <id> <title> [--depends-on t1,t2] [--crate-name <crate>]
+godmode task add <title> [--id <id>] [--depends-on t1,t2] [--crate-name <crate>]
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>

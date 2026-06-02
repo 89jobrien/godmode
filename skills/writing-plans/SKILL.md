@@ -11,6 +11,22 @@ description: >
 A plan is a complete implementation guide that a fresh agent with no prior context could
 execute correctly. If it requires context not in the document, it is incomplete.
 
+## Before Writing: Context Map
+
+Run `godmode:context-map` first. A plan written without a context map will have incomplete
+task lists, missed consumers, and wrong crate assignments.
+
+The context map output populates:
+
+- **Architecture → Crates affected** — from the map's Files to Modify table
+- **Architecture → Data flow** — from dependency edges
+- **Each task's `**File(s)**:`** — exact paths from the map, not guesses
+- **Risk section** — copied directly from the map's Risk checklist
+
+Do not start writing tasks until the map is complete and reviewed.
+
+---
+
 ## Plan Structure
 
 Save to: `docs/plans/YYYY-MM-DD-<feature-name>.md`

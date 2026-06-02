@@ -1,5 +1,7 @@
 # Plan: Task Templates (`godmode task apply`)
 
+**Status**: done
+
 ## Goal
 
 Allow users to define reusable task bundles as YAML files with `{{var}}` substitution.

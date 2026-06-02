@@ -50,6 +50,20 @@ if ($push_src | path exists) {
     print $"install.nu: pre-push source not found at ($push_src) — skipping"
 }
 
+# Install post-commit hook
+let postcommit_target = $"($hooks_dir)/post-commit"
+let postcommit_src = $"($plugin_root)/hooks/post-commit.nu"
+
+if ($postcommit_src | path exists) {
+    let postcommit_wrapper = $"#!/bin/sh\nexec nu \"($postcommit_src)\" \"$@\"\n"
+    $postcommit_wrapper | save --force $postcommit_target
+    run-external "chmod" "+x" $postcommit_target
+    print $"post-commit hook installed: ($postcommit_target)"
+    print $"  -> ($postcommit_src)"
+} else {
+    print $"install.nu: post-commit source not found at ($postcommit_src) — skipping"
+}
+
 # Run hook migrations
 let migrate_result = do { godmode hook migrate } | complete
 if $migrate_result.exit_code != 0 {

@@ -1,7 +1,7 @@
 # Skill Registry & YAML Agent System
 
 **Date**: 2026-05-02
-**Status**: approved
+**Status**: done
 
 ## Goal
 
