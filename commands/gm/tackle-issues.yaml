@@ -1,4 +1,5 @@
 name: tackle-issues
+template: dispatch
 prompt: |
   Fetch open GitHub issues, group into independent units, and dispatch parallel agents.
   Follow godmode:tackle-issues exactly:

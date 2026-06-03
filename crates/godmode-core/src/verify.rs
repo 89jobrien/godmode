@@ -5,21 +5,36 @@ use anyhow::Result;
 
 #[derive(Debug, serde::Serialize)]
 pub struct StepResult {
+    pub name: String,
     pub ok: bool,
     pub output: String,
 }
 
-#[derive(Debug, serde::Serialize)]
-pub struct VerifyReport {
-    pub nextest: StepResult,
-    pub clippy: StepResult,
-    pub fmt: StepResult,
-    pub commits: StepResult,
-    pub passed: bool,
+/// A single verification step. Implement this trait to add custom gates.
+pub trait VerifyStep {
+    /// Human-readable name for this step (e.g. "nextest", "clippy").
+    fn name(&self) -> &str;
+
+    /// Execute the step. Returns `Ok(StepResult)` on completion (even if
+    /// the underlying command failed — that's recorded in `StepResult::ok`).
+    fn run(&self, root: &Path, crate_name: Option<&str>) -> Result<StepResult>;
 }
 
-pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
-    let nextest = {
+// ---------------------------------------------------------------------------
+// Built-in steps
+// ---------------------------------------------------------------------------
+
+pub struct NextestStep;
+pub struct ClippyStep;
+pub struct FmtStep;
+pub struct CommitsStep;
+
+impl VerifyStep for NextestStep {
+    fn name(&self) -> &str {
+        "nextest"
+    }
+
+    fn run(&self, root: &Path, crate_name: Option<&str>) -> Result<StepResult> {
         let mut cmd = Command::new("cargo");
         cmd.arg("nextest").arg("run");
         match crate_name {
@@ -37,13 +52,20 @@ pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
             String::from_utf8_lossy(&out.stdout),
             String::from_utf8_lossy(&out.stderr)
         );
-        StepResult {
+        Ok(StepResult {
+            name: self.name().into(),
             ok: out.status.success(),
             output,
-        }
-    };
+        })
+    }
+}
 
-    let clippy = {
+impl VerifyStep for ClippyStep {
+    fn name(&self) -> &str {
+        "clippy"
+    }
+
+    fn run(&self, root: &Path, crate_name: Option<&str>) -> Result<StepResult> {
         let mut cmd = Command::new("cargo");
         cmd.arg("clippy");
         match crate_name {
@@ -62,13 +84,20 @@ pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
             String::from_utf8_lossy(&out.stdout),
             String::from_utf8_lossy(&out.stderr)
         );
-        StepResult {
+        Ok(StepResult {
+            name: self.name().into(),
             ok: out.status.success(),
             output,
-        }
-    };
+        })
+    }
+}
 
-    let fmt = {
+impl VerifyStep for FmtStep {
+    fn name(&self) -> &str {
+        "fmt"
+    }
+
+    fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
         let out = Command::new("cargo")
             .args(["fmt", "--all", "--check"])
             .current_dir(root)
@@ -78,55 +107,103 @@ pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
             String::from_utf8_lossy(&out.stdout),
             String::from_utf8_lossy(&out.stderr)
         );
-        StepResult {
+        Ok(StepResult {
+            name: self.name().into(),
             ok: out.status.success(),
             output,
-        }
-    };
+        })
+    }
+}
 
-    let commits = {
+impl VerifyStep for CommitsStep {
+    fn name(&self) -> &str {
+        "commits"
+    }
+
+    fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
         let out = Command::new("git")
             .args(["-C", &root.to_string_lossy(), "log", "--oneline", "-3"])
             .output()?;
         let output = String::from_utf8_lossy(&out.stdout).into_owned();
         let ok = !output.trim().is_empty();
-        StepResult { ok, output }
-    };
+        Ok(StepResult {
+            name: self.name().into(),
+            ok,
+            output,
+        })
+    }
+}
 
-    let passed = nextest.ok && clippy.ok && fmt.ok && commits.ok;
+// ---------------------------------------------------------------------------
+// Report
+// ---------------------------------------------------------------------------
 
+#[derive(Debug, serde::Serialize)]
+pub struct VerifyReport {
+    pub steps: Vec<StepResult>,
+    pub passed: bool,
+}
+
+impl VerifyReport {
+    /// Look up a step result by name.
+    pub fn step(&self, name: &str) -> Option<&StepResult> {
+        self.steps.iter().find(|s| s.name == name)
+    }
+}
+
+/// Return the default set of verification steps.
+pub fn default_steps() -> Vec<Box<dyn VerifyStep>> {
+    vec![
+        Box::new(NextestStep),
+        Box::new(ClippyStep),
+        Box::new(FmtStep),
+        Box::new(CommitsStep),
+    ]
+}
+
+/// Run a set of verification steps and collect a report.
+pub fn run_steps(
+    steps: &[Box<dyn VerifyStep>],
+    root: &Path,
+    crate_name: Option<&str>,
+) -> Result<VerifyReport> {
+    let mut results = Vec::with_capacity(steps.len());
+    for step in steps {
+        results.push(step.run(root, crate_name)?);
+    }
+    let passed = results.iter().all(|r| r.ok);
     Ok(VerifyReport {
-        nextest,
-        clippy,
-        fmt,
-        commits,
+        steps: results,
         passed,
     })
+}
+
+/// Run the default verification steps (backward-compatible entry point).
+pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
+    run_steps(&default_steps(), root, crate_name)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn step(name: &str, ok: bool, output: &str) -> StepResult {
+        StepResult {
+            name: name.into(),
+            ok,
+            output: output.into(),
+        }
+    }
+
     #[test]
     fn verify_report_serialises() {
         let r = VerifyReport {
-            nextest: StepResult {
-                ok: true,
-                output: "ok".into(),
-            },
-            clippy: StepResult {
-                ok: true,
-                output: "".into(),
-            },
-            fmt: StepResult {
-                ok: true,
-                output: "".into(),
-            },
-            commits: StepResult {
-                ok: true,
-                output: "abc1234 feat: x".into(),
-            },
+            steps: vec![
+                step("nextest", true, "ok"),
+                step("clippy", true, ""),
+                step("fmt", true, ""),
+                step("commits", true, "abc1234 feat: x"),
+            ],
             passed: true,
         };
         let j = serde_json::to_string(&r).unwrap();
@@ -136,24 +213,54 @@ mod tests {
     #[test]
     fn verify_report_failed_when_any_step_fails() {
         let r = VerifyReport {
-            nextest: StepResult {
-                ok: false,
-                output: "FAILED".into(),
-            },
-            clippy: StepResult {
-                ok: true,
-                output: "".into(),
-            },
-            fmt: StepResult {
-                ok: true,
-                output: "".into(),
-            },
-            commits: StepResult {
-                ok: true,
-                output: "abc".into(),
-            },
+            steps: vec![
+                step("nextest", false, "FAILED"),
+                step("clippy", true, ""),
+                step("fmt", true, ""),
+                step("commits", true, "abc"),
+            ],
             passed: false,
         };
         assert!(!r.passed);
+    }
+
+    #[test]
+    fn step_lookup_by_name() {
+        let r = VerifyReport {
+            steps: vec![step("clippy", true, "clean")],
+            passed: true,
+        };
+        assert!(r.step("clippy").unwrap().ok);
+        assert!(r.step("nonexistent").is_none());
+    }
+
+    #[test]
+    fn default_steps_returns_four() {
+        let steps = default_steps();
+        assert_eq!(steps.len(), 4);
+        let names: Vec<&str> = steps.iter().map(|s| s.name()).collect();
+        assert_eq!(names, vec!["nextest", "clippy", "fmt", "commits"]);
+    }
+
+    /// Conformance: every built-in VerifyStep impl returns a StepResult
+    /// whose name matches the step's declared name.
+    #[test]
+    fn conformance_step_name_matches_result() {
+        struct FakeStep;
+        impl VerifyStep for FakeStep {
+            fn name(&self) -> &str {
+                "fake"
+            }
+            fn run(&self, _root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
+                Ok(StepResult {
+                    name: self.name().into(),
+                    ok: true,
+                    output: "pass".into(),
+                })
+            }
+        }
+        let s = FakeStep;
+        let result = s.run(Path::new("/tmp"), None).unwrap();
+        assert_eq!(result.name, s.name());
     }
 }

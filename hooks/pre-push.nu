@@ -41,14 +41,8 @@ let tasks = (
     catch { [] }
 )
 
-let orphaned = (
-    $tasks
-    | where { |t|
-        (($t | get --optional status | default "") == "running")
-        and ((($t | get --optional commit | default "") | is-empty))
-    }
-    | get id
-)
+let running_tasks = ($tasks | where { |t| ($t | get --optional status | default "") == "running" })
+let orphaned = ($running_tasks | where { |t| ($t | get --optional commit | default "") | is-empty } | get id)
 
 if ($orphaned | length) > 0 {
     print $"pre-push: orphaned running tasks (no commit attached): ($orphaned | str join ', ')"

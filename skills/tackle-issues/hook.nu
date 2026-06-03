@@ -3,6 +3,9 @@
 # If the completed command contained `gh issue close`, prints a reminder to verify the merge.
 # Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "tackle-issues" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 # Extract the command string from tool input
@@ -14,7 +17,7 @@ if not ($cmd | str contains "gh issue close") {
 
 # Try to extract the issue number — first numeric token after "close"
 let parts = $cmd | split row " "
-let close_idx = $parts | enumerate | where {|it| $it.item == "close"} | get 0?.index | default -1
+let close_idx = $parts | enumerate | where {|it| $it.item == "close"} | get 0?.index | default (-1)
 
 let issue_num = if $close_idx >= 0 and ($close_idx + 1) < ($parts | length) {
     $parts | get ($close_idx + 1)
@@ -28,4 +31,5 @@ if ($issue_num | is-empty) {
     print $"[godmode:tackle-issues] Issue #($issue_num) closed — verify merge in git log: `git log --oneline main | head -5`"
 }
 
+trace-end $_tid
 exit 0

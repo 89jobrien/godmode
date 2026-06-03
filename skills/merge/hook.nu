@@ -2,6 +2,9 @@
 # hook.nu — PostToolUse/Bash: after a successful git merge, remind about task state sync.
 # Always exits 0 (warn only).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "merge" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let command = $input | get tool_input?.command? | default ""
 
@@ -37,4 +40,5 @@ if ($running | length) > 0 {
     print --stderr $"[godmode:merge] Merge detected — mark task done: `godmode task done <id> --commit <sha>` (running tasks: ($ids))"
 }
 
+trace-end $_tid
 exit 0

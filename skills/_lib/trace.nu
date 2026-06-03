@@ -24,7 +24,8 @@ def session-file [] {
 }
 
 def now-ms [] {
-    date now | into int | $in / 1_000_000 | into int
+    # date now | into int → nanoseconds; // 1_000_000 → milliseconds
+    date now | into int | $in // 1_000_000
 }
 
 # Resolve or create the current session_id.
@@ -71,9 +72,11 @@ export def trace-end [trace_id: string] {
     let parts = ($trace_id | split row "#")
     let started_ms = ($parts | last | into int)
     let duration_ms = ((now-ms) - $started_ms)
+    let skill = ($parts | first | split row "." | first)
     append-event {
         event:      "skill.complete"
         trace_id:   $trace_id
+        skill:      $skill
         duration_ms: $duration_ms
         session_id: (session-id)
         ts:         (date now | format date "%+")
@@ -85,9 +88,11 @@ export def trace-error [trace_id: string, exit_code: int, stderr_tail: string] {
     let parts = ($trace_id | split row "#")
     let started_ms = ($parts | last | into int)
     let duration_ms = ((now-ms) - $started_ms)
+    let skill = ($parts | first | split row "." | first)
     append-event {
         event:       "skill.error"
         trace_id:    $trace_id
+        skill:       $skill
         exit_code:   $exit_code
         stderr_tail: ($stderr_tail | lines | last 10 | str join "\n")
         duration_ms: $duration_ms

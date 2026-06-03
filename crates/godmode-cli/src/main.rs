@@ -2,8 +2,9 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
-    agent, agent_index, builder, context, detect, dispatch, graph, integrations, memory_banking,
-    model, plan, registry, release, review, session::Session, skill, templates, workflow,
+    agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
+    memory_banking, model, plan, registry, release, review, session::Session, skill, templates,
+    workflow,
 };
 
 #[derive(Parser)]
@@ -158,6 +159,12 @@ enum Cmd {
     MemoryBanking {
         #[command(subcommand)]
         action: MemoryBankingAction,
+    },
+
+    /// Insight capture and retrieval (append-only JSONL).
+    Insight {
+        #[command(subcommand)]
+        action: InsightAction,
     },
 
     /// First-time setup: create global config and project state dirs.
@@ -513,6 +520,33 @@ enum MemoryBankingAction {
     Status,
 }
 
+#[derive(Subcommand)]
+enum InsightAction {
+    /// Record a new insight.
+    Add {
+        /// Insight title (short heading).
+        title: String,
+        /// Insight body text.
+        #[arg(long)]
+        body: String,
+        /// Optional tags (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        tags: Vec<String>,
+    },
+    /// List recorded insights.
+    List {
+        /// Filter to a specific date (YYYY-MM-DD). Defaults to today.
+        #[arg(long)]
+        date: Option<String>,
+    },
+    /// Render insights to `.ctx/insights-YYYY-MM-DD.md`.
+    Render {
+        /// Date to render (YYYY-MM-DD). Defaults to today.
+        #[arg(long)]
+        date: Option<String>,
+    },
+}
+
 /// Filter a task slice by optional priority and optional keyword.
 ///
 /// Priority filtering is applied first, then keyword filtering (case-insensitive
@@ -814,7 +848,7 @@ fn main() -> Result<()> {
                             "specify --done to clear completed tasks or --all to clear everything"
                         );
                     }
-                    let count = graph::clear(session.graph_mut(), done);
+                    let count = session.clear_tasks(done);
                     session.save()?;
                     if json {
                         println!("{}", serde_json::json!({"ok": true, "removed": count}));
@@ -938,7 +972,7 @@ fn main() -> Result<()> {
                     let path = templates::find(&root, &name)?;
                     let tmpl = templates::load(&path, &vars)?;
                     let tmpl_name = tmpl.meta.name.clone();
-                    let (applied, skipped) = templates::apply(session.graph_mut(), tmpl)?;
+                    let (applied, skipped) = session.apply_template(tmpl)?;
                     session.save()?;
                     if json {
                         println!(
@@ -1453,27 +1487,55 @@ fn main() -> Result<()> {
                 if !agents_dir.exists() {
                     anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
                 }
-                let yaml_files: Vec<std::path::PathBuf> = if all {
-                    std::fs::read_dir(&agents_dir)?
+
+                let cfg_dir = agents_dir.join("cfg");
+                let names: Vec<String> = if all {
+                    // Collect from cfg/ first, then fall back to flat YAML
+                    let mut from_cfg = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
+                    // Also pick up flat agents/*.yaml that don't have a cfg/ counterpart
+                    for entry in std::fs::read_dir(&agents_dir)?
                         .filter_map(|e| e.ok())
                         .map(|e| e.path())
                         .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
-                        .collect()
+                    {
+                        if let Some(stem) = entry
+                            .file_stem()
+                            .and_then(|s| s.to_str())
+                            .filter(|s| !from_cfg.contains(&s.to_string()))
+                        {
+                            from_cfg.push(stem.to_string());
+                        }
+                    }
+                    from_cfg
                 } else {
                     let n = name
                         .as_deref()
                         .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
-                    vec![agents_dir.join(format!("{}.yaml", n))]
+                    vec![n.to_string()]
                 };
+
                 let mut generated = 0usize;
-                for yp in &yaml_files {
-                    let def = agent::load(yp)?;
-                    let md = agent::generate_md(&def);
-                    let out = yp.with_extension("md");
-                    std::fs::write(&out, &md)?;
-                    generated += 1;
-                    if !json {
-                        println!("Generated {}", out.display());
+                for n in &names {
+                    let cfg_path = cfg_dir.join(format!("{n}.cfg.yaml"));
+                    if cfg_path.exists() {
+                        // New path: cfg + prompt -> .md
+                        let (md, out) = agent::generate_from_cfg(&agents_dir, n)?;
+                        std::fs::write(&out, &md)?;
+                        generated += 1;
+                        if !json {
+                            println!("Generated {} (from cfg)", out.display());
+                        }
+                    } else {
+                        // Legacy path: flat .yaml -> .md
+                        let yp = agents_dir.join(format!("{n}.yaml"));
+                        let def = agent::load(&yp)?;
+                        let md = agent::generate_md(&def);
+                        let out = yp.with_extension("md");
+                        std::fs::write(&out, &md)?;
+                        generated += 1;
+                        if !json {
+                            println!("Generated {}", out.display());
+                        }
                     }
                 }
                 if json {
@@ -1581,18 +1643,12 @@ fn main() -> Result<()> {
             if json {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
-                let s = |r: &godmode_core::verify::StepResult| if r.ok { "✓" } else { "✗" };
-                println!("nextest  {}", s(&report.nextest));
-                println!("clippy   {}", s(&report.clippy));
-                println!("fmt      {}", s(&report.fmt));
-                println!("commits  {}", s(&report.commits));
+                let icon = |ok: bool| if ok { "✓" } else { "✗" };
+                for step in &report.steps {
+                    println!("{:<9}{}", step.name, icon(step.ok));
+                }
                 if !report.passed {
-                    for step in [
-                        &report.nextest,
-                        &report.clippy,
-                        &report.fmt,
-                        &report.commits,
-                    ] {
+                    for step in &report.steps {
                         if !step.ok && !step.output.is_empty() {
                             eprintln!("{}", step.output);
                         }
@@ -2135,6 +2191,59 @@ fn main() -> Result<()> {
                 MemoryBankingAction::Remind => memory_banking::remind(&root, json)?,
                 MemoryBankingAction::Init => memory_banking::init(&root)?,
                 MemoryBankingAction::Status => memory_banking::status(&root, json)?,
+            }
+            Ok(())
+        }
+
+        Cmd::Insight { action } => {
+            fn parse_date_or_today(d: &Option<String>) -> Result<insights::NaiveDate> {
+                match d {
+                    Some(s) => Ok(insights::NaiveDate::parse_from_str(s, "%Y-%m-%d")?),
+                    None => Ok(insights::today()),
+                }
+            }
+
+            match action {
+                InsightAction::Add { title, body, tags } => {
+                    let insight = insights::new_insight(title, body, tags);
+                    insights::append(&root, &insight)?;
+                    if json {
+                        println!("{}", serde_json::to_string(&insight)?);
+                    } else {
+                        println!("Recorded: {}", insight.title);
+                    }
+                }
+                InsightAction::List { date } => {
+                    let d = parse_date_or_today(&date)?;
+                    let items = insights::list_for_date(&root, d)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&items)?);
+                    } else if items.is_empty() {
+                        println!("No insights for {d}.");
+                        std::process::exit(2);
+                    } else {
+                        for i in &items {
+                            let tags = if i.tags.is_empty() {
+                                String::new()
+                            } else {
+                                format!(" [{}]", i.tags.join(", "))
+                            };
+                            println!("- {}{}", i.title, tags);
+                        }
+                    }
+                }
+                InsightAction::Render { date } => {
+                    let d = parse_date_or_today(&date)?;
+                    let path = insights::render_markdown(&root, d)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({ "path": path.display().to_string() })
+                        );
+                    } else {
+                        println!("Wrote {}", path.display());
+                    }
+                }
             }
             Ok(())
         }

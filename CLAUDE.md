@@ -61,12 +61,13 @@ Two-crate workspace:
 | `release`       | Version bump, annotated tag, push, and changelog generation from git commits since last tag.                                                                                       |
 | `skill`         | Skill registry — install/uninstall skills from local paths; persists to `~/.config/godmode/registry.json`.                                                                         |
 | `registry`      | `Registry` / `RegistryEntry` types; load/save `~/.config/godmode/registry.json`.                                                                                                   |
-| `agent_index`   | Regenerates `agents/INDEX.md` from agent YAML/MD files in `agents/`.                                                                                                               |
+| `agent_index`   | Regenerates `agents/INDEX.md` from `agents/cfg/` and `agents/*.md`.                                                                                                                |
 | `session_trace` | Low-level JSONL append helpers used by `session` for trace writes.                                                                                                                 |
 | `config`        | Loads `.godmode.toml` (repo-local) or `~/.config/godmode/config.toml` (global fallback). Fields: `project_name`, `integrations` (doob/hj/rx toggles), `handoff` output settings.   |
 | `context`       | `SessionContext` struct — assembled by `godmode context [--json]`; exposes running tasks, blocked summary, recent commits, critical-path depth for hooks and subagents.            |
 | `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                             |
-| `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from agent YAML stubs; used by `agent_index`, `agent generate`, and `agent migrate`.                                     |
+| `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from `agents/cfg/*.cfg.yaml`; `generate_from_cfg` pairs with `agents/prompts/*.prompt.txt` to emit top-level `.md`.      |
+| `insights`      | Append-only JSONL insight capture (`.ctx/insights.jsonl`). `append`, `list`, `list_for_date`, `render_markdown`. Bridges to `.ctx/insights-YYYY-MM-DD.md`.                         |
 | `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.         |
 
 ### State file
@@ -162,6 +163,9 @@ godmode hook list / log [--tail N] / test <script> / migrate
 godmode skill list / install <path> / uninstall <name>
 godmode review self / skills / agents
 godmode release current / bump [--version X] / tag / push / changelog
+godmode insight add <title> --body <text> [--tags t1,t2]
+godmode insight list [--date YYYY-MM-DD] [--json]
+godmode insight render [--date YYYY-MM-DD]
 godmode session prune --older-than <days> [--dry-run]
 godmode workflow run <agent> <workflow>
 godmode workflow list [--agent <name>]
@@ -178,7 +182,10 @@ This repo is also a Claude Code plugin installed via bazaar:
 ```
 .claude-plugin/plugin.json   # name, version, author, description only — no extra fields
 skills/                      # discovered by directory scan, not declared in plugin.json
-agents/
+agents/                      # top-level *.md are GENERATED — Claude discovers these
+  cfg/*.cfg.yaml             # source of truth: structured agent config
+  prompts/*.prompt.txt       # source of truth: raw prompt text
+  INDEX.md                   # generated: agent table
 ```
 
 Plugin manifest schema accepts only: `name`, `version`, `author`, `description`. Extra fields

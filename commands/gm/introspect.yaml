@@ -1,4 +1,5 @@
 name: godmode:introspect
+template: review
 prompt: |
   Audit all godmode skills, agents, and plugin files for internal consistency.
   Follow godmode:introspection exactly:

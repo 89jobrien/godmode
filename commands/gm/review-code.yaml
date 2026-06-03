@@ -1,4 +1,5 @@
 name: review-code
+template: review
 prompt: |
   Run a structured code review on the current diff or specified files.
   Follow godmode:code-review exactly:

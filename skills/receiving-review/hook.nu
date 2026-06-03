@@ -3,6 +3,9 @@
 # Fires before every Edit tool call. If there is an open PR for the current branch
 # and the file being edited is under src/, warns to process review comments first.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "receiving-review" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let file_path = ($input | get --optional tool_input.path | default "")
@@ -36,4 +39,5 @@ if $state == "OPEN" {
     eprintln "[godmode:receiving-review] Editing src/ with open PR — process review comments via /godmode:receiving-review first"
 }
 
+trace-end $_tid
 exit 0

@@ -1,4 +1,5 @@
 name: handoff
+template: ops
 prompt: |
   Run session-end validation and write a handoff record.
   1. Run: godmode handoff

@@ -5,6 +5,9 @@
 # #[cfg(test)] in files that have test functions.
 # Always exits 0.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "rust-conventions" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.file_path | default "")
 
@@ -44,4 +47,5 @@ if $bare_unwraps > 0 {
     eprintln $"[godmode:rust-conventions] ($file_path | path basename) has ($bare_unwraps) bare unwrap\(\) — use .expect\(\"reason\"\) or return Result"
 }
 
+trace-end $_tid
 exit 0

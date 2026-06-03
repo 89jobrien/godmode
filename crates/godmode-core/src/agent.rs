@@ -154,8 +154,11 @@ pub fn migrate_md_to_yaml(md_path: &Path, out_dir: &Path) -> Result<PathBuf> {
     Ok(out_path)
 }
 
-/// Generate a Claude Code compatible `.md` file from an `AgentDef`.
-pub fn generate_md(agent: &AgentDef) -> String {
+/// Generate a Claude Code compatible `.md` file from an `AgentDef` and optional prompt text.
+///
+/// If `prompt` is `Some`, it is used as the body. Otherwise falls back to `agent.prompt`,
+/// then a placeholder comment.
+pub fn generate_md_with_prompt(agent: &AgentDef, prompt: Option<&str>) -> String {
     let mut fm_fields = vec![
         format!("name: \"{}\"", agent.name),
         format!("description: \"{}\"", agent.description.replace('"', "'")),
@@ -174,12 +177,63 @@ pub fn generate_md(agent: &AgentDef) -> String {
     }
 
     let frontmatter = fm_fields.join("\n");
-    let body = agent
-        .prompt
-        .as_deref()
+    let body = prompt
+        .or(agent.prompt.as_deref())
         .unwrap_or("<!-- generated from YAML — add prompt here -->");
 
     format!("---\n{}\n---\n\n{}\n", frontmatter, body)
+}
+
+/// Generate a Claude Code compatible `.md` file from an `AgentDef`.
+pub fn generate_md(agent: &AgentDef) -> String {
+    generate_md_with_prompt(agent, None)
+}
+
+/// Load an agent from `agents/cfg/<name>.cfg.yaml`, pair with
+/// `agents/prompts/<name>.txt`, and generate the top-level `.md`.
+///
+/// Returns `(md_content, output_path)`.
+pub fn generate_from_cfg(agents_dir: &Path, name: &str) -> Result<(String, PathBuf)> {
+    let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
+    let prompt_path = agents_dir
+        .join("prompts")
+        .join(format!("{name}.prompt.txt"));
+    let out_path = agents_dir.join(format!("{name}.md"));
+
+    let def = load(&cfg_path)?;
+    let prompt = if prompt_path.exists() {
+        Some(
+            std::fs::read_to_string(&prompt_path)
+                .with_context(|| format!("reading prompt {}", prompt_path.display()))?,
+        )
+    } else {
+        None
+    };
+
+    let md = generate_md_with_prompt(&def, prompt.as_deref());
+    Ok((md, out_path))
+}
+
+/// List all agent names available in `agents/cfg/`.
+pub fn list_cfg_agents(agents_dir: &Path) -> Result<Vec<String>> {
+    let cfg_dir = agents_dir.join("cfg");
+    if !cfg_dir.exists() {
+        return Ok(vec![]);
+    }
+    let mut names = vec![];
+    for entry in std::fs::read_dir(&cfg_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if let Some(name) = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|f| f.strip_suffix(".cfg.yaml"))
+        {
+            names.push(name.to_string());
+        }
+    }
+    names.sort();
+    Ok(names)
 }
 
 fn quote_list(items: &[String]) -> String {

@@ -2,7 +2,9 @@
 # trace-failures.nu — print all skill.error and agent.blocked events.
 # Usage: nu trace-failures.nu [--session <id>]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+let root = (do { git rev-parse --show-toplevel } | complete)
+if $root.exit_code != 0 { print "Not inside a git repo."; exit 1 }
+use ($"($root.stdout | str trim)/skills/_lib/helpers.nu") *
 
 def main [--session: string = ""] {
     let events = (open-trace)
@@ -13,6 +15,6 @@ def main [--session: string = ""] {
     if ($failures | is-empty) {
         print "No failures."
     } else {
-        $failures | select event skill? agent_id? helper? slot? exit_code? reason? ts | table
+        $failures | select event skill? agent_id? slot? exit_code? reason? ts | table
     }
 }

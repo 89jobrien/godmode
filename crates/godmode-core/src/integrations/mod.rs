@@ -47,36 +47,13 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
 
     let next_runnable = graph::runnable(&g);
 
-    let mut human = String::new();
-    if let Some(ref hj) = hj_out {
-        human.push_str(hj);
-        human.push('\n');
-    }
-    human.push_str(&format!(
-        "=== godmode: {} done, {} running, {} pending, {} blocked ===\n",
-        summary.done, summary.running, summary.pending, summary.blocked
-    ));
-    if !running_tasks.is_empty() {
-        human.push_str("In progress:\n");
-        for t in &running_tasks {
-            human.push_str(&format!("  {}\n", t));
-        }
-    }
-    if !next_runnable.is_empty() {
-        human.push_str("Next runnable:\n");
-        for t in &next_runnable {
-            let crate_tag = t
-                .crate_name
-                .as_deref()
-                .map(|c| format!(" ({})", c))
-                .unwrap_or_default();
-            human.push_str(&format!("  [{}] {}{}\n", t.id, t.title, crate_tag));
-        }
-    }
-    if let Some(ref todo) = next_todo {
-        let title = todo.get("content").and_then(|v| v.as_str()).unwrap_or("?");
-        human.push_str(&format!("Next todo (doob): {}\n", title));
-    }
+    let human = format_handon_report(
+        hj_out.as_deref(),
+        &summary,
+        &running_tasks,
+        &next_runnable,
+        next_todo.as_ref(),
+    );
 
     Ok(HandonOutput {
         human,
@@ -114,30 +91,9 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
     // Detect uncommitted/untracked files
     let dirty_files = detect_dirty_files(root);
 
-    let mut human = String::new();
-    if !running_tasks.is_empty() {
-        human.push_str(&format!(
-            "Warning: {} task(s) still running:\n",
-            running_tasks.len()
-        ));
-        for t in &running_tasks {
-            human.push_str(&format!("  {}\n", t));
-        }
-        human.push_str("Mark them done or blocked before closing.\n");
-    }
-    if !dirty_files.is_empty() {
-        human.push_str(&format!(
-            "Warning: {} uncommitted file(s) in working tree:\n",
-            dirty_files.len()
-        ));
-        for f in &dirty_files {
-            human.push_str(&format!("  {f}\n"));
-        }
-    }
-    if let Some(ref hj) = hj_out {
-        human.push_str(hj);
-        human.push('\n');
-    }
+    let mut human =
+        format_handoff_report(&running_tasks, &dirty_files, hj_out.as_deref(), &summary);
+
     // Write native HANDOFF YAML from task graph state, then sync to doob db
     if cfg.handoff.enabled {
         let session_summary = format!(
@@ -156,7 +112,7 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
 
     human.push_str(&format!(
         "Session closed. done={} running={} pending={} blocked={}\n",
-        summary.done, summary.running, summary.pending, summary.blocked
+        summary.done, summary.running, summary.pending, summary.blocked,
     ));
 
     Ok(HandoffOutput {
@@ -175,15 +131,97 @@ pub fn handoff(root: &Path) -> Result<HandoffOutput> {
 
 /// Run `git status --porcelain` and return the list of dirty files.
 fn detect_dirty_files(root: &Path) -> Vec<String> {
-    let out = std::process::Command::new("git")
-        .args(["-C", root.to_str().unwrap_or("."), "status", "--porcelain"])
-        .output();
-    match out {
-        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
-            .lines()
+    let root_str = root.to_str().unwrap_or(".");
+    subprocess::run(
+        "git",
+        &["-C", root_str, "status", "--porcelain"],
+        "git status",
+    )
+    .map(|out| {
+        out.lines()
             .filter(|l| !l.is_empty())
-            .map(|l| l.to_string())
-            .collect(),
-        _ => vec![],
+            .map(str::to_string)
+            .collect()
+    })
+    .unwrap_or_default()
+}
+
+// ---------------------------------------------------------------------------
+// Report formatters (pure string building — no I/O)
+// ---------------------------------------------------------------------------
+
+/// Format the handon (session-start) human-readable report.
+pub fn format_handon_report(
+    hj: Option<&str>,
+    summary: &crate::model::GraphSummary,
+    running_tasks: &[String],
+    next_runnable: &[&crate::model::Task],
+    next_todo: Option<&serde_json::Value>,
+) -> String {
+    let mut out = String::new();
+    if let Some(hj) = hj {
+        out.push_str(hj);
+        out.push('\n');
     }
+    out.push_str(&format!(
+        "=== godmode: {} done, {} running, {} pending, {} blocked ===\n",
+        summary.done, summary.running, summary.pending, summary.blocked
+    ));
+    if !running_tasks.is_empty() {
+        out.push_str("In progress:\n");
+        for t in running_tasks {
+            out.push_str(&format!("  {}\n", t));
+        }
+    }
+    if !next_runnable.is_empty() {
+        out.push_str("Next runnable:\n");
+        for t in next_runnable {
+            let crate_tag = t
+                .crate_name
+                .as_deref()
+                .map(|c| format!(" ({})", c))
+                .unwrap_or_default();
+            out.push_str(&format!("  [{}] {}{}\n", t.id, t.title, crate_tag));
+        }
+    }
+    if let Some(todo) = next_todo {
+        let title = todo.get("content").and_then(|v| v.as_str()).unwrap_or("?");
+        out.push_str(&format!("Next todo (doob): {}\n", title));
+    }
+    out
+}
+
+/// Format the handoff (session-end) human-readable report.
+pub fn format_handoff_report(
+    running_tasks: &[String],
+    dirty_files: &[String],
+    hj: Option<&str>,
+    summary: &crate::model::GraphSummary,
+) -> String {
+    let mut out = String::new();
+    if !running_tasks.is_empty() {
+        out.push_str(&format!(
+            "Warning: {} task(s) still running:\n",
+            running_tasks.len()
+        ));
+        for t in running_tasks {
+            out.push_str(&format!("  {}\n", t));
+        }
+        out.push_str("Mark them done or blocked before closing.\n");
+    }
+    if !dirty_files.is_empty() {
+        out.push_str(&format!(
+            "Warning: {} uncommitted file(s) in working tree:\n",
+            dirty_files.len()
+        ));
+        for f in dirty_files {
+            out.push_str(&format!("  {f}\n"));
+        }
+    }
+    if let Some(hj) = hj {
+        out.push_str(hj);
+        out.push('\n');
+    }
+    let _ = summary; // counts appended by caller after YAML write
+    out
 }

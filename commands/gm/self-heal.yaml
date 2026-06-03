@@ -1,4 +1,5 @@
 name: self-heal
+template: dev
 prompt: |
   Self-healing CI loop. Run cargo clippy + nextest + fmt, diagnose each failure, apply the
   minimal fix, re-run, repeat until all three pass clean. Do NOT commit until all green.

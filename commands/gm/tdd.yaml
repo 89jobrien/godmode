@@ -1,4 +1,5 @@
 name: tdd
+template: dev
 prompt: |
   Implement a feature or fix using strict test-driven development.
   Follow godmode:test-driven-development exactly:

@@ -3,6 +3,9 @@
 # Fires before every Edit tool call. Warns if no task is currently running in the
 # godmode task graph — edits without a running task are likely untracked refactors.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "refactoring" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 # Resolve the task file path — degrade gracefully if git root cannot be found
@@ -42,4 +45,5 @@ if $running == 0 {
     eprintln "[godmode:refactoring] No task running during edit — start a task before refactoring: `godmode task start <id>`"
 }
 
+trace-end $_tid
 exit 0

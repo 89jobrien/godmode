@@ -10,6 +10,7 @@ pub mod doctor;
 pub mod graph;
 pub mod hooks;
 pub mod init;
+pub mod insights;
 pub mod integrations;
 pub mod memory_banking;
 pub mod model;

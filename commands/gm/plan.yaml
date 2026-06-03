@@ -1,4 +1,5 @@
 name: plan
+template: plan
 prompt: |
   Write a complete implementation plan for a feature or task.
   Follow godmode:writing-plans exactly:

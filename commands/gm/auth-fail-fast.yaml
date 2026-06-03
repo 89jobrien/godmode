@@ -1,4 +1,5 @@
 name: auth-fail-fast
+template: rule
 prompt: |
   If any gh or external CLI command (gh, jira, linear) fails with an auth or permission error:
 

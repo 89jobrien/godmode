@@ -1,8 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{Context, Result, bail};
+
+use crate::integrations::subprocess;
 
 pub struct WorktreeInfo {
     pub branch: String,
@@ -37,46 +38,30 @@ pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<Workt
     ensure_gitignore(root, ".worktrees/")?;
 
     // Fetch origin main — degrade gracefully on failure
-    let fetch = Command::new("git")
-        .args([
-            "-C",
-            root.to_str().unwrap_or("."),
-            "fetch",
-            "origin",
-            "main",
-        ])
-        .output();
-    if let Err(e) = fetch {
+    let root_str = root.to_str().unwrap_or(".");
+    if let Err(e) = subprocess::run(
+        "git",
+        &["-C", root_str, "fetch", "origin", "main"],
+        "git fetch",
+    ) {
         eprintln!("warn: git fetch origin main failed: {e}");
-    } else if let Ok(out) = fetch
-        && !out.status.success()
-    {
-        eprintln!(
-            "warn: git fetch origin main exited non-zero: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
     }
 
     let worktree_path = format!(".worktrees/{branch}");
-    let out = Command::new("git")
-        .args([
+    subprocess::run(
+        "git",
+        &[
             "-C",
-            root.to_str().unwrap_or("."),
+            root_str,
             "worktree",
             "add",
             &worktree_path,
             "-b",
             branch,
-        ])
-        .output()
-        .with_context(|| "failed to run git worktree add")?;
-
-    if !out.status.success() {
-        bail!(
-            "git worktree add failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
+        ],
+        "git worktree add",
+    )
+    .with_context(|| "failed to run git worktree add")?;
 
     Ok(WorktreeInfo {
         branch: branch.to_string(),
@@ -86,52 +71,35 @@ pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<Workt
 }
 
 pub fn remove(root: &Path, branch: &str) -> Result<()> {
+    let root_str = root.to_str().unwrap_or(".");
+
     // Check for unmerged commits
     let log_arg = format!("main..{branch}");
-    let out = Command::new("git")
-        .args([
-            "-C",
-            root.to_str().unwrap_or("."),
-            "log",
-            "--oneline",
-            &log_arg,
-        ])
-        .output()
-        .with_context(|| "failed to run git log")?;
+    let log_output = subprocess::run(
+        "git",
+        &["-C", root_str, "log", "--oneline", &log_arg],
+        "git log for unmerged check",
+    )
+    .with_context(|| "failed to run git log")?;
 
-    let log_output = String::from_utf8_lossy(&out.stdout);
     if !log_output.trim().is_empty() {
         bail!("branch {branch} has unmerged commits — merge to main first");
     }
 
     let worktree_path = format!(".worktrees/{branch}");
-    let out = Command::new("git")
-        .args([
-            "-C",
-            root.to_str().unwrap_or("."),
-            "worktree",
-            "remove",
-            &worktree_path,
-        ])
-        .output()
-        .with_context(|| "failed to run git worktree remove")?;
-    if !out.status.success() {
-        bail!(
-            "git worktree remove failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
+    subprocess::run(
+        "git",
+        &["-C", root_str, "worktree", "remove", &worktree_path],
+        "git worktree remove",
+    )
+    .with_context(|| "failed to run git worktree remove")?;
 
-    let out = Command::new("git")
-        .args(["-C", root.to_str().unwrap_or("."), "branch", "-d", branch])
-        .output()
-        .with_context(|| "failed to run git branch -d")?;
-    if !out.status.success() {
-        bail!(
-            "git branch -d failed: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
-    }
+    subprocess::run(
+        "git",
+        &["-C", root_str, "branch", "-d", branch],
+        "git branch -d",
+    )
+    .with_context(|| "failed to run git branch -d")?;
 
     Ok(())
 }

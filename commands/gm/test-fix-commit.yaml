@@ -1,4 +1,5 @@
 name: test-fix-commit
+template: dev
 prompt: Run cargo test in all workspace crates, fix any failures, and commit fixes
 allowedTools:
   - Edit

@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::agent;
+
 // ---------------------------------------------------------------------------
 // Data types
 // ---------------------------------------------------------------------------
@@ -34,6 +36,11 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
     for entry in fs::read_dir(&agents_dir)? {
         let entry = entry?;
         let path = entry.path();
+
+        if path.is_dir() {
+            continue;
+        }
+
         if path.extension().and_then(|e| e.to_str()) != Some("md") {
             continue;
         }
@@ -45,6 +52,32 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
         let content = fs::read_to_string(&path)?;
         if let Some(agent) = parse_agent(&content, path) {
             entries.push(agent);
+        }
+    }
+
+    // Also load from agents/cfg/*.cfg.yaml (authoritative source)
+    let cfg_names = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
+    for name in cfg_names {
+        // Skip if we already have this agent from a flat .md
+        if entries.iter().any(|e| {
+            e.path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .map(|s| s == name)
+                .unwrap_or(false)
+        }) {
+            continue;
+        }
+        let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
+        if let Ok(def) = agent::load(&cfg_path) {
+            entries.push(AgentEntry {
+                name: def.name,
+                description: def.description,
+                color: def.color,
+                skills: def.skills,
+                tools: def.tools,
+                path: cfg_path,
+            });
         }
     }
 

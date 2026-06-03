@@ -3,6 +3,9 @@
 # Appends a JSONL trace event when godmode state-transition commands are detected.
 # Always exits 0 (non-blocking).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "observability-as-infrastructure" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let cmd = (
@@ -38,16 +41,22 @@ let exit_code = (
 let cmd_short = ($cmd | str substring 0..80)
 let ts = (date now | format date "%Y-%m-%dT%H:%M:%S%z")
 
+let session_file = $"($git_root)/.ctx/GODMODE.session.json"
+let sid = if ($session_file | path exists) {
+    try { (open $session_file).session_id } catch { "" }
+} else { "" }
+
 let event = {
     event: "hook_observed"
     cmd: $cmd_short
+    session_id: $sid
     ts: $ts
     exit_code: $exit_code
 }
 
 try {
-    $event | to json --raw | save --append $trace_file
-    "\n" | save --append $trace_file
+    $event | to json --raw | $"($in)\n" | save --append $trace_file
 }
 
+trace-end $_tid
 exit 0

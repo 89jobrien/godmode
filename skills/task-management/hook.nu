@@ -3,6 +3,9 @@
 # If .ctx/GODMODE.tasks.yaml exists, prints a one-line status summary.
 # Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "task-management" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 # Find git root; bail silently if not in a git repo
@@ -46,4 +49,5 @@ if $blocked_count > 0 {
     print "  blocked: run `godmode task unblock-all` or `godmode task list` to review"
 }
 
+trace-end $_tid
 exit 0

@@ -4,9 +4,11 @@ use anyhow::Result;
 use chrono::Utc;
 use serde::Serialize;
 
+use crate::config::Config;
 use crate::graph;
 use crate::integrations::{cruxx, rx};
 use crate::model::{GraphSummary, Status, Task, TaskGraph};
+use crate::templates;
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -15,6 +17,7 @@ use crate::model::{GraphSummary, Status, Task, TaskGraph};
 pub struct Session {
     root: PathBuf,
     graph: TaskGraph,
+    config: Config,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -39,12 +42,18 @@ pub struct TaskTiming {
 // ---------------------------------------------------------------------------
 
 impl Session {
-    /// Load (or create) a session rooted at `root`.
+    /// Load (or create) a session rooted at `root`, using default config.
     pub fn open(root: &Path) -> Result<Self> {
+        Self::open_with_config(root, &Config::load(root))
+    }
+
+    /// Load (or create) a session rooted at `root` with explicit config.
+    pub fn open_with_config(root: &Path, config: &Config) -> Result<Self> {
         let graph = graph::load(root)?;
         Ok(Self {
             root: root.to_path_buf(),
             graph,
+            config: config.clone(),
         })
     }
 
@@ -52,8 +61,30 @@ impl Session {
         &self.graph
     }
 
+    /// Escape hatch for direct graph mutation. Prefer typed Session methods
+    /// (clear_tasks, apply_template) which maintain auto-save and trace invariants.
+    #[doc(hidden)]
     pub fn graph_mut(&mut self) -> &mut TaskGraph {
         &mut self.graph
+    }
+
+    /// Clear tasks from the graph. Returns the count removed.
+    /// `done_only = true` removes only completed tasks; `false` removes all.
+    pub fn clear_tasks(&mut self, done_only: bool) -> usize {
+        let count = graph::clear(&mut self.graph, done_only);
+        if count > 0 {
+            self.auto_save();
+        }
+        count
+    }
+
+    /// Apply a template into the task graph. Returns `(applied, skipped)`.
+    pub fn apply_template(&mut self, template: templates::Template) -> Result<(usize, usize)> {
+        let result = templates::apply(&mut self.graph, template)?;
+        if result.0 > 0 {
+            self.auto_save();
+        }
+        Ok(result)
     }
 
     /// Add a task to the graph.
@@ -68,7 +99,8 @@ impl Session {
 
     /// Start a task: validate rx script if applicable, set started_at, emit trace Step.
     pub fn start_task(&mut self, id: &str) -> Result<()> {
-        if let Some(task) = self.graph.tasks.iter().find(|t| t.id == id)
+        if self.config.integrations.rx
+            && let Some(task) = self.graph.tasks.iter().find(|t| t.id == id)
             && let Some(run) = &task.run
         {
             rx::validate_run(run)?;
@@ -77,7 +109,9 @@ impl Session {
         if let Some(task) = self.graph.tasks.iter_mut().find(|t| t.id == id) {
             task.started_at = Some(Utc::now());
         }
-        let _ = self.append_step(cruxx::step_started(id));
+        if self.config.integrations.cruxx {
+            let _ = self.append_step(cruxx::step_started(id));
+        }
         self.auto_save();
         Ok(())
     }
@@ -105,21 +139,23 @@ impl Session {
 
         graph::complete(&mut self.graph, id, commit, notes)?;
 
-        let mut step = cruxx::step_completed(id, commit, notes);
-        step.duration_ms = duration_ms;
-        if duration_ms < 100 {
-            let warn = serde_json::json!({
-                "warn": "suspiciously short duration — was this a real task?"
-            });
-            step.output = Some(match step.output.take() {
-                Some(serde_json::Value::Object(mut map)) => {
-                    map.extend(warn.as_object().unwrap().clone());
-                    serde_json::Value::Object(map)
-                }
-                _ => warn,
-            });
+        if self.config.integrations.cruxx {
+            let mut step = cruxx::step_completed(id, commit, notes);
+            step.duration_ms = duration_ms;
+            if duration_ms < 100 {
+                let warn = serde_json::json!({
+                    "warn": "suspiciously short duration — was this a real task?"
+                });
+                step.output = Some(match step.output.take() {
+                    Some(serde_json::Value::Object(mut map)) => {
+                        map.extend(warn.as_object().unwrap().clone());
+                        serde_json::Value::Object(map)
+                    }
+                    _ => warn,
+                });
+            }
+            let _ = self.append_step(step);
         }
-        let _ = self.append_step(step);
         self.auto_save();
         Ok(())
     }
@@ -127,7 +163,9 @@ impl Session {
     /// Block a task with a reason.
     pub fn block_task(&mut self, id: &str, reason: &str) -> Result<()> {
         graph::block(&mut self.graph, id, reason)?;
-        let _ = self.append_step(cruxx::step_blocked(id, Some(reason)));
+        if self.config.integrations.cruxx {
+            let _ = self.append_step(cruxx::step_blocked(id, Some(reason)));
+        }
         self.auto_save();
         Ok(())
     }
@@ -577,5 +615,65 @@ mod tests {
         assert_eq!(sum.pending, 1);
         assert_eq!(sum.running, 1);
         assert_eq!(sum.done, 0);
+    }
+
+    // --- Config gating tests (fix #1: Session respects config) ---
+
+    #[test]
+    fn start_task_skips_rx_validation_when_disabled() {
+        let dir = TempDir::new().unwrap();
+        let mut cfg = crate::config::Config::default();
+        cfg.integrations.rx = false;
+        let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
+        let mut task = Task::new("t1", "A");
+        task.run = Some("rx:nonexistent-script".into());
+        s.add_task(task).unwrap();
+        // Should succeed — rx validation skipped when disabled
+        assert!(s.start_task("t1").is_ok());
+    }
+
+    #[test]
+    fn start_task_skips_cruxx_trace_when_disabled() {
+        let dir = TempDir::new().unwrap();
+        let mut cfg = crate::config::Config::default();
+        cfg.integrations.cruxx = false;
+        let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        // No session JSONL should exist when cruxx is disabled
+        let sessions_dir = dir.path().join(".ctx").join("sessions");
+        assert!(
+            !sessions_dir.exists() || std::fs::read_dir(&sessions_dir).unwrap().count() == 0,
+            "no trace files should be written when cruxx is disabled"
+        );
+    }
+
+    // --- Session::clear_tasks test (fix #3) ---
+
+    #[test]
+    fn clear_tasks_auto_saves() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.start_task("t1").unwrap();
+        s.complete_task("t1", None, None).unwrap();
+        let count = s.clear_tasks(true);
+        assert_eq!(count, 1);
+        let reloaded = graph::load(dir.path()).unwrap();
+        assert!(reloaded.tasks.is_empty(), "clear_tasks should auto-save");
+    }
+
+    #[test]
+    fn clear_tasks_done_only_keeps_pending() {
+        let dir = TempDir::new().unwrap();
+        let mut s = Session::open(dir.path()).unwrap();
+        s.add_task(Task::new("t1", "A")).unwrap();
+        s.add_task(Task::new("t2", "B")).unwrap();
+        s.start_task("t1").unwrap();
+        s.complete_task("t1", None, None).unwrap();
+        let count = s.clear_tasks(true);
+        assert_eq!(count, 1);
+        assert_eq!(s.graph().tasks.len(), 1);
+        assert_eq!(s.graph().tasks[0].id, "t2");
     }
 }

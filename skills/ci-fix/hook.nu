@@ -2,6 +2,9 @@
 # hook.nu — PostToolUse/Bash hook: after a successful git push, notify if a CI run started.
 # Always exits 0 (warn only).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "ci-fix" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let command = $input | get tool_input?.command? | default ""
@@ -43,4 +46,5 @@ if $status == "queued" or $status == "in_progress" {
     print --stderr "[godmode:ci-fix] CI run started — check status with `gh run list --limit 3`"
 }
 
+trace-end $_tid
 exit 0

@@ -1,4 +1,5 @@
 name: cap
+template: dev
 prompt: |
   Commit and Push. Run the cap workflow: validate (cargo check, nextest, clippy, fmt), stage all changes,
   derive a conventional commit message from the diff, commit, and push.

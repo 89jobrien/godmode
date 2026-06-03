@@ -1,4 +1,5 @@
 name: handon
+template: ops
 prompt: |
   Run session-start triage and orient to outstanding work.
   1. Run: godmode handon

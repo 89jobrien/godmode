@@ -1,4 +1,5 @@
 name: trace
+template: ops
 prompt: |
   Query the observability trace for this session.
   Run the appropriate helper based on what's needed:

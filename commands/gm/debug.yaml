@@ -1,4 +1,5 @@
 name: debug
+template: debug
 prompt: |
   Systematically debug a failing test or unexpected behaviour.
   Follow godmode:systematic-debugging exactly:

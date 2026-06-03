@@ -1,9 +1,9 @@
 use anyhow::Result;
 use serde::Serialize;
 use std::path::Path;
-use std::process::Command;
 
 use crate::graph;
+use crate::integrations::subprocess;
 use crate::model::Status;
 
 /// Full session context for hooks and subagents.
@@ -85,16 +85,12 @@ pub fn build(root: &Path) -> Result<SessionContext> {
 }
 
 fn git_recent_commits(root: &Path, count: usize) -> Vec<String> {
-    let output = Command::new("git")
-        .args(["log", "--oneline", &format!("-{count}")])
-        .current_dir(root)
-        .output();
-
-    match output {
-        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
-            .lines()
-            .map(|l| l.to_string())
-            .collect(),
-        _ => vec![],
-    }
+    subprocess::run_in(
+        "git",
+        &["log", "--oneline", &format!("-{count}")],
+        root,
+        "git log for recent commits",
+    )
+    .map(|out| out.lines().map(str::to_string).collect())
+    .unwrap_or_default()
 }

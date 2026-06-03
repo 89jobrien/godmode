@@ -3,6 +3,9 @@
 # Fires after every Bash tool call. If the command failed (non-zero exit) and
 # does not involve godmode or git, nudges the user to run /godmode:systematic-debugging.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "systematic-debugging" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let exit_code = ($input | get --optional tool_response.exit_code | default null)
@@ -20,4 +23,5 @@ if ($cmd | str contains "godmode") or ($cmd | str contains "git") {
 
 eprintln $"[godmode:debug] Command failed \(exit ($exit_code)\) — run /godmode:systematic-debugging before guessing a fix"
 
+trace-end $_tid
 exit 0

@@ -3,6 +3,9 @@
 # After `gh issue create`, prints the created issue URL and syncs it into the godmode task graph.
 # Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "todo-issue-sync" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let cmd = try { $input.tool_input.command | default "" } catch { "" }
@@ -28,7 +31,7 @@ let task_id = $"gh-($issue_num)"
 
 # Extract title from the gh issue create command
 # --title "..." or --title '...'
-let title_match = $cmd | parse --regex '--title ["\'](?P<title>[^"\']+)["\']'
+let title_match = $cmd | parse --regex "--title [\"'](?P<title>[^\"']+)[\"']"
 let title = if ($title_match | length) > 0 {
     $title_match | get 0.title
 } else {
@@ -44,4 +47,5 @@ if $result.exit_code == 0 {
     print $"[godmode:todo-issue-sync] Note: could not add task ($task_id) — ($result.stderr | str trim)"
 }
 
+trace-end $_tid
 exit 0

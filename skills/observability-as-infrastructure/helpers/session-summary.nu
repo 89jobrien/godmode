@@ -2,7 +2,9 @@
 # session-summary.nu — cross-session triage: what the last session left behind.
 # Usage: nu session-summary.nu [--sessions 3]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+let root = (do { git rev-parse --show-toplevel } | complete)
+if $root.exit_code != 0 { print "Not inside a git repo."; exit 1 }
+use ($"($root.stdout | str trim)/skills/_lib/helpers.nu") *
 
 def main [--sessions: int = 3] {
     let events = (open-trace)
@@ -19,26 +21,19 @@ def main [--sessions: int = 3] {
         let errors  = ($evts | where event == "skill.error"   | length)
         let blocked = ($evts | where event == "agent.blocked" | length)
         let complete = ($evts | where event == "agent.complete" | length)
-        let running = ($evts
+        let completed_ids = ($evts | where event == "agent.complete" | get agent_id)
+        let blocked_ids  = ($evts | where event == "agent.blocked"  | get agent_id)
+        let resolved_ids = ($completed_ids | append $blocked_ids)
+        let running_agents = ($evts
             | where event == "agent.start"
-            | where { |e|
-                not ($evts | any { |x| $x.event == "agent.complete" and $x.agent_id == $e.agent_id })
-                and not ($evts | any { |x| $x.event == "agent.blocked" and $x.agent_id == $e.agent_id })
-            }
-            | length)
+            | where { |e| not ($resolved_ids | any { |id| $id == $e.agent_id }) })
+        let running = ($running_agents | length)
         let decisions = ($evts | where event == "decision" | length)
 
         print $"--- ($sid) @ ($started)"
         print $"    errors=($errors)  blocked=($blocked)  agents: ($complete) complete / ($running) still-running / ($decisions) decisions"
 
-        # Surface any unresolved running tasks at session end
         if $running > 0 {
-            let running_agents = ($evts
-                | where event == "agent.start"
-                | where { |e|
-                    not ($evts | any { |x| $x.event == "agent.complete" and $x.agent_id == $e.agent_id })
-                    and not ($evts | any { |x| $x.event == "agent.blocked" and $x.agent_id == $e.agent_id })
-                })
             for a in $running_agents {
                 print $"    UNRESOLVED agent: ($a.agent_id) slot=($a.slot)"
             }

@@ -3,7 +3,6 @@ use chrono::Local;
 use std::path::{Path, PathBuf};
 
 use crate::cache;
-use crate::integrations::cruxx;
 use crate::model::{Status, Task, TaskGraph};
 
 /// Resolve the task file path relative to a repo root.
@@ -59,12 +58,7 @@ pub fn runnable(graph: &TaskGraph) -> Vec<&Task> {
 }
 
 /// Mark a task as running. Errors if the task is not pending or has unmet deps.
-/// Emits a cruxx trace event if `root` is provided.
 pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
-    start_traced(graph, id, None)
-}
-
-pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Result<()> {
     // Check deps against cached done_ids before mutating.
     let unmet: Vec<String> = {
         let done_ids = graph.done_ids();
@@ -107,8 +101,6 @@ pub fn start_traced(graph: &mut TaskGraph, id: &str, root: Option<&Path>) -> Res
         task.status = Status::Running;
     }
     graph.invalidate_done_cache();
-    // Trace step is recorded via Session::record in the session_trace layer (#36).
-    let _ = (root, &cruxx::step_started(id));
     Ok(())
 }
 
@@ -118,16 +110,6 @@ pub fn complete(
     id: &str,
     commit: Option<&str>,
     notes: Option<&str>,
-) -> Result<()> {
-    complete_traced(graph, id, commit, notes, None)
-}
-
-pub fn complete_traced(
-    graph: &mut TaskGraph,
-    id: &str,
-    commit: Option<&str>,
-    notes: Option<&str>,
-    root: Option<&Path>,
 ) -> Result<()> {
     {
         let task = graph
@@ -156,24 +138,6 @@ pub fn complete_traced(
         }
     }
     graph.invalidate_done_cache();
-    // Trace step: look up the task again (immutably) for trace metadata.
-    let task = graph
-        .tasks
-        .iter()
-        .find(|t| t.id == id)
-        .expect("task was just modified");
-    let _ = (
-        root,
-        &cruxx::step_completed(
-            task.id.as_str(),
-            task.commit.as_deref(),
-            if task.notes.is_empty() {
-                None
-            } else {
-                Some(task.notes.as_str())
-            },
-        ),
-    );
     Ok(())
 }
 
@@ -316,20 +280,14 @@ pub fn next_task_id(g: &TaskGraph) -> Result<String> {
     bail!("exhausted u64 task ID space")
 }
 
-/// Add a new task to the graph. Emits a `pending` trace event when `root` is provided.
+/// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
-    add_traced(graph, task, None)
-}
-
-pub fn add_traced(graph: &mut TaskGraph, task: Task, root: Option<&Path>) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
         bail!("task '{}' already exists", task.id);
     }
     if let Some(cycle_path) = would_create_cycle(graph, &task.id, &task.depends_on) {
         bail!("cycle detected: {}", cycle_path);
     }
-    // Trace step is recorded via Session::record in the session_trace layer (#36).
-    let _ = (root, &cruxx::step_pending(task.id.as_str()));
     graph.tasks.push(task);
     graph.invalidate_done_cache();
     Ok(())

@@ -2,6 +2,9 @@
 # hook.nu — PostToolUse/Bash hook: after git push, warn if running tasks have no commit SHA.
 # Always exits 0 (warn only).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "cap" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let command = $input | get tool_input?.command? | default ""
@@ -42,4 +45,5 @@ if ($unrecorded | length) > 0 {
     print --stderr $"[godmode:cap] Push detected but running tasks have no commit — run `godmode task done <id> --commit <sha>` (tasks: ($ids))"
 }
 
+trace-end $_tid
 exit 0

@@ -3,6 +3,9 @@
 # After any Agent tool call, checks for running tasks with no commit.
 # Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "parallel-agents" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 # Find git root; bail silently if not in a git repo
@@ -45,4 +48,5 @@ if ($running_no_commit | length) > 0 {
     print "[godmode:parallel-agents] Running tasks detected with no commit — verify subagents committed their work: `godmode task list`"
 }
 
+trace-end $_tid
 exit 0

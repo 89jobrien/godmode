@@ -4,6 +4,9 @@
 # Detects curl/wget/web-fetch patterns in bash commands.
 # Always exits 0.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "doublecheck" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let cmd = ($input | get --optional tool_input.command | default "")
 let exit_code = ($input | get --optional tool_response.exit_code | default 0)
@@ -26,4 +29,5 @@ if not $is_web_fetch {
 
 eprintln "[godmode:doublecheck] Web content fetched — verify factual claims before committing to a plan"
 
+trace-end $_tid
 exit 0

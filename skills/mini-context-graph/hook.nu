@@ -4,6 +4,9 @@
 # if a .kgx/ directory exists (knowledge graph is active for this project).
 # Always exits 0.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "mini-context-graph" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.file_path | default "")
 
@@ -35,4 +38,5 @@ if not ($kgx_dir | path exists) {
 let basename = ($file_path | path basename)
 eprintln $"[godmode:mini-context-graph] Wrote ($basename) — consider ingesting into kgx: `kgx ingest`"
 
+trace-end $_tid
 exit 0

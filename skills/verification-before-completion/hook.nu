@@ -3,6 +3,9 @@
 # Warn only — always exits 0.
 
 # Degrade gracefully if not in a git repo
+use ../_lib/trace.nu *
+let _tid = (trace-start "verification-before-completion" "hook.nu")
+
 let git_result = do { git rev-parse --show-toplevel } | complete
 if $git_result.exit_code != 0 {
     exit 0
@@ -51,4 +54,5 @@ if not $verified {
     print --stderr "[godmode:verify] Verification gate not run since last commit — run `godmode verify` before ending session"
 }
 
+trace-end $_tid
 exit 0

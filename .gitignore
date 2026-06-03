@@ -12,5 +12,9 @@ target/
 .ctx/.initialized
 # handoff-end
 .worktrees/
+commands/gm-*.md
+# Generated agent .md files (source of truth is cfg/ + prompts/)
+agents/*.md
+!agents/INDEX.md
 .DS_Store
 .idea/

@@ -1,4 +1,5 @@
 name: dispatch-all
+template: dispatch
 prompt: |
   Autonomous parallel issue resolution. Fetch all open GitHub issues, dispatch one agent per
   independent slot (cap 5), merge sequentially, close issues with commit refs.

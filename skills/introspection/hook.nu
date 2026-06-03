@@ -5,6 +5,9 @@
 # Stop hooks run in a restricted PATH; prepend user binary dirs
 $env.PATH = ($env.PATH | prepend $"($env.HOME)/.cargo/bin" | prepend $"($env.HOME)/.local/bin")
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "introspection" "hook.nu")
+
 let git_result = do { git rev-parse --show-toplevel } | complete
 if $git_result.exit_code != 0 {
     exit 0
@@ -37,4 +40,5 @@ if not $passed {
     print --stderr "[godmode:introspection] Plugin conformance issues detected — run /godmode:introspection to review"
 }
 
+trace-end $_tid
 exit 0

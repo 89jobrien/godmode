@@ -4,6 +4,9 @@
 # test file or inline test exists. If not, warn.
 # Always exits 0 (warn only, never blocks).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "testing-philosophy" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.path | default "")
 
@@ -68,4 +71,5 @@ if $test_file_exists {
 
 eprintln $"[godmode:testing-philosophy] No tests for ($file_path) — consult /godmode:testing-philosophy"
 
+trace-end $_tid
 exit 0

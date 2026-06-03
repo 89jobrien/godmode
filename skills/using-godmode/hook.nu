@@ -3,6 +3,9 @@
 # If no task graph exists, prints an orientation hint.
 # Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "using-godmode" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 # Find git root; bail silently if not in a git repo
@@ -27,4 +30,5 @@ if not $godmode_found {
 
 print "[godmode] No task graph found. Run `godmode task add <id> <title>` or `godmode plan ingest <path>` to start."
 
+trace-end $_tid
 exit 0

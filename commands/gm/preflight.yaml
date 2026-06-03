@@ -1,4 +1,5 @@
 name: preflight
+template: ops
 prompt: |
   Run pre-flight checks before pushing or starting parallel issue resolution.
 

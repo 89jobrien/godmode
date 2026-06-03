@@ -3,6 +3,9 @@
 # Informs when an LLM API call is detected during an active godmode task.
 # Always exits 0 (inform only).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "moa" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let cmd = (
@@ -55,4 +58,5 @@ if $has_running {
     print --stderr "[godmode:moa] LLM call detected during active task — consider /godmode:moa for multi-model synthesis"
 }
 
+trace-end $_tid
 exit 0

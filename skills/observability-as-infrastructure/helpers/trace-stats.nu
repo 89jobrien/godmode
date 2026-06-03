@@ -2,7 +2,9 @@
 # trace-stats.nu — duration histogram per skill, agent convergence summary.
 # Usage: nu trace-stats.nu [--session <id>]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+let root = (do { git rev-parse --show-toplevel } | complete)
+if $root.exit_code != 0 { print "Not inside a git repo."; exit 1 }
+use ($"($root.stdout | str trim)/skills/_lib/helpers.nu") *
 
 def main [--session: string = ""] {
     let events = (open-trace)

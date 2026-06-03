@@ -3,6 +3,9 @@
 # If the completed command contained `godmode wave done` or `godmode wave check`,
 # prints a wave status summary. Always exits 0. Degrades gracefully.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "wave-integration" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 
 let cmd = try { $input.tool_input.command | default "" } catch { "" }
@@ -40,4 +43,5 @@ if $pending_count == 0 and $blocked_count == 0 {
     print "  All agents settled — ready for integration"
 }
 
+trace-end $_tid
 exit 0

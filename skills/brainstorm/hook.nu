@@ -3,6 +3,9 @@
 # If writing to src/ and no design doc exists in docs/plans/ dated today, warn.
 # Always exits 0 (warn only, never blocks).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "brainstorm" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.path | default "")
 
@@ -37,4 +40,5 @@ if $today_docs == 0 {
     eprintln "[godmode:brainstorm] Writing src/ without a design doc — run /godmode:brainstorm first"
 }
 
+trace-end $_tid
 exit 0

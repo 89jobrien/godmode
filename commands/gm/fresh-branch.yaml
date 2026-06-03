@@ -1,4 +1,5 @@
 name: fresh-branch
+template: dev
 prompt: |
   Create a fresh branch from origin/main containing only the intended changes.
 

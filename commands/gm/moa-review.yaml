@@ -1,4 +1,5 @@
 name: moa-review
+template: review
 prompt: |
   Mixture-of-Agents architecture review pipeline. Analyze the current branch diff from five
   lenses in parallel, synthesize into a prioritized fix list, then dispatch TDD agents to

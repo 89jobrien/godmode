@@ -4,6 +4,9 @@
 # A context map is evidenced by .ctx/_WORKING_DIR/context-map-*.md existing.
 # Always exits 0.
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "context-map" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.file_path | default "")
 
@@ -38,4 +41,5 @@ if $maps == 0 {
     eprintln "[godmode:context-map] Editing src/ without a recent context map — run /godmode:context-map first"
 }
 
+trace-end $_tid
 exit 0

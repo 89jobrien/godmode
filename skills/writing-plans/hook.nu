@@ -3,6 +3,9 @@
 # If a Write creates a file matching docs/plans/*.md, append a trace event to
 # .ctx/GODMODE.trace.jsonl. Always exits 0 (degrades gracefully).
 
+use ../_lib/trace.nu *
+let _tid = (trace-start "writing-plans" "hook.nu")
+
 let input = open --raw /dev/stdin | from json
 let file_path = ($input | get --optional tool_input.path | default "")
 
@@ -37,4 +40,5 @@ try {
     # Degrade gracefully — trace write failures are non-fatal
 }
 
+trace-end $_tid
 exit 0

@@ -1,4 +1,5 @@
 name: ci-fix
+template: debug
 prompt: |
   Diagnose and fix the latest CI failure on the current branch.
   Follow godmode:ci-fix exactly:
