@@ -1,4 +1,4 @@
-//! Cruxx trace integration — build `cruxx_core::Step` values for godmode task transitions.
+//! Cruxx trace integration — build `crux_runtime::Step` values for godmode task transitions.
 //!
 //! Each constructor returns a `Step` ready to be recorded into a `Session` (see
 //! `session_trace`). The `trace_file` path helper is retained for the session layer.
@@ -6,7 +6,7 @@
 use std::path::{Path, PathBuf};
 
 use chrono::Utc;
-use cruxx_core::types::step::{Step, StepKind, StepStatus};
+use crux_runtime::types::step::{Step, StepKind, StepStatus};
 use tracing::instrument;
 
 fn started_at() -> chrono::DateTime<Utc> {
@@ -33,6 +33,8 @@ pub fn step_pending(task_id: impl Into<String>) -> Step {
         error: None,
         attempt: 0,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 
@@ -56,6 +58,8 @@ pub fn step_started(task_id: impl Into<String>) -> Step {
         error: None,
         attempt: 1,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 
@@ -97,6 +101,8 @@ pub fn step_completed(
         error: None,
         attempt: 1,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 
@@ -123,6 +129,8 @@ pub fn step_blocked(task_id: impl Into<String>, reason: Option<&str>) -> Step {
         error: reason.map(str::to_string),
         attempt: 1,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 

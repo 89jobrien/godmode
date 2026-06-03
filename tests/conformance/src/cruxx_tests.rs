@@ -1,9 +1,9 @@
 //! Conformance tests for godmode_core::integrations::cruxx — Step constructor API.
 
 use chrono::Utc;
-use cruxx_core::types::crux_value::Crux;
-use cruxx_core::types::error::CruxErr;
-use cruxx_core::types::step::{Step, StepKind, StepStatus};
+use crux_runtime::types::crux_value::Crux;
+use crux_runtime::types::error::CruxErr;
+use crux_runtime::types::step::{Step, StepKind, StepStatus};
 use godmode_core::integrations::cruxx;
 use godmode_core::model::TaskGraph;
 use godmode_core::session_trace::Session;
@@ -22,6 +22,8 @@ fn make_step(name: &str) -> Step {
         error: None,
         attempt: 1,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 
@@ -127,7 +129,7 @@ impl ConformanceTest for CruxxStepsSerializeRoundtrip {
         ];
         for step in &steps {
             let json = serde_json::to_string(step).unwrap();
-            let back: cruxx_core::types::step::Step = serde_json::from_str(&json).unwrap();
+            let back: crux_runtime::types::step::Step = serde_json::from_str(&json).unwrap();
             if back.name != step.name {
                 ctx.fail(&format!("name mismatch after roundtrip: {}", step.name));
             }

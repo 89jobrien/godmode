@@ -1,7 +1,7 @@
 use chrono::Utc;
-use cruxx_core::types::crux_value::Crux;
-use cruxx_core::types::error::CruxErr;
-use cruxx_core::types::step::{Step, StepKind, StepStatus};
+use crux_runtime::types::crux_value::Crux;
+use crux_runtime::types::error::CruxErr;
+use crux_runtime::types::step::{Step, StepKind, StepStatus};
 use godmode_core::integrations::cruxx;
 use godmode_core::model::TaskGraph;
 use godmode_core::session_trace::Session;
@@ -124,7 +124,7 @@ fn steps_serialize_to_valid_json() {
     ];
     for step in &steps {
         let json = serde_json::to_string(step).unwrap();
-        let back: cruxx_core::types::step::Step = serde_json::from_str(&json).unwrap();
+        let back: crux_runtime::types::step::Step = serde_json::from_str(&json).unwrap();
         assert_eq!(back.name, step.name);
         assert_eq!(back.status, step.status);
     }

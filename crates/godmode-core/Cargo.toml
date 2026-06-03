@@ -18,7 +18,7 @@ chrono = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 slashcrux = { workspace = true }
-cruxx-core = { workspace = true }
+crux-runtime = { workspace = true }
 toml = "0.8"
 which = "7"
 tracing = { workspace = true }

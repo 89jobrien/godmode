@@ -2,10 +2,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use chrono::Utc;
-use cruxx_core::types::crux_value::Crux;
-use cruxx_core::types::error::CruxErr;
-use cruxx_core::types::id::CruxId;
-use cruxx_core::types::step::Step;
+use crux_runtime::types::crux_value::Crux;
+use crux_runtime::types::error::CruxErr;
+use crux_runtime::types::id::CruxId;
+use crux_runtime::types::step::Step;
 
 use crate::graph;
 use crate::model::TaskGraph;
@@ -77,7 +77,7 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cruxx_core::types::step::{StepKind, StepStatus};
+    use crux_runtime::types::step::{StepKind, StepStatus};
     use tempfile::TempDir;
 
     fn make_step(name: &str) -> Step {

@@ -243,7 +243,7 @@ impl Session {
         }
     }
 
-    fn append_step(&self, step: cruxx_core::types::step::Step) -> Result<()> {
+    fn append_step(&self, step: crux_runtime::types::step::Step) -> Result<()> {
         use std::io::Write;
         let dir = cruxx::sessions_dir(&self.root);
         std::fs::create_dir_all(&dir)?;
