@@ -94,3 +94,59 @@ fn git_recent_commits(root: &Path, count: usize) -> Vec<String> {
     .map(|out| out.lines().map(str::to_string).collect())
     .unwrap_or_default()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::{Task, TaskGraph};
+
+    #[test]
+    fn build_empty_graph() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let ctx = build(dir.path()).unwrap();
+        assert!(ctx.running.is_empty());
+        assert_eq!(ctx.pending_count, 0);
+        assert!(ctx.blocked.is_empty());
+        assert_eq!(ctx.critical_path_depth, 0);
+    }
+
+    #[test]
+    fn build_counts_statuses() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mut g = TaskGraph::default();
+        let mut t1 = Task::new("t1", "Running task");
+        t1.status = Status::Running;
+        t1.crate_name = Some("foo".into());
+        g.tasks.push(t1);
+        g.tasks.push(Task::new("t2", "Pending task"));
+        let mut t3 = Task::new("t3", "Blocked task");
+        t3.status = Status::Blocked;
+        t3.notes = "waiting on review".into();
+        g.tasks.push(t3);
+        graph::save(dir.path(), &g).unwrap();
+
+        let ctx = build(dir.path()).unwrap();
+        assert_eq!(ctx.running.len(), 1);
+        assert_eq!(ctx.running[0].id, "t1");
+        assert_eq!(ctx.running[0].crate_name.as_deref(), Some("foo"));
+        assert_eq!(ctx.pending_count, 1);
+        assert_eq!(ctx.blocked.len(), 1);
+        assert_eq!(ctx.blocked[0].reason, "waiting on review");
+    }
+
+    #[test]
+    fn build_serializes_to_json() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let ctx = build(dir.path()).unwrap();
+        let json = serde_json::to_string(&ctx).unwrap();
+        assert!(json.contains("\"pending_count\""));
+        assert!(json.contains("\"critical_path_depth\""));
+    }
+
+    #[test]
+    fn git_recent_commits_returns_empty_for_non_git_dir() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let commits = git_recent_commits(dir.path(), 5);
+        assert!(commits.is_empty());
+    }
+}

@@ -1,8 +1,9 @@
 project: godmode
 id: godmode
-updated: 2026-06-02
+updated: 2026-06-03
 items:
 - id: uncommitted-work
+  doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
@@ -268,17 +269,9 @@ items:
   - skills/pr-author/
   - skills/release-notes/
   - skills/workspace-refactor/
+  completed: null
+  extra: []
 log:
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
-  commits:
-  - a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
-  - 83c3f026700902bb988c0acc63febf755fb7462d
-  - b764de84408068b4c37fb72a5b3740298e919a09
-  - 694335e2f3b87ad73b183a54fe84a82137509ed4
-  - 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
-  - d1e76d8f7b665243cec7b56c9e5fa45aaa5f67f2
-  - c8a64a9226980e2e4088d9333ef7fb77a7bf11d1
-  - de7c7c265d84c8193bbd2de9bf271173b4a4d598
-  - 92e7f450f9c2738f29ca9372a1897f2e30b5a1f3
-  - 9c8b427225d0a275037b633106309c44710f9955
+  commits: []

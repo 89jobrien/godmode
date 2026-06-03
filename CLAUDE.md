@@ -170,6 +170,8 @@ godmode session prune --older-than <days> [--dry-run]
 godmode workflow run <agent> <workflow>
 godmode workflow list [--agent <name>]
 godmode workflow status <name>
+godmode scaffold <crate> <dimension>                    # test stub generator
+godmode test-check <path>                               # check if .rs file has tests
 ```
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.

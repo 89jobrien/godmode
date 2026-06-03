@@ -94,6 +94,8 @@ mod tests {
             error: None,
             attempt: 1,
             events: vec![],
+            metadata: Default::default(),
+            findings: vec![],
         }
     }
 

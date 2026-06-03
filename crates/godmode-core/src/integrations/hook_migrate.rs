@@ -63,3 +63,49 @@ pub fn run_migrations(root: &Path) -> Result<Vec<MigrationResult>> {
 
     Ok(results)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn no_migrations_dir_returns_empty() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let results = run_migrations(dir.path()).unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn empty_migrations_dir_returns_empty() {
+        let dir = tempfile::TempDir::new().unwrap();
+        std::fs::create_dir_all(dir.path().join("hooks/migrations")).unwrap();
+        let results = run_migrations(dir.path()).unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn non_nu_files_are_ignored() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mig_dir = dir.path().join("hooks/migrations");
+        std::fs::create_dir_all(&mig_dir).unwrap();
+        std::fs::write(mig_dir.join("readme.md"), "not a script").unwrap();
+        std::fs::write(mig_dir.join("script.sh"), "#!/bin/sh").unwrap();
+        let results = run_migrations(dir.path()).unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn scripts_run_in_sorted_order() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let mig_dir = dir.path().join("hooks/migrations");
+        std::fs::create_dir_all(&mig_dir).unwrap();
+        // Create two nu scripts that write to a shared file in order.
+        // Even if nu isn't available, we verify the names are sorted.
+        std::fs::write(mig_dir.join("002-second.nu"), "echo second").unwrap();
+        std::fs::write(mig_dir.join("001-first.nu"), "echo first").unwrap();
+        let results = run_migrations(dir.path()).unwrap();
+        assert_eq!(results.len(), 2);
+        assert_eq!(results[0].name, "001-first.nu");
+        assert_eq!(results[1].name, "002-second.nu");
+    }
+}

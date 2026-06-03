@@ -12,9 +12,9 @@ mod tests {
     #[test]
     fn add_task_with_duplicate_id_returns_err() {
         let mut g = TaskGraph::default();
-        let t = Task::new("t1".into(), "First".into());
-        g.add(t.clone()).unwrap();
-        assert!(g.add(t).is_err());
+        graph::add(&mut g, Task::new("t1", "First")).unwrap();
+        let err = graph::add(&mut g, Task::new("t1", "Duplicate"));
+        assert!(err.is_err());
     }
 }
 ```
@@ -24,37 +24,89 @@ mod tests {
 ```rust
 use proptest::prelude::*;
 
-prop_compose! {
-    fn arb_task_id()(s in "[a-z][a-z0-9-]{0,15}") -> String { s }
+fn task_id() -> impl Strategy<Value = String> {
+    "[a-z][a-z0-9]{0,7}".prop_map(|s| s)
 }
 
-prop_compose! {
-    fn arb_task()(id in arb_task_id(), title in ".*") -> Task {
-        Task::new(id, title)
-    }
+fn task_title() -> impl Strategy<Value = String> {
+    "[A-Za-z][A-Za-z0-9 ]{1,30}".prop_map(|s| s)
 }
 
 proptest! {
     #[test]
-    fn add_then_remove_leaves_graph_unchanged(task in arb_task()) {
+    fn add_then_remove_leaves_graph_unchanged(
+        id in task_id(), title in task_title()
+    ) {
         let mut g = TaskGraph::default();
-        let id = task.id.clone();
-        g.add(task).unwrap();
-        g.remove(&id).unwrap();
+        graph::add(&mut g, Task::new(id.clone(), title)).unwrap();
+        graph::remove(&mut g, &id).unwrap();
         prop_assert!(g.tasks.is_empty());
     }
 
     #[test]
-    fn runnable_tasks_have_no_unmet_deps(tasks in prop::collection::vec(arb_task(), 1..10)) {
-        let mut g = TaskGraph::default();
-        for t in tasks { let _ = g.add(t); }
-        for t in g.runnable() {
-            prop_assert!(t.depends_on.is_empty() ||
-                t.depends_on.iter().all(|d| g.tasks.iter().any(|x| &x.id == d && x.status == Status::Done)));
+    fn runnable_tasks_have_no_unmet_deps(g in arb_dag(8)) {
+        let done_ids: HashSet<&str> = g.tasks.iter()
+            .filter(|t| t.status == Status::Done)
+            .map(|t| t.id.as_str())
+            .collect();
+        for t in graph::runnable(&g) {
+            for dep in &t.depends_on {
+                prop_assert!(done_ids.contains(dep.as_str()));
+            }
         }
     }
 }
 ```
+
+## Fuzz
+
+```rust
+// fuzz/fuzz_targets/fuzz_yaml_roundtrip.rs
+#![no_main]
+use libfuzzer_sys::fuzz_target;
+use godmode_core::model::TaskGraph;
+
+fuzz_target!(|data: &[u8]| {
+    if let Ok(s) = std::str::from_utf8(data) {
+        if let Ok(graph) = serde_yaml::from_str::<TaskGraph>(s) {
+            let _ = serde_yaml::to_string(&graph);
+            // Assert invariant inside fuzz target:
+            let s = graph.summary();
+            assert_eq!(
+                s.done + s.running + s.pending + s.blocked,
+                graph.tasks.len()
+            );
+        }
+    }
+});
+```
+
+Run with: `cargo +nightly fuzz run fuzz_yaml_roundtrip -- -max_total_time=60`
+
+## Model Check
+
+```rust
+#[cfg(kani)]
+mod kani_proofs {
+    use super::*;
+
+    #[kani::proof]
+    #[kani::unwind(5)]
+    fn check_concurrency_tracker_never_exceeds_max() {
+        let max: usize = kani::any();
+        kani::assume(max > 0 && max <= 10);
+        let mut tracker = ConcurrencyTracker::new(max);
+        // Symbolic sequence of acquire/release
+        for _ in 0..5 {
+            let action: bool = kani::any();
+            if action { tracker.try_acquire(); } else { tracker.release(); }
+            assert!(tracker.active() <= max);
+        }
+    }
+}
+```
+
+Run with: `cargo kani --harness check_concurrency_tracker_never_exceeds_max`
 
 ## Conformance
 
@@ -99,7 +151,7 @@ fn graph_round_trips_through_yaml() {
     let root = dir.path();
 
     let mut g = graph::load(root).expect("load empty");
-    graph::add(&mut g, Task::new("t1".into(), "One".into())).unwrap();
+    graph::add(&mut g, Task::new("t1", "One")).unwrap();
     graph::save(root, &g).expect("save");
 
     let g2 = graph::load(root).expect("reload");
@@ -116,11 +168,10 @@ fn graph_round_trips_through_yaml() {
 #[test]
 fn runnable_does_not_panic_on_self_dep() {
     let mut g = TaskGraph::default();
-    let mut t = Task::new("t1".into(), "Self".into());
+    let mut t = Task::new("t1", "Self");
     t.depends_on = vec!["t1".into()]; // self-referential
-    g.add(t).unwrap();
-    // must not panic
-    let _ = g.runnable();
+    // graph::add rejects cycles — this is the expected guard
+    assert!(graph::add(&mut g, t).is_err());
 }
 ```
 

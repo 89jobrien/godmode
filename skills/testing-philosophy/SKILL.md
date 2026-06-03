@@ -64,22 +64,26 @@ contains `unsafe`, fuzz it. Property tests generate structured inputs; fuzz test
 generate arbitrary byte sequences. They find panics, integer overflows, and logic
 errors that structured generation misses.
 
-- Use `cargo-fuzz` (libFuzzer) or `afl.rs`; targets live in `fuzz/fuzz_targets/`
+- Use `cargo-fuzz` (libFuzzer); targets live in `fuzz/fuzz_targets/`
+- The `fuzz/` crate must be excluded from the workspace (`workspace.exclude = ["fuzz"]`)
 - Seed corpus in `fuzz/corpus/<target>/` — commit representative inputs
-- Run locally with: `cargo fuzz run <target> -- -max_total_time=60`
-- Good candidates: tar extraction, OCI manifest parsing, socket framing, path validation,
-  any function that calls `unsafe`, any function that deserialises untrusted bytes
+- Requires nightly: `cargo +nightly fuzz run <target> -- -max_total_time=60`
+- Good candidates: markdown/YAML/TOML parsers, template substitution, any function
+  that deserialises external strings, any function that calls `unsafe`
 - A fuzz target that finds no crash in 60s on first run is table stakes, not done —
   add it to CI with a short time budget (`-max_total_time=30`)
+- Assert lightweight invariants inside fuzz targets, not just crash-freedom — e.g.
+  verify summary counts equal task count after deserialising arbitrary YAML
 
 ```rust
-// fuzz/fuzz_targets/fuzz_parse_manifest.rs
+// fuzz/fuzz_targets/fuzz_plan_parse.rs
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {
-        let _ = minibox_core::image::parse_manifest(s);
+        // plan::parse must never panic on arbitrary markdown input.
+        let _ = godmode_core::plan::parse(s);
     }
 });
 ```
@@ -141,6 +145,10 @@ CI integration:
 ```bash
 cargo kani --output-format terse
 ```
+
+**Note:** Kani has significant setup cost. If property tests already cover the same
+invariants with `proptest`, defer model checking until a correctness bug surfaces that
+property tests missed.
 
 ### Conformance — for every new `impl Trait`
 
@@ -208,4 +216,7 @@ recur.
 
 - **`references/dimension-examples.md`** — concrete Rust examples for each dimension (unit,
   property, fuzz, model check, conformance, integration, regression)
-- **`helpers/test-scaffold.nu`** — generate test module stubs for a given crate and dimension
+- **`godmode scaffold <crate> <dimension>`** — generate test module stubs (Rust impl in
+  `godmode-core/src/scaffold.rs`; `helpers/test-scaffold.nu` is a thin shim)
+- **`godmode test-check <path>`** — check whether a `.rs` file has associated tests (Rust
+  impl in `godmode-core/src/test_check.rs`; `hook.nu` is a thin shim)

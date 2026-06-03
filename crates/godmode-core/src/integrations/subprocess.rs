@@ -44,3 +44,39 @@ pub fn run_in(
     }
     Ok(String::from_utf8_lossy(&out.stdout).into_owned())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn run_echo_returns_stdout() {
+        let out = run("echo", &["hello"], "echo test").unwrap();
+        assert_eq!(out.trim(), "hello");
+    }
+
+    #[test]
+    fn run_missing_binary_returns_error() {
+        let err = run("__nonexistent_bin_xyz__", &[], "test").unwrap_err();
+        assert!(
+            err.to_string().contains("not found on PATH"),
+            "error should mention PATH: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn run_failing_command_returns_error() {
+        let err = run("false", &[], "test false").unwrap_err();
+        assert!(err.to_string().contains("failed"));
+    }
+
+    #[test]
+    fn run_in_respects_cwd() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let out = run_in("pwd", &[], dir.path(), "pwd test").unwrap();
+        let expected = std::fs::canonicalize(dir.path()).unwrap();
+        let actual = std::fs::canonicalize(out.trim()).unwrap();
+        assert_eq!(actual, expected);
+    }
+}

@@ -1,5 +1,6 @@
 [workspace]
 members = ["crates/godmode-core", "crates/godmode-cli", "tests/conformance"]
+exclude = ["fuzz"]
 resolver = "2"
 
 [workspace.package]

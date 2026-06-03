@@ -11,6 +11,8 @@ pub mod harness;
 pub mod plan_tests;
 pub mod plugin_structure_tests;
 pub mod property_tests;
+pub mod session_property_tests;
+pub mod wave_property_tests;
 pub mod wave_tests;
 
 /// Build a `TestRunner` pre-loaded with all conformance tests.

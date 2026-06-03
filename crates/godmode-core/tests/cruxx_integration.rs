@@ -20,6 +20,8 @@ fn make_step(name: &str) -> Step {
         error: None,
         attempt: 1,
         events: vec![],
+        metadata: Default::default(),
+        findings: vec![],
     }
 }
 

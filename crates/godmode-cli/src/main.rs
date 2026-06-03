@@ -172,6 +172,20 @@ enum Cmd {
 
     /// Validate environment: required tools, 1Password auth, worktrees.
     Doctor,
+
+    /// Generate a test module stub for a crate and testing dimension.
+    Scaffold {
+        /// Crate name (e.g. godmode-core).
+        crate_name: String,
+        /// Testing dimension: unit, property, fuzz, conformance, integration, regression.
+        dimension: String,
+    },
+
+    /// Check whether a Rust source file has associated tests.
+    TestCheck {
+        /// Path to the .rs file to check.
+        path: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -2310,6 +2324,41 @@ fn main() -> Result<()> {
                 }
             }
             Ok(())
+        }
+
+        Cmd::Scaffold {
+            crate_name,
+            dimension,
+        } => {
+            use godmode_core::scaffold::{self, Dimension};
+
+            let dim: Dimension = dimension.parse().map_err(|e: String| anyhow::anyhow!(e))?;
+            let stub = scaffold::generate(&crate_name, dim);
+            println!("{stub}");
+            Ok(())
+        }
+
+        Cmd::TestCheck { path } => {
+            use godmode_core::test_check;
+
+            let git_root = detect::root_or_cwd()
+                .unwrap_or_else(|_| std::env::current_dir().unwrap_or_default());
+            match test_check::check_test_coverage(&path, &git_root) {
+                Some(msg) => {
+                    if json {
+                        println!("{}", serde_json::json!({"covered": false, "message": msg}));
+                    } else {
+                        eprintln!("{msg}");
+                    }
+                    std::process::exit(2);
+                }
+                None => {
+                    if json {
+                        println!("{}", serde_json::json!({"covered": true}));
+                    }
+                    Ok(())
+                }
+            }
         }
     }
 }
