@@ -1,0 +1,22 @@
+name: gm-doc-maintainer-agent
+version: 1.0.0
+description: |
+  Documentation maintainer. Use when asked to "check docs", "audit documentation", "sync docs with code", or "find stale docs". Compares CLAUDE.md, README.md, INDEX.md, skill descriptions, and CLI help output against actual source code. Reports stale references, undocumented features, and cross-doc inconsistencies. Can fix findings when asked.
+triggers: []
+model: inherit
+color: cyan
+tools:
+  - Read
+  - Edit
+  - Write
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - doc-maintainer
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

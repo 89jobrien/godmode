@@ -19,3 +19,4 @@ agents/*.md
 .DS_Store
 .idea/
 fuzz/
+.claude/settings.local.json

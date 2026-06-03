@@ -1,0 +1,23 @@
+name: gm-dep-audit-agent
+version: 1.0.0
+description: |
+  Dependency auditor. Use when asked to "check deps", "audit dependencies",
+  "outdated crates", or "security audit". Combines cargo outdated, cargo deny
+  check, and cargo audit into one tiered report. Can auto-apply patch bumps
+  when asked.
+triggers: []
+model: inherit
+color: green
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - dep-audit
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

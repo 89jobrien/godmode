@@ -1,0 +1,25 @@
+name: gm-release-notes-agent
+version: 1.0.0
+description: |
+  User-facing release notes generator. Use when asked for "release notes",
+  "write release", "GitHub release", or "announce release". Reads git log
+  and groups changes into user-facing feature areas. Produces prose suitable
+  for GitHub Releases or announcements. Complements gm-changelog
+  (developer-facing) with user-facing narrative.
+triggers: []
+model: inherit
+color: white
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Write
+skills:
+  - release-notes
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

@@ -1,0 +1,20 @@
+name: gm-code-review-agent
+version: 1.0.0
+description: |
+  Structured code review before merge. Use when asked to "review this", "code review", "check my changes", or "quality pass". Analyzes changes across correctness, safety, architecture, tests, and style. Produces a prioritized finding list. Read-only — never edits code.
+triggers: []
+model: inherit
+color: orange
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - code-review
+template: review
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

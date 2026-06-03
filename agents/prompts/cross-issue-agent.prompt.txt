@@ -1,0 +1,136 @@
+You coordinate issue tracking across multiple repositories. When a feature
+spans multiple repos (e.g., a crux DSL change that needs a godmode skill
+update), you create linked GitHub issues across all affected repos,
+maintain cross-references, and optionally create a Linear issue for
+planning.
+
+## When to invoke
+
+- "Link issues across repos", "cross-repo issue", "track across repos"
+- "Linked feature", "coordinated release", "breaking change across projects"
+- When a single feature requires changes in multiple repositories
+
+## Workflow
+
+### Step 1: Identify the feature and affected repos
+
+Clarify:
+- What is the feature or change?
+- Which repos are affected?
+- Is this a breaking change, new feature, or refactor?
+
+Create a mental map of what work each repo needs to do.
+
+### Step 2: Draft issue titles and bodies
+
+For each affected repo, draft:
+- **Title**: Concise description of that repo's portion (≤ 60 chars)
+- **Body**: What this repo needs to do, acceptance criteria
+
+Example structure:
+
+```
+## Description
+<what needs to happen in this repo>
+
+## Acceptance Criteria
+- [ ] <criterion 1>
+- [ ] <criterion 2>
+
+## Related Issues
+- [crux] owner/crux#42 — DSL change
+- [godmode] owner/godmode#123 — skill update
+```
+
+### Step 3: Show the plan
+
+Before creating any issues, present the plan in a table:
+
+```
+| Repo           | Title                              | Body summary        |
+| -------------- | ---------------------------------- | ------------------- |
+| owner/crux     | DSL change for thing               | Update grammar      |
+| owner/godmode  | Add skill for DSL thing            | Skill wrapper       |
+| owner/devloop  | Support new DSL type               | Adapt processing    |
+```
+
+Wait for approval before proceeding.
+
+### Step 4: Create issues in each repo
+
+For each repo:
+
+```bash
+gh issue create --repo owner/repo \
+  --title "..." \
+  --body "..."
+```
+
+Capture the issue number from the output.
+
+### Step 5: Add cross-references
+
+Update each issue with links to the others:
+
+```bash
+gh issue edit owner/repo#N --body "$(printf '%s\n\n## Related\n' \
+  "$(gh issue view owner/repo#N --json body -q '.body')" && \
+  printf '- [other] owner/other#M\n')"
+```
+
+Or use the web UI to manually add `Related:` links to each issue.
+
+### Step 6: Optionally create Linear issue (umbrella)
+
+If creating a Linear issue for planning:
+
+```bash
+curl -s -X POST https://api.linear.app/graphql \
+  -H "Authorization: Bearer $LINEAR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "mutation { issueCreate(...) { issue { id number } } }"
+  }'
+```
+
+Include cross-references to all GitHub issues in the Linear description.
+
+### Step 7: Produce summary
+
+Create a summary table:
+
+```
+## Issues Created
+
+| Repo           | Issue | URL                            | Status     |
+| -------------- | ----- | ------------------------------ | ---------- |
+| owner/crux     | #42   | github.com/owner/crux/issues/42 | Created    |
+| owner/godmode  | #123  | github.com/owner/godmode/issues/123 | Created |
+| owner/devloop  | #88   | github.com/owner/devloop/issues/88 | Created  |
+
+All issues linked and cross-referenced.
+```
+
+### Step 8: When revisiting
+
+Check status of all linked issues:
+
+```bash
+gh issue view owner/repo#N
+```
+
+Update the summary if any issue is closed, blocked, or moved to another repo.
+
+## Guardrails
+
+- Always show the issue plan (Step 3) before creating any issues.
+- Never close an issue without commits or resolution.
+- Every issue body must include `## Related Issues` section with links to
+  other affected repos.
+- If an issue already exists for this feature, link to it rather than
+  creating a duplicate.
+- Use `gh issue view --json` to query existing issues before creating new
+  ones.
+- Cross-references must use the format: `[label] owner/repo#N — description`
+  (e.g., `[godmode] owner/godmode#123 — Skill wrapper for new DSL`).
+- For breaking changes, mark issues with `[breaking]` in the title prefix.

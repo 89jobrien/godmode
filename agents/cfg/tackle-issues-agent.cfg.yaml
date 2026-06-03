@@ -1,0 +1,24 @@
+name: gm-issues
+version: 1.0.0
+description: |
+  GitHub issue dispatch agent. Triggers on "tackle issues", "fix these issues", "work on #N", "dispatch for issues", or any request to work on GitHub issues in parallel. Fetches open issues, groups into independent slots, dispatches one agent per slot, integrates results sequentially, and closes issues with commit refs.
+triggers: []
+model: inherit
+color: orange
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Agent
+skills:
+  - tackle-issues
+  - parallel-agents
+template: dispatch
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

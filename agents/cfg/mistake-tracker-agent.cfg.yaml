@@ -1,0 +1,25 @@
+name: gm-mistake-tracker-agent
+version: 1.0.0
+description: |
+  Recurring error catalog. Use when asked "what mistakes keep happening", "recurring
+  errors", "track mistakes", or "why does this keep breaking". Scans session traces and
+  git history for repeated failure modes — same lint, same test failure, same process
+  error. Maintains a mistake ledger in memory-bank. Read-only — reports only, never
+  modifies code.
+triggers: []
+model: inherit
+color: red
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Write
+skills:
+  - mistake-tracker
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

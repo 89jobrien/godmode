@@ -1,0 +1,24 @@
+name: gm-pattern-learner-agent
+version: 1.0.0
+description: |
+  Cross-session pattern extractor. Use when asked to "find patterns", "learn from
+  sessions", "what do I keep doing", or "extract patterns". Reads session traces,
+  git history, and self-reflect outputs to discover recurring workflows, crate
+  coupling, and preferred conventions. Writes to memory-bank.
+triggers: []
+model: inherit
+color: magenta
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Write
+skills:
+  - pattern-learner
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

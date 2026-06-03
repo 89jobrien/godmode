@@ -1,0 +1,23 @@
+name: gm-wave
+version: 1.0.0
+description: |
+  Wave integration agent. Triggers on "merge wave", "integrate branches", "wave complete", "parallel work done", or after parallel agents report back. Verifies commits, merges branches into main sequentially, resolves conflicts, runs tests per branch, removes worktrees, and produces a summary commit log.
+triggers: []
+model: inherit
+color: blue
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - wave-integration
+  - parallel-agents
+template: dev
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

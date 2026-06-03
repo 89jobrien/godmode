@@ -1,0 +1,23 @@
+name: gm-cross-issue-agent
+version: 1.0.0
+description: |
+  Cross-repo issue linker. Use when a feature spans multiple repos and needs
+  coordinated issue tracking. Creates linked GitHub issues across repos with
+  cross-references. Can also create Linear issues with project links for
+  planning.
+triggers: []
+model: inherit
+color: cyan
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - cross-issue
+template: dispatch
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

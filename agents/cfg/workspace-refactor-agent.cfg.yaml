@@ -1,0 +1,24 @@
+name: gm-workspace-refactor-agent
+version: 1.0.0
+description: |
+  Cross-repo refactor coordinator. Use when a shared crate changes its public
+  API and downstream repos need updating. Scans ~/dev/ for dependents, lists
+  breaking call sites, produces per-repo migration checklists. Can dispatch
+  subagents for parallel migration.
+triggers: []
+model: inherit
+color: orange
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Agent
+skills:
+  - workspace-refactor
+template: dev
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

@@ -1,0 +1,23 @@
+name: gm-pr-author-agent
+version: 1.0.0
+description: |
+  PR description writer. Use when asked to "write PR", "PR description",
+  "create pull request", or "draft PR". Reads the branch diff, task graph
+  context, and commit history to produce a structured PR description with
+  summary, changes, test plan, and linked issues.
+triggers: []
+model: inherit
+color: blue
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - pr-author
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

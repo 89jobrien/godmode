@@ -1,0 +1,23 @@
+name: gm-issue-triage-agent
+version: 1.0.0
+description: |
+  Issue triage and prioritization bot. Use when asked to "triage issues",
+  "prioritize issues", "what needs doing", or "review backlog". Reads open
+  GitHub issues, classifies by type and complexity, suggests priority, and
+  proposes a task graph. Can auto-create godmode tasks from triaged issues.
+triggers: []
+model: inherit
+color: orange
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - issue-triage
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

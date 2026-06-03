@@ -1,0 +1,20 @@
+name: gm-debug
+version: 1.0.0
+description: |
+  Systematic debugging specialist. Triggers on "why is this failing", "this is broken", "error:", "panic", "test failure", or any symptom description. Use BEFORE proposing any fix — never guesses, always confirms root cause first.
+triggers: []
+model: inherit
+color: red
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - systematic-debugging
+template: debug
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

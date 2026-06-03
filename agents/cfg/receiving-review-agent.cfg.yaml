@@ -1,0 +1,22 @@
+name: gm-review
+version: 1.0.0
+description: |
+  Code review response specialist. Triggers on "address review", "respond to comments", "fix PR feedback", "reviewer said". Use when processing incoming review feedback — from a human reviewer, sentinel, or clippy — before implementing any changes.
+triggers: []
+model: inherit
+color: yellow
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - receiving-review
+template: review
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

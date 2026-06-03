@@ -1,0 +1,23 @@
+name: gm-changelog-agent
+version: 1.0.0
+description: |
+  Changelog generator. Use when asked for "changelog", "release notes", "what
+  changed", or before a release. Reads git log since the last tag, classifies by
+  conventional-commit type, groups by crate, and produces structured output.
+  Flags non-conventional commits.
+triggers: []
+model: inherit
+color: white
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - changelog
+template: rule
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

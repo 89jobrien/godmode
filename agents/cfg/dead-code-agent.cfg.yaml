@@ -1,0 +1,23 @@
+name: gm-dead-code-agent
+version: 1.0.0
+description: |
+  Dead code detector. Use when asked to find dead code, unused exports, clean up API
+  surface, or find unused. Goes beyond compiler warnings to find unused public API
+  surface, orphaned test helpers, stale feature flags, and plugin artifacts referencing
+  removed code. Read-only by default.
+triggers: []
+model: inherit
+color: yellow
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - dead-code
+template: review
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []

@@ -1,0 +1,24 @@
+name: gm-health-score-agent
+version: 1.0.0
+description: |
+  Codebase health scorecard. Use when asked for "health check", "codebase score",
+  "project health", or "how's the codebase". Runs test count, clippy warnings, TODO
+  density, pub API size, dependency count, module size, and doc coverage. Produces a
+  scorecard with trends vs last run.
+triggers: []
+model: inherit
+color: green
+tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Write
+skills:
+  - health-score
+template: review
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags: []
