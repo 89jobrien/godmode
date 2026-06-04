@@ -173,6 +173,15 @@ enum Cmd {
         action: PipelineAction,
     },
 
+    /// Pin the session to a specific repo root path.
+    Pin {
+        /// Path to pin (defaults to current directory).
+        path: Option<String>,
+    },
+
+    /// Remove the pinned root from the session.
+    Unpin,
+
     /// First-time setup: create global config and project state dirs.
     Init,
 
@@ -2452,6 +2461,36 @@ fn main() -> Result<()> {
                 Ok(())
             }
         },
+
+        Cmd::Pin { path } => {
+            let target = match path {
+                Some(p) => std::path::PathBuf::from(p),
+                None => std::env::current_dir()?,
+            };
+            detect::pin_root(&root, &target)?;
+            let canonical = target.canonicalize()?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({"pinned_root": canonical.to_string_lossy()})
+                );
+            } else {
+                println!("Pinned to {}", canonical.display());
+            }
+            Ok(())
+        }
+
+        Cmd::Unpin => {
+            let removed = detect::unpin_root(&root)?;
+            if json {
+                println!("{}", serde_json::json!({"unpinned": removed}));
+            } else if removed {
+                println!("Unpinned.");
+            } else {
+                println!("No pin was set.");
+            }
+            Ok(())
+        }
 
         Cmd::Init => {
             use godmode_core::doctor::RealProbe;

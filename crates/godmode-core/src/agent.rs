@@ -35,6 +35,10 @@ pub struct AgentDef {
     #[serde(default)]
     pub skills: Vec<String>,
     #[serde(default)]
+    pub template: String,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
     pub prompt: Option<String>,
     #[serde(default)]
     pub hooks: Vec<AgentHook>,
@@ -139,6 +143,8 @@ pub fn migrate_md_to_yaml(md_path: &Path, out_dir: &Path) -> Result<PathBuf> {
         color: get_str("color"),
         tools: get_str_vec("tools"),
         skills: get_str_vec("skills"),
+        template: get_str("template"),
+        category: get_str("category"),
         prompt: None,
         hooks: vec![],
         metadata: AgentMetadata::default(),
@@ -198,9 +204,13 @@ pub fn generate_from_cfg(agents_dir: &Path, name: &str) -> Result<(String, PathB
     let prompt_path = agents_dir
         .join("prompts")
         .join(format!("{name}.prompt.txt"));
-    let out_path = agents_dir.join(format!("{name}.md"));
 
     let def = load(&cfg_path)?;
+    let out_path = if def.category.is_empty() {
+        agents_dir.join(format!("{name}.md"))
+    } else {
+        agents_dir.join(format!("{}__{name}.md", def.category))
+    };
     let prompt = if prompt_path.exists() {
         Some(
             std::fs::read_to_string(&prompt_path)
@@ -259,6 +269,8 @@ mod tests {
             color: "blue".to_string(),
             tools: vec!["Read".to_string(), "Write".to_string()],
             skills: vec!["brainstorm".to_string()],
+            template: "plan".to_string(),
+            category: "plan".to_string(),
             prompt: Some("You are a test agent.".to_string()),
             hooks: vec![],
             metadata: AgentMetadata::default(),
