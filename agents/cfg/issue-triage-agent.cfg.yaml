@@ -16,6 +16,7 @@ tools:
 skills:
   - issue-triage
 template: rule
+category: issue
 prompt: null
 hooks: []
 metadata:

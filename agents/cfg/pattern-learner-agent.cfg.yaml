@@ -17,6 +17,7 @@ tools:
 skills:
   - pattern-learner
 template: rule
+category: meta
 prompt: null
 hooks: []
 metadata:

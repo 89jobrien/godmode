@@ -16,6 +16,7 @@ skills:
   - wave-integration
   - parallel-agents
 template: dev
+category: git
 prompt: null
 hooks: []
 metadata:

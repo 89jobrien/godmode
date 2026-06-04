@@ -17,6 +17,7 @@ tools:
 skills:
   - health-score
 template: review
+category: qual
 prompt: null
 hooks: []
 metadata:

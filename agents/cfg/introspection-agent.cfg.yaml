@@ -13,6 +13,7 @@ tools:
 skills:
   - introspection
 template: review
+category: qual
 prompt: null
 hooks: []
 metadata:

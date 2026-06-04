@@ -16,6 +16,7 @@ tools:
 skills:
   - cross-issue
 template: dispatch
+category: issue
 prompt: null
 hooks: []
 metadata:

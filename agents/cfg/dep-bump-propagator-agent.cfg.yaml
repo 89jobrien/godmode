@@ -17,6 +17,7 @@ tools:
 skills:
   - dep-bump
 template: rule
+category: ops
 prompt: null
 hooks: []
 metadata:

@@ -15,6 +15,7 @@ tools:
 skills:
   - doc-maintainer
 template: rule
+category: refac
 prompt: null
 hooks: []
 metadata:

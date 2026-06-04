@@ -15,6 +15,7 @@ tools:
 skills:
   - receiving-review
 template: review
+category: qual
 prompt: null
 hooks: []
 metadata:

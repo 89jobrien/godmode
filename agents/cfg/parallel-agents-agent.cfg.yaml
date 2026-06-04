@@ -17,6 +17,7 @@ skills:
   - parallel-agents
   - task-management
 template: dispatch
+category: agent
 prompt: null
 hooks: []
 metadata:

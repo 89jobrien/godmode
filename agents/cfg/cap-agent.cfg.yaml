@@ -16,6 +16,7 @@ skills:
   - cap
   - verification-before-completion
 template: dev
+category: git
 prompt: null
 hooks: []
 metadata:

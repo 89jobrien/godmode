@@ -15,6 +15,7 @@ tools:
 skills:
   - refactoring
 template: dev
+category: refac
 prompt: null
 hooks: []
 metadata:

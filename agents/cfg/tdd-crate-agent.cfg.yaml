@@ -19,6 +19,7 @@ tools:
   - Bash(godmode:*)
 skills: []
 template: dev
+category: agent
 prompt: null
 hooks: []
 metadata:

@@ -15,6 +15,7 @@ tools:
 skills:
   - test-driven-development
 template: dev
+category: agent
 prompt: null
 hooks: []
 metadata:

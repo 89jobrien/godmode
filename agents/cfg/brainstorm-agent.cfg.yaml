@@ -15,6 +15,7 @@ tools:
 skills:
   - brainstorm
 template: plan
+category: plan
 prompt: null
 hooks: []
 metadata:

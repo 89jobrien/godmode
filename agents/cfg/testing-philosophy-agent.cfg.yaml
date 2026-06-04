@@ -13,6 +13,7 @@ tools:
 skills:
   - testing-philosophy
 template: ops
+category: qual
 prompt: null
 hooks: []
 metadata:

@@ -13,6 +13,7 @@ tools:
 skills:
   - verification-before-completion
 template: review
+category: qual
 prompt: null
 hooks: []
 metadata:

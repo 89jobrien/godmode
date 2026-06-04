@@ -17,6 +17,7 @@ skills:
   - tackle-issues
   - parallel-agents
 template: dispatch
+category: issue
 prompt: null
 hooks: []
 metadata:

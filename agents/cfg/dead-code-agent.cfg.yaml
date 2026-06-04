@@ -16,6 +16,7 @@ tools:
 skills:
   - dead-code
 template: review
+category: qual
 prompt: null
 hooks: []
 metadata:

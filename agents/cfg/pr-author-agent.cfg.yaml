@@ -16,6 +16,7 @@ tools:
 skills:
   - pr-author
 template: rule
+category: git
 prompt: null
 hooks: []
 metadata:

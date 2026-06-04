@@ -20,6 +20,7 @@ skills:
   - task-management
   - parallel-agents
 template: ops
+category: ops
 prompt: gm-orchestrator
 hooks: []
 metadata:

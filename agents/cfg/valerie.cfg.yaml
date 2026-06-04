@@ -19,6 +19,7 @@ skills:
   - task-management
   - using-godmode
 template: ops
+category: ops
 prompt: null
 hooks: []
 metadata:

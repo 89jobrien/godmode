@@ -24,6 +24,7 @@ skills:
   - task-driven-development
   - using-godmode
 template: plan
+category: plan
 prompt: null
 hooks: []
 metadata:

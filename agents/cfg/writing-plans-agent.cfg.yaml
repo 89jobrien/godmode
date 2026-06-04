@@ -15,6 +15,7 @@ tools:
 skills:
   - writing-plans
 template: plan
+category: plan
 prompt: null
 hooks: []
 metadata:

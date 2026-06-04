@@ -18,6 +18,7 @@ tools:
 skills:
   - mistake-tracker
 template: rule
+category: dbg
 prompt: null
 hooks: []
 metadata:

@@ -17,6 +17,7 @@ tools:
 skills:
   - workspace-refactor
 template: dev
+category: refac
 prompt: null
 hooks: []
 metadata:

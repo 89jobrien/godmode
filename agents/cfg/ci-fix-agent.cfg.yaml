@@ -15,6 +15,7 @@ tools:
 skills:
   - ci-fix
 template: debug
+category: dbg
 prompt: null
 hooks: []
 metadata:
