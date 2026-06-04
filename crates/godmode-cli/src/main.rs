@@ -3,8 +3,8 @@ use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
     agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
-    memory_banking, model, plan, registry, release, review, session::Session, skill, templates,
-    workflow,
+    memory_banking, model, pipeline, plan, registry, release, review, session::Session, skill,
+    templates, workflow,
 };
 
 #[derive(Parser)]
@@ -165,6 +165,12 @@ enum Cmd {
     Insight {
         #[command(subcommand)]
         action: InsightAction,
+    },
+
+    /// Pipeline execution: list, start, advance, and status multi-step pipelines.
+    Pipeline {
+        #[command(subcommand)]
+        action: PipelineAction,
     },
 
     /// First-time setup: create global config and project state dirs.
@@ -561,6 +567,44 @@ enum InsightAction {
     },
 }
 
+#[derive(Subcommand)]
+enum PipelineAction {
+    /// List all available pipelines with name and description.
+    List,
+    /// Show steps for a pipeline, marking current position if active.
+    Show {
+        /// Pipeline name (stem of the YAML file in pipelines/).
+        name: String,
+    },
+    /// Start a pipeline, optionally from a named entry-point skill.
+    Start {
+        /// Pipeline name to activate.
+        name: String,
+        /// Entry-point skill to start from (must be a valid entry_point).
+        #[arg(long)]
+        from: Option<String>,
+    },
+    /// Mark current step done and advance to the next step.
+    Next,
+    /// Skip current step and advance without marking it done.
+    Skip,
+    /// Deactivate the current pipeline (clear saved state).
+    Stop,
+    /// Show the active pipeline name, current step, and progress.
+    Status,
+    /// Run a pipeline headlessly — walk task graph, execute run: fields.
+    Run {
+        /// Pipeline name to run.
+        name: String,
+        /// Skill to start from (must be a valid entry_point).
+        #[arg(long)]
+        from: Option<String>,
+        /// Stop on first task failure.
+        #[arg(long)]
+        fail_fast: bool,
+    },
+}
+
 /// Filter a task slice by optional priority and optional keyword.
 ///
 /// Priority filtering is applied first, then keyword filtering (case-insensitive
@@ -715,9 +759,9 @@ fn main() -> Result<()> {
                 older_than,
                 dry_run,
             } => {
-                use godmode_core::integrations::cruxx;
+                use godmode_core::integrations::crux;
                 use godmode_core::session::prune_sessions_older_than;
-                let sessions_dir = cruxx::sessions_dir(&root);
+                let sessions_dir = crux::sessions_dir(&root);
                 let pruned = prune_sessions_older_than(&sessions_dir, older_than, dry_run)?;
                 if json {
                     let paths: Vec<String> =
@@ -2265,6 +2309,150 @@ fn main() -> Result<()> {
             Ok(())
         }
 
+        Cmd::Pipeline { action } => match action {
+            PipelineAction::List => {
+                let pipelines = pipeline::load_pipelines(&root)?;
+                if pipelines.is_empty() {
+                    if json {
+                        println!("[]");
+                    } else {
+                        println!("No pipelines found.");
+                    }
+                    return Ok(());
+                }
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&pipelines)?);
+                } else {
+                    for p in &pipelines {
+                        println!("{} — {}", p.name, p.description);
+                    }
+                }
+                Ok(())
+            }
+
+            PipelineAction::Show { name } => {
+                let p = pipeline::load_pipeline(&root, &name)?;
+                let state = pipeline::load_state(&root)?;
+                let active_idx = state
+                    .as_ref()
+                    .filter(|s| s.active == name)
+                    .map(|s| s.current_step);
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "pipeline": p,
+                            "current_step": active_idx,
+                        }))?
+                    );
+                } else {
+                    println!("Pipeline: {} — {}", p.name, p.description);
+                    for (i, step) in p.steps.iter().enumerate() {
+                        let marker = if active_idx == Some(i) { ">>" } else { "  " };
+                        println!("{} [{}] {}", marker, i + 1, step.skill);
+                    }
+                }
+                Ok(())
+            }
+
+            PipelineAction::Start { name, from } => {
+                let p = pipeline::load_pipeline(&root, &name)?;
+                let state = pipeline::start(&p, from.as_deref())?;
+                let first = pipeline::current_step(&state, &p)
+                    .map(|s| s.skill.as_str())
+                    .unwrap_or("(none)");
+                pipeline::save_state(&root, &state)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&state)?);
+                } else {
+                    println!("Pipeline '{}' started at step: {}", name, first);
+                }
+                Ok(())
+            }
+
+            PipelineAction::Next => advance_pipeline(&root, json, pipeline::advance),
+
+            PipelineAction::Skip => advance_pipeline(&root, json, pipeline::skip),
+
+            PipelineAction::Stop => {
+                pipeline::clear_state(&root)?;
+                if json {
+                    println!("{}", serde_json::json!({"ok": true}));
+                } else {
+                    println!("Pipeline stopped.");
+                }
+                Ok(())
+            }
+
+            PipelineAction::Run {
+                name,
+                from: _from,
+                fail_fast,
+            } => {
+                let result = pipeline::run_tasks(&root, &name, fail_fast)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                } else {
+                    for sr in &result.steps {
+                        if sr.skipped {
+                            println!("  [skip] {}", sr.skill);
+                        } else {
+                            println!(
+                                "  [{}] {} — {} task(s), {} failed",
+                                if sr.tasks_failed > 0 { "FAIL" } else { "ok" },
+                                sr.skill,
+                                sr.tasks_run,
+                                sr.tasks_failed,
+                            );
+                        }
+                    }
+                    if result.completed {
+                        println!("Pipeline complete.");
+                    } else if let Some(ref skill) = result.stopped_at {
+                        println!("Stopped at: {skill}");
+                        std::process::exit(1);
+                    }
+                }
+                Ok(())
+            }
+
+            PipelineAction::Status => {
+                let state = pipeline::load_state(&root)?;
+                match state {
+                    None => {
+                        if json {
+                            println!("null");
+                        } else {
+                            println!("No active pipeline.");
+                        }
+                    }
+                    Some(s) => {
+                        let p = pipeline::load_pipeline(&root, &s.active)?;
+                        let (done, total) = pipeline::progress(&s, &p);
+                        let current = pipeline::current_step(&s, &p)
+                            .map(|step| step.skill.as_str())
+                            .unwrap_or("(complete)");
+                        if json {
+                            println!(
+                                "{}",
+                                serde_json::to_string_pretty(&serde_json::json!({
+                                    "active": s.active,
+                                    "current_step": current,
+                                    "progress": { "done": done, "total": total },
+                                    "complete": pipeline::is_complete(&s, &p),
+                                }))?
+                            );
+                        } else {
+                            println!("Pipeline: {}", s.active);
+                            println!("Step:     {}", current);
+                            println!("Progress: {}/{}", done, total);
+                        }
+                    }
+                }
+                Ok(())
+            }
+        },
+
         Cmd::Init => {
             use godmode_core::doctor::RealProbe;
             use godmode_core::init::{RealFs, run_init};
@@ -2364,4 +2552,28 @@ fn main() -> Result<()> {
             }
         }
     }
+}
+
+/// Shared logic for `pipeline next` and `pipeline skip`.
+fn advance_pipeline(
+    root: &std::path::Path,
+    json: bool,
+    op: for<'a> fn(
+        &mut pipeline::PipelineState,
+        &'a pipeline::Pipeline,
+    ) -> Option<&'a pipeline::PipelineStep>,
+) -> Result<()> {
+    let mut state =
+        pipeline::load_state(root)?.ok_or_else(|| anyhow::anyhow!("No active pipeline."))?;
+    let p = pipeline::load_pipeline(root, &state.active.clone())?;
+    let next = op(&mut state, &p);
+    pipeline::save_state(root, &state)?;
+    if json {
+        println!("{}", serde_json::to_string_pretty(&state)?);
+    } else if let Some(step) = next {
+        println!("Advanced to: {}", step.skill);
+    } else {
+        println!("Pipeline complete.");
+    }
+    Ok(())
 }

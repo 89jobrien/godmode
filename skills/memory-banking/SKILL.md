@@ -5,6 +5,8 @@ description: >
   by source code. The memory bank is injected into prompts via lifecycle hooks and updated
   incrementally as work progresses. Use when starting a new project, onboarding to an unfamiliar
   codebase, or when context drift is detected.
+requires: []
+next: []
 ---
 
 # Memory Banking

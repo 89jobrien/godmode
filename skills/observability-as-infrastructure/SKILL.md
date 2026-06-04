@@ -5,6 +5,8 @@ description: >
   invocation, branching decision, and agent lifecycle transition is recorded
   as a JSONL event. Use when diagnosing session failures, auditing agent
   convergence, or reviewing cross-session continuity.
+requires: []
+next: []
 ---
 
 # Observability as Infrastructure

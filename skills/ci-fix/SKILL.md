@@ -4,6 +4,8 @@ description: >
   Self-healing CI diagnosis and fix loop. Use when CI is failing, when asked to "fix CI",
   or after a push that broke the pipeline. Fetches the latest failed run, classifies the
   root cause, applies a targeted fix, verifies locally, and re-pushes.
+requires: []
+next: [cap]
 ---
 
 # CI Fix — Diagnose and Repair

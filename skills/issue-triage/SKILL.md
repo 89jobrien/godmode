@@ -4,6 +4,8 @@ description: >
   Triage and prioritize GitHub issues by type (bug/feature/chore), complexity
   (S/M/L), and priority (P1-P4). Detect duplicates, propose execution order,
   and generate task graphs for godmode automation.
+requires: []
+next: [task-management]
 ---
 
 # Issue Triage

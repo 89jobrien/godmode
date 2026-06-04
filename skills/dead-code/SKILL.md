@@ -4,6 +4,8 @@ description: >
   Dead code detector for Rust workspaces. Finds unused public API surface, orphaned
   test helpers, stale feature flags, and plugin artifacts referencing removed CLI
   subcommands. Cross-references pub exports against call sites across the workspace.
+requires: []
+next: []
 ---
 
 # Dead Code Detection

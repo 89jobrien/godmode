@@ -4,6 +4,8 @@ description: >
   Cross-session pattern extraction. Analyzes session traces, git history, and
   self-reflection data to discover recurring workflows, crate coupling patterns,
   and problem-solving conventions. Writes findings to memory-bank.
+requires: []
+next: []
 ---
 
 # Pattern Learner

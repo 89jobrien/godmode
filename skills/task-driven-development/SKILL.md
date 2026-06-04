@@ -5,6 +5,8 @@ description: >
   on "implement", "add feature", "fix bug", "write code for", or any task that produces
   production Rust code. Structures red/green/refactor as serialized YAML task entries with
   explicit sequential issue chains and phase state.
+requires: []
+next: [code-review]
 ---
 
 # Task-Driven Development

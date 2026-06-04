@@ -4,6 +4,8 @@ description: >
   Use when encountering any bug, test failure, panic, or unexpected behavior — before
   proposing any fix. Triggers on error output, failing tests, "why is X not working",
   "this is broken", or any symptom description.
+requires: []
+next: [task-driven-development]
 ---
 
 # Systematic Debugging

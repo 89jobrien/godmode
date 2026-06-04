@@ -6,6 +6,8 @@ description: >
   edit, before dispatching subagents. Identifies files to modify, affected crates, dependency
   edges, test coverage, and reference patterns. Output feeds directly into the Architecture
   section of a godmode plan.
+requires: []
+next: [writing-plans]
 ---
 
 # Context Map

@@ -4,6 +4,8 @@ description: >
   Propagate a workspace crate version bump across ~/dev/ downstream
   dependencies. Discover all pinned locations, update safely with Edit,
   verify with cargo check, and report pass/fail per repo.
+requires: []
+next: [cap]
 ---
 
 # Dependency Bump Propagation

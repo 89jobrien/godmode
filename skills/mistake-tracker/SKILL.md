@@ -4,6 +4,8 @@ description: >
   Maintain a catalog of recurring mistakes, error patterns, and failure modes detected
   across sessions, commits, and CI runs. Use this skill to detect what keeps breaking,
   find root patterns, and capture prevention strategies.
+requires: []
+next: []
 ---
 
 # Mistake Tracker

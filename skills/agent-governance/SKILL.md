@@ -7,6 +7,8 @@ description: >
   prompts, creating trust scoring systems for multi-agent workflows, building audit trails,
   or enforcing rate limits and content filters. Covers policy composition, tool wrappers,
   trust decay, and JSONL audit trails — all in Rust.
+requires: []
+next: []
 ---
 
 # Agent Governance Patterns (Rust)

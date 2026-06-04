@@ -3,6 +3,8 @@ name: "godmode:refactoring"
 description: >
   Guided refactoring with test discipline. Use when restructuring code without changing
   observable behaviour — extract, rename, reorganise, decouple.
+requires: [testing-philosophy]
+next: [code-review]
 ---
 
 # Refactoring

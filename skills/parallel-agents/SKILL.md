@@ -4,6 +4,8 @@ description: >
   Use when facing 2 or more independent tasks that have no shared state or sequential
   dependencies between them. Triggers on multiple failing tests from different root causes,
   independent crate implementations, or independent task chains in GODMODE.tasks.yaml.
+requires: []
+next: [wave-integration]
 ---
 
 # Parallel Agents

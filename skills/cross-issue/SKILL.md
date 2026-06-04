@@ -4,6 +4,8 @@ description: >
   Cross-repo issue coordination. Use when a feature spans multiple repos and
   needs coordinated issue tracking. Creates linked GitHub issues with
   cross-references and optionally creates Linear issues for planning.
+requires: []
+next: []
 ---
 
 # Cross-Repo Issue Linker

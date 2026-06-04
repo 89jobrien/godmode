@@ -7,6 +7,8 @@ description: >
   and godmode task state sync. Trigger on "merge", "merge this", "open a PR", "squash and merge",
   "clean up worktree", "/merge", or any variant of integrating a branch into main.
 allowed-tools: Bash, Read, Glob, Grep
+requires: []
+next: [changelog, release-notes]
 ---
 
 # godmode:merge — Branch Integration Agent

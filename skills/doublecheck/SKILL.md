@@ -7,6 +7,8 @@ description: >
   that contains citations, statistics, legal/regulatory analysis, or specific factual claims
   you intend to rely on. Also use inline after your own substantive responses when accuracy
   matters.
+requires: []
+next: []
 ---
 
 # Doublecheck

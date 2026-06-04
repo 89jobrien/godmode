@@ -5,6 +5,8 @@ description: >
   changes. Find all dependent repos, list call sites that break, estimate
   migration effort, and optionally dispatch parallel subagents to apply
   migrations.
+requires: []
+next: []
 ---
 
 # Workspace Refactor

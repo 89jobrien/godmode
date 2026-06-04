@@ -7,6 +7,8 @@ description: >
   Knowledge accumulates and cross-references across sessions; it is never re-derived from
   scratch. Use when building or querying a knowledge base where provenance, structural
   traversal, and cumulative synthesis matter.
+requires: []
+next: []
 ---
 
 # Mini Context Graph

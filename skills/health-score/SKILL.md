@@ -4,6 +4,8 @@ description: >
   Measure codebase health across seven metrics: test count, clippy warnings, TODO
   density, public API surface, dependency count, average module size, and doc
   coverage. Track trends vs previous runs and persist scores to history.
+requires: []
+next: [dead-code, dep-audit]
 ---
 
 # Health Score

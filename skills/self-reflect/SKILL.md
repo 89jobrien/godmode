@@ -4,6 +4,8 @@ description: >
   Session reflection — review what was accomplished this session, surface patterns and
   surprises, and write a structured retrospective. Use when asked to "reflect", "self-reflect",
   "what did we do this session", or at natural session close points.
+requires: []
+next: [pattern-learner, mistake-tracker]
 ---
 
 # Self-Reflect

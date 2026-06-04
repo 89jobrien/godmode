@@ -4,6 +4,8 @@ description: >
   Audit godmode skills, agents, and plugin files for internal consistency, broken
   references, stale commands, and cross-skill contradictions. Use when asked to
   "introspect", "audit the skills", "review godmode", or after adding new skills.
+requires: []
+next: [doc-maintainer]
 ---
 
 # Introspection

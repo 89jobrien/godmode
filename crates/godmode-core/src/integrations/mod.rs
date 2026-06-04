@@ -9,13 +9,13 @@ pub mod output;
 pub mod rx;
 pub(crate) mod subprocess;
 
-pub use output::{GraphOut, HandoffOutput, HandonOutput};
+pub use output::{GraphOut, HandoffOutput, HandonOutput, PipelineOut};
 
 use std::path::Path;
 
 use anyhow::Result;
 
-use crate::{config::Config, graph, model::Status, session};
+use crate::{config::Config, graph, model::Status, pipeline, session};
 
 /// Run the full handon sequence: hj handon + doob next todo + local graph triage.
 pub fn handon(root: &Path) -> Result<HandonOutput> {
@@ -47,12 +47,28 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
 
     let next_runnable = graph::runnable(&g);
 
+    // Load active pipeline state (graceful — None if no pipeline active).
+    let pipeline_out = pipeline::load_state(root).ok().flatten().and_then(|state| {
+        let p = pipeline::load_pipeline(root, &state.active).ok()?;
+        let current_skill = pipeline::current_step(&state, &p)
+            .map(|s| s.skill.clone())
+            .unwrap_or_else(|| "complete".into());
+        let (done, total) = pipeline::progress(&state, &p);
+        Some(output::PipelineOut {
+            name: state.active.clone(),
+            current_skill,
+            steps_done: done,
+            steps_total: total,
+        })
+    });
+
     let human = format_handon_report(
         hj_out.as_deref(),
         &summary,
         &running_tasks,
         &next_runnable,
         next_todo.as_ref(),
+        pipeline_out.as_ref(),
     );
 
     Ok(HandonOutput {
@@ -66,6 +82,7 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
         },
         next_todo,
         hj: hj_out,
+        pipeline: pipeline_out,
     })
 }
 
@@ -157,6 +174,7 @@ pub fn format_handon_report(
     running_tasks: &[String],
     next_runnable: &[&crate::model::Task],
     next_todo: Option<&serde_json::Value>,
+    pipeline: Option<&output::PipelineOut>,
 ) -> String {
     let mut out = String::new();
     if let Some(hj) = hj {
@@ -167,6 +185,12 @@ pub fn format_handon_report(
         "=== godmode: {} done, {} running, {} pending, {} blocked ===\n",
         summary.done, summary.running, summary.pending, summary.blocked
     ));
+    if let Some(p) = pipeline {
+        out.push_str(&format!(
+            "Pipeline: {} ({}/{}) — current: {}\n",
+            p.name, p.steps_done, p.steps_total, p.current_skill
+        ));
+    }
     if !running_tasks.is_empty() {
         out.push_str("In progress:\n");
         for t in running_tasks {

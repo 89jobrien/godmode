@@ -4,6 +4,8 @@ description: >
   Write user-facing release notes from git history. Use when preparing
   announcements, GitHub Releases, or user documentation. Differs from
   changelog — focuses on user impact, not implementation or crate structure.
+requires: []
+next: []
 ---
 
 # Release Notes

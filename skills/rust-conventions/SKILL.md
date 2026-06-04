@@ -5,6 +5,8 @@ description: >
   when writing new Rust code, reviewing a PR, or deciding between implementation approaches.
   Covers naming, ownership, error handling, API design, testing, and project organisation —
   based on the Rust API Guidelines, RFC 430, and idiomatic community standards.
+requires: []
+next: []
 ---
 
 # Rust Conventions

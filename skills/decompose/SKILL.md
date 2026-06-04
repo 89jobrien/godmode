@@ -8,6 +8,8 @@ description: >
   on "decompose this PR", "split this branch", "this diff is too big", "break this into smaller
   PRs", "make this reviewable", "/decompose", or any request to split a large changeset into
   independent units.
+requires: []
+next: []
 allowed-tools: Bash, Read, Glob, Grep
 ---
 

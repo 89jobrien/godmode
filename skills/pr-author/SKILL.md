@@ -4,6 +4,8 @@ description: >
   Compose PR descriptions from branch diffs, task context, and commit history.
   Produces structured descriptions ready for `gh pr create`. Uses conventional
   commit style and links godmode tasks.
+requires: []
+next: [merge]
 ---
 
 # PR Author

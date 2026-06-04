@@ -4,6 +4,8 @@ description: >
   Commit and push workflow with pre-flight validation and hook recovery. Use when the user
   says "cap", "commit and push", or "ship it". Runs cargo nextest, fmt, clippy, stages all
   changes, writes a conventional commit, handles pre-commit hook failures, and pushes.
+requires: []
+next: [pr-author]
 ---
 
 # Cap — Commit and Push

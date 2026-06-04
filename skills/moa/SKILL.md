@@ -4,6 +4,8 @@ description: >
   Mixture of Agents — run multiple OpenAI proposers in parallel, synthesize into one
   high-quality response. Use when a question benefits from diverse model perspectives
   or when a single model response feels insufficient.
+requires: []
+next: []
 ---
 
 # Mixture of Agents (MoA)

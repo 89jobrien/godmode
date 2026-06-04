@@ -4,6 +4,8 @@ description: >
   Ensure every inline TODO comment in the codebase has a corresponding GitHub or Linear issue.
   Use when asked to "sync TODOs to issues", "make sure TODOs have issues", or "audit TODOs".
   Scans for TODO markers, cross-references open issues, and creates missing ones.
+requires: []
+next: []
 ---
 
 # TODO → Issue Sync

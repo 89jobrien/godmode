@@ -4,6 +4,8 @@ description: >
   Audit dependencies across cargo outdated, cargo deny check, and cargo audit.
   Produce tiered findings: Blocking (CVEs), Suggestions (major bumps), Nitpicks
   (minor/patch bumps). Can auto-apply patch updates when asked.
+requires: []
+next: [dep-bump]
 ---
 
 # Dependency Audit

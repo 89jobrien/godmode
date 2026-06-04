@@ -8,6 +8,7 @@ pub mod dispatch_tests;
 pub mod fixture_tests;
 pub mod graph_tests;
 pub mod harness;
+pub mod pipeline_property_tests;
 pub mod plan_tests;
 pub mod plugin_structure_tests;
 pub mod property_tests;

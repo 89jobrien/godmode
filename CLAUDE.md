@@ -49,8 +49,8 @@ Two-crate workspace:
 | `detect`        | Walks up from CWD to find git root; reads `[package] name` from `Cargo.toml`.                                                                                                             |
 | `plan`          | Parses plan markdown (`### Task N: <title>`) into `Task` structs with sequential deps.                                                                                                    |
 | `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                                                            |
-| `session`       | `Session` struct — owns all task transitions, duration tracking, cruxx trace writes, rx validation. `handon()`/`handoff()` are thin wrappers. `SessionSummary` emitted at handoff.        |
-| `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: dispatch + `list_scripts`/`validate_run`), `cruxx` (Step constructors).                                     |
+| `session`       | `Session` struct — owns all task transitions, duration tracking, crux trace writes, rx validation. `handon()`/`handoff()` are thin wrappers. `SessionSummary` emitted at handoff.         |
+| `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: dispatch + `list_scripts`/`validate_run`), `crux` (Step constructors).                                      |
 | `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                                                     |
 | `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                                                       |
 | `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                                                    |
@@ -68,6 +68,7 @@ Two-crate workspace:
 | `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                                    |
 | `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from `agents/cfg/*.cfg.yaml`; `generate_from_cfg` pairs with `agents/prompts/*.prompt.txt` to emit top-level `.md`.             |
 | `insights`      | Append-only JSONL insight capture (`.ctx/godmode/traces/insights.jsonl`). `append`, `list`, `list_for_date`, `render_markdown`. Bridges to `.ctx/godmode/reports/insights-YYYY-MM-DD.md`. |
+| `pipeline`      | Named multi-step skill sequences. State persists in `.ctx/godmode/pipeline.yaml`. Supports start, next, skip, stop, and status operations.                                                |
 | `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.                |
 
 ### State file
@@ -92,13 +93,13 @@ Two-crate workspace:
 
 ### Trace events
 
-`Session::start_task` / `Session::complete_task` append `cruxx_core::Step` JSONL to
+`Session::start_task` / `Session::complete_task` append `crux_core::Step` JSONL to
 `.ctx/godmode/sessions/YYYY-MM-DD.jsonl`. `Session::handoff` writes a `SessionSummary` record to
 `.ctx/godmode/sessions/YYYY-MM-DD-summary.jsonl`. All trace writes are non-fatal (`let _ = ...`).
 
 ### Integration pattern
 
-All integrations (`doob`, `hj`, `rx`, `cruxx`) invoke external binaries via `std::process::Command`.
+All integrations (`doob`, `hj`, `rx`, `crux`) invoke external binaries via `std::process::Command`.
 They fail gracefully — callers use `.ok()` or `ok().flatten()` so missing tools don't abort the
 session. Never add a hard dependency on an external tool; always degrade gracefully.
 
@@ -175,6 +176,29 @@ godmode test-check <path>                               # check if .rs file has 
 ```
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
+
+### Pipeline
+
+```
+godmode pipeline list                           # show all pipelines
+godmode pipeline show <name>                    # show steps with current position
+godmode pipeline start <name> [--from <skill>]  # start and auto-invoke first step
+godmode pipeline next                           # advance and invoke next step
+godmode pipeline skip                           # advance without invoking
+godmode pipeline stop                           # deactivate pipeline, preserve state
+godmode pipeline status                         # show active pipeline + position
+```
+
+Six pipelines are defined in `pipelines/`:
+
+- `feature` — idea to merged PR
+- `parallel-feature` — fan-out across crates
+- `release` — health check, audit, changelog, tag
+- `maintenance` — health scorecard + targeted cleanup
+- `triage` — issue backlog to task graph
+- `retrospective` — session reflection and learning
+
+Pipeline state persists in `.ctx/godmode/pipeline.yaml` (gitignored).
 `task clear` requires `--done` (completed only) or `--all`.
 
 ## Plugin layout

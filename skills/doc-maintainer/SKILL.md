@@ -5,6 +5,8 @@ description: >
   agents/INDEX.md, and skill descriptions against actual source code. Detects
   stale references, undocumented features, and cross-doc inconsistencies.
   Use when asked to "check docs", "audit documentation", or "sync docs".
+requires: []
+next: [cap]
 ---
 
 # Doc Maintainer

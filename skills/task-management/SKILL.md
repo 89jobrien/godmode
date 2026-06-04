@@ -5,6 +5,8 @@ description: >
   the next unblocked task, or managing causal dependencies between work items. Triggers on
   "create tasks", "what's next", "mark done", "task graph", or at session start when
   GODMODE.tasks.yaml exists.
+requires: []
+next: [task-driven-development, parallel-agents]
 ---
 
 # Task Management

@@ -4,6 +4,8 @@ description: >
   Parse git history into structured changelogs. Use to generate release notes,
   audit commit conventions before tagging, or integrate with `godmode release`
   workflow.
+requires: []
+next: [release-notes]
 ---
 
 # Changelog

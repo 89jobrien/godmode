@@ -15,6 +15,18 @@ pub struct HandonOutput {
     /// hj handon output, if hj is available.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hj: Option<String>,
+    /// Active pipeline info, if a pipeline is running.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pipeline: Option<PipelineOut>,
+}
+
+/// Active pipeline summary for handon/handoff output.
+#[derive(Debug, Serialize)]
+pub struct PipelineOut {
+    pub name: String,
+    pub current_skill: String,
+    pub steps_done: usize,
+    pub steps_total: usize,
 }
 
 /// Output from `godmode handoff`.
@@ -56,6 +68,7 @@ mod tests {
             },
             next_todo: None,
             hj: None,
+            pipeline: None,
         };
         let json = serde_json::to_string(&out).unwrap();
         assert!(!json.contains("next_todo"), "None fields should be skipped");

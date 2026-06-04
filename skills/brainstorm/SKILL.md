@@ -4,6 +4,8 @@ description: >
   Use before any creative work — new features, new components, architecture decisions,
   adding crates, designing APIs. Triggers on "let's build", "I want to add", "design X",
   "how should we structure", or any request that would produce new code structure.
+requires: []
+next: [writing-plans]
 ---
 
 # Brainstorm

@@ -6,6 +6,8 @@ description: >
   to the project's testing conventions. Triggers on "what tests do I need", "how should
   I test this", "test coverage", "fuzz", "kani", "model check", or any question about
   test strategy.
+requires: []
+next: []
 ---
 
 # Testing Philosophy

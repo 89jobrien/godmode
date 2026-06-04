@@ -3,6 +3,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
+use crate::graph;
+use crate::integrations::rx;
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -258,6 +261,191 @@ pub fn remaining(state: &PipelineState, pipeline: &Pipeline) -> usize {
 /// Progress as (completed, total).
 pub fn progress(state: &PipelineState, pipeline: &Pipeline) -> (usize, usize) {
     (state.current_step, pipeline.steps.len())
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic execution
+// ---------------------------------------------------------------------------
+
+/// Result of executing one pipeline step's tasks.
+#[derive(Debug, Clone, Serialize)]
+pub struct StepResult {
+    pub skill: String,
+    pub tasks_run: usize,
+    pub tasks_failed: usize,
+    pub skipped: bool,
+}
+
+/// Result of a full pipeline run.
+#[derive(Debug, Clone, Serialize)]
+pub struct RunResult {
+    pub steps: Vec<StepResult>,
+    pub completed: bool,
+    pub stopped_at: Option<String>,
+}
+
+/// Walk the pipeline, executing task `run:` fields for each step.
+///
+/// For each step:
+/// 1. Load the task graph and find runnable tasks.
+/// 2. If no runnable tasks: record step as skipped, advance pipeline.
+/// 3. For `loop:per-task` steps: execute one task at a time, mark done,
+///    reload runnables, repeat until drained or failure.
+/// 4. For non-loop steps: execute all currently-runnable tasks in one batch.
+/// 5. On exit 0: mark task done. On non-zero: record failure.
+/// 6. Advance pipeline state after each step.
+/// 7. If any task failed and `fail_fast`: stop and return.
+pub fn run_tasks(root: &Path, pipeline_name: &str, fail_fast: bool) -> Result<RunResult> {
+    let p = load_pipeline(root, pipeline_name)?;
+
+    // Start or resume the pipeline.
+    let mut state = match load_state(root)? {
+        Some(s) if s.active == pipeline_name => s,
+        _ => {
+            let s = start(&p, None)?;
+            save_state(root, &s)?;
+            s
+        }
+    };
+
+    let mut results = Vec::new();
+
+    while !is_complete(&state, &p) {
+        let step = match current_step(&state, &p) {
+            Some(s) => s.clone(),
+            None => break,
+        };
+
+        let is_loop = step
+            .r#loop
+            .as_ref()
+            .is_some_and(|l| *l == LoopMode::PerTask);
+        let mut tasks_run: usize = 0;
+        let mut tasks_failed: usize = 0;
+
+        // Load graph and check for runnable tasks.
+        let g = graph::load(root)?;
+        let runnables: Vec<String> = graph::runnable(&g)
+            .iter()
+            .filter(|t| t.run.is_some())
+            .map(|t| t.id.clone())
+            .collect();
+
+        if runnables.is_empty() {
+            // No runnable tasks with run: fields — skip this step.
+            results.push(StepResult {
+                skill: step.skill.clone(),
+                tasks_run: 0,
+                tasks_failed: 0,
+                skipped: true,
+            });
+            advance(&mut state, &p);
+            save_state(root, &state)?;
+            continue;
+        }
+
+        if is_loop {
+            // Drain runnable tasks one at a time.
+            loop {
+                let g_fresh = graph::load(root)?;
+                let next: Option<String> = graph::runnable(&g_fresh)
+                    .iter()
+                    .find(|t| t.run.is_some())
+                    .map(|t| t.id.clone());
+
+                let Some(task_id) = next else { break };
+                let run_field = g_fresh
+                    .tasks
+                    .iter()
+                    .find(|t| t.id == task_id)
+                    .and_then(|t| t.run.clone())
+                    .unwrap();
+
+                let status = rx::run_cmd(&run_field)?;
+                tasks_run += 1;
+
+                let mut g_mut = graph::load(root)?;
+                if status.success() {
+                    graph::start(&mut g_mut, &task_id)?;
+                    graph::complete(&mut g_mut, &task_id, None, None)?;
+                } else {
+                    tasks_failed += 1;
+                    graph::start(&mut g_mut, &task_id)?;
+                    graph::block(
+                        &mut g_mut,
+                        &task_id,
+                        &format!("run_tasks: exit {}", status.code().unwrap_or(-1)),
+                    )?;
+                }
+                graph::save(root, &g_mut)?;
+
+                if tasks_failed > 0 && fail_fast {
+                    break;
+                }
+            }
+        } else {
+            // Batch: run all currently-runnable tasks.
+            for task_id in &runnables {
+                let run_field = g
+                    .tasks
+                    .iter()
+                    .find(|t| t.id == *task_id)
+                    .and_then(|t| t.run.clone())
+                    .unwrap();
+
+                let status = rx::run_cmd(&run_field)?;
+                tasks_run += 1;
+
+                // Reload graph for each mutation to avoid stale state.
+                let mut g_mut = graph::load(root)?;
+                if status.success() {
+                    graph::start(&mut g_mut, task_id)?;
+                    graph::complete(&mut g_mut, task_id, None, None)?;
+                } else {
+                    tasks_failed += 1;
+                    graph::start(&mut g_mut, task_id)?;
+                    graph::block(
+                        &mut g_mut,
+                        task_id,
+                        &format!("run_tasks: exit {}", status.code().unwrap_or(-1)),
+                    )?;
+                }
+                graph::save(root, &g_mut)?;
+
+                if tasks_failed > 0 && fail_fast {
+                    break;
+                }
+            }
+        }
+
+        let step_result = StepResult {
+            skill: step.skill.clone(),
+            tasks_run,
+            tasks_failed,
+            skipped: false,
+        };
+        results.push(step_result);
+
+        // Advance pipeline state.
+        if tasks_failed > 0 {
+            // Don't advance on failure — record where we stopped.
+            save_state(root, &state)?;
+            return Ok(RunResult {
+                stopped_at: Some(step.skill.clone()),
+                steps: results,
+                completed: false,
+            });
+        }
+
+        advance(&mut state, &p);
+        save_state(root, &state)?;
+    }
+
+    Ok(RunResult {
+        steps: results,
+        completed: is_complete(&state, &p),
+        stopped_at: None,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -528,5 +716,150 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let err = load_pipeline(dir.path(), "nope").unwrap_err();
         assert!(err.to_string().contains("not found"), "got: {err}");
+    }
+
+    // --- run_tasks tests ---
+
+    use crate::model::Task;
+
+    /// Set up a tempdir with a pipeline YAML and a task graph with run: fields.
+    fn setup_run_tasks_env(
+        steps: Vec<PipelineStep>,
+        tasks: Vec<Task>,
+    ) -> (tempfile::TempDir, String) {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+
+        // Write pipeline.
+        let pipeline_name = "test-run";
+        let p = Pipeline {
+            name: pipeline_name.into(),
+            description: "test".into(),
+            steps,
+            entry_points: vec![],
+        };
+        let pdir = root.join("pipelines");
+        std::fs::create_dir_all(&pdir).unwrap();
+        std::fs::write(
+            pdir.join(format!("{pipeline_name}.yaml")),
+            serde_yaml::to_string(&p).unwrap(),
+        )
+        .unwrap();
+
+        // Write task graph.
+        let mut g = crate::model::TaskGraph::default();
+        g.tasks = tasks;
+        graph::save(root, &g).unwrap();
+
+        (dir, pipeline_name.into())
+    }
+
+    #[test]
+    fn run_tasks_completes_empty_pipeline() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path();
+        let p = Pipeline {
+            name: "empty".into(),
+            description: "no steps".into(),
+            steps: vec![],
+            entry_points: vec![],
+        };
+        let pdir = root.join("pipelines");
+        std::fs::create_dir_all(&pdir).unwrap();
+        std::fs::write(pdir.join("empty.yaml"), serde_yaml::to_string(&p).unwrap()).unwrap();
+
+        let result = run_tasks(root, "empty", false).unwrap();
+        assert!(result.completed);
+        assert!(result.steps.is_empty());
+        assert!(result.stopped_at.is_none());
+    }
+
+    #[test]
+    fn run_tasks_skips_steps_with_no_runnable_tasks() {
+        let steps = vec![PipelineStep {
+            skill: "brainstorm".into(),
+            optional: true,
+            r#loop: None,
+            parallel_with: vec![],
+        }];
+        // No tasks at all.
+        let (dir, name) = setup_run_tasks_env(steps, vec![]);
+        let result = run_tasks(dir.path(), &name, false).unwrap();
+        assert!(result.completed);
+        assert_eq!(result.steps.len(), 1);
+        assert!(result.steps[0].skipped);
+    }
+
+    #[test]
+    fn run_tasks_executes_true_command() {
+        let steps = vec![PipelineStep {
+            skill: "build".into(),
+            optional: false,
+            r#loop: None,
+            parallel_with: vec![],
+        }];
+        let mut t = Task::new("t1", "Test task");
+        t.run = Some("true".into());
+        let (dir, name) = setup_run_tasks_env(steps, vec![t]);
+
+        let result = run_tasks(dir.path(), &name, false).unwrap();
+        assert!(result.completed);
+        assert_eq!(result.steps.len(), 1);
+        assert_eq!(result.steps[0].tasks_run, 1);
+        assert_eq!(result.steps[0].tasks_failed, 0);
+
+        // Task should be marked done in graph.
+        let g = graph::load(dir.path()).unwrap();
+        assert_eq!(g.tasks[0].status, crate::model::Status::Done);
+    }
+
+    #[test]
+    fn run_tasks_stops_on_failure_with_fail_fast() {
+        let steps = vec![PipelineStep {
+            skill: "build".into(),
+            optional: false,
+            r#loop: None,
+            parallel_with: vec![],
+        }];
+        let mut t = Task::new("t1", "Failing task");
+        t.run = Some("false".into());
+        let (dir, name) = setup_run_tasks_env(steps, vec![t]);
+
+        let result = run_tasks(dir.path(), &name, true).unwrap();
+        assert!(!result.completed);
+        assert_eq!(result.stopped_at.as_deref(), Some("build"));
+        assert_eq!(result.steps[0].tasks_failed, 1);
+
+        // Task should be blocked.
+        let g = graph::load(dir.path()).unwrap();
+        assert_eq!(g.tasks[0].status, crate::model::Status::Blocked);
+    }
+
+    #[test]
+    fn run_tasks_loop_per_task_drains_chain() {
+        let steps = vec![PipelineStep {
+            skill: "tdd".into(),
+            optional: false,
+            r#loop: Some(LoopMode::PerTask),
+            parallel_with: vec![],
+        }];
+        let mut t1 = Task::new("t1", "First");
+        t1.run = Some("true".into());
+        let mut t2 = Task::new("t2", "Second");
+        t2.depends_on = vec!["t1".into()];
+        t2.run = Some("true".into());
+        let (dir, name) = setup_run_tasks_env(steps, vec![t1, t2]);
+
+        let result = run_tasks(dir.path(), &name, false).unwrap();
+        assert!(result.completed);
+        assert_eq!(result.steps[0].tasks_run, 2);
+        assert_eq!(result.steps[0].tasks_failed, 0);
+
+        let g = graph::load(dir.path()).unwrap();
+        assert!(
+            g.tasks
+                .iter()
+                .all(|t| t.status == crate::model::Status::Done)
+        );
     }
 }

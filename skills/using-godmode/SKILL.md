@@ -4,6 +4,8 @@ description: >
   Use at the start of every conversation to orient to available skills and workspace rules.
   Replaces superpowers entirely. Triggers on session start, "/godmode", or "what skills do
   you have".
+requires: []
+next: []
 ---
 
 You have godmode — a self-contained Rust-native development methodology.
