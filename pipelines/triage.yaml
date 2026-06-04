@@ -1,0 +1,11 @@
+name: triage
+description: Triage open issues into a prioritized task graph
+steps:
+  - skill: issue-triage
+  - skill: task-management
+  - skill: task-driven-development
+    loop: per-task
+  - skill: code-review
+  - skill: verification-before-completion
+  - skill: cap
+entry_points: [issue-triage]

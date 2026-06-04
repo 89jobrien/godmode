@@ -3,7 +3,7 @@
 [integrations]
 doob = true
 hj = false
-cruxx = true
+crux = true
 rx = true
 
 [handoff]

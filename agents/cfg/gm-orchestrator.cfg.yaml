@@ -1,0 +1,29 @@
+name: gm-orchestrator
+version: 1.0.0
+description: |
+  Pipeline loop orchestrator. Drives godmode pipelines from start to finish —
+  advancing skills, handling per-task loops, dispatching parallel steps, and
+  reporting progress at each stage. Triggers on "run pipeline", "start pipeline",
+  "drive pipeline", or when a pipeline name is mentioned with an action verb.
+triggers: []
+model: inherit
+color: cyan
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+skills:
+  - using-godmode
+  - task-management
+  - parallel-agents
+template: ops
+prompt: gm-orchestrator
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - pipeline
+    - orchestration

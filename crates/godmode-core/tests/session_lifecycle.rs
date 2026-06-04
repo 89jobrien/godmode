@@ -11,7 +11,7 @@ use godmode_core::session::Session;
 fn disabled_config() -> Config {
     let mut cfg = Config::default();
     cfg.integrations.rx = false;
-    cfg.integrations.cruxx = false;
+    cfg.integrations.crux = false;
     cfg.integrations.doob = false;
     cfg.integrations.hj = false;
     cfg

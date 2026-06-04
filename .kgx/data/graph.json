@@ -1,0 +1,1095 @@
+{
+  "nodes": [
+    {
+      "id": "e56ce19a-ac27-420f-8cf4-01032a1e67a7",
+      "name": "AgentDef",
+      "type": "struct",
+      "supporting_text": "AgentDef parsed from agents/cfg/*.cfg.yaml",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "9eff8e6c-8b74-44af-8efe-e061a18a2b0b",
+      "name": "Chain",
+      "type": "struct",
+      "supporting_text": "Chain is a group of tasks targeting one crate for sequential execution",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "bd12b761-4be4-4303-945d-34a8eaa9999b",
+      "name": "Priority",
+      "type": "enum",
+      "supporting_text": "Priority enum: High, Normal, Low with serde skip for Normal",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "fa9ba982-9684-4302-8a96-840252e21919",
+      "name": "Session",
+      "type": "struct",
+      "supporting_text": "Session owns all task state transitions, duration tracking, and trace writes",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "24d13fc4-da59-41cd-9192-bf7f7c14040b",
+      "name": "SessionSummary",
+      "type": "struct",
+      "supporting_text": "SessionSummary emitted at handoff with done/running/pending/blocked counts and task timings",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "23c5eeb2-d4f4-4ef5-a974-f17390f7bbfe",
+      "name": "Status",
+      "type": "enum",
+      "supporting_text": "Status enum: Pending, Running, Done, Blocked",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "e48e6717-c593-469d-a98b-788883827abe",
+      "name": "StatusCache",
+      "type": "struct",
+      "supporting_text": "StatusCache written to ~/.cache/godmode/status.json for starship prompt",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "984b63a8-0074-49e8-9fec-45485144cbc9",
+      "name": "Task",
+      "type": "struct",
+      "supporting_text": "The core data model consists of Task with id, title, status, depends_on, notes, crate_name, commit, run, started_at, completed_at, priority, tags",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "afd4ccf9-ece6-4b41-8bbb-81b2cb40bfa9",
+      "name": "TaskGraph",
+      "type": "struct",
+      "supporting_text": "TaskGraph contains tasks Vec and a done_cache RefCell for performance",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "31f0a4f2-8599-420f-a78e-549740abb542",
+      "name": "TaskRef",
+      "type": "struct",
+      "supporting_text": "TaskRef has id and title for orca-strait agent consumption",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "b22f72d8-0b4f-48d3-a65c-4a6e0580f661",
+      "name": "agent",
+      "type": "module",
+      "supporting_text": "agent module parses AgentDef from agents/cfg/*.cfg.yaml",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "3d95dcc1-bf08-486a-a1f7-6326d52d7920",
+      "name": "agent_index",
+      "type": "module",
+      "supporting_text": "agent_index module regenerates agents/INDEX.md",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "80ce125d-522c-4ca3-832c-582c120cc7db",
+      "name": "builder",
+      "type": "module",
+      "supporting_text": "builder module provides interactive and file-driven graph construction",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "4536a81a-92b6-400b-bce8-d52480190aa4",
+      "name": "cache",
+      "type": "module",
+      "supporting_text": "cache module writes StatusCache to ~/.cache/godmode/status.json",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
+      "name": "config",
+      "type": "module",
+      "supporting_text": "config module loads .godmode.toml or global fallback",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
+      "name": "context",
+      "type": "module",
+      "supporting_text": "context module assembles SessionContext for hooks and subagents",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "90ece3f4-9877-4271-8dd5-dcdc033e42a1",
+      "name": "crux-runtime",
+      "type": "dependency",
+      "supporting_text": "crux-runtime for agentic runtime",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "9b053349-c90d-4c31-8195-8af279a4f547",
+      "name": "cruxx",
+      "type": "integration",
+      "supporting_text": "cruxx integration writes Step JSONL traces",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "59da9c6c-159d-4889-ab87-e923653a7157",
+      "name": "detect",
+      "type": "module",
+      "supporting_text": "detect module finds git root and reads Cargo.toml package name",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "name": "dispatch",
+      "type": "module",
+      "supporting_text": "dispatch module computes independent chains for parallel agent execution",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "e4043b80-b7cf-4ec3-a43b-405d88236b9e",
+      "name": "doctor",
+      "type": "module",
+      "supporting_text": "doctor module for workspace health checks",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
+      "name": "doob",
+      "type": "integration",
+      "supporting_text": "doob integration syncs todos and handoff state",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
+      "name": "gh",
+      "type": "integration",
+      "supporting_text": "gh integration handles CI triage and GitHub issues",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "name": "godmode",
+      "type": "workspace",
+      "supporting_text": "Godmode is a two-crate Rust workspace (v0.6.0) for agentic task management",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "name": "godmode-cli",
+      "type": "crate",
+      "supporting_text": "godmode-cli is a thin clap binary",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
+      "name": "godmode-conformance",
+      "type": "crate",
+      "supporting_text": "godmode-conformance holds property tests and benchmarks",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "name": "godmode-core",
+      "type": "crate",
+      "supporting_text": "godmode-core is the library containing all domain logic",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "name": "graph",
+      "type": "module",
+      "supporting_text": "graph module handles load/save task file, all task state transitions, runnable() dependency resolution",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "ce545721-dadd-4a9f-b220-56814a9b088e",
+      "name": "hj",
+      "type": "integration",
+      "supporting_text": "hj integration manages handoff YAML files",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "4b3b48f6-690d-4a32-bccd-c96a0b0801ff",
+      "name": "hooks",
+      "type": "module",
+      "supporting_text": "hooks submodule contains auto_block, hook_context, pre_commit, quality_gate, stop_guard",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "4e57dbbb-b790-4735-a89b-f0099589fe79",
+      "name": "init",
+      "type": "module",
+      "supporting_text": "init module for project initialization",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "401df73c-1bde-48e5-ac98-247e4d01b56a",
+      "name": "insights",
+      "type": "module",
+      "supporting_text": "insights module provides append-only JSONL insight capture",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "name": "integrations",
+      "type": "module",
+      "supporting_text": "integrations submodule wraps external binaries: cruxx, doob, hj, rx, gh",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "b3d33578-96ce-4aa3-90ed-75fa970cf4a9",
+      "name": "memory_banking",
+      "type": "module",
+      "supporting_text": "memory_banking module generates .ctx/memory-bank/ context",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "name": "model",
+      "type": "module",
+      "supporting_text": "model module contains Task, TaskGraph, Status, Priority data types",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "899857f0-a06d-4418-bc5d-1a27d3eee315",
+      "name": "petgraph",
+      "type": "dependency",
+      "supporting_text": "petgraph for graph algorithms",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
+      "name": "pipeline",
+      "type": "module",
+      "supporting_text": "pipeline module handles pipeline execution",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "2a795876-19a7-46e7-95d1-cf283a37e84b",
+      "name": "plan",
+      "type": "module",
+      "supporting_text": "plan module parses markdown Task N headings into Task structs with sequential deps",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "55898a45-60e2-4f0a-bd27-fe87479b2463",
+      "name": "registry",
+      "type": "module",
+      "supporting_text": "registry module persists to ~/.config/godmode/registry.json",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "6e6676b9-3928-4b32-93b4-e17745539606",
+      "name": "release",
+      "type": "module",
+      "supporting_text": "release module handles version bump, tag, push, changelog",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "695176c4-1e7d-43db-b6f9-2f6f1d49a998",
+      "name": "report_index",
+      "type": "module",
+      "supporting_text": "report_index module provides SOLID report indexing",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "a01f092f-62f7-46c3-a8e7-e46c770c3e3a",
+      "name": "review",
+      "type": "module",
+      "supporting_text": "review module audits plugin conformance",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "name": "rx",
+      "type": "integration",
+      "supporting_text": "rx integration dispatches scripts and validates run commands",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "e4f590da-e698-4391-88d4-6c6d8bbb251d",
+      "name": "scaffold",
+      "type": "module",
+      "supporting_text": "scaffold module generates test stubs",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "a0e1ee05-63b3-4ac5-9695-d1d309e51180",
+      "name": "session_trace",
+      "type": "module",
+      "supporting_text": "session_trace module provides low-level JSONL append helpers",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "6d2cace4-9172-43d2-9aef-9d44137199bf",
+      "name": "skill",
+      "type": "module",
+      "supporting_text": "skill module manages skill registry install/uninstall",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "1596dc4b-bc55-4433-8ed4-4da4c086612f",
+      "name": "slashcrux",
+      "type": "dependency",
+      "supporting_text": "slashcrux for slash-command parsing",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "654594bb-e1ad-4c79-9a3f-20714535ba40",
+      "name": "tasks.yaml",
+      "type": "state_file",
+      "supporting_text": "Tasks persisted to .ctx/godmode/tasks.yaml, gitignored and ephemeral",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "dedc6231-65be-4b4f-a794-2fe723a48695",
+      "name": "templates",
+      "type": "module",
+      "supporting_text": "templates module resolves {{var}} substitution",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "a116e02d-9ddb-46af-a7ab-a14d22b713a4",
+      "name": "test_check",
+      "type": "module",
+      "supporting_text": "test_check module checks if .rs files have tests",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "d3438be4-1608-4699-b93e-00de98186c3e",
+      "name": "verify",
+      "type": "module",
+      "supporting_text": "verify module runs nextest + clippy + fmt + git log gate",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
+      "name": "wave",
+      "type": "module",
+      "supporting_text": "wave module tracks parallel agent slot state",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
+      "name": "workflow",
+      "type": "module",
+      "supporting_text": "workflow module defines causal workflow DAGs per agent",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    },
+    {
+      "id": "7e0c4927-52a1-4662-b397-ede2595c116f",
+      "name": "worktree",
+      "type": "module",
+      "supporting_text": "worktree module manages git worktree lifecycle",
+      "source_docs": [
+        "godmode_architecture"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "087df866-5742-4b51-a10a-db1a5a0c2ccb",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Two-crate workspace",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "6978ff6e-422c-4353-91f6-b403534e237e",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Two-crate workspace",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "d093a0c7-0c05-4d74-89d9-a54a708dcf15",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "tests/conformance workspace member",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "482acd4c-fd9e-40e4-a14f-75b7b53b2777",
+      "source": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "thin clap CLI that calls into core",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "bc5c8639-34e7-4092-872e-7aab627f59ef",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod model in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "4ab9d807-45a0-4d8e-ac50-5959b84e6bfd",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod graph in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "6c3e4ff8-2c15-46d6-9f28-874e92af5231",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "fa9ba982-9684-4302-8a96-840252e21919",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod session in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "bddb6570-ef40-4e2d-8dfb-a2a8b276ccdd",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "2a795876-19a7-46e7-95d1-cf283a37e84b",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod plan in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "b6c413e5-7249-40fd-aa4f-2704a86fbc50",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod dispatch in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "2f3c5b40-9532-4eff-b6e2-af81f3649a8b",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod wave in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "eb8b578a-2c65-4890-bbe3-0601bfe32de5",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "80ce125d-522c-4ca3-832c-582c120cc7db",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod builder in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "0ee22001-e0c4-4a8a-aaf5-535d9a0a11bc",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "59da9c6c-159d-4889-ab87-e923653a7157",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod detect in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "5005d30d-99b3-430d-b9d3-38a51ea3b795",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod config in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "c77d0ac5-9a8e-41c9-b4f6-e5a377459866",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod context in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "10abdbea-ea81-4e7b-b99f-5c40a43b3903",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "4536a81a-92b6-400b-bce8-d52480190aa4",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod cache in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "0acfab0f-f335-4996-9687-e12ba39646dc",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "d3438be4-1608-4699-b93e-00de98186c3e",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod verify in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "ea5bfe75-1eed-47b9-a586-fb92f1eb0664",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "401df73c-1bde-48e5-ac98-247e4d01b56a",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod insights in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "9610cfbd-90a6-4846-8167-6a39b65e92c0",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "dedc6231-65be-4b4f-a794-2fe723a48695",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod templates in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "00cfe586-d8a6-48d9-a8bb-41bbcc056328",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "b22f72d8-0b4f-48d3-a65c-4a6e0580f661",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod agent in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "af448104-6b12-4ce6-8d8c-274d3eff4148",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "3d95dcc1-bf08-486a-a1f7-6326d52d7920",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod agent_index in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "16376133-aa82-435e-8520-eba5c676da9f",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "a01f092f-62f7-46c3-a8e7-e46c770c3e3a",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod review in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "c3b575af-fe27-4f4c-8360-ad6c344298dc",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "6e6676b9-3928-4b32-93b4-e17745539606",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod release in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "64d2383c-4f25-41c5-a50c-8cb273a389d4",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "6d2cace4-9172-43d2-9aef-9d44137199bf",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod skill in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "77314127-7b20-4fbf-8f79-617992e952fe",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "55898a45-60e2-4f0a-bd27-fe87479b2463",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod registry in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "72f4c6e6-dfe8-4643-92c5-27d3944a3f27",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "4b3b48f6-690d-4a32-bccd-c96a0b0801ff",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod hooks in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "dd788bfb-eb90-4473-8a65-d73b4de7cf66",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod integrations in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "3f9fc493-e210-486f-ad89-4d0377bf37e2",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod workflow in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "40cb70ad-678c-4cb1-8fad-6d675e309795",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "7e0c4927-52a1-4662-b397-ede2595c116f",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod worktree in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "f8e5cf37-3fbd-437f-ab0e-0c811fc172dc",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "e4f590da-e698-4391-88d4-6c6d8bbb251d",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod scaffold in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "64c1aa32-2882-44ff-b4b1-22bf751a191c",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod pipeline in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "17b3c194-89f5-442c-a790-50cc4e684fe5",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "695176c4-1e7d-43db-b6f9-2f6f1d49a998",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod report_index in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "97868629-1783-4a23-8227-e57b419dfc4d",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "b3d33578-96ce-4aa3-90ed-75fa970cf4a9",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod memory_banking in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "12dcb20b-39bb-45e4-9bac-b9b311836ea0",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "a0e1ee05-63b3-4ac5-9695-d1d309e51180",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod session_trace in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "4364c5b5-cc8e-4ae7-af52-23e8f3092c1a",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "a116e02d-9ddb-46af-a7ab-a14d22b713a4",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod test_check in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "7c47307d-d8e2-4642-9fa1-5a0963bce346",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "e4043b80-b7cf-4ec3-a43b-405d88236b9e",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod doctor in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "96bb341d-9f3a-4e1e-b407-77cb80e281da",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "4e57dbbb-b790-4735-a89b-f0099589fe79",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "pub mod init in lib.rs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "a0fce1fb-193f-44ad-98c9-7269ea4d6c28",
+      "source": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "target": "984b63a8-0074-49e8-9fec-45485144cbc9",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "model module contains Task struct",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "92559094-43de-4d90-bc3f-21b63117c5ad",
+      "source": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "target": "afd4ccf9-ece6-4b41-8bbb-81b2cb40bfa9",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "model module contains TaskGraph struct",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "a8bdfd57-c416-4f31-8f35-82eb397c0939",
+      "source": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "target": "23c5eeb2-d4f4-4ef5-a974-f17390f7bbfe",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "model module contains Status enum",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "33d79231-879e-490f-9d4f-28beab0394a1",
+      "source": "6e53093e-4b32-4744-95da-6e0789077b0c",
+      "target": "bd12b761-4be4-4303-945d-34a8eaa9999b",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "model module contains Priority enum",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "da096207-af60-4fc7-b768-74ee3c605058",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "fa9ba982-9684-4302-8a96-840252e21919",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "session module owns Session struct",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "2fed7f70-a171-4704-92c1-0a3bcb66c077",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "24d13fc4-da59-41cd-9192-bf7f7c14040b",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "SessionSummary emitted at handoff",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "b847b40a-888b-4a89-9020-e97cc7aaaa05",
+      "source": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "target": "9eff8e6c-8b74-44af-8efe-e061a18a2b0b",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "Chain struct in dispatch module",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "a4f53b1f-2d13-4361-ac29-64fd81e02239",
+      "source": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "target": "31f0a4f2-8599-420f-a78e-549740abb542",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "TaskRef struct in dispatch module",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "a5ede2c2-9454-4308-91e5-1b36c80dba09",
+      "source": "b22f72d8-0b4f-48d3-a65c-4a6e0580f661",
+      "target": "e56ce19a-ac27-420f-8cf4-01032a1e67a7",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "AgentDef parsed from agents/cfg/*.cfg.yaml",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "6c2c27f4-5e8b-48e8-ace0-10ce7ae9d97f",
+      "source": "4536a81a-92b6-400b-bce8-d52480190aa4",
+      "target": "e48e6717-c593-469d-a98b-788883827abe",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "StatusCache written for starship prompt",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "8903c91e-aa66-4f9d-875f-c52f72f5caf4",
+      "source": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
+      "target": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
+      "type": "defines",
+      "confidence": 1.0,
+      "supporting_text": "Config loaded from .godmode.toml",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "24488ad5-b8a2-41eb-85e1-73d1381d9668",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "afd4ccf9-ece6-4b41-8bbb-81b2cb40bfa9",
+      "type": "owns",
+      "confidence": 1.0,
+      "supporting_text": "Session owns all task state transitions",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "9a30a659-addd-439f-933b-646bddb78513",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "Session uses Config for integration toggles",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "fae51e3e-f862-455b-baaf-744517656537",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "Session calls graph::load and graph::save",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "36e8cdb8-de75-4749-9309-f191adac95bc",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "9b053349-c90d-4c31-8195-8af279a4f547",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "Session writes cruxx Step traces",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "66df3396-9c21-4363-9c75-aaaf4d644edd",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "Session validates via rx before task mutation",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "9f7a1c59-a5ee-45d2-81b7-0fe20940289e",
+      "source": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "target": "4536a81a-92b6-400b-bce8-d52480190aa4",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "graph::save updates starship status cache",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "6c8b53f2-1203-4d48-b812-8f11e8e3c6ba",
+      "source": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "target": "654594bb-e1ad-4c79-9a3f-20714535ba40",
+      "type": "reads_writes",
+      "confidence": 1.0,
+      "supporting_text": "graph load/save operates on .ctx/godmode/tasks.yaml",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "c0321794-3fc0-4b91-a619-a8ad239c23a9",
+      "source": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "target": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "dispatch imports wave types for concurrency tracking",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "f48d6ddf-1517-4aaf-a0af-a1e878180ef7",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "9b053349-c90d-4c31-8195-8af279a4f547",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "integrations submodule wraps cruxx",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "c8e34049-0e02-41ec-a1cd-9c078441eb28",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "integrations submodule wraps doob",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "b18f98bd-ad53-46d3-af40-8b1c88dd17b4",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "ce545721-dadd-4a9f-b220-56814a9b088e",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "integrations submodule wraps hj",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "471847e6-d6d3-42c6-a016-44fab2a15acb",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "integrations submodule wraps rx",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "bdcbcdde-af4b-48da-8f65-9dd05d21ec9e",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "integrations submodule wraps gh",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "75d63143-9cf7-4c87-b1b7-06a64e91e048",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "899857f0-a06d-4418-bc5d-1a27d3eee315",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "petgraph for graph algorithms",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "9284aa98-ab17-44c4-8e4a-beba56cf7dbe",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "1596dc4b-bc55-4433-8ed4-4da4c086612f",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "slashcrux for slash-command parsing",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "5aa4a56b-ac7c-4666-b9f1-1c6e2924a4a4",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "90ece3f4-9877-4271-8dd5-dcdc033e42a1",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "crux-runtime for agentic runtime",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "e3c27a80-eb38-4cc1-ace9-f23164a99f58",
+      "source": "2a795876-19a7-46e7-95d1-cf283a37e84b",
+      "target": "984b63a8-0074-49e8-9fec-45485144cbc9",
+      "type": "produces",
+      "confidence": 1.0,
+      "supporting_text": "plan parses markdown into Task structs",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "13e57beb-42b3-47c9-a457-8bb46baf7d68",
+      "source": "80ce125d-522c-4ca3-832c-582c120cc7db",
+      "target": "afd4ccf9-ece6-4b41-8bbb-81b2cb40bfa9",
+      "type": "produces",
+      "confidence": 1.0,
+      "supporting_text": "builder constructs TaskGraph",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "901a1ac7-6f52-423d-9980-0c84abd06301",
+      "source": "dedc6231-65be-4b4f-a794-2fe723a48695",
+      "target": "afd4ccf9-ece6-4b41-8bbb-81b2cb40bfa9",
+      "type": "modifies",
+      "confidence": 1.0,
+      "supporting_text": "templates apply substitution to graph",
+      "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "7b0ad116-d781-484c-96bf-da3a2ef62865",
+      "source": "a0e1ee05-63b3-4ac5-9695-d1d309e51180",
+      "target": "fa9ba982-9684-4302-8a96-840252e21919",
+      "type": "supports",
+      "confidence": 1.0,
+      "supporting_text": "session_trace provides low-level JSONL helpers used by session",
+      "source_doc": "godmode_architecture"
+    }
+  ]
+}

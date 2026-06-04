@@ -15,8 +15,8 @@ fn started_at() -> chrono::DateTime<Utc> {
 
 /// Build a `Step` for a task entering the pending state (just added to the graph).
 #[instrument(
-    name = "cruxx::step_pending",
-    fields(integration = "cruxx"),
+    name = "crux::step_pending",
+    fields(integration = "crux"),
     skip(task_id)
 )]
 pub fn step_pending(task_id: impl Into<String>) -> Step {
@@ -40,8 +40,8 @@ pub fn step_pending(task_id: impl Into<String>) -> Step {
 
 /// Build a `Step` for a task transitioning to running.
 #[instrument(
-    name = "cruxx::step_started",
-    fields(integration = "cruxx"),
+    name = "crux::step_started",
+    fields(integration = "crux"),
     skip(task_id)
 )]
 pub fn step_started(task_id: impl Into<String>) -> Step {
@@ -67,8 +67,8 @@ pub fn step_started(task_id: impl Into<String>) -> Step {
 ///
 /// `commit` and `notes` are stored as JSON in `output`.
 #[instrument(
-    name = "cruxx::step_completed",
-    fields(integration = "cruxx"),
+    name = "crux::step_completed",
+    fields(integration = "crux"),
     skip(task_id, commit, notes)
 )]
 pub fn step_completed(
@@ -111,8 +111,8 @@ pub fn step_completed(
 /// Uses `StepStatus::Err` with the reason in `error` — blocked means the task
 /// could not proceed due to an external dependency, not an internal failure.
 #[instrument(
-    name = "cruxx::step_blocked",
-    fields(integration = "cruxx"),
+    name = "crux::step_blocked",
+    fields(integration = "crux"),
     skip(task_id, reason)
 )]
 pub fn step_blocked(task_id: impl Into<String>, reason: Option<&str>) -> Step {

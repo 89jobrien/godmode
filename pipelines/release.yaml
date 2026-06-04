@@ -1,0 +1,11 @@
+name: release
+description: Health check, audit, changelog, release notes, tag
+steps:
+  - skill: health-score
+  - skill: dep-audit
+  - skill: code-review
+  - skill: verification-before-completion
+  - skill: changelog
+  - skill: release-notes
+  - skill: cap
+entry_points: [health-score]

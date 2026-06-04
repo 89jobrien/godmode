@@ -1,0 +1,8 @@
+name: retrospective
+description: End-of-session reflection and knowledge extraction
+steps:
+  - skill: self-reflect
+  - skill: pattern-learner
+  - skill: mistake-tracker
+  - skill: memory-banking
+entry_points: [self-reflect]

@@ -1,4 +1,4 @@
-pub mod cruxx;
+pub mod crux;
 pub mod doob;
 pub mod gh;
 pub mod handoff_yaml;
@@ -22,7 +22,7 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
     let cfg = Config::load(root);
 
     // Ensure sessions dir exists so trace writes don't silently fail
-    let _ = std::fs::create_dir_all(cruxx::sessions_dir(root));
+    let _ = std::fs::create_dir_all(crux::sessions_dir(root));
 
     let g = graph::load(root)?;
     let summary = g.summary();

@@ -3,7 +3,7 @@
 //! Mirrors the charmed_rust conformance pattern: typed `ConformanceTest` trait,
 //! parallel `TestRunner`, JSON / text / GitHub Actions report generation.
 
-pub mod cruxx_tests;
+pub mod crux_tests;
 pub mod dispatch_tests;
 pub mod fixture_tests;
 pub mod graph_tests;
@@ -23,7 +23,7 @@ pub fn all_tests() -> harness::TestRunner {
     runner.add_boxed(plan_tests::all());
     runner.add_boxed(dispatch_tests::all());
     runner.add_boxed(wave_tests::all());
-    runner.add_boxed(cruxx_tests::all());
+    runner.add_boxed(crux_tests::all());
     runner.add_boxed(fixture_tests::all());
     runner.add_boxed(plugin_structure_tests::all());
     runner

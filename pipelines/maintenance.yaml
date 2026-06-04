@@ -1,0 +1,9 @@
+name: maintenance
+description: Health scorecard followed by targeted cleanup
+steps:
+  - skill: health-score
+  - skill: dead-code
+    parallel_with: [dep-audit, introspection, doc-maintainer]
+  - skill: code-review
+  - skill: cap
+entry_points: [health-score]

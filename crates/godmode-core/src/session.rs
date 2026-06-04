@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use crate::config::Config;
 use crate::graph;
-use crate::integrations::{cruxx, rx};
+use crate::integrations::{crux, rx};
 use crate::model::{GraphSummary, Status, Task, TaskGraph};
 use crate::templates;
 
@@ -109,8 +109,8 @@ impl Session {
         if let Some(task) = self.graph.tasks.iter_mut().find(|t| t.id == id) {
             task.started_at = Some(Utc::now());
         }
-        if self.config.integrations.cruxx {
-            let _ = self.append_step(cruxx::step_started(id));
+        if self.config.integrations.crux {
+            let _ = self.append_step(crux::step_started(id));
         }
         self.auto_save();
         Ok(())
@@ -139,8 +139,8 @@ impl Session {
 
         graph::complete(&mut self.graph, id, commit, notes)?;
 
-        if self.config.integrations.cruxx {
-            let mut step = cruxx::step_completed(id, commit, notes);
+        if self.config.integrations.crux {
+            let mut step = crux::step_completed(id, commit, notes);
             step.duration_ms = duration_ms;
             if duration_ms < 100 {
                 let warn = serde_json::json!({
@@ -163,8 +163,8 @@ impl Session {
     /// Block a task with a reason.
     pub fn block_task(&mut self, id: &str, reason: &str) -> Result<()> {
         graph::block(&mut self.graph, id, reason)?;
-        if self.config.integrations.cruxx {
-            let _ = self.append_step(cruxx::step_blocked(id, Some(reason)));
+        if self.config.integrations.crux {
+            let _ = self.append_step(crux::step_blocked(id, Some(reason)));
         }
         self.auto_save();
         Ok(())
@@ -219,7 +219,7 @@ impl Session {
     /// Write a summary record to the summary JSONL file. Non-fatal.
     pub fn write_summary_jsonl(&self, summary: &SessionSummary) -> Result<()> {
         use std::io::Write;
-        let dir = cruxx::sessions_dir(&self.root);
+        let dir = crux::sessions_dir(&self.root);
         std::fs::create_dir_all(&dir)?;
         let date = chrono::Local::now().format("%Y-%m-%d").to_string();
         let path = dir.join(format!("{date}-summary.jsonl"));
@@ -245,7 +245,7 @@ impl Session {
 
     fn append_step(&self, step: crux_runtime::types::step::Step) -> Result<()> {
         use std::io::Write;
-        let dir = cruxx::sessions_dir(&self.root);
+        let dir = crux::sessions_dir(&self.root);
         std::fs::create_dir_all(&dir)?;
         let date = chrono::Local::now().format("%Y-%m-%d").to_string();
         let path = dir.join(format!("{date}.jsonl"));
@@ -633,18 +633,18 @@ mod tests {
     }
 
     #[test]
-    fn start_task_skips_cruxx_trace_when_disabled() {
+    fn start_task_skips_crux_trace_when_disabled() {
         let dir = TempDir::new().unwrap();
         let mut cfg = crate::config::Config::default();
-        cfg.integrations.cruxx = false;
+        cfg.integrations.crux = false;
         let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
         s.add_task(Task::new("t1", "A")).unwrap();
         s.start_task("t1").unwrap();
-        // No session JSONL should exist when cruxx is disabled
+        // No session JSONL should exist when crux is disabled
         let sessions_dir = dir.path().join(".ctx").join("godmode").join("sessions");
         assert!(
             !sessions_dir.exists() || std::fs::read_dir(&sessions_dir).unwrap().count() == 0,
-            "no trace files should be written when cruxx is disabled"
+            "no trace files should be written when crux is disabled"
         );
     }
 

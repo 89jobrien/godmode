@@ -1,10 +1,10 @@
-//! Conformance tests for godmode_core::integrations::cruxx — Step constructor API.
+//! Conformance tests for godmode_core::integrations::crux — Step constructor API.
 
 use chrono::Utc;
 use crux_runtime::types::crux_value::Crux;
 use crux_runtime::types::error::CruxErr;
 use crux_runtime::types::step::{Step, StepKind, StepStatus};
-use godmode_core::integrations::cruxx;
+use godmode_core::integrations::crux;
 use godmode_core::model::TaskGraph;
 use godmode_core::session_trace::Session;
 
@@ -29,19 +29,19 @@ fn make_step(name: &str) -> Step {
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
-pub struct CruxxStepStartedIsOk;
-impl ConformanceTest for CruxxStepStartedIsOk {
+pub struct CruxStepStartedIsOk;
+impl ConformanceTest for CruxStepStartedIsOk {
     fn name(&self) -> &str {
-        "cruxx_step_started_is_ok"
+        "crux_step_started_is_ok"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
-        let step = cruxx::step_started("t1");
+        let step = crux::step_started("t1");
         ctx.assert_str_eq("t1", &step.name);
         ctx.assert_eq(&StepStatus::Ok, &step.status);
         ctx.assert_eq(&1u32, &step.attempt);
@@ -49,19 +49,19 @@ impl ConformanceTest for CruxxStepStartedIsOk {
     }
 }
 
-pub struct CruxxStepPendingIsSkipped;
-impl ConformanceTest for CruxxStepPendingIsSkipped {
+pub struct CruxStepPendingIsSkipped;
+impl ConformanceTest for CruxStepPendingIsSkipped {
     fn name(&self) -> &str {
-        "cruxx_step_pending_is_skipped"
+        "crux_step_pending_is_skipped"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
-        let step = cruxx::step_pending("t0");
+        let step = crux::step_pending("t0");
         ctx.assert_str_eq("t0", &step.name);
         ctx.assert_eq(&StepStatus::Skipped, &step.status);
         ctx.assert_eq(&0u32, &step.attempt);
@@ -69,19 +69,19 @@ impl ConformanceTest for CruxxStepPendingIsSkipped {
     }
 }
 
-pub struct CruxxStepCompletedHasOutput;
-impl ConformanceTest for CruxxStepCompletedHasOutput {
+pub struct CruxStepCompletedHasOutput;
+impl ConformanceTest for CruxStepCompletedHasOutput {
     fn name(&self) -> &str {
-        "cruxx_step_completed_has_output"
+        "crux_step_completed_has_output"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
-        let step = cruxx::step_completed("t2", Some("deadbeef"), Some("all green"));
+        let step = crux::step_completed("t2", Some("deadbeef"), Some("all green"));
         ctx.assert_eq(&StepStatus::Ok, &step.status);
         let output = step.output.as_ref().expect("output should be Some");
         ctx.assert_str_eq("deadbeef", output["commit"].as_str().unwrap_or(""));
@@ -90,42 +90,42 @@ impl ConformanceTest for CruxxStepCompletedHasOutput {
     }
 }
 
-pub struct CruxxStepBlockedIsErr;
-impl ConformanceTest for CruxxStepBlockedIsErr {
+pub struct CruxStepBlockedIsErr;
+impl ConformanceTest for CruxStepBlockedIsErr {
     fn name(&self) -> &str {
-        "cruxx_step_blocked_is_err"
+        "crux_step_blocked_is_err"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
-        let step = cruxx::step_blocked("t3", Some("external dep missing"));
+        let step = crux::step_blocked("t3", Some("external dep missing"));
         ctx.assert_eq(&StepStatus::Err, &step.status);
         ctx.assert_str_eq("external dep missing", step.error.as_deref().unwrap_or(""));
         ctx.result()
     }
 }
 
-pub struct CruxxStepsSerializeRoundtrip;
-impl ConformanceTest for CruxxStepsSerializeRoundtrip {
+pub struct CruxStepsSerializeRoundtrip;
+impl ConformanceTest for CruxStepsSerializeRoundtrip {
     fn name(&self) -> &str {
-        "cruxx_steps_serialize_roundtrip"
+        "crux_steps_serialize_roundtrip"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let steps = [
-            cruxx::step_pending("t1"),
-            cruxx::step_started("t2"),
-            cruxx::step_completed("t3", Some("abc"), None),
-            cruxx::step_blocked("t4", Some("reason")),
+            crux::step_pending("t1"),
+            crux::step_started("t2"),
+            crux::step_completed("t3", Some("abc"), None),
+            crux::step_blocked("t4", Some("reason")),
         ];
         for step in &steps {
             let json = serde_json::to_string(step).unwrap();
@@ -141,20 +141,20 @@ impl ConformanceTest for CruxxStepsSerializeRoundtrip {
     }
 }
 
-pub struct CruxxSessionsDirPath;
-impl ConformanceTest for CruxxSessionsDirPath {
+pub struct CruxSessionsDirPath;
+impl ConformanceTest for CruxSessionsDirPath {
     fn name(&self) -> &str {
-        "cruxx_sessions_dir_path"
+        "crux_sessions_dir_path"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Unit
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let dir = tempfile::TempDir::new().unwrap();
-        let path = cruxx::sessions_dir(dir.path());
+        let path = crux::sessions_dir(dir.path());
         let expected = dir.path().join(".ctx").join("sessions");
         if path != expected {
             ctx.fail(&format!("expected {:?}, got {:?}", expected, path));
@@ -163,13 +163,13 @@ impl ConformanceTest for CruxxSessionsDirPath {
     }
 }
 
-pub struct CruxxSessionRoundtrip;
-impl ConformanceTest for CruxxSessionRoundtrip {
+pub struct CruxSessionRoundtrip;
+impl ConformanceTest for CruxSessionRoundtrip {
     fn name(&self) -> &str {
-        "cruxx_session_roundtrip"
+        "crux_session_roundtrip"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Integration
@@ -190,13 +190,13 @@ impl ConformanceTest for CruxxSessionRoundtrip {
     }
 }
 
-pub struct CruxxSessionFail;
-impl ConformanceTest for CruxxSessionFail {
+pub struct CruxSessionFail;
+impl ConformanceTest for CruxSessionFail {
     fn name(&self) -> &str {
-        "cruxx_session_fail"
+        "crux_session_fail"
     }
     fn crate_name(&self) -> &str {
-        "cruxx"
+        "crux"
     }
     fn category(&self) -> TestCategory {
         TestCategory::Integration
@@ -217,13 +217,13 @@ impl ConformanceTest for CruxxSessionFail {
 
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
-        Box::new(CruxxStepStartedIsOk),
-        Box::new(CruxxStepPendingIsSkipped),
-        Box::new(CruxxStepCompletedHasOutput),
-        Box::new(CruxxStepBlockedIsErr),
-        Box::new(CruxxStepsSerializeRoundtrip),
-        Box::new(CruxxSessionsDirPath),
-        Box::new(CruxxSessionRoundtrip),
-        Box::new(CruxxSessionFail),
+        Box::new(CruxStepStartedIsOk),
+        Box::new(CruxStepPendingIsSkipped),
+        Box::new(CruxStepCompletedHasOutput),
+        Box::new(CruxStepBlockedIsErr),
+        Box::new(CruxStepsSerializeRoundtrip),
+        Box::new(CruxSessionsDirPath),
+        Box::new(CruxSessionRoundtrip),
+        Box::new(CruxSessionFail),
     ]
 }

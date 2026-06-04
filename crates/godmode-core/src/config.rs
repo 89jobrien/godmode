@@ -28,8 +28,8 @@ pub struct Integrations {
     pub doob: bool,
     /// Call `hj` for handoff lifecycle events.
     pub hj: bool,
-    /// Append cruxx trace events to session JSONL.
-    pub cruxx: bool,
+    /// Append crux trace events to session JSONL.
+    pub crux: bool,
     /// Validate task run commands via `rx`.
     pub rx: bool,
 }
@@ -39,7 +39,7 @@ impl Default for Integrations {
         Self {
             doob: true,
             hj: true,
-            cruxx: true,
+            crux: true,
             rx: true,
         }
     }

@@ -38,7 +38,7 @@ mod session_properties {
         let mut cfg = godmode_core::config::Config::default();
         // Disable integrations to avoid subprocess calls.
         cfg.integrations.rx = false;
-        cfg.integrations.cruxx = false;
+        cfg.integrations.crux = false;
         cfg.integrations.doob = false;
         cfg.integrations.hj = false;
 
@@ -133,7 +133,7 @@ mod session_properties {
             let dir = tempfile::TempDir::new().unwrap();
             let mut cfg = godmode_core::config::Config::default();
             cfg.integrations.rx = false;
-            cfg.integrations.cruxx = false;
+            cfg.integrations.crux = false;
             cfg.integrations.doob = false;
             cfg.integrations.hj = false;
             let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
@@ -163,7 +163,7 @@ mod session_properties {
             let dir = tempfile::TempDir::new().unwrap();
             let mut cfg = godmode_core::config::Config::default();
             cfg.integrations.rx = false;
-            cfg.integrations.cruxx = false;
+            cfg.integrations.crux = false;
             cfg.integrations.doob = false;
             cfg.integrations.hj = false;
             let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
