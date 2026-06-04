@@ -117,7 +117,7 @@ impl Task {
     }
 }
 
-/// The full task graph stored in `.ctx/GODMODE.tasks.yaml`.
+/// The full task graph stored in `.ctx/godmode/tasks.yaml`.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaskGraph {
     pub tasks: Vec<Task>,

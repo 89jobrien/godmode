@@ -68,7 +68,7 @@ pub struct StepRecord {
     pub completed_at: Option<DateTime<Utc>>,
 }
 
-/// Persisted pipeline execution state at `.ctx/GODMODE.pipeline.yaml`.
+/// Persisted pipeline execution state at `.ctx/godmode/pipeline.yaml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineState {
     pub active: String,
@@ -89,7 +89,7 @@ pub fn pipelines_dir(root: &Path) -> PathBuf {
 
 /// Path to the active pipeline state file.
 pub fn state_file(root: &Path) -> PathBuf {
-    root.join(".ctx").join("GODMODE.pipeline.yaml")
+    root.join(".ctx").join("godmode").join("pipeline.yaml")
 }
 
 // ---------------------------------------------------------------------------
@@ -466,7 +466,7 @@ mod tests {
     fn load_and_save_state_roundtrip() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        std::fs::create_dir_all(root.join(".ctx")).unwrap();
+        std::fs::create_dir_all(root.join(".ctx").join("godmode")).unwrap();
 
         let p = sample_pipeline();
         let mut state = start(&p, None).unwrap();
@@ -490,7 +490,7 @@ mod tests {
     fn clear_state_removes_file() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path();
-        std::fs::create_dir_all(root.join(".ctx")).unwrap();
+        std::fs::create_dir_all(root.join(".ctx").join("godmode")).unwrap();
 
         let p = sample_pipeline();
         let state = start(&p, None).unwrap();

@@ -8,7 +8,7 @@ Self-contained Rust-native development methodology plugin for Claude Code.
 
 Godmode combines a Claude Code skill set with a CLI-backed task graph. The binary owns all
 stateful operations — skills are thin wrappers that call `godmode` and act on the output.
-Tasks persist in `.ctx/GODMODE.tasks.yaml` (gitignored) across sessions via causal
+Tasks persist in `.ctx/godmode/tasks.yaml` (gitignored) across sessions via causal
 `depends_on` chains.
 
 ## Install
@@ -166,7 +166,7 @@ Example output:
 
 ## Task File
 
-`.ctx/GODMODE.tasks.yaml` — ephemeral, gitignored. Schema:
+`.ctx/godmode/tasks.yaml` — ephemeral, gitignored. Schema:
 
 ```yaml
 tasks:
@@ -216,7 +216,7 @@ The `task-driven-development` skill ships a standalone `rust-script` helper:
 | ------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `skills/task-driven-development/helpers/task-runner.rs` | Phase runner: init / red / green / refactor / next / status / fail / close-issues |
 
-Trace output lands in `.ctx/GODMODE.trace.jsonl`. Use `godmode:observability-as-infrastructure`
+Trace output lands in `.ctx/godmode/traces/trace.jsonl`. Use `godmode:observability-as-infrastructure`
 to query it.
 
 ### Session tracing
@@ -228,7 +228,7 @@ Two hooks emit session lifecycle events automatically:
 
 Both delegate to `hooks/scripts/godmode-trace.rs` (a `rust-script` binary) which owns all
 trace I/O. A fresh `session_id` (`<git-sha>-<epoch-ms>`) is generated each session and
-persisted to `.ctx/GODMODE.session.json`. The session file is read by `session.end` to
+persisted to `.ctx/godmode/session.json`. The session file is read by `session.end` to
 correlate the pair. Both hooks degrade silently if not in a git repo or if `rust-script`
 is unavailable.
 

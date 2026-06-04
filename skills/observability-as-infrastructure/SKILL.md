@@ -10,7 +10,7 @@ description: >
 # Observability as Infrastructure
 
 The trace file is the infrastructure. No external monitoring needed — every
-helper and agent emits structured events to `.ctx/GODMODE.trace.jsonl`, the
+helper and agent emits structured events to `.ctx/godmode/traces/trace.jsonl`, the
 same append-only file used by the core CLI's `start_traced`/`complete_traced`.
 
 ## Event Schema
@@ -37,7 +37,7 @@ All events share a common envelope:
 
 ### Session identity
 
-Session state lives at `.ctx/GODMODE.session.json`. It is created on the first
+Session state lives at `.ctx/godmode/session.json`. It is created on the first
 trace write and reused for all subsequent events. `session_id` = git short SHA
 
 - epoch ms. `session-summary.nu` uses this to correlate work across sessions.
@@ -99,7 +99,7 @@ Wrap in `try { ... }` if the `.ctx/` directory may not exist.
 
 ## Guardrails
 
-- Never delete `.ctx/GODMODE.trace.jsonl` — archive it instead.
-- `session_id` is read-only after creation. Never mutate `.ctx/GODMODE.session.json`.
+- Never delete `.ctx/godmode/traces/trace.jsonl` — archive it instead.
+- `session_id` is read-only after creation. Never mutate `.ctx/godmode/session.json`.
 - Trace writes must not block the main workflow — keep event payloads small.
 - `stderr_tail` is capped at 10 lines to avoid bloating the trace file.

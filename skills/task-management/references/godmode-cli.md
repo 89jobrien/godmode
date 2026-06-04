@@ -41,7 +41,7 @@ godmode dispatch [--max 5] [--json]     # independent chains for orca-strait
 
 ## Task File
 
-`.ctx/GODMODE.tasks.yaml` — ephemeral, gitignored. Schema:
+`.ctx/godmode/tasks.yaml` — ephemeral, gitignored. Schema:
 
 ```yaml
 tasks:

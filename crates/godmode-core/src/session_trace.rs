@@ -61,7 +61,7 @@ impl Session {
     // -----------------------------------------------------------------------
 
     fn write_session(self) -> Result<PathBuf> {
-        let dir = self.root.join(".ctx").join("sessions");
+        let dir = self.root.join(".ctx").join("godmode").join("sessions");
         std::fs::create_dir_all(&dir)?;
         let path = dir.join(format!("{}.json", self.inner.id));
         let json = serde_json::to_string_pretty(&self.inner)?;

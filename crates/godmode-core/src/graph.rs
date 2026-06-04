@@ -6,8 +6,20 @@ use crate::cache;
 use crate::model::{Status, Task, TaskGraph};
 
 /// Resolve the task file path relative to a repo root.
+///
+/// Prefers `.ctx/godmode/tasks.yaml` (new layout). Falls back to the legacy
+/// `.ctx/GODMODE.tasks.yaml` if it exists and the new path does not. Fresh
+/// projects always get the new path.
 pub fn task_file(root: &Path) -> PathBuf {
-    root.join(".ctx").join("GODMODE.tasks.yaml")
+    let new = root.join(".ctx").join("godmode").join("tasks.yaml");
+    if new.exists() {
+        return new;
+    }
+    let legacy = root.join(".ctx").join("GODMODE.tasks.yaml");
+    if legacy.exists() {
+        return legacy;
+    }
+    new
 }
 
 /// Load the task graph from disk. Returns an empty graph if the file does not exist.
@@ -21,7 +33,7 @@ pub fn load(root: &Path) -> Result<TaskGraph> {
     serde_yaml::from_str(&raw).with_context(|| format!("parsing {}", path.display()))
 }
 
-/// Persist the task graph to disk, creating `.ctx/` if needed.
+/// Persist the task graph to disk, creating `.ctx/godmode/` if needed.
 pub fn save(root: &Path, graph: &TaskGraph) -> Result<()> {
     let path = task_file(root);
     if let Some(parent) = path.parent() {
@@ -369,6 +381,36 @@ mod tests {
         t2.depends_on = vec!["t1".into()];
         g.tasks.push(t2);
         g
+    }
+
+    #[test]
+    fn task_file_uses_godmode_subdir() {
+        let root = Path::new("/tmp/test-root");
+        let path = task_file(root);
+        assert_eq!(path, root.join(".ctx/godmode/tasks.yaml"));
+    }
+
+    #[test]
+    fn task_file_falls_back_to_legacy() {
+        let dir = tempfile::tempdir().unwrap();
+        let legacy = dir.path().join(".ctx");
+        std::fs::create_dir_all(&legacy).unwrap();
+        std::fs::write(legacy.join("GODMODE.tasks.yaml"), "tasks: []\n").unwrap();
+        let path = task_file(dir.path());
+        assert_eq!(path, dir.path().join(".ctx/GODMODE.tasks.yaml"));
+    }
+
+    #[test]
+    fn task_file_prefers_new_over_legacy() {
+        let dir = tempfile::tempdir().unwrap();
+        let legacy = dir.path().join(".ctx");
+        std::fs::create_dir_all(&legacy).unwrap();
+        std::fs::write(legacy.join("GODMODE.tasks.yaml"), "tasks: []\n").unwrap();
+        let new_dir = dir.path().join(".ctx").join("godmode");
+        std::fs::create_dir_all(&new_dir).unwrap();
+        std::fs::write(new_dir.join("tasks.yaml"), "tasks: []\n").unwrap();
+        let path = task_file(dir.path());
+        assert_eq!(path, dir.path().join(".ctx/godmode/tasks.yaml"));
     }
 
     #[test]

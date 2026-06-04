@@ -20,7 +20,7 @@ answer questions about that skill.
 
 ## Task Graph Model
 
-- Tasks live in `.ctx/GODMODE.tasks.yaml` — never edit directly, always use `godmode` CLI.
+- Tasks live in `.ctx/godmode/tasks.yaml` — never edit directly, always use `godmode` CLI.
 - Tasks encode causal `depends_on` chains; a task is runnable when all deps are `done`.
 - Independent chains (no shared deps) can run in parallel via `godmode:parallel-agents`.
 

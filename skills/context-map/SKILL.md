@@ -111,7 +111,7 @@ Answer each of these before declaring the map complete:
 - **Public API change?** — does the modification change a `pub` function/struct/trait signature?
   If yes, all consumers (Step 2) must be updated in the same plan.
 - **Serialization format change?** — any `#[derive(Serialize, Deserialize)]` struct that
-  changes shape may invalidate persisted state files (`.ctx/GODMODE.tasks.yaml`, trace JSONL).
+  changes shape may invalidate persisted state files (`.ctx/godmode/tasks.yaml`, trace JSONL).
 - **CLI output change?** — any subcommand output change may break callers using `--json`.
   Check `godmode context --json` consumers in hook scripts and agents.
 - **Cross-crate boundary?** — changes that cross from `godmode-core` to `godmode-cli` or

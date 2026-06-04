@@ -16,12 +16,12 @@ fn godmode_bin() -> std::path::PathBuf {
     workspace_root.join("target/debug/godmode")
 }
 
-/// Create a temp directory containing a pre-populated `.ctx/GODMODE.tasks.yaml`.
+/// Create a temp directory containing a pre-populated `.ctx/godmode/tasks.yaml`.
 fn setup_graph(yaml: &str) -> tempfile::TempDir {
     let dir = tempfile::TempDir::new().expect("tempdir");
-    let ctx = dir.path().join(".ctx");
+    let ctx = dir.path().join(".ctx").join("godmode");
     std::fs::create_dir_all(&ctx).unwrap();
-    std::fs::write(ctx.join("GODMODE.tasks.yaml"), yaml).unwrap();
+    std::fs::write(ctx.join("tasks.yaml"), yaml).unwrap();
     dir
 }
 

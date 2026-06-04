@@ -1,5 +1,5 @@
 #!/usr/bin/env rust-script
-//! Emit session.start / session.end JSONL events to .ctx/GODMODE.trace.jsonl
+//! Emit session.start / session.end JSONL events to .ctx/godmode/traces/trace.jsonl
 //!
 //! Usage:
 //!   godmode-trace start <git-root>
@@ -91,14 +91,14 @@ fn git_short_sha(git_root: &PathBuf) -> String {
 }
 
 fn read_session_id(ctx_dir: &PathBuf) -> Option<String> {
-    let session_file = ctx_dir.join("GODMODE.session.json");
+    let session_file = ctx_dir.join("session.json");
     let raw = fs::read_to_string(session_file).ok()?;
     let v: Value = serde_json::from_str(&raw).ok()?;
     v.get("session_id")?.as_str().map(|s| s.to_string())
 }
 
 fn append_event(ctx_dir: &PathBuf, event: Value) {
-    let trace_file = ctx_dir.join("GODMODE.trace.jsonl");
+    let trace_file = ctx_dir.join("traces").join("trace.jsonl");
     if let Ok(line) = serde_json::to_string(&event) {
         if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(&trace_file) {
             let _ = writeln!(f, "{}", line);
@@ -114,9 +114,10 @@ fn main() {
     }
     let cmd = &args[1];
     let git_root = PathBuf::from(&args[2]);
-    let ctx_dir = git_root.join(".ctx");
+    let ctx_dir = git_root.join(".ctx").join("godmode");
+    let traces_dir = ctx_dir.join("traces");
 
-    let _ = fs::create_dir_all(&ctx_dir);
+    let _ = fs::create_dir_all(&traces_dir);
 
     match cmd.as_str() {
         "start" => {
@@ -128,7 +129,7 @@ fn main() {
                 started_at: iso_now(),
             };
             if let Ok(json) = serde_json::to_string(&session) {
-                let _ = fs::write(ctx_dir.join("GODMODE.session.json"), json);
+                let _ = fs::write(ctx_dir.join("session.json"), json);
             }
             append_event(&ctx_dir, serde_json::json!({
                 "event": "session.start",

@@ -29,7 +29,10 @@ fn make_step(name: &str) -> Step {
 fn sessions_dir_path_is_under_ctx() {
     let dir = tempfile::TempDir::new().unwrap();
     let path = cruxx::sessions_dir(dir.path());
-    assert_eq!(path, dir.path().join(".ctx").join("sessions"));
+    assert_eq!(
+        path,
+        dir.path().join(".ctx").join("godmode").join("sessions")
+    );
 }
 
 #[test]
@@ -85,7 +88,7 @@ fn session_start_finish_writes_file_under_ctx_sessions() {
     let path = session.finish().unwrap();
 
     assert!(path.exists());
-    assert!(path.starts_with(dir.path().join(".ctx").join("sessions")));
+    assert!(path.starts_with(dir.path().join(".ctx").join("godmode").join("sessions")));
 }
 
 #[test]

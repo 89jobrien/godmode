@@ -100,8 +100,8 @@ fn session_start_runs_handon_when_task_file_present() {
     std::fs::create_dir_all(tmp.path().join(".git/refs/heads")).unwrap();
     std::fs::write(tmp.path().join(".git/HEAD"), "ref: refs/heads/main\n").unwrap();
     // Create the task file
-    std::fs::create_dir_all(tmp.path().join(".ctx")).unwrap();
-    std::fs::write(tmp.path().join(".ctx/GODMODE.tasks.yaml"), "tasks: []\n").unwrap();
+    std::fs::create_dir_all(tmp.path().join(".ctx/godmode")).unwrap();
+    std::fs::write(tmp.path().join(".ctx/godmode/tasks.yaml"), "tasks: []\n").unwrap();
 
     // Fake git returning tmp as root
     let fake_git = FakeBin::new("git")
@@ -145,8 +145,8 @@ fn session_start_degrades_gracefully_when_godmode_absent() {
     let tmp = TempDir::new().unwrap();
     std::fs::create_dir_all(tmp.path().join(".git/refs/heads")).unwrap();
     std::fs::write(tmp.path().join(".git/HEAD"), "ref: refs/heads/main\n").unwrap();
-    std::fs::create_dir_all(tmp.path().join(".ctx")).unwrap();
-    std::fs::write(tmp.path().join(".ctx/GODMODE.tasks.yaml"), "tasks: []\n").unwrap();
+    std::fs::create_dir_all(tmp.path().join(".ctx/godmode")).unwrap();
+    std::fs::write(tmp.path().join(".ctx/godmode/tasks.yaml"), "tasks: []\n").unwrap();
 
     let fake_git = FakeBin::new("git")
         .stdout(tmp.path().to_str().unwrap())

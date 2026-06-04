@@ -86,9 +86,9 @@ export def assert-not-main [] {
 # Trace helpers
 # ---------------------------------------------------------------------------
 
-# Load .ctx/GODMODE.trace.jsonl as a list<record>. Exits 0 with message if absent.
+# Load .ctx/godmode/traces/trace.jsonl as a list<record>. Exits 0 with message if absent.
 export def open-trace [] {
-    let trace = $"(repo-root)/.ctx/GODMODE.trace.jsonl"
+    let trace = $"(repo-root)/.ctx/godmode/traces/trace.jsonl"
     if not ($trace | path exists) { print "No trace file."; exit 0 }
     open $trace | lines | each { from json }
 }

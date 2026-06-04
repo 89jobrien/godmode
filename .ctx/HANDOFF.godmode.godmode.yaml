@@ -1,277 +1,197 @@
 project: godmode
 id: godmode
-updated: 2026-06-03
+updated: 2026-06-04
 items:
 - id: uncommitted-work
   doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (129 files)
+  title: Uncommitted changes (63 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    .gitignore
     CLAUDE.md
-    agents/brainstorm-agent.md
-    agents/brainstorm-agent.yaml
-    agents/cap-agent.md
-    agents/cap-agent.yaml
-    agents/ci-fix-agent.md
-    agents/ci-fix-agent.yaml
-    agents/code-review-agent.md
-    agents/code-review-agent.yaml
-    agents/introspection-agent.md
-    agents/introspection-agent.yaml
-    agents/moa-agent.md
-    agents/moa-agent.yaml
-    agents/observability-as-infrastructure-agent.md
-    agents/observability-as-infrastructure-agent.yaml
-    agents/parallel-agents-agent.md
-    agents/parallel-agents-agent.yaml
-    agents/planner-agent.md
-    agents/planner-agent.yaml
-    agents/receiving-review-agent.md
-    agents/receiving-review-agent.yaml
-    agents/refactoring-agent.md
-    agents/refactoring-agent.yaml
-    agents/systematic-debugging-agent.md
-    agents/systematic-debugging-agent.yaml
-    agents/tackle-issues-agent.md
-    agents/tackle-issues-agent.yaml
-    agents/task-management-agent.md
-    agents/task-management-agent.yaml
-    agents/tdd-crate-agent.md
-    agents/tdd-crate-agent.yaml
-    agents/test-driven-development-agent.md
-    agents/test-driven-development-agent.yaml
-    agents/testing-philosophy-agent.md
-    agents/testing-philosophy-agent.yaml
-    agents/using-godmode-agent.md
-    agents/using-godmode-agent.yaml
-    agents/valerie.md
-    agents/valerie.yaml
-    agents/verification-before-completion-agent.md
-    agents/verification-before-completion-agent.yaml
-    agents/wave-integration-agent.md
-    agents/wave-integration-agent.yaml
-    agents/writing-plans-agent.md
-    agents/writing-plans-agent.yaml
-    commands/gm/auth-fail-fast.yaml
-    commands/gm/cap.yaml
-    commands/gm/ci-fix.yaml
-    commands/gm/debug.yaml
-    commands/gm/dispatch-all.yaml
-    commands/gm/fresh-branch.yaml
-    commands/gm/handoff.yaml
+    README.md
+    agents/prompts/health-score-agent.prompt.txt
+    agents/prompts/observability-as-infrastructure-agent.prompt.txt
+    agents/prompts/planner-agent.prompt.txt
+    agents/prompts/pr-author-agent.prompt.txt
+    agents/prompts/task-management-agent.prompt.txt
+    agents/prompts/using-godmode-agent.prompt.txt
+    agents/prompts/valerie.prompt.txt
     commands/gm/handon.yaml
-    commands/gm/introspect.yaml
-    commands/gm/moa-review.yaml
-    commands/gm/plan.yaml
-    commands/gm/preflight.yaml
-    commands/gm/refactor.yaml
-    commands/gm/review-code.yaml
-    commands/gm/self-heal.yaml
-    commands/gm/tackle-issues.yaml
-    commands/gm/tdd.yaml
-    commands/gm/test-fix-commit.yaml
-    commands/gm/trace.yaml
+    commands/gm/templates/ops.md
     crates/godmode-cli/src/main.rs
-    crates/godmode-core/src/agent.rs
-    crates/godmode-core/src/agent_index.rs
-    crates/godmode-core/src/context.rs
+    crates/godmode-cli/tests/priority_filter.rs
+    crates/godmode-cli/tests/visualize_graph.rs
+    crates/godmode-core/src/builder.rs
     crates/godmode-core/src/graph.rs
-    crates/godmode-core/src/integrations/mod.rs
-    crates/godmode-core/src/lib.rs
+    crates/godmode-core/src/hooks/hook_context.rs
+    crates/godmode-core/src/hooks/pre_commit.rs
+    crates/godmode-core/src/hooks/stop_guard.rs
+    crates/godmode-core/src/insights.rs
+    crates/godmode-core/src/integrations/cruxx.rs
+    crates/godmode-core/src/integrations/hook_runner.rs
+    crates/godmode-core/src/memory_banking.rs
+    crates/godmode-core/src/model.rs
+    crates/godmode-core/src/pipeline.rs
     crates/godmode-core/src/session.rs
-    crates/godmode-core/src/verify.rs
-    crates/godmode-core/src/worktree.rs
+    crates/godmode-core/src/session_trace.rs
+    crates/godmode-core/src/wave.rs
+    crates/godmode-core/src/workflow.rs
+    crates/godmode-core/tests/cruxx_integration.rs
+    crates/godmode-core/tests/hooks_integration.rs
+    hooks/lib/godmode-hook-lib.nu
     hooks/pre-push.nu
-    skills/agent-governance/hook.nu
-    skills/brainstorm/hook.nu
+    hooks/scripts/godmode-trace.rs
+    hooks/scripts/post-write-plan-ingest.rs
+    hooks/scripts/session-start.nu
+    hooks/scripts/session-start.rs
+    skills/_lib/helpers.nu
+    skills/_lib/trace.nu
     skills/cap/hook.nu
-    skills/ci-fix/hook.nu
-    skills/code-review/hook.nu
-    skills/context-map/hook.nu
-    skills/doublecheck/hook.nu
+    skills/context-map/SKILL.md
+    skills/health-score/SKILL.md
     skills/introspection/hook.nu
+    skills/memory-banking/helpers/init-memory-bank.nu
     skills/memory-banking/hook.nu
     skills/merge/hook.nu
-    skills/mini-context-graph/hook.nu
     skills/moa/hook.nu
+    skills/observability-as-infrastructure/SKILL.md
     skills/observability-as-infrastructure/hook.nu
+    skills/parallel-agents/SKILL.md
     skills/parallel-agents/hook.nu
-    skills/receiving-review/hook.nu
-    skills/refactoring/hook.nu
-    skills/rust-conventions/hook.nu
-    skills/self-reflect/hook.nu
-    skills/systematic-debugging/hook.nu
-    skills/tackle-issues/hook.nu
-    skills/task-driven-development/hook.nu
+    skills/pr-author/SKILL.md
+    skills/tackle-issues/SKILL.md
+    skills/task-driven-development/SKILL.md
+    skills/task-management/SKILL.md
     skills/task-management/hook.nu
-    skills/testing-philosophy/hook.nu
-    skills/todo-issue-sync/hook.nu
+    skills/task-management/references/godmode-cli.md
     skills/using-godmode/hook.nu
     skills/verification-before-completion/hook.nu
-    skills/wave-integration/hook.nu
+    skills/writing-plans/SKILL.md
     skills/writing-plans/hook.nu
-    .claude/
-    agents/INDEX.md
-    agents/cfg/
-    agents/generate.nu
-    agents/prompts/
-    commands/gm/generate.nu
-    commands/gm/templates/
-    crates/godmode-core/src/insights.rs
-    crates/godmode-core/src/pipeline.rs
-    docs/plans/2026-06-02-skill-pipelines.md
-    hooks/post-commit.nu
-    skills/changelog/
-    skills/cross-issue/
-    skills/dead-code/
-    skills/dep-audit/
-    skills/dep-bump/
-    skills/doc-maintainer/
-    skills/health-score/
-    skills/issue-triage/
-    skills/mistake-tracker/
-    skills/pattern-learner/
-    skills/pr-author/
-    skills/release-notes/
-    skills/workspace-refactor/
+    docs/plans/2026-06-04-ctx-godmode-consolidation.md
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - .gitignore
   - CLAUDE.md
-  - agents/brainstorm-agent.md
-  - agents/brainstorm-agent.yaml
-  - agents/cap-agent.md
-  - agents/cap-agent.yaml
-  - agents/ci-fix-agent.md
-  - agents/ci-fix-agent.yaml
-  - agents/code-review-agent.md
-  - agents/code-review-agent.yaml
-  - agents/introspection-agent.md
-  - agents/introspection-agent.yaml
-  - agents/moa-agent.md
-  - agents/moa-agent.yaml
-  - agents/observability-as-infrastructure-agent.md
-  - agents/observability-as-infrastructure-agent.yaml
-  - agents/parallel-agents-agent.md
-  - agents/parallel-agents-agent.yaml
-  - agents/planner-agent.md
-  - agents/planner-agent.yaml
-  - agents/receiving-review-agent.md
-  - agents/receiving-review-agent.yaml
-  - agents/refactoring-agent.md
-  - agents/refactoring-agent.yaml
-  - agents/systematic-debugging-agent.md
-  - agents/systematic-debugging-agent.yaml
-  - agents/tackle-issues-agent.md
-  - agents/tackle-issues-agent.yaml
-  - agents/task-management-agent.md
-  - agents/task-management-agent.yaml
-  - agents/tdd-crate-agent.md
-  - agents/tdd-crate-agent.yaml
-  - agents/test-driven-development-agent.md
-  - agents/test-driven-development-agent.yaml
-  - agents/testing-philosophy-agent.md
-  - agents/testing-philosophy-agent.yaml
-  - agents/using-godmode-agent.md
-  - agents/using-godmode-agent.yaml
-  - agents/valerie.md
-  - agents/valerie.yaml
-  - agents/verification-before-completion-agent.md
-  - agents/verification-before-completion-agent.yaml
-  - agents/wave-integration-agent.md
-  - agents/wave-integration-agent.yaml
-  - agents/writing-plans-agent.md
-  - agents/writing-plans-agent.yaml
-  - commands/gm/auth-fail-fast.yaml
-  - commands/gm/cap.yaml
-  - commands/gm/ci-fix.yaml
-  - commands/gm/debug.yaml
-  - commands/gm/dispatch-all.yaml
-  - commands/gm/fresh-branch.yaml
-  - commands/gm/handoff.yaml
+  - README.md
+  - agents/prompts/health-score-agent.prompt.txt
+  - agents/prompts/observability-as-infrastructure-agent.prompt.txt
+  - agents/prompts/planner-agent.prompt.txt
+  - agents/prompts/pr-author-agent.prompt.txt
+  - agents/prompts/task-management-agent.prompt.txt
+  - agents/prompts/using-godmode-agent.prompt.txt
+  - agents/prompts/valerie.prompt.txt
   - commands/gm/handon.yaml
-  - commands/gm/introspect.yaml
-  - commands/gm/moa-review.yaml
-  - commands/gm/plan.yaml
-  - commands/gm/preflight.yaml
-  - commands/gm/refactor.yaml
-  - commands/gm/review-code.yaml
-  - commands/gm/self-heal.yaml
-  - commands/gm/tackle-issues.yaml
-  - commands/gm/tdd.yaml
-  - commands/gm/test-fix-commit.yaml
-  - commands/gm/trace.yaml
+  - commands/gm/templates/ops.md
   - crates/godmode-cli/src/main.rs
-  - crates/godmode-core/src/agent.rs
-  - crates/godmode-core/src/agent_index.rs
-  - crates/godmode-core/src/context.rs
+  - crates/godmode-cli/tests/priority_filter.rs
+  - crates/godmode-cli/tests/visualize_graph.rs
+  - crates/godmode-core/src/builder.rs
   - crates/godmode-core/src/graph.rs
-  - crates/godmode-core/src/integrations/mod.rs
-  - crates/godmode-core/src/lib.rs
+  - crates/godmode-core/src/hooks/hook_context.rs
+  - crates/godmode-core/src/hooks/pre_commit.rs
+  - crates/godmode-core/src/hooks/stop_guard.rs
+  - crates/godmode-core/src/insights.rs
+  - crates/godmode-core/src/integrations/cruxx.rs
+  - crates/godmode-core/src/integrations/hook_runner.rs
+  - crates/godmode-core/src/memory_banking.rs
+  - crates/godmode-core/src/model.rs
+  - crates/godmode-core/src/pipeline.rs
   - crates/godmode-core/src/session.rs
-  - crates/godmode-core/src/verify.rs
-  - crates/godmode-core/src/worktree.rs
+  - crates/godmode-core/src/session_trace.rs
+  - crates/godmode-core/src/wave.rs
+  - crates/godmode-core/src/workflow.rs
+  - crates/godmode-core/tests/cruxx_integration.rs
+  - crates/godmode-core/tests/hooks_integration.rs
+  - hooks/lib/godmode-hook-lib.nu
   - hooks/pre-push.nu
-  - skills/agent-governance/hook.nu
-  - skills/brainstorm/hook.nu
+  - hooks/scripts/godmode-trace.rs
+  - hooks/scripts/post-write-plan-ingest.rs
+  - hooks/scripts/session-start.nu
+  - hooks/scripts/session-start.rs
+  - skills/_lib/helpers.nu
+  - skills/_lib/trace.nu
   - skills/cap/hook.nu
-  - skills/ci-fix/hook.nu
-  - skills/code-review/hook.nu
-  - skills/context-map/hook.nu
-  - skills/doublecheck/hook.nu
+  - skills/context-map/SKILL.md
+  - skills/health-score/SKILL.md
   - skills/introspection/hook.nu
+  - skills/memory-banking/helpers/init-memory-bank.nu
   - skills/memory-banking/hook.nu
   - skills/merge/hook.nu
-  - skills/mini-context-graph/hook.nu
   - skills/moa/hook.nu
+  - skills/observability-as-infrastructure/SKILL.md
   - skills/observability-as-infrastructure/hook.nu
+  - skills/parallel-agents/SKILL.md
   - skills/parallel-agents/hook.nu
-  - skills/receiving-review/hook.nu
-  - skills/refactoring/hook.nu
-  - skills/rust-conventions/hook.nu
-  - skills/self-reflect/hook.nu
-  - skills/systematic-debugging/hook.nu
-  - skills/tackle-issues/hook.nu
-  - skills/task-driven-development/hook.nu
+  - skills/pr-author/SKILL.md
+  - skills/tackle-issues/SKILL.md
+  - skills/task-driven-development/SKILL.md
+  - skills/task-management/SKILL.md
   - skills/task-management/hook.nu
-  - skills/testing-philosophy/hook.nu
-  - skills/todo-issue-sync/hook.nu
+  - skills/task-management/references/godmode-cli.md
   - skills/using-godmode/hook.nu
   - skills/verification-before-completion/hook.nu
-  - skills/wave-integration/hook.nu
+  - skills/writing-plans/SKILL.md
   - skills/writing-plans/hook.nu
-  - .claude/
-  - agents/INDEX.md
-  - agents/cfg/
-  - agents/generate.nu
-  - agents/prompts/
-  - commands/gm/generate.nu
-  - commands/gm/templates/
-  - crates/godmode-core/src/insights.rs
-  - crates/godmode-core/src/pipeline.rs
-  - docs/plans/2026-06-02-skill-pipelines.md
-  - hooks/post-commit.nu
-  - skills/changelog/
-  - skills/cross-issue/
-  - skills/dead-code/
-  - skills/dep-audit/
-  - skills/dep-bump/
-  - skills/doc-maintainer/
-  - skills/health-score/
-  - skills/issue-triage/
-  - skills/mistake-tracker/
-  - skills/pattern-learner/
-  - skills/pr-author/
-  - skills/release-notes/
-  - skills/workspace-refactor/
+  - docs/plans/2026-06-04-ctx-godmode-consolidation.md
   completed: null
   extra: []
 log:
+- date: '20260604.055151'
+  summary: done=0 running=0 pending=0 blocked=0
+  commits:
+  - !Sha bbedd78e5506d3f14ede8051e53f55aa6200acfb
+  - !Sha 98d956552daccd32209e6ad326253ea38ab77abc
+  - !Sha e6c1d3bf3fa45506bb1efbadc79e0f446f9f0cab
+  - !Sha c0f528ae386bf12160c9d490522ed1a2a9876275
+  - !Sha 996c84d459ca05f761a65bcf6d0d7bc3c1b0dec4
+  - !Sha a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
+  - !Sha 83c3f026700902bb988c0acc63febf755fb7462d
+  - !Sha b764de84408068b4c37fb72a5b3740298e919a09
+  - !Sha 694335e2f3b87ad73b183a54fe84a82137509ed4
+  - !Sha 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
+- date: '20260604.054949'
+  summary: done=18 running=1 pending=8 blocked=0
+  commits:
+  - !Sha bbedd78e5506d3f14ede8051e53f55aa6200acfb
+  - !Sha 98d956552daccd32209e6ad326253ea38ab77abc
+  - !Sha e6c1d3bf3fa45506bb1efbadc79e0f446f9f0cab
+  - !Sha c0f528ae386bf12160c9d490522ed1a2a9876275
+  - !Sha 996c84d459ca05f761a65bcf6d0d7bc3c1b0dec4
+  - !Sha a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
+  - !Sha 83c3f026700902bb988c0acc63febf755fb7462d
+  - !Sha b764de84408068b4c37fb72a5b3740298e919a09
+  - !Sha 694335e2f3b87ad73b183a54fe84a82137509ed4
+  - !Sha 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
+- date: '20260604.054344'
+  summary: done=2 running=1 pending=24 blocked=0
+  commits:
+  - !Sha bbedd78e5506d3f14ede8051e53f55aa6200acfb
+  - !Sha 98d956552daccd32209e6ad326253ea38ab77abc
+  - !Sha e6c1d3bf3fa45506bb1efbadc79e0f446f9f0cab
+  - !Sha c0f528ae386bf12160c9d490522ed1a2a9876275
+  - !Sha 996c84d459ca05f761a65bcf6d0d7bc3c1b0dec4
+  - !Sha a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
+  - !Sha 83c3f026700902bb988c0acc63febf755fb7462d
+  - !Sha b764de84408068b4c37fb72a5b3740298e919a09
+  - !Sha 694335e2f3b87ad73b183a54fe84a82137509ed4
+  - !Sha 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
+- date: '20260604.050028'
+  summary: done=1 running=0 pending=7 blocked=0
+  commits:
+  - !Sha bbedd78e5506d3f14ede8051e53f55aa6200acfb
+  - !Sha 98d956552daccd32209e6ad326253ea38ab77abc
+  - !Sha e6c1d3bf3fa45506bb1efbadc79e0f446f9f0cab
+  - !Sha c0f528ae386bf12160c9d490522ed1a2a9876275
+  - !Sha 996c84d459ca05f761a65bcf6d0d7bc3c1b0dec4
+  - !Sha a55ff88d9bc9aa3a0017ddbdbb1fecd69ba663d1
+  - !Sha 83c3f026700902bb988c0acc63febf755fb7462d
+  - !Sha b764de84408068b4c37fb72a5b3740298e919a09
+  - !Sha 694335e2f3b87ad73b183a54fe84a82137509ed4
+  - !Sha 29f967240bd9a4c283ac9385dc3a02f042e1dcb2
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
   commits: []

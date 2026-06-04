@@ -14,7 +14,7 @@ task list — the file is the ground truth. Move tasks forward; never skip phase
 
 ## Task List Schema
 
-Each unit of work is a task entry in `.ctx/GODMODE.tasks.yaml`:
+Each unit of work is a task entry in `.ctx/godmode/tasks.yaml`:
 
 ```yaml
 # GODMODE.tasks.yaml

@@ -14,7 +14,7 @@ Dispatch one agent per independent domain. Let them work concurrently.
 
 Use parallel dispatch when:
 
-- Multiple task chains in `.ctx/GODMODE.tasks.yaml` have no shared `depends_on`
+- Multiple task chains in `.ctx/godmode/tasks.yaml` have no shared `depends_on`
 - Multiple crates need implementation and they don't share types
 - Multiple test failures originate from different subsystems
 - Each problem is fully self-contained
@@ -29,7 +29,7 @@ Do NOT use when:
 
 ### Step 1: Identify independent units
 
-From `.ctx/GODMODE.tasks.yaml`, find all tasks where `depends_on` is empty or all
+From `.ctx/godmode/tasks.yaml`, find all tasks where `depends_on` is empty or all
 dependencies are `done`. Group into chains. Chains with no shared nodes are independent.
 
 For crate-based work: each crate is an independent unit if it doesn't import from
@@ -125,7 +125,7 @@ After all agents report:
    ```
 5. Merge each branch sequentially with `--no-ff` (never octopus-merge). Integration failures
    (cross-crate) are fixed in the orchestrator session — do not spawn another agent layer.
-6. Update `.ctx/GODMODE.tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
+6. Update `.ctx/godmode/tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
 7. Archive wave state: `mv .ctx/wave-status.json .ctx/wave-<N>-complete.json`
 
 ## Guardrails

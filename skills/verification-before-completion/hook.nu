@@ -12,7 +12,7 @@ if $git_result.exit_code != 0 {
 }
 
 let git_root = $git_result.stdout | str trim
-let trace_file = $"($git_root)/.ctx/GODMODE.trace.jsonl"
+let trace_file = $"($git_root)/.ctx/godmode/traces/trace.jsonl"
 
 if not ($trace_file | path exists) {
     print --stderr "[godmode:verify] Verification gate not run since last commit — run `godmode verify` before ending session"

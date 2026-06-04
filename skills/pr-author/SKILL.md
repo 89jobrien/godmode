@@ -82,7 +82,7 @@ Include the issue title or task description if helpful.
 
 ## Task Graph Integration
 
-The PR author reads `.ctx/GODMODE.tasks.yaml` to identify which tasks are marked
+The PR author reads `.ctx/godmode/tasks.yaml` to identify which tasks are marked
 `done` on this branch. These are listed in the "Linked Issues" section as
 godmode task IDs (e.g., `t1`, `t3`).
 

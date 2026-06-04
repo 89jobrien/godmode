@@ -18,6 +18,7 @@ pub mod pipeline;
 pub mod plan;
 pub mod registry;
 pub mod release;
+pub mod report_index;
 pub mod review;
 pub mod scaffold;
 pub mod session;

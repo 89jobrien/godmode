@@ -31,7 +31,7 @@ if $git_result.exit_code != 0 {
 }
 
 let git_root = $git_result.stdout | str trim
-let trace_file = $"($git_root)/.ctx/GODMODE.trace.jsonl"
+let trace_file = $"($git_root)/.ctx/godmode/traces/trace.jsonl"
 
 let exit_code = (
     try { $input | get tool_response.exit_code? | default 0 }
@@ -41,7 +41,7 @@ let exit_code = (
 let cmd_short = ($cmd | str substring 0..80)
 let ts = (date now | format date "%Y-%m-%dT%H:%M:%S%z")
 
-let session_file = $"($git_root)/.ctx/GODMODE.session.json"
+let session_file = $"($git_root)/.ctx/godmode/session.json"
 let sid = if ($session_file | path exists) {
     try { (open $session_file).session_id } catch { "" }
 } else { "" }

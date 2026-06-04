@@ -43,8 +43,9 @@ fn main() {
         Some(r) => r,
         None => process::exit(0),
     };
-    let task_file = format!("{root}/.ctx/GODMODE.tasks.yaml");
-    if !Path::new(&task_file).exists() {
+    let task_file = format!("{root}/.ctx/godmode/tasks.yaml");
+    let legacy_task_file = format!("{root}/.ctx/GODMODE.tasks.yaml");
+    if !Path::new(&task_file).exists() && !Path::new(&legacy_task_file).exists() {
         process::exit(0);
     }
 

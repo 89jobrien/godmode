@@ -80,7 +80,7 @@ Every skill directory with a `SKILL.md` must have an entry in both. Flag any tha
 
 ## Step 7: Report
 
-Write a timestamped report to `.ctx/introspection-<YYYY-MM-DD>.md`:
+Write a timestamped report to `.ctx/godmode/reports/introspection/introspection-<YYYY-MM-DD>.md`:
 
 ```markdown
 # Introspect Report — <YYYY-MM-DD HH:MM>
@@ -104,17 +104,28 @@ Write a timestamped report to `.ctx/introspection-<YYYY-MM-DD>.md`:
 
 If no issues are found in any category, write the report anyway — record what was verified.
 
-Use the Write tool to create `.ctx/introspection-<YYYY-MM-DD>.md`. Overwrite if the file
+Use the Write tool to create `.ctx/godmode/reports/introspection/introspection-<YYYY-MM-DD>.md`. Overwrite if the file
 already exists for today.
 
 Also print a summary to stdout.
+
+After writing the report, update the report index:
+
+```bash
+godmode report index-add --category introspection --file "introspection-<YYYY-MM-DD>.md"
+```
+
+If the CLI subcommand is not yet available, read
+`.ctx/godmode/reports/godmode-reports.index.json`, add the filename to
+`categories.introspection.files` (if not already present), and write it back
+with the Write tool.
 
 ## Step 8: Fix
 
 Apply all fixes in one pass. After fixing:
 
 1. Re-run this skill's Steps 2–6 to confirm no new issues were introduced.
-2. Update the report in `.ctx/introspection-<YYYY-MM-DD>.md` with a `## Fixes Applied` section.
+2. Update the report in `.ctx/godmode/reports/introspection/introspection-<YYYY-MM-DD>.md` with a `## Fixes Applied` section.
 3. Commit with `fix(skills): introspect corrections — <summary>`.
 
 ## Guardrails

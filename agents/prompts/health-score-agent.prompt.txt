@@ -117,7 +117,7 @@ Format the scorecard as a markdown table:
 ## Codebase Health Scorecard
 
 Generated: <YYYY-MM-DD HH:MM:SS>
-Workspace: <from .ctx/GODMODE.tasks.yaml or git repo name>
+Workspace: <from .ctx/godmode/tasks.yaml or git repo name>
 
 | Metric             | Current      | Previous     | Trend    |
 | ------------------ | ------------ | ------------ | -------- |

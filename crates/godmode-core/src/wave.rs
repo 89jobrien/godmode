@@ -25,11 +25,12 @@ pub struct WaveState {
 }
 
 fn state_path(root: &Path) -> std::path::PathBuf {
-    root.join(".ctx").join("wave-status.json")
+    root.join(".ctx").join("godmode").join("wave-status.json")
 }
 
 pub fn init(root: &Path, wave_n: u32, agents: &[&str]) -> Result<WaveState> {
-    std::fs::create_dir_all(root.join(".ctx")).context("failed to create .ctx directory")?;
+    std::fs::create_dir_all(root.join(".ctx").join("godmode"))
+        .context("failed to create .ctx/godmode directory")?;
     let state = WaveState {
         wave: wave_n,
         agents: agents
@@ -239,7 +240,7 @@ mod tests {
 
     fn setup(agents: &[&str]) -> (tempfile::TempDir, WaveState) {
         let dir = tempdir().unwrap();
-        std::fs::create_dir_all(dir.path().join(".ctx")).unwrap();
+        std::fs::create_dir_all(dir.path().join(".ctx").join("godmode")).unwrap();
         let state = init(dir.path(), 1, agents).unwrap();
         (dir, state)
     }

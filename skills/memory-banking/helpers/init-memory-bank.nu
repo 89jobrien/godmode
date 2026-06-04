@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # memory-banking/helpers/init-memory-bank.nu
-# Initialize .ctx/memory-banking/ via the godmode CLI.
+# Initialize .ctx/godmode/memory-bank/ via the godmode CLI.
 # Run manually: nu skills/memory-banking/helpers/init-memory-bank.nu
 
 let result = do { godmode memory-banking init } | complete

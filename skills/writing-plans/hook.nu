@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 # writing-plans/hook.nu — PostToolUse/Write hook
 # If a Write creates a file matching docs/plans/*.md, append a trace event to
-# .ctx/GODMODE.trace.jsonl. Always exits 0 (degrades gracefully).
+# .ctx/godmode/traces/trace.jsonl. Always exits 0 (degrades gracefully).
 
 use ../_lib/trace.nu *
 let _tid = (trace-start "writing-plans" "hook.nu")
@@ -23,12 +23,12 @@ if $git_result.exit_code != 0 {
 }
 
 let git_root = $git_result.stdout | str trim
-let ctx_dir = $"($git_root)/.ctx"
-let trace_file = $"($ctx_dir)/GODMODE.trace.jsonl"
+let trace_dir = $"($git_root)/.ctx/godmode/traces"
+let trace_file = $"($trace_dir)/trace.jsonl"
 
-# Ensure .ctx/ exists
-if not ($ctx_dir | path exists) {
-    try { mkdir $ctx_dir } catch { exit 0 }
+# Ensure trace dir exists
+if not ($trace_dir | path exists) {
+    try { mkdir $trace_dir } catch { exit 0 }
 }
 
 let ts = (date now | format date "%Y-%m-%dT%H:%M:%SZ")

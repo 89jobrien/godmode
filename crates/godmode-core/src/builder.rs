@@ -458,7 +458,7 @@ mod tests {
     #[test]
     fn build_from_file_applies_template() {
         let root = TempDir::new().unwrap();
-        std::fs::create_dir_all(root.path().join(".ctx")).unwrap();
+        std::fs::create_dir_all(root.path().join(".ctx").join("godmode")).unwrap();
         std::fs::create_dir_all(root.path().join("templates")).unwrap();
 
         let tmpl = r#"
@@ -490,7 +490,7 @@ tasks:
     #[test]
     fn build_interactive_adds_tasks() {
         let root = TempDir::new().unwrap();
-        std::fs::create_dir_all(root.path().join(".ctx")).unwrap();
+        std::fs::create_dir_all(root.path().join(".ctx").join("godmode")).unwrap();
 
         // Simulate: title="do the thing", crate="", id="" (default t1), then blank to finish,
         // then blank for deps, then done.

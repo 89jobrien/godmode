@@ -56,7 +56,7 @@ pub fn run_lint_gate(root: &Path) -> PreCommitResult {
 
 /// Check that no tasks are in running or blocked state.
 fn check_task_state(root: &Path) -> Result<(), String> {
-    let task_file = root.join(".ctx/GODMODE.tasks.yaml");
+    let task_file = crate::graph::task_file(root);
     if !task_file.exists() {
         return Ok(());
     }
@@ -169,10 +169,10 @@ mod tests {
     #[test]
     fn check_task_state_ok_when_all_pending() {
         let dir = TempDir::new().unwrap();
-        let ctx_dir = dir.path().join(".ctx");
+        let ctx_dir = dir.path().join(".ctx").join("godmode");
         std::fs::create_dir_all(&ctx_dir).unwrap();
         std::fs::write(
-            ctx_dir.join("GODMODE.tasks.yaml"),
+            ctx_dir.join("tasks.yaml"),
             "tasks:\n  - id: t1\n    title: A\n    status: pending\n",
         )
         .unwrap();
@@ -182,10 +182,10 @@ mod tests {
     #[test]
     fn check_task_state_blocks_on_running() {
         let dir = TempDir::new().unwrap();
-        let ctx_dir = dir.path().join(".ctx");
+        let ctx_dir = dir.path().join(".ctx").join("godmode");
         std::fs::create_dir_all(&ctx_dir).unwrap();
         std::fs::write(
-            ctx_dir.join("GODMODE.tasks.yaml"),
+            ctx_dir.join("tasks.yaml"),
             "tasks:\n  - id: t1\n    title: A\n    status: running\n",
         )
         .unwrap();
@@ -197,10 +197,10 @@ mod tests {
     #[test]
     fn check_task_state_blocks_on_blocked() {
         let dir = TempDir::new().unwrap();
-        let ctx_dir = dir.path().join(".ctx");
+        let ctx_dir = dir.path().join(".ctx").join("godmode");
         std::fs::create_dir_all(&ctx_dir).unwrap();
         std::fs::write(
-            ctx_dir.join("GODMODE.tasks.yaml"),
+            ctx_dir.join("tasks.yaml"),
             "tasks:\n  - id: t2\n    title: B\n    status: blocked\n    notes: broken\n",
         )
         .unwrap();

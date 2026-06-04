@@ -38,7 +38,7 @@ impl HookContext {
     pub fn load(stdin_json: &str) -> Option<Self> {
         let input: HookInput = serde_json::from_str(stdin_json).ok()?;
         let git_root = find_git_root()?;
-        let task_file = git_root.join(".ctx/GODMODE.tasks.yaml");
+        let task_file = crate::graph::task_file(&git_root);
         if !task_file.exists() {
             return None;
         }
@@ -49,7 +49,7 @@ impl HookContext {
     /// Build from an already-resolved git root (skips git-root detection).
     pub fn load_with_root(stdin_json: &str, git_root: &Path) -> Option<Self> {
         let input: HookInput = serde_json::from_str(stdin_json).ok()?;
-        let task_file = git_root.join(".ctx/GODMODE.tasks.yaml");
+        let task_file = crate::graph::task_file(git_root);
         if !task_file.exists() {
             return None;
         }

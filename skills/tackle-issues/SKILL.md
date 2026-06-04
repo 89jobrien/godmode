@@ -112,7 +112,7 @@ Workflow:
 4. Commit:
    git -C <REPO_ROOT>/.worktrees/issue-<N> add -A
    git -C <REPO_ROOT>/.worktrees/issue-<N> commit -m "feat: <summary> fixes #<N>"
-5. If a matching godmode task exists (check .ctx/GODMODE.tasks.yaml):
+5. If a matching godmode task exists (check .ctx/godmode/tasks.yaml):
    godmode task done <task-id> --commit <sha>
    If no matching task exists, skip this step.
 6. Final check:
@@ -185,7 +185,7 @@ gh issue close <N> --repo <owner>/<repo> --comment "Implemented in <commit-sha>.
 godmode task done <task-id> --commit <merge-sha>
 ```
 
-Skip if no matching task exists in `.ctx/GODMODE.tasks.yaml`.
+Skip if no matching task exists in `.ctx/godmode/tasks.yaml`.
 
 ## Guardrails
 

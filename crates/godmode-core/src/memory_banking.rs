@@ -1,4 +1,4 @@
-//! Memory banking — persistent source-backed project context at `.ctx/memory-banking/`.
+//! Memory banking — persistent source-backed project context at `.ctx/godmode/memory-bank/`.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -17,12 +17,23 @@ const TEMPLATE_FILES: &[&str] = &[
     "progress.md",
 ];
 
-/// Resolved memory-banking directory for a git root.
+/// Resolved memory-bank directory for a git root.
+///
+/// Prefers `.ctx/godmode/memory-bank/` (new layout). Falls back to the legacy
+/// `.ctx/godmode/memory-bank/` if it exists and the new path does not.
 pub fn memory_banking_dir(git_root: &Path) -> PathBuf {
-    git_root.join(".ctx").join("memory-banking")
+    let new = git_root.join(".ctx").join("godmode").join("memory-bank");
+    if new.exists() {
+        return new;
+    }
+    let legacy = git_root.join(".ctx").join("memory-banking");
+    if legacy.exists() {
+        return legacy;
+    }
+    new
 }
 
-/// Returns true if `.ctx/memory-banking/` exists and has at least one .md file.
+/// Returns true if the memory-bank directory exists and has at least one .md file.
 pub fn exists(git_root: &Path) -> bool {
     let dir = memory_banking_dir(git_root);
     dir.is_dir()
@@ -123,7 +134,7 @@ pub fn inject(git_root: &Path, json: bool) -> Result<()> {
         });
         println!("{}", serde_json::to_string_pretty(&output)?);
     } else {
-        println!("[memory-banking] Injecting project context from .ctx/memory-banking/");
+        println!("[memory-banking] Injecting project context from .ctx/godmode/memory-bank/");
         for file in &files {
             let basename = file.file_name().unwrap_or_default().to_string_lossy();
             let content =
@@ -156,12 +167,12 @@ pub fn remind(git_root: &Path, json: bool) -> Result<()> {
         if json {
             let msg = serde_json::json!({
                 "reminder": true,
-                "message": "Session had commits. Update .ctx/memory-banking/active-context.md and progress.md before ending.",
+                "message": "Session had commits. Update .ctx/godmode/memory-bank/active-context.md and progress.md before ending.",
             });
             println!("{}", serde_json::to_string_pretty(&msg)?);
         } else {
             println!(
-                "[memory-banking] Session had commits. Update .ctx/memory-banking/active-context.md and progress.md before ending."
+                "[memory-banking] Session had commits. Update .ctx/godmode/memory-bank/active-context.md and progress.md before ending."
             );
         }
     }
@@ -169,7 +180,7 @@ pub fn remind(git_root: &Path, json: bool) -> Result<()> {
     Ok(())
 }
 
-/// Create `.ctx/memory-banking/` with empty template files.
+/// Create `.ctx/godmode/memory-bank/` with empty template files.
 pub fn init(git_root: &Path) -> Result<()> {
     let dir = memory_banking_dir(git_root);
     fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
@@ -187,7 +198,7 @@ pub fn init(git_root: &Path) -> Result<()> {
     }
 
     println!(
-        "[memory-banking] Initialized .ctx/memory-banking/ with {} template files.",
+        "[memory-banking] Initialized .ctx/godmode/memory-bank/ with {} template files.",
         TEMPLATE_FILES.len()
     );
     Ok(())
@@ -222,7 +233,7 @@ pub fn status(git_root: &Path, json: bool) -> Result<()> {
         println!("{}", serde_json::to_string_pretty(&output)?);
     } else {
         println!(
-            "[memory-banking] {} files in .ctx/memory-banking/",
+            "[memory-banking] {} files in .ctx/godmode/memory-bank/",
             files.len()
         );
         for file in &files {
@@ -264,8 +275,8 @@ mod tests {
 
     fn setup_with_memory_bank(files: &[(&str, &str)]) -> TempDir {
         let tmp = setup_fake_root();
-        let mb = tmp.path().join(".ctx").join("memory-banking");
-        fs::create_dir_all(&mb).expect("create memory-banking dir");
+        let mb = tmp.path().join(".ctx").join("godmode").join("memory-bank");
+        fs::create_dir_all(&mb).expect("create memory-bank dir");
         for (name, content) in files {
             fs::write(mb.join(name), content).expect("write file");
         }
@@ -273,11 +284,27 @@ mod tests {
     }
 
     #[test]
-    fn memory_banking_dir_resolves_correctly() {
+    fn memory_banking_dir_prefers_new_path() {
+        let tmp = setup_fake_root();
+        let new = tmp.path().join(".ctx").join("godmode").join("memory-bank");
+        fs::create_dir_all(&new).unwrap();
+        assert_eq!(memory_banking_dir(tmp.path()), new);
+    }
+
+    #[test]
+    fn memory_banking_dir_falls_back_to_legacy() {
+        let tmp = setup_fake_root();
+        let legacy = tmp.path().join(".ctx").join("memory-banking");
+        fs::create_dir_all(&legacy).unwrap();
+        assert_eq!(memory_banking_dir(tmp.path()), legacy);
+    }
+
+    #[test]
+    fn memory_banking_dir_defaults_to_new_when_neither_exists() {
         let p = Path::new("/some/project");
         assert_eq!(
             memory_banking_dir(p),
-            PathBuf::from("/some/project/.ctx/memory-banking")
+            PathBuf::from("/some/project/.ctx/godmode/memory-bank")
         );
     }
 
@@ -290,7 +317,7 @@ mod tests {
     #[test]
     fn exists_false_when_dir_empty() {
         let tmp = setup_fake_root();
-        let mb = tmp.path().join(".ctx").join("memory-banking");
+        let mb = tmp.path().join(".ctx").join("godmode").join("memory-bank");
         fs::create_dir_all(&mb).unwrap();
         assert!(!exists(tmp.path()));
     }
@@ -298,7 +325,7 @@ mod tests {
     #[test]
     fn exists_false_when_only_non_md_files() {
         let tmp = setup_fake_root();
-        let mb = tmp.path().join(".ctx").join("memory-banking");
+        let mb = tmp.path().join(".ctx").join("godmode").join("memory-bank");
         fs::create_dir_all(&mb).unwrap();
         fs::write(mb.join(".DS_Store"), "junk").unwrap();
         assert!(!exists(tmp.path()));

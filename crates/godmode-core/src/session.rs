@@ -641,7 +641,7 @@ mod tests {
         s.add_task(Task::new("t1", "A")).unwrap();
         s.start_task("t1").unwrap();
         // No session JSONL should exist when cruxx is disabled
-        let sessions_dir = dir.path().join(".ctx").join("sessions");
+        let sessions_dir = dir.path().join(".ctx").join("godmode").join("sessions");
         assert!(
             !sessions_dir.exists() || std::fs::read_dir(&sessions_dir).unwrap().count() == 0,
             "no trace files should be written when cruxx is disabled"

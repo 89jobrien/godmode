@@ -9,7 +9,7 @@ description: >
 
 # Task Management
 
-Godmode maintains a task graph at `.ctx/GODMODE.tasks.yaml` via the `godmode` CLI. Tasks
+Godmode maintains a task graph at `.ctx/godmode/tasks.yaml` via the `godmode` CLI. Tasks
 persist across sessions, encode causal dependencies, and drive sequential or parallel
 execution. Never edit the YAML directly — always use the CLI.
 

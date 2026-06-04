@@ -100,6 +100,7 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
     let mut state = init_state(def);
     let state_path = root
         .join(".ctx")
+        .join("godmode")
         .join(format!("workflow-{}.json", def.name));
 
     loop {
@@ -293,7 +294,7 @@ mod tests {
     #[test]
     fn run_executes_two_step_workflow() {
         let dir = std::env::temp_dir().join("godmode-workflow-run-test");
-        std::fs::create_dir_all(dir.join(".ctx")).unwrap();
+        std::fs::create_dir_all(dir.join(".ctx").join("godmode")).unwrap();
         let def = two_step_def();
         let final_state = run(&def, &dir).unwrap();
         let _ = std::fs::remove_dir_all(&dir);
@@ -304,7 +305,7 @@ mod tests {
     #[test]
     fn run_marks_failed_on_non_zero_exit() {
         let dir = std::env::temp_dir().join("godmode-workflow-fail-test");
-        std::fs::create_dir_all(dir.join(".ctx")).unwrap();
+        std::fs::create_dir_all(dir.join(".ctx").join("godmode")).unwrap();
         let def = WorkflowDef {
             name: "fail-wf".to_string(),
             description: String::new(),

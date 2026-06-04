@@ -20,7 +20,7 @@ pub enum StopDecision {
 /// Check whether the session is safe to end.
 /// Returns `Allow` if no task file exists or no problematic tasks found.
 pub fn check(root: &Path) -> StopDecision {
-    let init_file = root.join(".ctx/.initialized");
+    let init_file = root.join(".ctx/godmode/.initialized");
     if !init_file.exists() {
         return StopDecision::Allow;
     }
@@ -96,10 +96,10 @@ mod tests {
     #[test]
     fn allow_when_no_task_file() {
         let dir = TempDir::new().unwrap();
-        let ctx_dir = dir.path().join(".ctx");
+        let ctx_dir = dir.path().join(".ctx").join("godmode");
         std::fs::create_dir_all(&ctx_dir).unwrap();
         std::fs::write(ctx_dir.join(".initialized"), "").unwrap();
-        // No GODMODE.tasks.yaml — context::build will fail gracefully
+        // No tasks.yaml — context::build will fail gracefully
         assert_eq!(check(dir.path()), StopDecision::Allow);
     }
 

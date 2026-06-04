@@ -15,10 +15,11 @@ if $git_root_result.exit_code != 0 {
 }
 
 let git_root = $git_root_result.stdout | str trim
-let task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
+let task_file = $"($git_root)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
 
 # Only print if the task graph does NOT exist
-if ($task_file | path exists) {
+if (($task_file | path exists) or ($legacy_task_file | path exists)) {
     exit 0
 }
 

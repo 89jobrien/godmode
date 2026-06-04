@@ -1,6 +1,6 @@
 #!/usr/bin/env rust-script
 //! session-start.rs — SessionStart hook (replaces session-start.nu)
-//! Runs `godmode handon` when .ctx/GODMODE.tasks.yaml exists in the repo root.
+//! Runs `godmode handon` when .ctx/godmode/tasks.yaml exists in the repo root.
 //! No-ops silently in non-godmode repos. Always exits 0.
 //!
 //! ```cargo
@@ -53,9 +53,10 @@ fn main() {
         }
     }
 
-    // Check for task file
-    let task_file = root.join(".ctx/GODMODE.tasks.yaml");
-    if !task_file.exists() {
+    // Check for task file (new path, with legacy fallback)
+    let task_file = root.join(".ctx/godmode/tasks.yaml");
+    let legacy_task_file = root.join(".ctx/GODMODE.tasks.yaml");
+    if !task_file.exists() && !legacy_task_file.exists() {
         process::exit(0);
     }
 

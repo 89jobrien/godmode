@@ -117,7 +117,7 @@ Check these before writing the file:
 
 ## After Writing
 
-Update `.ctx/GODMODE.tasks.yaml` with a task entry for each plan task.
+Update `.ctx/godmode/tasks.yaml` with a task entry for each plan task.
 See `godmode:task-management` for the schema.
 
 ## Additional Resources

@@ -1,11 +1,11 @@
-//! Hook observability: append hook run events to `.ctx/GODMODE.hooks.log`.
+//! Hook observability: append hook run events to `.ctx/godmode/traces/hooks.log`.
 //!
 //! All writes are non-fatal — errors are silently dropped so a missing `.ctx/`
 //! directory or a read-only filesystem never aborts the caller.
 
 use std::path::Path;
 
-/// Append a single hook run event to `.ctx/GODMODE.hooks.log` as a JSONL line.
+/// Append a single hook run event to `.ctx/godmode/traces/hooks.log` as a JSONL line.
 ///
 /// Fields:
 /// - `hook`      — name/identifier of the hook script
@@ -22,7 +22,11 @@ pub fn append_hook_event(
 ) -> std::io::Result<()> {
     use std::io::Write as _;
 
-    let log_path = root.join(".ctx").join("GODMODE.hooks.log");
+    let log_path = root
+        .join(".ctx")
+        .join("godmode")
+        .join("traces")
+        .join("hooks.log");
     if let Some(parent) = log_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -69,10 +73,14 @@ fn json_str(s: &str) -> String {
     out
 }
 
-/// Read up to `tail` lines from `.ctx/GODMODE.hooks.log`.
+/// Read up to `tail` lines from `.ctx/godmode/traces/hooks.log`.
 /// Returns an empty vec if the file does not exist.
 pub fn read_hook_log(root: &Path, tail: usize) -> std::io::Result<Vec<String>> {
-    let log_path = root.join(".ctx").join("GODMODE.hooks.log");
+    let log_path = root
+        .join(".ctx")
+        .join("godmode")
+        .join("traces")
+        .join("hooks.log");
     if !log_path.exists() {
         return Ok(vec![]);
     }

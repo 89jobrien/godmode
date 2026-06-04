@@ -23,7 +23,8 @@ and tracks trends over time by persisting scores to a JSON history file.
 
 ### 1. Test Count
 
-**Collection**: Run `cargo nextest run --workspace` and parse the summary line.
+**Collection**: Run `cargo nextest list --workspace` (compiles but does not
+execute tests) and count output lines containing `::`. Each line is one test.
 Fallback: `cargo test --no-run` and count binary artifacts.
 
 **Interpretation**: More tests = better coverage. Trend: increases indicate more
@@ -33,8 +34,10 @@ comprehensive testing. Decreases may indicate cleanup or removed features.
 
 ### 2. Clippy Warnings
 
-**Collection**: Run `cargo clippy --workspace 2>&1 | grep "warning\[" | wc -l`.
-Count only warnings, not notes or errors.
+**Collection**: Run `cargo clippy --workspace` (compile-only, no test
+execution) and count warning lines. Use `--message-format json` and count
+lines containing `"level":"warning"`, or pipe stderr through
+`grep "warning\[" | wc -l`. Count only warnings, not notes or errors.
 
 **Interpretation**: Zero is ideal. Each warning represents a potential code quality
 issue. Trend: increases indicate code quality degradation; decreases indicate

@@ -5,7 +5,7 @@
 #   use (/path/to/skills/_lib/trace.nu) *
 #
 # Session identity is lazily initialised on first write and persisted to
-# .ctx/GODMODE.session.json so all helpers in a session share one session_id.
+# .ctx/godmode/session.json so all helpers in a session share one session_id.
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -16,11 +16,11 @@ def repo-root [] {
 }
 
 def trace-file [] {
-    $"(repo-root)/.ctx/GODMODE.trace.jsonl"
+    $"(repo-root)/.ctx/godmode/traces/trace.jsonl"
 }
 
 def session-file [] {
-    $"(repo-root)/.ctx/GODMODE.session.json"
+    $"(repo-root)/.ctx/godmode/session.json"
 }
 
 def now-ms [] {
@@ -44,7 +44,7 @@ def session-id [] {
 # Append one JSON line to the trace file. Non-fatal — failures are silently swallowed.
 def append-event [record: record] {
     let root = (repo-root)
-    try { mkdir $"($root)/.ctx" }
+    try { mkdir $"($root)/.ctx/godmode/traces" }
     try { $record | to json --raw | $"($in)\n" | save --append (trace-file) }
 }
 

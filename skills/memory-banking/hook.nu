@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # memory-banking/hook.nu — SessionStart hook (delegates to CLI).
-# Prints memory-bank contents if .ctx/memory-banking/ exists.
+# Prints memory-bank contents if .ctx/godmode/memory-bank/ exists.
 
 use ../_lib/trace.nu *
 let _tid = (trace-start "memory-banking" "hook.nu")

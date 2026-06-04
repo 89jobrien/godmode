@@ -6,6 +6,8 @@ pub use chrono::NaiveDate;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::report_index::{JsonFileIndex, ReportIndexPort};
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -24,11 +26,17 @@ pub struct Insight {
 // ---------------------------------------------------------------------------
 
 fn insights_path(root: &Path) -> PathBuf {
-    root.join(".ctx").join("insights.jsonl")
+    root.join(".ctx")
+        .join("godmode")
+        .join("traces")
+        .join("insights.jsonl")
 }
 
 fn insights_md_path(root: &Path, date: &NaiveDate) -> PathBuf {
     root.join(".ctx")
+        .join("godmode")
+        .join("reports")
+        .join("insights")
         .join(format!("insights-{}.md", date.format("%Y-%m-%d")))
 }
 
@@ -110,6 +118,11 @@ pub fn render_markdown(root: &Path, date: NaiveDate) -> Result<PathBuf> {
         buf.push_str(&format!("\n## {}\n\n{}\n", insight.title, insight.body));
     }
     std::fs::write(&path, &buf)?;
+
+    // Update the report index (non-fatal — don't block render on index failure)
+    let filename = format!("insights-{}.md", date.format("%Y-%m-%d"));
+    let _ = JsonFileIndex::new(root).add_entry("insights", &filename);
+
     Ok(path)
 }
 

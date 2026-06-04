@@ -134,7 +134,7 @@ pub fn step_blocked(task_id: impl Into<String>, reason: Option<&str>) -> Step {
     }
 }
 
-/// Resolve the session directory: `<root>/.ctx/sessions/`.
+/// Resolve the session directory: `<root>/.ctx/godmode/sessions/`.
 pub fn sessions_dir(root: &Path) -> PathBuf {
-    root.join(".ctx").join("sessions")
+    root.join(".ctx").join("godmode").join("sessions")
 }

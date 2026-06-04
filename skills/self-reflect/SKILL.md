@@ -9,7 +9,7 @@ description: >
 # Self-Reflect
 
 Review the current session's work and produce a structured retrospective written to
-`.ctx/reflect-<YYYY-MM-DD>.md`.
+`.ctx/godmode/reports/reflect/reflect-<YYYY-MM-DD>.md`.
 
 ## When to Use
 
@@ -72,7 +72,7 @@ Answer these questions honestly based on the evidence:
 
 ## Step 4: Write the retrospective
 
-Write to `.ctx/reflect-<YYYY-MM-DD>.md` (overwrite if exists for today):
+Write to `.ctx/godmode/reports/reflect/reflect-<YYYY-MM-DD>.md` (overwrite if exists for today):
 
 ```markdown
 # Session Reflection — <YYYY-MM-DD HH:MM>
@@ -115,6 +115,17 @@ Write to `.ctx/reflect-<YYYY-MM-DD>.md` (overwrite if exists for today):
 
 Use the Write tool to create the file. Print a short summary (Shipped / Unfinished /
 Top insight) to stdout as well.
+
+After writing the report, update the report index:
+
+```bash
+godmode report index-add --category reflect --file "reflect-<YYYY-MM-DD>.md"
+```
+
+If the CLI subcommand is not yet available, read
+`.ctx/godmode/reports/godmode-reports.index.json`, add the filename to
+`categories.reflect.files` (if not already present), and write it back with the
+Write tool.
 
 ## Step 5: Update task graph (if applicable)
 

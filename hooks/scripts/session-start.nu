@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # session-start.nu — PostToolUse/SessionStart hook
-# Runs `godmode handon` when .ctx/GODMODE.tasks.yaml exists in the repo root.
+# Runs `godmode handon` when .ctx/godmode/tasks.yaml exists in the repo root.
 # No-ops silently in non-godmode repos.
 
 let _input = open --raw /dev/stdin | from json
@@ -22,9 +22,10 @@ if not ($trace_script | is-empty) and ($trace_script | path exists) {
     do { rust-script $trace_script start $git_root } | complete | ignore
 }
 
-let task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
+let task_file = $"($git_root)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
 
-if not ($task_file | path exists) {
+if not (($task_file | path exists) or ($legacy_task_file | path exists)) {
     exit 0
 }
 

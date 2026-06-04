@@ -275,7 +275,7 @@ enum ReleaseAction {
 enum HookAction {
     /// List all hooks registered in hooks/hooks.json.
     List,
-    /// Print the last N lines from .ctx/GODMODE.hooks.log.
+    /// Print the last N lines from .ctx/godmode/traces/hooks.log.
     Log {
         /// Number of lines to show (default 20).
         #[arg(long, default_value = "20")]
@@ -2123,7 +2123,10 @@ fn main() -> Result<()> {
             }
 
             WorkflowAction::Status { name } => {
-                let state_path = root.join(".ctx").join(format!("workflow-{}.json", name));
+                let state_path = root
+                    .join(".ctx")
+                    .join("godmode")
+                    .join(format!("workflow-{}.json", name));
                 if !state_path.exists() {
                     if json {
                         println!("null");

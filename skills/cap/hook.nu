@@ -21,14 +21,12 @@ if $git_result.exit_code != 0 {
 }
 
 let git_root = $git_result.stdout | str trim
-let task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
-
-if not ($task_file | path exists) {
-    exit 0
-}
+let task_file = $"($git_root)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
+let actual_task_file = if ($task_file | path exists) { $task_file } else if ($legacy_task_file | path exists) { $legacy_task_file } else { exit 0 }
 
 # Parse the task file and find running tasks with no commit field
-let tasks = try { open $task_file | get tasks? | default [] } catch { [] }
+let tasks = try { open $actual_task_file | get tasks? | default [] } catch { [] }
 
 let unrecorded = (
     $tasks

@@ -30,9 +30,10 @@ if $git_result.exit_code != 0 {
 }
 
 let git_root = $git_result.stdout | str trim
-let task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
+let task_file = $"($git_root)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($git_root)/.ctx/GODMODE.tasks.yaml"
 
-if not ($task_file | path exists) {
+if not (($task_file | path exists) or ($legacy_task_file | path exists)) {
     exit 0
 }
 

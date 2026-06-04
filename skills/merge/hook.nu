@@ -20,10 +20,11 @@ if $exit_code != 0 {
 let git_root = do { git rev-parse --show-toplevel } | complete
 if $git_root.exit_code != 0 { exit 0 }
 
-let task_file = $"($git_root.stdout | str trim)/.ctx/GODMODE.tasks.yaml"
-if not ($task_file | path exists) { exit 0 }
+let task_file = $"($git_root.stdout | str trim)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($git_root.stdout | str trim)/.ctx/GODMODE.tasks.yaml"
+let actual_task_file = if ($task_file | path exists) { $task_file } else if ($legacy_task_file | path exists) { $legacy_task_file } else { exit 0 }
 
-let tasks = try { open $task_file | get tasks? | default [] } catch { [] }
+let tasks = try { open $actual_task_file | get tasks? | default [] } catch { [] }
 
 let running = (
     $tasks

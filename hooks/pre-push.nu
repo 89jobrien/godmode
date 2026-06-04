@@ -23,8 +23,9 @@ if not $godmode_found {
     exit 0
 }
 
-let task_file = $"($root)/.ctx/GODMODE.tasks.yaml"
-if not ($task_file | path exists) {
+let task_file = $"($root)/.ctx/godmode/tasks.yaml"
+let legacy_task_file = $"($root)/.ctx/GODMODE.tasks.yaml"
+if not (($task_file | path exists) or ($legacy_task_file | path exists)) {
     emit-trace --name "pre-push" --kind "hook" --status "skipped" --output "no task file" --last-hash $pre_hash --hooks ["pre-push"]
     exit 0
 }
