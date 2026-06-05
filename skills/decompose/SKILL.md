@@ -26,16 +26,7 @@ and always requires explicit user approval before any git mutations occur.
 | `helpers/analyze-diff.nu`        | Mechanical analysis: file→crate map, concern classification, coupling detection |
 | `helpers/split-branch.nu`        | Branch creation, file staging, per-split verification loop                      |
 | `helpers/decompose-proptest.rs`  | Property tests for grouping and coverage invariants                             |
-| `helpers/fuzz/`                  | Fuzz targets for `classify_concern` and `verify_coverage`                       |
 | `references/split-strategies.md` | Decision guide for ambiguous grouping calls                                     |
-
-To run fuzz targets (requires `cargo install cargo-fuzz`):
-
-```bash
-cd skills/decompose/helpers/fuzz
-cargo fuzz run fuzz_classify_concern -- -max_total_time=60
-cargo fuzz run fuzz_verify_coverage  -- -max_total_time=60
-```
 
 ---
 
