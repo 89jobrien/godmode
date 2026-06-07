@@ -28,6 +28,7 @@ pub struct NextestStep;
 pub struct ClippyStep;
 pub struct FmtStep;
 pub struct CommitsStep;
+pub struct GlobstarStep;
 
 impl VerifyStep for NextestStep {
     fn name(&self) -> &str {
@@ -134,6 +135,47 @@ impl VerifyStep for CommitsStep {
     }
 }
 
+impl VerifyStep for GlobstarStep {
+    fn name(&self) -> &str {
+        "globstar"
+    }
+
+    fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
+        // Skip if globstar is not installed or no .globstar/ dir exists
+        if !root.join(".globstar").exists() {
+            return Ok(StepResult {
+                name: self.name().into(),
+                ok: true,
+                output: "skipped (no .globstar/ directory)".into(),
+            });
+        }
+        let globstar = match which::which("globstar") {
+            Ok(p) => p,
+            Err(_) => {
+                return Ok(StepResult {
+                    name: self.name().into(),
+                    ok: true,
+                    output: "skipped (globstar not on PATH)".into(),
+                });
+            }
+        };
+        let out = Command::new(globstar)
+            .args(["check", "--checkers=local"])
+            .current_dir(root)
+            .output()?;
+        let output = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        Ok(StepResult {
+            name: self.name().into(),
+            ok: out.status.success(),
+            output,
+        })
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
@@ -158,6 +200,7 @@ pub fn default_steps() -> Vec<Box<dyn VerifyStep>> {
         Box::new(ClippyStep),
         Box::new(FmtStep),
         Box::new(CommitsStep),
+        Box::new(GlobstarStep),
     ]
 }
 
@@ -235,11 +278,14 @@ mod tests {
     }
 
     #[test]
-    fn default_steps_returns_four() {
+    fn default_steps_returns_five() {
         let steps = default_steps();
-        assert_eq!(steps.len(), 4);
+        assert_eq!(steps.len(), 5);
         let names: Vec<&str> = steps.iter().map(|s| s.name()).collect();
-        assert_eq!(names, vec!["nextest", "clippy", "fmt", "commits"]);
+        assert_eq!(
+            names,
+            vec!["nextest", "clippy", "fmt", "commits", "globstar"]
+        );
     }
 
     /// Conformance: every built-in VerifyStep impl returns a StepResult

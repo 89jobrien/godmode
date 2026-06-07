@@ -1,0 +1,28 @@
+# gov.yaml — Policy overlay for category: gov
+# Agents: observability-as-infrastructure
+# Governance/observability agents read traces and write reports.
+# They must not modify the systems they observe.
+
+name: category-gov
+category: gov
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write # for audit reports
+  - Glob
+  - Grep
+
+blocked_tools:
+  - Edit # observers don't modify
+  - Bash # observers don't execute
+  - Agent
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+commit"
+  - "(?i)git\\s+push"
+
+max_calls_per_dispatch: 100
+
+require_human_approval: []

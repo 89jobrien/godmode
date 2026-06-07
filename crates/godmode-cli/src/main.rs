@@ -3,8 +3,8 @@ use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;
 use godmode_core::{
     agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
-    memory_banking, model, pipeline, plan, registry, release, review, session::Session, skill,
-    templates, workflow,
+    memory_banking, model, pipeline, plan, policy, registry, release, review, session::Session,
+    skill, templates, workflow,
 };
 
 #[derive(Parser)]
@@ -17,6 +17,10 @@ struct Cli {
     /// Emit machine-readable JSON instead of human text.
     #[arg(long, global = true)]
     json: bool,
+
+    /// Emit SARIF v2.1.0 output (verify and review commands).
+    #[arg(long, global = true)]
+    sarif: bool,
 
     #[command(subcommand)]
     cmd: Cmd,
@@ -171,6 +175,12 @@ enum Cmd {
     Pipeline {
         #[command(subcommand)]
         action: PipelineAction,
+    },
+
+    /// Governance policy management: resolve, check, list, audit.
+    Policy {
+        #[command(subcommand)]
+        action: PolicyCmdAction,
     },
 
     /// Pin the session to a specific repo root path.
@@ -614,6 +624,39 @@ enum PipelineAction {
     },
 }
 
+#[derive(Subcommand)]
+enum PolicyCmdAction {
+    /// Resolve the effective policy for an agent.
+    Resolve {
+        /// Agent name (matches agents/cfg/<name>.cfg.yaml).
+        agent: String,
+        /// Governance level override (open/standard/strict/locked).
+        #[arg(long)]
+        level: Option<String>,
+    },
+    /// Check if a tool call is allowed by an agent's policy.
+    Check {
+        /// Agent name.
+        agent: String,
+        /// Tool name to check (Read, Write, Edit, Bash, Glob, Grep, Agent).
+        tool: String,
+        /// Content to check against blocked patterns.
+        #[arg(long)]
+        input: Option<String>,
+        /// Governance level override.
+        #[arg(long)]
+        level: Option<String>,
+    },
+    /// List all available policies (default, categories, levels).
+    List,
+    /// Show governance audit trail.
+    Audit {
+        /// Filter to a specific date (YYYY-MM-DD). Defaults to today.
+        #[arg(long)]
+        date: Option<String>,
+    },
+}
+
 /// Filter a task slice by optional priority and optional keyword.
 ///
 /// Priority filtering is applied first, then keyword filtering (case-insensitive
@@ -734,6 +777,7 @@ fn exit_empty(json: bool) -> ! {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let json = cli.json;
+    let sarif = cli.sarif;
     let root = detect::root_or_cwd()?;
 
     match cli.cmd {
@@ -1707,7 +1751,17 @@ fn main() -> Result<()> {
 
         Cmd::Verify { crate_name } => {
             let report = godmode_core::verify::run(&root, crate_name.as_deref())?;
-            if json {
+            if sarif {
+                let mut log = godmode_core::sarif::from_verify(&report);
+                // Merge rich clippy SARIF (with file locations) as a second run
+                let clippy_log = godmode_core::sarif::clippy_sarif(&root, crate_name.as_deref())?;
+                log.runs.extend(clippy_log.runs);
+                // Merge globstar SARIF if available
+                if let Some(gs_log) = godmode_core::sarif::globstar_sarif(&root) {
+                    log.runs.extend(gs_log.runs);
+                }
+                println!("{}", serde_json::to_string_pretty(&log)?);
+            } else if json {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
                 let icon = |ok: bool| if ok { "✓" } else { "✗" };
@@ -2006,7 +2060,10 @@ fn main() -> Result<()> {
                 ReviewAction::Skills => review::check_skills(&root)?,
                 ReviewAction::Agents => review::check_agents(&root)?,
             };
-            if json {
+            if sarif {
+                let log = godmode_core::sarif::from_review(&report);
+                println!("{}", serde_json::to_string_pretty(&log)?);
+            } else if json {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else if report.passed {
                 println!("{} checks passed.", report.checks);
@@ -2461,6 +2518,158 @@ fn main() -> Result<()> {
                 Ok(())
             }
         },
+
+        Cmd::Policy { action } => {
+            match action {
+                PolicyCmdAction::Resolve { agent, level } => {
+                    let level_parsed = level
+                        .as_deref()
+                        .map(|l| l.parse::<policy::GovernanceLevel>())
+                        .transpose()?;
+                    let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&resolved)?);
+                    } else {
+                        println!("Agent:    {}", resolved.agent);
+                        println!("Category: {}", resolved.category);
+                        println!("Level:    {}", resolved.level);
+                        println!("Sources:  {}", resolved.sources.join(" + "));
+                        println!();
+                        let p = &resolved.policy;
+                        if p.allowed_tools.is_empty() {
+                            println!("Allowed tools: (all)");
+                        } else {
+                            println!("Allowed tools: {}", p.allowed_tools.join(", "));
+                        }
+                        if !p.blocked_tools.is_empty() {
+                            println!("Blocked tools: {}", p.blocked_tools.join(", "));
+                        }
+                        println!("Max calls/dispatch: {}", p.max_calls_per_dispatch);
+                        if !p.require_human_approval.is_empty() {
+                            println!("Require approval: {}", p.require_human_approval.join(", "));
+                        }
+                        println!();
+                        println!("Subagent constraints:");
+                        println!("  max_concurrent: {}", p.subagent.max_concurrent);
+                        println!("  verify_branch:  {}", p.subagent.must_verify_branch);
+                        println!("  no_main:        {}", p.subagent.no_commit_to_main);
+                        println!("  max_retries:    {}", p.subagent.max_retries_on_failure);
+                        println!(
+                            "  require_commit: {}",
+                            p.subagent.require_commit_before_done
+                        );
+                        if !p.subagent.blocked_flags.is_empty() {
+                            println!("  blocked_flags:  {}", p.subagent.blocked_flags.join(", "));
+                        }
+                    }
+                }
+                PolicyCmdAction::Check {
+                    agent,
+                    tool,
+                    input,
+                    level,
+                } => {
+                    let level_parsed = level
+                        .as_deref()
+                        .map(|l| l.parse::<policy::GovernanceLevel>())
+                        .transpose()?;
+                    let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
+                    let result = policy::check_tool(&resolved.policy, &tool, input.as_deref());
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&result)?);
+                    } else {
+                        let symbol = match result.action {
+                            policy::PolicyAction::Allow => "ALLOW",
+                            policy::PolicyAction::Deny => "DENY",
+                            policy::PolicyAction::Review => "REVIEW",
+                        };
+                        println!("{symbol}: {}", result.reason);
+                    }
+                    // Exit 1 on deny for scripting
+                    if result.action == policy::PolicyAction::Deny {
+                        std::process::exit(1);
+                    }
+                }
+                PolicyCmdAction::List => {
+                    let index = policy::list_policies(&root)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&index)?);
+                    } else {
+                        if let Some(ref d) = index.default {
+                            println!("Default: {} (level: {})", d.name, d.level);
+                        }
+                        if !index.categories.is_empty() {
+                            println!();
+                            println!("Categories:");
+                            let mut cats: Vec<_> = index.categories.keys().collect();
+                            cats.sort();
+                            for cat in cats {
+                                let p = &index.categories[cat];
+                                println!(
+                                    "  {cat:<8}  tools: {}  max: {}",
+                                    if p.allowed_tools.is_empty() {
+                                        "(all)".to_string()
+                                    } else {
+                                        p.allowed_tools.join(",")
+                                    },
+                                    p.max_calls_per_dispatch,
+                                );
+                            }
+                        }
+                        if !index.levels.is_empty() {
+                            println!();
+                            println!("Levels:");
+                            for level_name in &["open", "standard", "strict", "locked"] {
+                                if let Some(p) = index.levels.get(*level_name) {
+                                    println!(
+                                        "  {:<10}  max: {}",
+                                        level_name, p.max_calls_per_dispatch,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+                PolicyCmdAction::Audit { date } => {
+                    let date_str = date.unwrap_or_else(|| insights::today().to_string());
+                    let events = policy::read_audit_events(&root, Some(&date_str))?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&events)?);
+                    } else if events.is_empty() {
+                        println!("No governance events for {date_str}.");
+                    } else {
+                        let denied = events.iter().filter(|e| e.action == "denied").count();
+                        let reviews = events
+                            .iter()
+                            .filter(|e| e.action == "review" || e.action == "warn")
+                            .count();
+                        let allowed = events.iter().filter(|e| e.action == "allowed").count();
+                        println!("Governance audit for {date_str}:");
+                        println!(
+                            "  {} events: {} denied, {} review, {} allowed",
+                            events.len(),
+                            denied,
+                            reviews,
+                            allowed,
+                        );
+                        println!();
+                        for ev in &events {
+                            if ev.action == "denied" || ev.action == "review" || ev.action == "warn"
+                            {
+                                println!(
+                                    "  [{action}] {agent} -> {tool}: {reason}",
+                                    action = ev.action.to_uppercase(),
+                                    agent = ev.agent_id,
+                                    tool = ev.tool_name,
+                                    reason = ev.reason,
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
 
         Cmd::Pin { path } => {
             let target = match path {

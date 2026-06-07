@@ -561,6 +561,7 @@ dependencies = [
  "filetime",
  "petgraph",
  "proptest",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

@@ -1,0 +1,33 @@
+# git.yaml — Policy overlay for category: git
+# Agents: pr-author, cap, wave-integration
+# Git agents commit, push, create PRs, and merge branches.
+# They have broad git access but force-push and destructive ops
+# require approval.
+
+name: category-git
+category: git
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)git\\s+stash\\s+drop"
+  - "(?i)git\\s+branch\\s+-D"
+  - "(?i)git\\s+rebase" # no rebasing branches with merges
+
+max_calls_per_dispatch: 150
+
+require_human_approval:
+  - git push --force
+  - git reset --hard
+  - git stash drop
+  - gh pr merge # merging PRs needs confirmation

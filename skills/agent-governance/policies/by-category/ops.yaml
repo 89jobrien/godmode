@@ -1,0 +1,31 @@
+# ops.yaml — Policy overlay for category: ops
+# Agents: using-godmode, dep-audit, changelog, release-notes,
+#          dep-bump, gm-orchestrator, valerie
+# Ops agents manage releases, dependencies, and orchestration.
+# They need broad tool access but destructive ops need approval.
+
+name: category-ops
+category: ops
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)rm\\s+-rf"
+  - "(?i)cargo\\s+publish" # publishing crates needs approval
+
+max_calls_per_dispatch: 250
+
+require_human_approval:
+  - cargo publish
+  - git tag
+  - git push --tags

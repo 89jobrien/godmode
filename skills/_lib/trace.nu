@@ -12,7 +12,11 @@
 # ---------------------------------------------------------------------------
 
 def repo-root [] {
-    (run-external "git" "rev-parse" "--show-toplevel" | complete).stdout | str trim
+    let result = (run-external "git" "rev-parse" "--show-toplevel" | complete)
+    if $result.exit_code != 0 { return null }
+    let root = ($result.stdout | str trim)
+    if ($root | is-empty) { return null }
+    $root
 }
 
 def trace-file [] {
@@ -30,12 +34,15 @@ def now-ms [] {
 
 # Resolve or create the current session_id.
 def session-id [] {
+    let root = (repo-root)
+    if ($root == null) { return "no-repo" }
     let sf = (session-file)
     if ($sf | path exists) {
         (open $sf).session_id
     } else {
         let head = (run-external "git" "rev-parse" "--short" "HEAD" | complete).stdout | str trim
         let id = $"($head)-(now-ms)"
+        try { mkdir ($sf | path dirname) }
         { session_id: $id, started_at: (date now | format date "%+") } | to json | save --force $sf
         $id
     }
@@ -44,6 +51,7 @@ def session-id [] {
 # Append one JSON line to the trace file. Non-fatal — failures are silently swallowed.
 def append-event [record: record] {
     let root = (repo-root)
+    if ($root == null) { return }
     try { mkdir $"($root)/.ctx/godmode/traces" }
     try { $record | to json --raw | $"($in)\n" | save --append (trace-file) }
 }

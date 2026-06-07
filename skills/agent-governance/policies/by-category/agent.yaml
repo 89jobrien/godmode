@@ -1,0 +1,37 @@
+# agent.yaml — Policy overlay for category: agent
+# Agents: tdd-crate, moa, parallel-agents, tdd
+# These agents dispatch sub-agents and run parallel work.
+
+name: category-agent
+category: agent
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Agent
+
+# Agent-category agents are the only ones allowed to use the Agent tool.
+# All other categories block it by omission from their allowed_tools.
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+
+max_calls_per_dispatch: 300
+
+require_human_approval: []
+
+subagent:
+  max_concurrent: 5
+  must_verify_branch: true
+  no_commit_to_main: true
+  max_retries_on_failure: 3
+  require_commit_before_done: true
+  blocked_flags:
+    - "--no-verify"

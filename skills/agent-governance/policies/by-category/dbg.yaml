@@ -1,0 +1,26 @@
+# dbg.yaml — Policy overlay for category: dbg
+# Agents: mistake-tracker, ci-fix, systematic-debugging
+# Debug agents need full tool access to diagnose issues.
+# They run tests, read logs, and may edit code to fix bugs.
+
+name: category-dbg
+category: dbg
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)rm\\s+-rf\\s+/"
+
+max_calls_per_dispatch: 250
+
+require_human_approval: []

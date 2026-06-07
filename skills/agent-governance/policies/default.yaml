@@ -1,0 +1,60 @@
+# default.yaml — Standard-level baseline policy.
+# All agents inherit this unless overridden by category or level overlay.
+# Composition rule: most-restrictive-wins (blocked unions, allowed intersects,
+# rate limits take minimum, human-approval unions).
+
+name: default
+level: standard
+
+# Tools every agent may use. Category policies narrow this further.
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+# Tools no agent may use regardless of category.
+blocked_tools: []
+
+# Content patterns that block any tool input containing them.
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)--force"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)git\\s+clean\\s+-f"
+  - "(?i)rm\\s+-rf\\s+/"
+  - "(?i)(drop|truncate)\\s+(database|table)"
+  - "(?i)chmod\\s+777"
+
+# Maximum tool calls per agent dispatch before requiring re-authorization.
+max_calls_per_dispatch: 200
+
+# Operations requiring explicit user confirmation before execution.
+require_human_approval:
+  - git push --force
+  - git reset --hard
+  - git stash drop
+  - branch -D
+
+# Subagent-specific constraints.
+subagent:
+  max_concurrent: 5
+  must_verify_branch: true # git branch --show-current before commit
+  no_commit_to_main: true # block direct commits to main/master
+  max_retries_on_failure: 3 # debug and retry, then escalate
+  require_commit_before_done: true # HANDOFF with commits: [] is incomplete
+  blocked_flags:
+    - "--no-verify"
+    - "--no-gpg-sign"
+
+# Audit settings.
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: false # only log denials and reviews by default
+  log_denied: true
+  log_reviews: true

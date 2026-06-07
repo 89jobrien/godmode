@@ -68,6 +68,7 @@ Two-crate workspace:
 | `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                                    |
 | `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from `agents/cfg/*.cfg.yaml`; `generate_from_cfg` pairs with `agents/prompts/*.prompt.txt` to emit top-level `.md`.             |
 | `insights`      | Append-only JSONL insight capture (`.ctx/godmode/traces/insights.jsonl`). `append`, `list`, `list_for_date`, `render_markdown`. Bridges to `.ctx/godmode/reports/insights-YYYY-MM-DD.md`. |
+| `policy`        | Governance policy engine — loads, composes, and enforces agent policies from `skills/agent-governance/policies/`. Supports resolve, check, list, audit.                                   |
 | `pipeline`      | Named multi-step skill sequences. State persists in `.ctx/godmode/pipeline.yaml`. Supports start, next, skip, stop, and status operations.                                                |
 | `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.                |
 
@@ -168,6 +169,10 @@ godmode insight add <title> --body <text> [--tags t1,t2]
 godmode insight list [--date YYYY-MM-DD] [--json]
 godmode insight render [--date YYYY-MM-DD]
 godmode session prune --older-than <days> [--dry-run]
+godmode policy resolve <agent> [--level <level>] [--json]
+godmode policy check <agent> <tool> [--input <content>] [--level <level>]
+godmode policy list [--json]
+godmode policy audit [--date YYYY-MM-DD] [--json]
 godmode workflow run <agent> <workflow>
 godmode workflow list [--agent <name>]
 godmode workflow status <name>

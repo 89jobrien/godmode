@@ -1,14 +1,61 @@
-# Governance policy template — fill in for your agent
-# See references/policy-example.yaml for a complete example
+# Governance policy template — fill in for a new agent category or custom agent.
+#
+# Composition rules (most-restrictive-wins):
+#   - blocked_tools / blocked_patterns / require_human_approval: union
+#   - allowed_tools: intersection (if both layers specify)
+#   - max_calls_per_dispatch: minimum
+#   - subagent: per-field most-restrictive
+#
+# Place category overlays in: policies/by-category/<category>.yaml
+# Place level overlays in:    policies/levels/<level>.yaml
+# Default policy:             policies/default.yaml
 
-name: "<agent-name>"
+name: "<policy-name>"
+category: "<category>" # must match agents/cfg/*.cfg.yaml category field
+inherits: default # always inherits from default.yaml
+
+# --- Tool access ---
+# List tools this category may use. Intersection with default.allowed_tools.
+# Empty list = no restriction (inherits default).
 allowed_tools:
-  - "<tool-1>"
-  - "<tool-2>"
-blocked_tools:
-  - shell_exec
-  - delete_record
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  # - Agent              # only agent-category agents should include this
+
+# Tools explicitly denied regardless of allowed_tools.
+blocked_tools: []
+  # - Agent              # block sub-delegation
+  # - Edit               # read-only agents
+
+# --- Content filters ---
+# Regex patterns matched against tool input content. Any match = deny.
 blocked_patterns:
-  - "(?i)(api[_-]?key|secret|password)\\s*[:=]"
-max_calls_per_request: 50
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  # Add domain-specific patterns here
+
+# --- Rate limiting ---
+max_calls_per_dispatch: 200
+
+# --- Human approval ---
+# Operations that require explicit user confirmation.
 require_human_approval: []
+  # - cargo publish
+  # - git push --force
+  # - gh pr merge
+
+# --- Subagent constraints ---
+# Only relevant for agents that dispatch sub-agents (category: agent).
+# subagent:
+#   max_concurrent: 5
+#   must_verify_branch: true
+#   no_commit_to_main: true
+#   max_retries_on_failure: 3
+#   require_commit_before_done: true
+#   blocked_flags:
+#     - "--no-verify"

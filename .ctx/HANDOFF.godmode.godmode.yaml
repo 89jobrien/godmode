@@ -1,137 +1,85 @@
 project: godmode
 id: godmode
-updated: 2026-06-04
+updated: 2026-06-06
 items:
 - id: uncommitted-work
   doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (59 files)
+  title: Uncommitted changes (22 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
     CLAUDE.md
     Cargo.lock
-    Justfile
+    Cargo.toml
     crates/godmode-cli/src/main.rs
-    crates/godmode-core/src/integrations/mod.rs
-    crates/godmode-core/src/integrations/output.rs
-    crates/godmode-core/src/pipeline.rs
+    crates/godmode-core/Cargo.toml
+    crates/godmode-core/src/detect.rs
+    crates/godmode-core/src/lib.rs
+    crates/godmode-core/src/verify.rs
+    skills/_lib/trace.nu
     skills/agent-governance/SKILL.md
-    skills/brainstorm/SKILL.md
-    skills/cap/SKILL.md
-    skills/changelog/SKILL.md
-    skills/ci-fix/SKILL.md
-    skills/code-review/SKILL.md
-    skills/context-map/SKILL.md
-    skills/cross-issue/SKILL.md
-    skills/dead-code/SKILL.md
-    skills/decompose/SKILL.md
-    skills/dep-audit/SKILL.md
-    skills/dep-bump/SKILL.md
-    skills/doc-maintainer/SKILL.md
-    skills/doublecheck/SKILL.md
-    skills/health-score/SKILL.md
+    skills/agent-governance/helpers/policy-template.yaml
+    skills/agent-governance/hook.nu
+    skills/agent-governance/references/governance-levels.md
     skills/introspection/SKILL.md
-    skills/issue-triage/SKILL.md
-    skills/memory-banking/SKILL.md
-    skills/merge/SKILL.md
-    skills/mini-context-graph/SKILL.md
-    skills/mistake-tracker/SKILL.md
-    skills/moa/SKILL.md
-    skills/observability-as-infrastructure/SKILL.md
-    skills/parallel-agents/SKILL.md
-    skills/pattern-learner/SKILL.md
-    skills/pr-author/SKILL.md
-    skills/receiving-review/SKILL.md
-    skills/refactoring/SKILL.md
-    skills/release-notes/SKILL.md
-    skills/rust-conventions/SKILL.md
-    skills/self-reflect/SKILL.md
-    skills/systematic-debugging/SKILL.md
-    skills/tackle-issues/SKILL.md
-    skills/task-driven-development/SKILL.md
-    skills/task-management/SKILL.md
-    skills/testing-philosophy/SKILL.md
-    skills/todo-issue-sync/SKILL.md
-    skills/using-godmode/SKILL.md
-    skills/verification-before-completion/SKILL.md
-    skills/wave-integration/SKILL.md
-    skills/workspace-refactor/SKILL.md
-    skills/writing-plans/SKILL.md
-    tests/conformance/Cargo.toml
-    tests/conformance/src/lib.rs
-    .kgx/
-    agents/cfg/gm-orchestrator.cfg.yaml
-    agents/prompts/gm-orchestrator.prompt.txt
-    docs/plans/2026-06-04-deterministic-pipelines.md
-    hooks/scripts/post-pipeline-step.nu
-    pipelines/
-    tests/conformance/src/pipeline_property_tests.rs
+    .globstar/
+    crates/godmode-core/src/policy.rs
+    crates/godmode-core/src/sarif.rs
+    skills/agent-governance/helpers/audit-report.nu
+    skills/agent-governance/helpers/check-tool.nu
+    skills/agent-governance/helpers/resolve-policy.nu
+    skills/agent-governance/policies/
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
   - CLAUDE.md
   - Cargo.lock
-  - Justfile
+  - Cargo.toml
   - crates/godmode-cli/src/main.rs
-  - crates/godmode-core/src/integrations/mod.rs
-  - crates/godmode-core/src/integrations/output.rs
-  - crates/godmode-core/src/pipeline.rs
+  - crates/godmode-core/Cargo.toml
+  - crates/godmode-core/src/detect.rs
+  - crates/godmode-core/src/lib.rs
+  - crates/godmode-core/src/verify.rs
+  - skills/_lib/trace.nu
   - skills/agent-governance/SKILL.md
-  - skills/brainstorm/SKILL.md
-  - skills/cap/SKILL.md
-  - skills/changelog/SKILL.md
-  - skills/ci-fix/SKILL.md
-  - skills/code-review/SKILL.md
-  - skills/context-map/SKILL.md
-  - skills/cross-issue/SKILL.md
-  - skills/dead-code/SKILL.md
-  - skills/decompose/SKILL.md
-  - skills/dep-audit/SKILL.md
-  - skills/dep-bump/SKILL.md
-  - skills/doc-maintainer/SKILL.md
-  - skills/doublecheck/SKILL.md
-  - skills/health-score/SKILL.md
+  - skills/agent-governance/helpers/policy-template.yaml
+  - skills/agent-governance/hook.nu
+  - skills/agent-governance/references/governance-levels.md
   - skills/introspection/SKILL.md
-  - skills/issue-triage/SKILL.md
-  - skills/memory-banking/SKILL.md
-  - skills/merge/SKILL.md
-  - skills/mini-context-graph/SKILL.md
-  - skills/mistake-tracker/SKILL.md
-  - skills/moa/SKILL.md
-  - skills/observability-as-infrastructure/SKILL.md
-  - skills/parallel-agents/SKILL.md
-  - skills/pattern-learner/SKILL.md
-  - skills/pr-author/SKILL.md
-  - skills/receiving-review/SKILL.md
-  - skills/refactoring/SKILL.md
-  - skills/release-notes/SKILL.md
-  - skills/rust-conventions/SKILL.md
-  - skills/self-reflect/SKILL.md
-  - skills/systematic-debugging/SKILL.md
-  - skills/tackle-issues/SKILL.md
-  - skills/task-driven-development/SKILL.md
-  - skills/task-management/SKILL.md
-  - skills/testing-philosophy/SKILL.md
-  - skills/todo-issue-sync/SKILL.md
-  - skills/using-godmode/SKILL.md
-  - skills/verification-before-completion/SKILL.md
-  - skills/wave-integration/SKILL.md
-  - skills/workspace-refactor/SKILL.md
-  - skills/writing-plans/SKILL.md
-  - tests/conformance/Cargo.toml
-  - tests/conformance/src/lib.rs
-  - .kgx/
-  - agents/cfg/gm-orchestrator.cfg.yaml
-  - agents/prompts/gm-orchestrator.prompt.txt
-  - docs/plans/2026-06-04-deterministic-pipelines.md
-  - hooks/scripts/post-pipeline-step.nu
-  - pipelines/
-  - tests/conformance/src/pipeline_property_tests.rs
+  - .globstar/
+  - crates/godmode-core/src/policy.rs
+  - crates/godmode-core/src/sarif.rs
+  - skills/agent-governance/helpers/audit-report.nu
+  - skills/agent-governance/helpers/check-tool.nu
+  - skills/agent-governance/helpers/resolve-policy.nu
+  - skills/agent-governance/policies/
   completed: null
   extra: []
+- id: scaffold-subcommand
+  doob_uuid: 0599c6bc-77bb-41a2-ba8d-26236a66b906
+  name: scaffold-subcommand
+  priority: P2
+  status: open
+  title: Add scaffold subcommand to CLI
+  description: Add a godmode scaffold subcommand. Tracked in doob since 2026-05-12.
+  files: []
+  completed: null
+  extra:
+  - date: 2026-06-06
+    type: note
+    field: null
+    value: null
+    reviewed: null
+    note: reconciled with doob — todo id 0599c6bc
 log:
+- date: '20260606.171219'
+  summary: done=6 running=0 pending=0 blocked=0
+  commits: []
+- date: '20260605.042525'
+  summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.081919'
   summary: done=6 running=0 pending=0 blocked=0
   commits: []

@@ -1,0 +1,28 @@
+# plan.yaml — Policy overlay for category: plan
+# Agents: brainstorm, planner, writing-plans, task-management
+# Planning agents read broadly but write narrowly (task files, plans).
+
+name: category-plan
+category: plan
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Glob
+  - Grep
+
+# No Edit (plans are written whole, not patched).
+# No Bash (planners don't execute — they propose).
+
+blocked_tools:
+  - Bash
+  - Agent
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)cargo\\s+(build|test|run)" # planners propose, not execute
+
+max_calls_per_dispatch: 150
+
+require_human_approval: []

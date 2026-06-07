@@ -1,0 +1,28 @@
+# open.yaml — Governance level: Open
+# Audit only, no restrictions. For local dev and testing.
+# NEVER use in production or when agents touch shared state.
+
+name: level-open
+level: open
+
+allowed_tools: [] # empty = no restriction (all tools allowed)
+blocked_tools: []
+blocked_patterns: []
+max_calls_per_dispatch: 1000
+require_human_approval: []
+
+subagent:
+  max_concurrent: 5
+  must_verify_branch: false
+  no_commit_to_main: false
+  max_retries_on_failure: 5
+  require_commit_before_done: false
+  blocked_flags: []
+
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: true
+  log_denied: true
+  log_reviews: true

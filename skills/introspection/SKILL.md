@@ -76,7 +76,7 @@ For every `**See also**`, `references/`, or `helpers/` link in a SKILL.md:
 
 ## Step 6: Check skill index completeness
 
-Read `skills/using-godmode/references/skill-index.md` and `skills/using-godmode/SKILL.md`.
+Read `skills/using-godmode/references/skill-index.json` and `skills/using-godmode/SKILL.md`.
 
 Every skill directory with a `SKILL.md` must have an entry in both. Flag any that are missing.
 

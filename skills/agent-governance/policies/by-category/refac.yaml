@@ -1,0 +1,31 @@
+# refac.yaml — Policy overlay for category: refac
+# Agents: refactoring, doc-maintainer, workspace-refactor
+# Refactoring agents modify source files. They must run tests
+# after every change and never skip verification.
+
+name: category-refac
+category: refac
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)rm\\s+-rf"
+
+max_calls_per_dispatch: 300
+
+require_human_approval: []
+
+# Refac-specific: must run cargo check after every Edit.
+# Enforced by the post-edit-cargo-check hook, not this policy.
+# This policy ensures the agent can't bypass that by using
+# Write instead of Edit to avoid the hook.

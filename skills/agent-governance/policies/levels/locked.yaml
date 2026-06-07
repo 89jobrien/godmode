@@ -1,0 +1,55 @@
+# locked.yaml — Governance level: Locked
+# Allowlist only. No dynamic tools. Full audit. No sub-delegation.
+# Use for compliance-critical systems (SOC2, HIPAA, PCI-DSS).
+
+name: level-locked
+level: locked
+
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+
+blocked_tools:
+  - Write
+  - Edit
+  - Bash
+  - Agent
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)--force"
+  - "(?i)git\\s+"
+  - "(?i)rm\\s+"
+  - "(?i)curl\\s+"
+  - "(?i)wget\\s+"
+  - "(?i)(drop|truncate|delete|insert|update)\\s+"
+  - "(?i)chmod"
+  - "(?i)chown"
+  - "(?i)(api[_-]?key|secret|password|token)\\s*[:=]"
+  - "(?i)op\\s+"
+  - "(?i)ssh\\s+"
+
+max_calls_per_dispatch: 25
+
+require_human_approval:
+  - "*" # everything requires approval
+
+subagent:
+  max_concurrent: 0 # no subagents allowed
+  must_verify_branch: true
+  no_commit_to_main: true
+  max_retries_on_failure: 0
+  require_commit_before_done: true
+  blocked_flags:
+    - "--no-verify"
+    - "--no-gpg-sign"
+    - "--allow-empty"
+
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: true
+  log_denied: true
+  log_reviews: true

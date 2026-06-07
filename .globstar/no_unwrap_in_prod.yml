@@ -1,0 +1,26 @@
+language: rust
+name: no_unwrap_in_prod
+message: "Prefer proper error handling over .unwrap() in production code"
+category: antipattern
+severity: warning
+
+pattern: |
+  (
+    (call_expression
+      function: (field_expression
+        value: (_) @variable
+        field: (field_identifier) @method_name
+        (#eq? @method_name "unwrap")
+      )
+      arguments: (arguments)
+    ) @no_unwrap_in_prod
+  )
+
+exclude:
+  - "tests/**"
+  - "**/test_*.rs"
+  - "**/*_test.rs"
+
+description: |
+  Using .unwrap() may cause panics if the Option is None or the Result is Err.
+  Consider handling errors with match, ?, or expect().

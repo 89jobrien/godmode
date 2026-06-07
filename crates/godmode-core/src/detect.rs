@@ -40,7 +40,7 @@ pub fn pinned_root(root: &Path) -> Option<PathBuf> {
     let path = session_json_path(root);
     let raw = std::fs::read_to_string(path).ok()?;
     let v: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    v.get("pinned_root")?.as_str().map(|s| PathBuf::from(s))
+    v.get("pinned_root")?.as_str().map(PathBuf::from)
 }
 
 /// Pin the session to a specific repo root path.

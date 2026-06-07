@@ -1,0 +1,55 @@
+# strict.yaml — Governance level: Strict
+# All controls + human approval for sensitive ops.
+# Use when agents handle PII, financial data, or infrastructure.
+
+name: level-strict
+level: strict
+
+allowed_tools:
+  - Read
+  - Glob
+  - Grep
+
+blocked_tools:
+  - Agent # no sub-delegation without explicit approval
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)--force"
+  - "(?i)git\\s+push"
+  - "(?i)git\\s+reset"
+  - "(?i)git\\s+clean"
+  - "(?i)rm\\s+-rf"
+  - "(?i)(drop|truncate|delete from)\\s+\\w+"
+  - "(?i)chmod\\s+[67]"
+  - "(?i)curl\\s+.*-d\\s+"
+  - "(?i)(api[_-]?key|secret|password)\\s*[:=]"
+  - "(?i)op\\s+read"
+
+max_calls_per_dispatch: 50
+
+require_human_approval:
+  - Write
+  - Edit
+  - Bash
+  - git commit
+  - git push
+
+subagent:
+  max_concurrent: 2
+  must_verify_branch: true
+  no_commit_to_main: true
+  max_retries_on_failure: 1
+  require_commit_before_done: true
+  blocked_flags:
+    - "--no-verify"
+    - "--no-gpg-sign"
+    - "--allow-empty"
+
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: true
+  log_denied: true
+  log_reviews: true

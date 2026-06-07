@@ -1,0 +1,28 @@
+# meta.yaml — Policy overlay for category: meta
+# Agents: pattern-learner
+# Meta agents analyze session traces and extract patterns.
+# Read-heavy, write-light (writes pattern reports only).
+
+name: category-meta
+category: meta
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write # for pattern reports
+  - Glob
+  - Grep
+
+blocked_tools:
+  - Edit # meta agents don't modify source
+  - Bash # meta agents don't execute commands
+  - Agent
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+commit"
+  - "(?i)git\\s+push"
+
+max_calls_per_dispatch: 150
+
+require_human_approval: []

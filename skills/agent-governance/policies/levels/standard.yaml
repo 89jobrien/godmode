@@ -1,0 +1,46 @@
+# standard.yaml — Governance level: Standard
+# Tool allowlist + content filters + subagent guardrails.
+# Default for all production agents with tool access.
+# Identical to default.yaml — exists as an explicit level overlay.
+
+name: level-standard
+level: standard
+
+# allowed_tools intentionally empty — standard level does not further
+# restrict the tools already set by default + category. Specifying a list
+# here would intersect with category policies and strip category-specific
+# tools (e.g., Agent for the agent category).
+allowed_tools: []
+
+blocked_tools: []
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)--force"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)rm\\s+-rf\\s+/"
+  - "(?i)(drop|truncate)\\s+(database|table)"
+
+max_calls_per_dispatch: 200
+require_human_approval:
+  - git push --force
+  - git reset --hard
+  - git stash drop
+
+subagent:
+  max_concurrent: 5
+  must_verify_branch: true
+  no_commit_to_main: true
+  max_retries_on_failure: 3
+  require_commit_before_done: true
+  blocked_flags:
+    - "--no-verify"
+
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: false
+  log_denied: true
+  log_reviews: true

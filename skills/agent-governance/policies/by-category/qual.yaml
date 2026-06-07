@@ -1,0 +1,31 @@
+# qual.yaml — Policy overlay for category: qual
+# Agents: health-score, verification, code-review, dead-code,
+#          introspection, testing-philosophy, receiving-review
+# Quality agents read and analyze. They may write reports but should
+# not modify source code directly — that's the developer's job.
+
+name: category-qual
+category: qual
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write # for reports and checklists
+  - Glob
+  - Grep
+  - Bash # for cargo clippy, cargo test, cargo fmt --check
+
+blocked_tools:
+  - Edit # qual agents report, not fix
+  - Agent
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push"
+  - "(?i)git\\s+commit" # qual agents don't commit
+  - "(?i)git\\s+reset"
+  - "(?i)cargo\\s+fix" # don't auto-fix, report
+
+max_calls_per_dispatch: 200
+
+require_human_approval: []

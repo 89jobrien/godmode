@@ -1,0 +1,28 @@
+# issue.yaml — Policy overlay for category: issue
+# Agents: cross-issue, issue-triage, tackle-issues
+# Issue agents interact with GitHub and task graphs.
+
+name: category-issue
+category: issue
+inherits: default
+
+allowed_tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+
+blocked_patterns:
+  - "(?i)--no-verify"
+  - "(?i)git\\s+push\\s+--force"
+  - "(?i)git\\s+reset\\s+--hard"
+  - "(?i)gh\\s+issue\\s+delete"
+  - "(?i)gh\\s+repo\\s+delete"
+
+max_calls_per_dispatch: 200
+
+require_human_approval:
+  - gh issue close # closing issues needs confirmation
+  - gh pr merge # merging PRs needs confirmation

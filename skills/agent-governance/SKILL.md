@@ -11,46 +11,249 @@ requires: []
 next: []
 ---
 
-# Agent Governance Patterns (Rust)
+# Agent Governance
 
-Patterns for adding safety, trust, and policy enforcement to AI agent systems.
+Policy-driven controls for AI agent tool access, content filtering, subagent
+constraints, and audit trails.
 
-## Overview
-
-Governance ensures AI agents operate within defined boundaries: controlling which tools they can
-call, what content they can process, and maintaining accountability through audit trails.
+## How It Works
 
 ```
-User Request → Intent Classification → Policy Check → Tool Execution → Audit Log
-                     ↓                      ↓               ↓
-              Threat Detection         Allow/Deny      Trust Update
+Agent Dispatch
+  → hook.nu (PreToolUse/Agent)
+    → detect-agent-name (from tool_input)
+    → resolve-policy.nu (default + category + level)
+    → check blocked_tools, allowed_tools, blocked_patterns
+    → check subagent constraints (max_concurrent, no_commit_to_main)
+    → emit governance-audit.jsonl event
+    → approve or block with reason
 ```
 
-## When to Use
+Every agent dispatch passes through the governance hook. The hook resolves
+the effective policy by composing three layers:
 
-- **Agents with tool access**: Any agent calling external tools (APIs, databases, shell commands)
-- **Multi-agent systems**: Agents delegating to other agents need trust boundaries
-- **Production deployments**: Compliance, audit, and safety requirements
-- **Sensitive operations**: Financial transactions, data access, infrastructure management
+1. **Default** (`policies/default.yaml`) — baseline all agents inherit
+2. **Category** (`policies/by-category/<cat>.yaml`) — per-category overrides
+3. **Level** (`policies/levels/<level>.yaml`) — governance level overlay
+
+Composition follows most-restrictive-wins: blocked lists union, allowed lists
+intersect, rate limits take minimum, human-approval lists union.
+
+## Policies
+
+### Directory layout
+
+```
+policies/
+  default.yaml                # baseline — Standard level
+  by-category/
+    agent.yaml                # dispatchers (tdd-crate, moa, parallel-agents)
+    plan.yaml                 # planners (brainstorm, planner, writing-plans)
+    issue.yaml                # issue handlers (cross-issue, triage, tackle)
+    qual.yaml                 # quality gates (code-review, health-score, dead-code)
+    ops.yaml                  # operations (changelog, dep-audit, dep-bump, orchestrator)
+    git.yaml                  # git agents (cap, pr-author, wave-integration)
+    refac.yaml                # refactoring (refactoring, doc-maintainer, workspace-refactor)
+    dbg.yaml                  # debugging (ci-fix, systematic-debugging, mistake-tracker)
+    meta.yaml                 # meta-analysis (pattern-learner)
+    gov.yaml                  # governance/observability (observability-as-infrastructure)
+  levels/
+    open.yaml                 # audit only — local dev
+    standard.yaml             # tool allowlist + content filters — default
+    strict.yaml               # read-only + human approval — sensitive ops
+    locked.yaml               # read-only, no Bash, no Agent — compliance
+```
+
+### Category design principles
+
+| Category | Can Write | Can Bash | Can Agent | Rationale                                   |
+| -------- | --------- | -------- | --------- | ------------------------------------------- |
+| agent    | yes       | yes      | **yes**   | Only category with Agent tool — dispatchers |
+| plan     | yes       | no       | no        | Planners propose, not execute               |
+| issue    | yes       | yes      | no        | Need gh CLI but no sub-delegation           |
+| qual     | reports   | yes      | no        | Analyze and report, not fix                 |
+| ops      | yes       | yes      | no        | Broad access, destructive ops gated         |
+| git      | yes       | yes      | no        | Git operations, force-push gated            |
+| refac    | yes       | yes      | no        | Source edits, tests required after          |
+| dbg      | yes       | yes      | no        | Full diagnostic access                      |
+| meta     | reports   | no       | no        | Read-only analysis                          |
+| gov      | reports   | no       | no        | Observers don't modify                      |
+
+### Policy schema
+
+```yaml
+name: "<policy-name>"
+level: standard # open | standard | strict | locked
+category: "<category>" # matches agents/cfg/*.cfg.yaml
+inherits: default
+
+allowed_tools: [Read, Write, ...] # empty = no restriction
+blocked_tools: [Agent, ...] # always denied
+blocked_patterns: # regex, any match = deny
+  - "(?i)--no-verify"
+max_calls_per_dispatch: 200 # rate limit per agent dispatch
+
+require_human_approval: # operations needing user OK
+  - cargo publish
+
+subagent: # constraints on sub-agents
+  max_concurrent: 5
+  must_verify_branch: true
+  no_commit_to_main: true
+  max_retries_on_failure: 3
+  require_commit_before_done: true
+  blocked_flags: ["--no-verify"]
+
+audit:
+  enabled: true
+  format: jsonl
+  path: .ctx/godmode/traces/governance-audit.jsonl
+  log_allowed: false
+  log_denied: true
+  log_reviews: true
+```
+
+## CLI (`godmode policy`)
+
+The primary interface. All subcommands support `--json`.
+
+### godmode policy resolve
+
+Resolve the effective policy for an agent by composing default + category + level.
+
+```bash
+godmode policy resolve gm-orchestrator
+godmode policy resolve gm-cap-agent --json
+godmode policy resolve gm-dispatch --level strict --json
+```
+
+### godmode policy check
+
+Point check: is a specific tool call allowed for an agent? Exits 1 on deny.
+
+```bash
+godmode policy check gm-cap-agent Bash --input "git push --force origin main"
+# → DENY: content matches blocked pattern: (?i)git\s+push\s+--force
+
+godmode policy check gm-orchestrator Agent
+# → ALLOW: passed all policy checks
+```
+
+### godmode policy list
+
+Show all available policies (default, categories, levels).
+
+```bash
+godmode policy list
+godmode policy list --json
+```
+
+### godmode policy audit
+
+Show governance audit trail for a date (defaults to today).
+
+```bash
+godmode policy audit
+godmode policy audit --date 2026-06-04
+godmode policy audit --json
+```
+
+## Nushell Helpers (fallback)
+
+When the `godmode` binary isn't on PATH (e.g., during plugin development),
+the hook falls back to the nushell helpers in `helpers/`:
+
+- `resolve-policy.nu <agent> [--level <level>] [--json]`
+- `check-tool.nu <agent> <tool> [--input <content>] [--level <level>]`
+- `audit-report.nu [--date YYYY-MM-DD] [--json]`
+
+These implement the same logic as the Rust module but run as standalone scripts.
+
+## Hook Behavior
+
+The `hook.nu` runs as a `PreToolUse/Agent` hook (registered in `hooks/hooks.json`).
+
+**On dispatch:**
+
+1. Extracts agent identity from `tool_input` (subagent_type, description, prompt)
+2. Matches against `agents/cfg/*.cfg.yaml` to find the agent's category
+3. Resolves the effective policy via `resolve-policy.nu`
+4. Checks:
+   - Is the Agent tool in `allowed_tools`? (only `agent` category allows it)
+   - Is the Agent tool in `blocked_tools`?
+   - Is `max_concurrent` exceeded (locked = 0)?
+   - Does the prompt/description contain any `blocked_patterns`?
+5. Emits a governance event to `governance-audit.jsonl`
+6. If all checks pass: approves and injects governance reminders to stderr
+7. If any check fails: blocks with reason
+
+**Governance reminders injected on approval:**
+
+- Branch verification requirement
+- No-commit-to-main rule
+- Max retries on failure
+- Commit-before-done requirement
+- Blocked flags list
+
+## Audit Trail
+
+All governance decisions are logged to
+`.ctx/godmode/traces/governance-audit.jsonl`:
+
+```json
+{
+  "ts": "2026-06-04T14:30:00+0000",
+  "event": "governance.check",
+  "action": "denied",
+  "agent_id": "gm-dispatch",
+  "tool_name": "Agent",
+  "reason": "content matches blocked pattern: (?i)--no-verify",
+  "pattern": "(?i)--no-verify",
+  "session_id": "abc1234-1717500000000"
+}
+```
+
+Use `audit-report.nu` to aggregate and summarize.
+
+## Governance Levels
+
+See `references/governance-levels.md` for full details.
+
+| Level    | Tools             | Subagents | Approval    | Max calls |
+| -------- | ----------------- | --------- | ----------- | --------- |
+| Open     | all               | 5         | none        | 1000      |
+| Standard | R/W/E/Bash/Glob/G | 5         | force-push  | 200       |
+| Strict   | R/Glob/Grep       | 2         | writes+bash | 50        |
+| Locked   | R/Glob/Grep       | 0         | everything  | 25        |
+
+## Adding a New Category
+
+1. Add the category field to your agent's `agents/cfg/<name>.cfg.yaml`
+2. Copy `helpers/policy-template.yaml` to `policies/by-category/<category>.yaml`
+3. Fill in allowed/blocked tools based on the agent's responsibilities
+4. The hook picks it up automatically — no registration needed
+
+## Adding a Custom Policy
+
+For one-off agents that don't fit a category:
+
+1. Create `policies/custom/<agent-name>.yaml`
+2. Update `resolve-policy.nu` to check `custom/` before `by-category/`
+3. The custom policy composes on top of default, overriding category
+
+(Not yet implemented — use category policies for now.)
 
 ---
 
-## Pattern 1: Governance Policy
+## Implementation Patterns (Rust)
 
-Define what an agent is allowed to do as a composable, serializable policy struct.
+The patterns below are reference implementations for building governance
+into Rust agent systems. They are not used by the hook (which is Nushell)
+but document the architectural approach.
+
+### Pattern 1: Policy Struct
 
 ```rust
-use serde::{Deserialize, Serialize};
-use regex::Regex;
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PolicyAction {
-    Allow,
-    Deny,
-    Review, // flag for human approval
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GovernancePolicy {
     pub name: String,
@@ -65,541 +268,119 @@ pub struct GovernancePolicy {
     #[serde(default)]
     pub require_human_approval: Vec<String>,
 }
-
-fn default_max_calls() -> usize { 100 }
-
-impl Default for GovernancePolicy {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            allowed_tools: vec![],
-            blocked_tools: vec![],
-            blocked_patterns: vec![],
-            max_calls_per_request: default_max_calls(),
-            require_human_approval: vec![],
-        }
-    }
-}
-
-impl GovernancePolicy {
-    /// Check if a tool is permitted by this policy.
-    pub fn check_tool(&self, tool_name: &str) -> PolicyAction {
-        if self.blocked_tools.iter().any(|t| t == tool_name) {
-            return PolicyAction::Deny;
-        }
-        if self.require_human_approval.iter().any(|t| t == tool_name) {
-            return PolicyAction::Review;
-        }
-        if !self.allowed_tools.is_empty()
-            && !self.allowed_tools.iter().any(|t| t == tool_name)
-        {
-            return PolicyAction::Deny;
-        }
-        PolicyAction::Allow
-    }
-
-    /// Check content against blocked patterns. Returns the matched pattern if found.
-    pub fn check_content(&self, content: &str) -> Option<String> {
-        for pattern in &self.blocked_patterns {
-            if let Ok(re) = Regex::new(pattern) {
-                if re.is_match(content) {
-                    return Some(pattern.clone());
-                }
-            }
-        }
-        None
-    }
-}
 ```
 
-### Policy Composition
-
-Combine multiple policies with most-restrictive-wins semantics:
+### Pattern 2: Policy Composition
 
 ```rust
-/// Merge policies: blocked lists union, allowed lists intersect, rate limits take minimum.
+/// Merge policies: blocked lists union, allowed lists intersect,
+/// rate limits take minimum.
 pub fn compose_policies(policies: &[GovernancePolicy]) -> GovernancePolicy {
-    let mut combined = GovernancePolicy {
-        name: "composed".into(),
-        max_calls_per_request: usize::MAX,
-        ..Default::default()
-    };
-
+    let mut combined = GovernancePolicy::default();
     for policy in policies {
         combined.blocked_tools.extend(policy.blocked_tools.clone());
         combined.blocked_patterns.extend(policy.blocked_patterns.clone());
-        combined.require_human_approval.extend(policy.require_human_approval.clone());
+        combined.require_human_approval.extend(
+            policy.require_human_approval.clone()
+        );
         combined.max_calls_per_request =
             combined.max_calls_per_request.min(policy.max_calls_per_request);
-
+        // Intersect allowed_tools if both specify
         if !policy.allowed_tools.is_empty() {
             combined.allowed_tools = if combined.allowed_tools.is_empty() {
                 policy.allowed_tools.clone()
             } else {
-                combined
-                    .allowed_tools
-                    .iter()
+                combined.allowed_tools.iter()
                     .filter(|t| policy.allowed_tools.contains(t))
                     .cloned()
                     .collect()
             };
         }
     }
-
     combined
 }
-
-// Usage: layer from broad to specific
-let org = GovernancePolicy {
-    name: "org-wide".into(),
-    blocked_tools: vec!["shell_exec".into(), "delete_database".into()],
-    blocked_patterns: vec![r"(?i)(api[_-]?key|secret|password)\s*[:=]".into()],
-    max_calls_per_request: 50,
-    ..Default::default()
-};
-let team = GovernancePolicy {
-    name: "data-team".into(),
-    allowed_tools: vec!["query_db".into(), "read_file".into(), "write_report".into()],
-    require_human_approval: vec!["write_report".into()],
-    ..Default::default()
-};
-let effective = compose_policies(&[org, team]);
 ```
 
-### Policy as YAML
+### Pattern 3: Governed Tool Wrapper
 
-Store policies as configuration, not code (`governance-policy.yaml`):
-
-```yaml
-name: production-agent
-allowed_tools:
-  - search_documents
-  - query_database
-  - send_email
-blocked_tools:
-  - shell_exec
-  - delete_record
-blocked_patterns:
-  - "(?i)(api[_-]?key|secret|password)\\s*[:=]"
-  - "(?i)(drop|truncate|delete from)\\s+\\w+"
-max_calls_per_request: 25
-require_human_approval:
-  - send_email
-```
+Wraps any tool function with policy check + rate limit + audit:
 
 ```rust
-pub fn load_policy(path: &str) -> anyhow::Result<GovernancePolicy> {
-    let text = std::fs::read_to_string(path)?;
-    Ok(serde_yaml::from_str(&text)?)
-}
-```
-
----
-
-## Pattern 2: Semantic Intent Classification
-
-Detect dangerous intent in prompts before they reach the agent.
-
-```rust
-use regex::Regex;
-
-#[derive(Debug, Clone)]
-pub struct IntentSignal {
-    pub category: String,
-    pub confidence: f32,
-    pub evidence: String,
-}
-
-/// (pattern, category, confidence) threat signals.
-const THREAT_SIGNALS: &[(&str, &str, f32)] = &[
-    // Data exfiltration
-    (r"(?i)send\s+(all|every|entire)\s+\w+\s+to\s+", "data_exfiltration", 0.8),
-    (r"(?i)export\s+.*\s+to\s+(external|outside|third.?party)", "data_exfiltration", 0.9),
-    (r"(?i)curl\s+.*\s+-d\s+", "data_exfiltration", 0.7),
-    // Privilege escalation
-    (r"(?i)(sudo|as\s+root|admin\s+access)", "privilege_escalation", 0.8),
-    (r"(?i)chmod\s+777", "privilege_escalation", 0.9),
-    // System modification
-    (r"(?i)(rm\s+-rf|del\s+/[sq]|format\s+c:)", "system_destruction", 0.95),
-    (r"(?i)(drop\s+database|truncate\s+table)", "system_destruction", 0.9),
-    // Prompt injection
-    (r"(?i)ignore\s+(previous|above|all)\s+(instructions?|rules?)", "prompt_injection", 0.9),
-    (r"(?i)you\s+are\s+now\s+(a|an)\s+", "prompt_injection", 0.7),
-];
-
-pub fn classify_intent(content: &str) -> Vec<IntentSignal> {
-    THREAT_SIGNALS
-        .iter()
-        .filter_map(|(pattern, category, confidence)| {
-            Regex::new(pattern).ok().and_then(|re| {
-                re.find(content).map(|m| IntentSignal {
-                    category: category.to_string(),
-                    confidence: *confidence,
-                    evidence: m.as_str().to_string(),
-                })
-            })
-        })
-        .collect()
-}
-
-/// Quick check: is content safe above the given confidence threshold?
-pub fn is_safe(content: &str, threshold: f32) -> bool {
-    !classify_intent(content)
-        .iter()
-        .any(|s| s.confidence >= threshold)
-}
-```
-
-Intent classification fires _before_ tool execution — a pre-flight safety check, not an output
-guardrail. This is the key distinction: catching dangerous prompts before any side effects occur.
-
----
-
-## Pattern 3: Tool-Level Governance Wrapper
-
-Wrap tool functions with governance enforcement using a `GovernedTool` struct:
-
-```rust
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
-use std::time::Instant;
-use anyhow::{bail, Result};
-
-pub struct GovernedTool<F> {
-    name: String,
-    policy: Arc<GovernancePolicy>,
-    call_count: AtomicUsize,
-    audit: Arc<Mutex<AuditTrail>>,
-    inner: F,
-}
-
-impl<F, Fut> GovernedTool<F>
-where
-    F: Fn(String) -> Fut + Send + Sync,
-    Fut: std::future::Future<Output = Result<String>>,
-{
-    pub fn new(
-        name: impl Into<String>,
-        policy: Arc<GovernancePolicy>,
-        audit: Arc<Mutex<AuditTrail>>,
-        inner: F,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            policy,
-            call_count: AtomicUsize::new(0),
-            audit,
-            inner,
-        }
+pub async fn call(&self, input: String) -> Result<String> {
+    // 1. Check tool allowlist/blocklist
+    match self.policy.check_tool(&self.name) {
+        PolicyAction::Deny => bail!("blocked by policy"),
+        PolicyAction::Review => bail!("requires human approval"),
+        PolicyAction::Allow => {}
     }
-
-    pub async fn call(&self, input: String) -> Result<String> {
-        // 1. Check tool allowlist/blocklist
-        match self.policy.check_tool(&self.name) {
-            PolicyAction::Deny => {
-                bail!("Policy '{}' blocks tool '{}'", self.policy.name, self.name)
-            }
-            PolicyAction::Review => {
-                bail!("Tool '{}' requires human approval", self.name)
-            }
-            PolicyAction::Allow => {}
-        }
-
-        // 2. Rate limit
-        let count = self.call_count.fetch_add(1, Ordering::SeqCst) + 1;
-        if count > self.policy.max_calls_per_request {
-            bail!("Rate limit exceeded: {} calls", self.policy.max_calls_per_request);
-        }
-
-        // 3. Content filter
-        if let Some(pattern) = self.policy.check_content(&input) {
-            bail!("Blocked content pattern: {pattern}");
-        }
-
-        // 4. Execute and audit
-        let start = Instant::now();
-        let result = (self.inner)(input).await;
-        let duration_ms = start.elapsed().as_millis() as u64;
-        let action = if result.is_ok() { "allowed" } else { "error" };
-
-        if let Ok(mut log) = self.audit.lock() {
-            log.append(AuditEntry {
-                timestamp: unix_now(),
-                agent_id: self.policy.name.clone(),
-                tool_name: self.name.clone(),
-                action: action.into(),
-                policy_name: self.policy.name.clone(),
-                details: [("duration_ms".into(), duration_ms.to_string())]
-                    .into_iter()
-                    .collect(),
-            });
-        }
-        result
+    // 2. Rate limit
+    let count = self.call_count.fetch_add(1, Ordering::SeqCst) + 1;
+    if count > self.policy.max_calls_per_request {
+        bail!("rate limit exceeded");
     }
-}
-
-fn unix_now() -> f64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs_f64()
+    // 3. Content filter
+    if let Some(pattern) = self.policy.check_content(&input) {
+        bail!("blocked content: {pattern}");
+    }
+    // 4. Execute and audit
+    let result = (self.inner)(input).await;
+    self.audit.lock().unwrap().append(/* ... */);
+    result
 }
 ```
 
----
+### Pattern 4: Trust Scoring
 
-## Pattern 4: Trust Scoring
-
-Track agent reliability over time with exponential decay — trust erodes without activity.
+Track agent reliability with exponential decay:
 
 ```rust
-#[derive(Debug, Clone)]
-pub struct TrustScore {
-    pub score: f64,
-    pub successes: u32,
-    pub failures: u32,
-    last_updated: f64,
-}
-
-impl Default for TrustScore {
-    fn default() -> Self {
-        Self { score: 0.5, successes: 0, failures: 0, last_updated: unix_now() }
-    }
-}
-
 impl TrustScore {
-    pub fn record_success(&mut self, reward: f64) {
-        self.successes += 1;
-        self.score = (self.score + reward * (1.0 - self.score)).min(1.0);
-        self.last_updated = unix_now();
-    }
-
-    pub fn record_failure(&mut self, penalty: f64) {
-        self.failures += 1;
-        self.score = (self.score - penalty * self.score).max(0.0);
-        self.last_updated = unix_now();
-    }
-
-    /// Score with temporal decay — trust erodes without activity.
     pub fn current(&self, decay_rate: f64) -> f64 {
-        let elapsed = unix_now() - self.last_updated;
+        let elapsed = now() - self.last_updated;
         self.score * (-decay_rate * elapsed).exp()
     }
-
-    pub fn reliability(&self) -> f64 {
-        let total = (self.successes + self.failures) as f64;
-        if total == 0.0 { 0.0 } else { self.successes as f64 / total }
-    }
 }
 
-/// Multi-agent trust registry — each coordinator tracks its delegates.
-use std::collections::HashMap;
-
-pub struct AgentTrustRegistry {
-    scores: HashMap<String, TrustScore>,
-}
-
-impl AgentTrustRegistry {
-    pub fn new() -> Self {
-        Self { scores: HashMap::new() }
-    }
-
-    pub fn get_mut(&mut self, agent_id: &str) -> &mut TrustScore {
-        self.scores.entry(agent_id.to_string()).or_default()
-    }
-
-    pub fn most_trusted<'a>(&self, agents: &'a [String]) -> Option<&'a str> {
-        agents
-            .iter()
-            .max_by(|a, b| {
-                let ta = self.scores.get(a.as_str()).map_or(0.5, |s| s.current(0.001));
-                let tb = self.scores.get(b.as_str()).map_or(0.5, |s| s.current(0.001));
-                ta.partial_cmp(&tb).unwrap_or(std::cmp::Ordering::Equal)
-            })
-            .map(String::as_str)
-    }
-
-    pub fn meets_threshold(&self, agent_id: &str, threshold: f64) -> bool {
-        self.scores.get(agent_id).map_or(false, |s| s.current(0.001) >= threshold)
-    }
-}
-
-// Gate operations on trust level
-let trust = registry.get_mut("agent-42");
+// Gate on trust level
 match trust.current(0.001) {
-    t if t >= 0.7 => { /* autonomous operation */ }
-    t if t >= 0.4 => { /* allow with oversight */ }
-    _             => { /* deny or require explicit approval */ }
+    t if t >= 0.7 => { /* autonomous */ }
+    t if t >= 0.4 => { /* with oversight */ }
+    _             => { /* deny */ }
 }
 ```
 
----
+### Pattern 5: Audit Trail
 
-## Pattern 5: Audit Trail
-
-Append-only JSONL audit log — critical for compliance and post-incident review.
+Append-only JSONL — never modify entries after write:
 
 ```rust
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs::OpenOptions;
-use std::io::Write;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditEntry {
-    pub timestamp: f64,
-    pub agent_id: String,
-    pub tool_name: String,
-    pub action: String, // "allowed" | "denied" | "error"
-    pub policy_name: String,
-    #[serde(default)]
-    pub details: HashMap<String, String>,
-}
-
-pub struct AuditTrail {
-    entries: Vec<AuditEntry>,
-}
-
-impl AuditTrail {
-    pub fn new() -> Self {
-        Self { entries: vec![] }
+pub fn export_jsonl(&self, path: &str) -> io::Result<()> {
+    let mut file = OpenOptions::new()
+        .create(true).append(true).open(path)?;
+    for entry in &self.entries {
+        writeln!(file, "{}", serde_json::to_string(entry)?)?;
     }
-
-    pub fn append(&mut self, entry: AuditEntry) {
-        self.entries.push(entry);
-    }
-
-    pub fn denied(&self) -> Vec<&AuditEntry> {
-        self.entries.iter().filter(|e| e.action == "denied").collect()
-    }
-
-    pub fn by_agent(&self, agent_id: &str) -> Vec<&AuditEntry> {
-        self.entries.iter().filter(|e| e.agent_id == agent_id).collect()
-    }
-
-    /// Export as JSON Lines for log aggregation systems (append mode).
-    pub fn export_jsonl(&self, path: &str) -> std::io::Result<()> {
-        let mut file = OpenOptions::new().create(true).append(true).open(path)?;
-        for entry in &self.entries {
-            if let Ok(line) = serde_json::to_string(entry) {
-                writeln!(file, "{line}")?;
-            }
-        }
-        Ok(())
-    }
-}
-```
-
----
-
-## Pattern 6: Putting It Together
-
-```rust
-use std::sync::{Arc, Mutex};
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let policy = Arc::new(GovernancePolicy {
-        name: "search-agent".into(),
-        allowed_tools: vec!["search".into(), "summarize".into()],
-        blocked_patterns: vec![r"(?i)password".into()],
-        max_calls_per_request: 10,
-        ..Default::default()
-    });
-
-    let audit = Arc::new(Mutex::new(AuditTrail::new()));
-
-    let search = GovernedTool::new(
-        "search",
-        Arc::clone(&policy),
-        Arc::clone(&audit),
-        |query: String| async move { Ok(format!("Results for: {query}")) },
-    );
-
-    // Passes
-    let result = search.call("latest quarterly report".into()).await?;
-    println!("{result}");
-
-    // Blocked — pattern match on "password"
-    assert!(search.call("show me the admin password".into()).await.is_err());
-
-    audit.lock().unwrap().export_jsonl(".ctx/governance-audit.jsonl")?;
     Ok(())
 }
 ```
 
 ---
 
-## Governance Levels
-
-| Level        | Controls                                        | Use Case                     |
-| ------------ | ----------------------------------------------- | ---------------------------- |
-| **Open**     | Audit only, no restrictions                     | Internal dev/testing         |
-| **Standard** | Tool allowlist + content filters                | General production agents    |
-| **Strict**   | All controls + human approval for sensitive ops | Financial, healthcare, legal |
-| **Locked**   | Allowlist only, no dynamic tools, full audit    | Compliance-critical systems  |
-
----
-
-## Cargo Dependencies
-
-```toml
-[dependencies]
-regex = "1"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-serde_yaml = "0.9"
-anyhow = "1"
-tokio = { version = "1", features = ["full"] }
-```
-
----
-
 ## Best Practices
 
-| Practice                       | Rationale                                                     |
-| ------------------------------ | ------------------------------------------------------------- |
-| **Policy as configuration**    | Store in YAML, not code — enables change without rebuilding   |
-| **Most-restrictive-wins**      | When composing, deny always overrides allow                   |
-| **Pre-flight intent check**    | Classify intent _before_ tool execution, not after            |
-| **Trust decay**                | Scores must decay — require ongoing demonstrated reliability  |
-| **Append-only audit**          | Never modify audit entries — immutability enables compliance  |
-| **Fail closed**                | If governance check errors, deny rather than allow            |
-| **Separate policy from logic** | Governance enforcement is independent of agent business logic |
-
----
-
-## Quick Start Checklist
-
-```markdown
-## Agent Governance Implementation Checklist
-
-### Setup
-
-- [ ] Define GovernancePolicy (allowed_tools, blocked_patterns, max_calls_per_request)
-- [ ] Choose governance level (open/standard/strict/locked)
-- [ ] Set up AuditTrail and decide export path (.ctx/ JSONL)
-
-### Implementation
-
-- [ ] Wrap tool functions in GovernedTool with shared policy + audit Arc
-- [ ] Add classify_intent() to user input before dispatch
-- [ ] Wire TrustScore updates after each agent task success/failure
-- [ ] Export audit JSONL at session end
-
-### Validation
-
-- [ ] Test blocked tools return Err
-- [ ] Test content filters catch sensitive patterns
-- [ ] Test rate limit exceeded after N calls
-- [ ] Verify audit trail captures allowed + denied entries
-- [ ] Test policy composition (most-restrictive-wins)
-```
-
----
+| Practice                       | Rationale                                                    |
+| ------------------------------ | ------------------------------------------------------------ |
+| Policy as configuration        | YAML, not code — change without rebuilding                   |
+| Most-restrictive-wins          | When composing, deny always overrides allow                  |
+| Pre-flight, not post-hoc       | Check before execution, not after side effects               |
+| Fail closed                    | If governance check errors, deny rather than allow           |
+| Separate policy from logic     | Governance is independent of agent business logic            |
+| Append-only audit              | Never modify audit entries — immutability enables compliance |
+| Inject reminders, not just log | Agents see governance rules in stderr before acting          |
 
 ## Related
 
-- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
-- `skills/observability-as-infrastructure/SKILL.md` — trace events for audit integration
-- `skills/parallel-agents/SKILL.md` — trust scoring in multi-agent dispatch
+- `skills/observability-as-infrastructure/SKILL.md` — trace events for audit
+- `skills/parallel-agents/SKILL.md` — subagent dispatch protocol
+- `references/governance-levels.md` — level detail and choosing guide
+- `helpers/policy-template.yaml` — blank policy for new categories
