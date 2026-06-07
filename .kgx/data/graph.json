@@ -100,12 +100,48 @@
       ]
     },
     {
+      "id": "996d174d-7ea2-4392-b353-d65bfae39250",
+      "name": "agent category",
+      "type": "concept",
+      "supporting_text": "Agents for MoA, parallel dispatch, crate TDD, TDD helper",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "28190619-17f2-415f-8f74-6a840bb9173b",
+      "name": "agent governance skill",
+      "type": "system",
+      "supporting_text": "skills/agent-governance/ — SKILL.md, hook.nu, helpers, policies directory",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "91ad1c1e-26ef-45aa-ad95-694aa4851e11",
+      "name": "agent-governance",
+      "type": "system",
+      "supporting_text": "AI agent governance and safety controls",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "3d95dcc1-bf08-486a-a1f7-6326d52d7920",
       "name": "agent_index",
       "type": "module",
       "supporting_text": "agent_index module regenerates agents/INDEX.md",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "b1370ea9-9d5e-443c-9afa-fbc247c7aab7",
+      "name": "brainstorm",
+      "type": "system",
+      "supporting_text": "Use before any creative work",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -127,6 +163,42 @@
       ]
     },
     {
+      "id": "59c4aab4-01ad-4040-a28c-4c67d9e154e9",
+      "name": "cap",
+      "type": "system",
+      "supporting_text": "Commit and push with pre-flight validation",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "60a896be-631a-4fca-88ed-9b2ae91ff00e",
+      "name": "changelog",
+      "type": "system",
+      "supporting_text": "Git history to structured changelog",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "1e3e532e-bab2-44bd-8c10-2bc1089cba43",
+      "name": "ci-fix",
+      "type": "system",
+      "supporting_text": "Self-healing CI diagnosis loop",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "6c9a6bad-7e9c-4239-95cd-ab26f57cf65d",
+      "name": "code-review",
+      "type": "system",
+      "supporting_text": "Structured code review before merge",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "69aa3042-ebcc-403d-b0ce-169a9f1c0383",
       "name": "config",
       "type": "module",
@@ -142,6 +214,24 @@
       "supporting_text": "context module assembles SessionContext for hooks and subagents",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "0e3441e4-f076-42c2-acd9-5521731d805a",
+      "name": "context-map",
+      "type": "system",
+      "supporting_text": "Generate a map of all files relevant to a task",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "1266b0ae-5bb3-4621-ba87-a9c0d9c21609",
+      "name": "cross-issue",
+      "type": "system",
+      "supporting_text": "Cross-repo issue coordination",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -163,6 +253,51 @@
       ]
     },
     {
+      "id": "13a957a9-b620-4644-ab65-2485816dca02",
+      "name": "dbg category",
+      "type": "concept",
+      "supporting_text": "Agents for debugging, CI fix, mistake tracking",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "0cb206ae-0b8a-441b-9a8a-9869b106402c",
+      "name": "dead-code",
+      "type": "system",
+      "supporting_text": "Unused public API and orphaned code finder",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "9230157d-ff20-48f5-b1de-3cc094ffcf74",
+      "name": "decompose",
+      "type": "system",
+      "supporting_text": "Break large diffs into smaller PRs",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "5bcb642a-c329-49c2-83cb-e7dcd0c5d9fa",
+      "name": "dep-audit",
+      "type": "system",
+      "supporting_text": "Audit cargo outdated, deny, and audit",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "5febc969-cb3a-4a6d-ac53-bd4777f667fe",
+      "name": "dep-bump",
+      "type": "system",
+      "supporting_text": "Propagate version bumps downstream",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "59da9c6c-159d-4889-ab87-e923653a7157",
       "name": "detect",
       "type": "module",
@@ -181,6 +316,15 @@
       ]
     },
     {
+      "id": "35c02a6e-d0da-4f04-8ca5-ea04672cd7a9",
+      "name": "doc-maintainer",
+      "type": "system",
+      "supporting_text": "Audit docs against source code",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "e4043b80-b7cf-4ec3-a43b-405d88236b9e",
       "name": "doctor",
       "type": "module",
@@ -195,7 +339,17 @@
       "type": "integration",
       "supporting_text": "doob integration syncs todos and handoff state",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "ee6c3bdd-6331-4ddf-b395-5eef2bf1e871",
+      "name": "doublecheck",
+      "type": "system",
+      "supporting_text": "Three-layer verification for AI output",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -205,6 +359,321 @@
       "supporting_text": "gh integration handles CI triage and GitHub issues",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "0b0be6ce-46cd-4414-b11d-ad0991ad03b6",
+      "name": "git category",
+      "type": "concept",
+      "supporting_text": "Agents for commit/push, wave integration, PR authoring",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "73d949ea-dee2-43e0-90b3-aac52037fe50",
+      "name": "gm-brainstorm-agent",
+      "type": "system",
+      "supporting_text": "Design and architecture specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "4ea307f6-01d6-47cf-8527-7ca6fe7d316a",
+      "name": "gm-cap-agent",
+      "type": "system",
+      "supporting_text": "Commit and push workflow",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "046e455e-b183-40f5-951e-3b8c46d28c81",
+      "name": "gm-changelog-agent",
+      "type": "system",
+      "supporting_text": "Changelog generator",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "c436fa6c-59a5-4739-91a0-3a091ace911f",
+      "name": "gm-ci-fix-agent",
+      "type": "system",
+      "supporting_text": "CI failure diagnosis and repair",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "46b0c6f4-41d6-48a5-8c13-1498fde823cd",
+      "name": "gm-code-review-agent",
+      "type": "system",
+      "supporting_text": "Structured code review before merge",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "c323a83c-0578-46aa-b059-49e8eda421fc",
+      "name": "gm-crate",
+      "type": "system",
+      "supporting_text": "Crate TDD implementation agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "08f68594-334b-463c-838a-0efeaf782996",
+      "name": "gm-cross-issue-agent",
+      "type": "system",
+      "supporting_text": "Cross-repo issue linker",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "7c344a88-3003-4ee4-ab9b-006168d9591b",
+      "name": "gm-dead-code-agent",
+      "type": "system",
+      "supporting_text": "Dead code detector",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "9d0f3ffc-0734-42c3-8d1a-2fe40c392556",
+      "name": "gm-debug",
+      "type": "system",
+      "supporting_text": "Systematic debugging specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "be16f2f0-ac45-49bb-93eb-5ef091229262",
+      "name": "gm-dep-audit-agent",
+      "type": "system",
+      "supporting_text": "Dependency auditor",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "964cb9c9-d9e5-40ff-91d7-2ab3a6e99fd0",
+      "name": "gm-dep-bump-propagator-agent",
+      "type": "system",
+      "supporting_text": "Shared dependency bump propagator",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "930d898f-d2f7-4b9b-a179-21d859c2fc7f",
+      "name": "gm-dispatch",
+      "type": "system",
+      "supporting_text": "Parallel dispatch agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "af22170b-e51e-4c43-87a2-89d47e6f7266",
+      "name": "gm-doc-maintainer-agent",
+      "type": "system",
+      "supporting_text": "Documentation maintainer",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "e3e34d39-79f4-416f-99bf-6b6c702ffa9b",
+      "name": "gm-health-score-agent",
+      "type": "system",
+      "supporting_text": "Codebase health scorecard",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "20775698-3d9c-44cc-a195-4c373d305570",
+      "name": "gm-introspection-agent",
+      "type": "system",
+      "supporting_text": "Plugin audit agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "981bbacc-cb08-4f4d-a42f-5f9b2a3483f3",
+      "name": "gm-issue-triage-agent",
+      "type": "system",
+      "supporting_text": "Issue triage and prioritization",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "96e0abd4-c52a-4719-8965-9e708ea588e7",
+      "name": "gm-issues",
+      "type": "system",
+      "supporting_text": "GitHub issue dispatch agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "660b57fb-2e67-4831-b5c3-836aabf0c1a5",
+      "name": "gm-mistake-tracker-agent",
+      "type": "system",
+      "supporting_text": "Recurring error catalog",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "cd565274-a009-47f5-a76b-8c984d096ed0",
+      "name": "gm-moa-agent",
+      "type": "system",
+      "supporting_text": "Mixture-of-Agents synthesis agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "8273f1b8-f108-474e-a3d7-afe3bd2e96da",
+      "name": "gm-orchestrator",
+      "type": "system",
+      "supporting_text": "Pipeline loop orchestrator",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "72c276ba-bee4-475c-b35d-86daaf6381d3",
+      "name": "gm-orient",
+      "type": "system",
+      "supporting_text": "Godmode orientation and help agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "3c9ec368-b2ae-428a-af1d-ea4838fdee68",
+      "name": "gm-pattern-learner-agent",
+      "type": "system",
+      "supporting_text": "Cross-session pattern extractor",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "009b8471-dc2c-4d03-9b64-957ea1276e0e",
+      "name": "gm-planner",
+      "type": "system",
+      "supporting_text": "Implementation plan specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "3e19e523-03dc-4a49-b4b7-fd803c5f2d5d",
+      "name": "gm-pr-author-agent",
+      "type": "system",
+      "supporting_text": "PR description writer",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "78dbf0ab-4de1-486a-a9ce-4e177132184c",
+      "name": "gm-refactor",
+      "type": "system",
+      "supporting_text": "Refactoring specialist with test discipline",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "f5275559-751b-4c4e-ad57-9e9585d57fe9",
+      "name": "gm-release-notes-agent",
+      "type": "system",
+      "supporting_text": "Release notes generator",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "d64ecb3f-08e3-439d-abc2-b505056199bd",
+      "name": "gm-review",
+      "type": "system",
+      "supporting_text": "Code review response specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "48be87b3-9b5b-4c78-bd61-b85b74f899a4",
+      "name": "gm-tasker",
+      "type": "system",
+      "supporting_text": "Task graph management specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "b03417c2-08ba-4714-a392-33c1866d69bb",
+      "name": "gm-tdd-helper",
+      "type": "system",
+      "supporting_text": "Strict TDD implementation agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "5baa5d2a-a1c7-46ff-a5d1-2cefe2ac4ced",
+      "name": "gm-testing",
+      "type": "system",
+      "supporting_text": "Test strategy advisor",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "917aa455-2c9b-4838-b277-c9293fbe7b89",
+      "name": "gm-trace-agent",
+      "type": "system",
+      "supporting_text": "Trace analysis agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "da4e7ed5-de0d-4ede-8054-d09e57d4ec19",
+      "name": "gm-verify",
+      "type": "system",
+      "supporting_text": "Verification gate enforcer",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "bccb0b84-18d5-4264-b1e4-79bd439005f5",
+      "name": "gm-wave",
+      "type": "system",
+      "supporting_text": "Wave integration agent",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "c1d30e28-ad1d-4ec4-b163-d0d408f49aa6",
+      "name": "gm-workspace-refactor-agent",
+      "type": "system",
+      "supporting_text": "Cross-repo refactor coordinator",
+      "source_docs": [
+        "godmode_agents"
       ]
     },
     {
@@ -244,12 +713,30 @@
       ]
     },
     {
+      "id": "7cf1a6c3-4c7a-4864-ab20-692b221c08c5",
+      "name": "gov category",
+      "type": "concept",
+      "supporting_text": "Agents for governance and trace analysis",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
       "id": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
       "name": "graph",
       "type": "module",
       "supporting_text": "graph module handles load/save task file, all task state transitions, runnable() dependency resolution",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "578da130-d85d-4547-83a8-b9b2d3772844",
+      "name": "health-score",
+      "type": "system",
+      "supporting_text": "Seven-metric codebase health scorecard",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -298,6 +785,42 @@
       ]
     },
     {
+      "id": "66b8fa70-2d3e-42e5-abde-b7e9093691c8",
+      "name": "introspection",
+      "type": "system",
+      "supporting_text": "Plugin consistency audit",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "6b2ea93a-843d-48a2-981d-d0f2465170a6",
+      "name": "issue category",
+      "type": "concept",
+      "supporting_text": "Agents for issue triage, dispatch, cross-repo linking",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "b530cb79-73f1-452c-af7d-a56f92835da7",
+      "name": "issue-triage",
+      "type": "system",
+      "supporting_text": "Triage and prioritize GitHub issues",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "aa176bcd-0871-47bd-813d-7bd1bcd3af82",
+      "name": "memory-banking",
+      "type": "system",
+      "supporting_text": "Cross-session memory bank maintenance",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "b3d33578-96ce-4aa3-90ed-75fa970cf4a9",
       "name": "memory_banking",
       "type": "module",
@@ -307,12 +830,93 @@
       ]
     },
     {
+      "id": "663d93fd-c14b-40d2-a4d2-8c5167fdd866",
+      "name": "merge",
+      "type": "system",
+      "supporting_text": "Merge workflow handling branches and PRs",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "c5d2640c-2c18-4bea-814d-418f22133e0c",
+      "name": "meta category",
+      "type": "concept",
+      "supporting_text": "Agents for cross-session pattern learning",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "d13109ac-823d-4ca8-a896-205006f4c36d",
+      "name": "mini-context-graph",
+      "type": "system",
+      "supporting_text": "Persistent wiki + knowledge graph",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "520acf42-cdc6-4950-811f-7026ce40efe3",
+      "name": "mistake-tracker",
+      "type": "system",
+      "supporting_text": "Recurring mistake catalog",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "06d29e0d-eda3-487c-8d49-627783c473ab",
+      "name": "moa",
+      "type": "system",
+      "supporting_text": "Mixture of Agents synthesis",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "6e53093e-4b32-4744-95da-6e0789077b0c",
       "name": "model",
       "type": "module",
       "supporting_text": "model module contains Task, TaskGraph, Status, Priority data types",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "35e9f5c6-ba54-40c6-b15d-8df529f7110b",
+      "name": "observability-as-infrastructure",
+      "type": "system",
+      "supporting_text": "Structured JSONL tracing for all helpers",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "name": "ops category",
+      "type": "concept",
+      "supporting_text": "Agents for dependency audit, changelog, release notes, orientation, pipeline, todo",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "name": "parallel-agents",
+      "type": "system",
+      "supporting_text": "Dispatch 2+ independent tasks in parallel",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "7b24451d-302b-4891-94c7-f18f96185ab2",
+      "name": "pattern-learner",
+      "type": "system",
+      "supporting_text": "Cross-session pattern extraction",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -343,6 +947,69 @@
       ]
     },
     {
+      "id": "704f00c2-a9d8-4d8f-ade8-62b1d4064850",
+      "name": "plan category",
+      "type": "concept",
+      "supporting_text": "Agents for design, planning, orchestration, task management",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "c6946a0f-68f2-400a-9cff-c4b2f4010910",
+      "name": "policy module",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/policy.rs — new untracked file",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "cbafa28f-b4a4-4db1-aecf-5f7c0c447434",
+      "name": "pr-author",
+      "type": "system",
+      "supporting_text": "Compose PR descriptions from diffs",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "name": "qual category",
+      "type": "concept",
+      "supporting_text": "Agents for code review, verification, testing, health, dead code, introspection",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "6b640574-9da9-4016-8af5-c9e231d4384f",
+      "name": "receiving-review",
+      "type": "system",
+      "supporting_text": "Process incoming code review feedback",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "13b61070-c5f5-46c0-baff-7fbc650ec02b",
+      "name": "refac category",
+      "type": "concept",
+      "supporting_text": "Agents for refactoring, workspace refactor, doc maintenance",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "c562bc2a-b51b-4032-9d2b-c654d4fe80ae",
+      "name": "refactoring",
+      "type": "system",
+      "supporting_text": "Guided refactoring with test discipline",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "55898a45-60e2-4f0a-bd27-fe87479b2463",
       "name": "registry",
       "type": "module",
@@ -358,6 +1025,15 @@
       "supporting_text": "release module handles version bump, tag, push, changelog",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "63ac3bc5-bb6a-4a8e-84e9-52a3ba7dcbd2",
+      "name": "release-notes",
+      "type": "system",
+      "supporting_text": "User-facing release notes from git",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -379,6 +1055,15 @@
       ]
     },
     {
+      "id": "12b8b03c-5960-4853-b472-5e3d815957c1",
+      "name": "rust-conventions",
+      "type": "system",
+      "supporting_text": "Rust coding conventions and best practices",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "7949101a-ed34-42e2-b640-a9ebd94b7573",
       "name": "rx",
       "type": "integration",
@@ -388,12 +1073,39 @@
       ]
     },
     {
+      "id": "34fa4cf8-a083-4b52-8188-6fae6c9f6926",
+      "name": "sarif module",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/sarif.rs — new untracked file",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
       "id": "e4f590da-e698-4391-88d4-6c6d8bbb251d",
       "name": "scaffold",
       "type": "module",
       "supporting_text": "scaffold module generates test stubs",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "be49ee5c-90f3-43f8-b208-1893c2530cd8",
+      "name": "scaffold subcommand",
+      "type": "concept",
+      "supporting_text": "Add scaffold subcommand to CLI. Tracked in doob since 2026-05-12",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "4fdc8e6b-03c7-43e7-aa70-e9398640055f",
+      "name": "self-reflect",
+      "type": "system",
+      "supporting_text": "Session retrospective and pattern surfacing",
+      "source_docs": [
+        "godmode_skills"
       ]
     },
     {
@@ -424,6 +1136,51 @@
       ]
     },
     {
+      "id": "58e84056-c1d1-437b-b572-a99918f2331f",
+      "name": "systematic-debugging",
+      "type": "system",
+      "supporting_text": "Root cause analysis before fixing",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "fdde09bf-8112-465c-b4c7-1b1228f60b0a",
+      "name": "tackle-issues",
+      "type": "system",
+      "supporting_text": "Dispatch agents per issue",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "c6a58d46-e13c-4c7f-8449-0c43757ef2ee",
+      "name": "task graph",
+      "type": "concept",
+      "supporting_text": "Task graph: 6 tasks all done (d1-d6)",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "ccdc1ffe-8525-4a5f-8b0b-de656839a677",
+      "name": "task-driven-development",
+      "type": "system",
+      "supporting_text": "Red/green/refactor structured implementation",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "name": "task-management",
+      "type": "system",
+      "supporting_text": "Task graph creation, tracking, and execution",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "654594bb-e1ad-4c79-9a3f-20714535ba40",
       "name": "tasks.yaml",
       "type": "state_file",
@@ -451,6 +1208,60 @@
       ]
     },
     {
+      "id": "7f58e60b-456f-4794-9cee-509590f64164",
+      "name": "testing-philosophy",
+      "type": "system",
+      "supporting_text": "Seven-dimension Rust testing model",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "51bb1d48-c5d5-4cda-a3b8-1169072b6e78",
+      "name": "todo-issue-sync",
+      "type": "system",
+      "supporting_text": "Sync inline TODOs with GitHub issues",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "436cf830-8a67-4261-abfb-2f351f9ddd21",
+      "name": "uncommitted work",
+      "type": "issue",
+      "supporting_text": "22 files with uncommitted changes spanning core modules and skills",
+      "source_docs": [
+        "godmode_handoff_20260606"
+      ]
+    },
+    {
+      "id": "999959c2-361f-412c-b4d8-0a9a9a813203",
+      "name": "using-godmode",
+      "type": "system",
+      "supporting_text": "Orientation to available skills",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
+      "id": "33acb326-55cb-4730-bfa7-49777ace5c2b",
+      "name": "valerie",
+      "type": "system",
+      "supporting_text": "Task and todo management specialist",
+      "source_docs": [
+        "godmode_agents"
+      ]
+    },
+    {
+      "id": "b0c6f2f2-84fa-4d15-97f3-79afa73d06bc",
+      "name": "verification-before-completion",
+      "type": "system",
+      "supporting_text": "Verify before claiming work complete",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "d3438be4-1608-4699-b93e-00de98186c3e",
       "name": "verify",
       "type": "module",
@@ -469,6 +1280,15 @@
       ]
     },
     {
+      "id": "d382b630-729f-499b-9c46-5a4f7caeb219",
+      "name": "wave-integration",
+      "type": "system",
+      "supporting_text": "Merge parallel agent branches",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
       "name": "workflow",
       "type": "module",
@@ -478,12 +1298,30 @@
       ]
     },
     {
+      "id": "2ac6127d-4126-412c-ba8f-1210fb15844d",
+      "name": "workspace-refactor",
+      "type": "system",
+      "supporting_text": "Cross-repo breaking change coordination",
+      "source_docs": [
+        "godmode_skills"
+      ]
+    },
+    {
       "id": "7e0c4927-52a1-4662-b397-ede2595c116f",
       "name": "worktree",
       "type": "module",
       "supporting_text": "worktree module manages git worktree lifecycle",
       "source_docs": [
         "godmode_architecture"
+      ]
+    },
+    {
+      "id": "a896261e-8964-4d59-aec2-1d8a63658d61",
+      "name": "writing-plans",
+      "type": "system",
+      "supporting_text": "Multi-step task planning from spec or design",
+      "source_docs": [
+        "godmode_skills"
       ]
     }
   ],
@@ -1090,6 +1928,861 @@
       "confidence": 1.0,
       "supporting_text": "session_trace provides low-level JSONL helpers used by session",
       "source_doc": "godmode_architecture"
+    },
+    {
+      "id": "de05ff83-8e21-4bf0-8b16-ae26b12a1ddc",
+      "source": "436cf830-8a67-4261-abfb-2f351f9ddd21",
+      "target": "c6946a0f-68f2-400a-9cff-c4b2f4010910",
+      "type": "contains",
+      "confidence": 0.9,
+      "supporting_text": "uncommitted changes include new policy.rs",
+      "source_doc": "godmode_handoff_20260606"
+    },
+    {
+      "id": "237517c1-169f-47e3-a0d4-875ea9610e4c",
+      "source": "436cf830-8a67-4261-abfb-2f351f9ddd21",
+      "target": "34fa4cf8-a083-4b52-8188-6fae6c9f6926",
+      "type": "contains",
+      "confidence": 0.9,
+      "supporting_text": "uncommitted changes include new sarif.rs",
+      "source_doc": "godmode_handoff_20260606"
+    },
+    {
+      "id": "c397a39e-8a9f-471f-af35-6030df58ad7f",
+      "source": "436cf830-8a67-4261-abfb-2f351f9ddd21",
+      "target": "28190619-17f2-415f-8f74-6a840bb9173b",
+      "type": "contains",
+      "confidence": 0.9,
+      "supporting_text": "uncommitted changes include agent-governance skill files",
+      "source_doc": "godmode_handoff_20260606"
+    },
+    {
+      "id": "c0a471f5-7032-4ae1-841f-c9840cfdaeb5",
+      "source": "be49ee5c-90f3-43f8-b208-1893c2530cd8",
+      "target": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
+      "type": "related_to",
+      "confidence": 0.8,
+      "supporting_text": "scaffold subcommand tracked in doob",
+      "source_doc": "godmode_handoff_20260606"
+    },
+    {
+      "id": "91e0c885-6ad7-44d1-89cd-1617658ff4ab",
+      "source": "c6946a0f-68f2-400a-9cff-c4b2f4010910",
+      "target": "28190619-17f2-415f-8f74-6a840bb9173b",
+      "type": "implements",
+      "confidence": 0.8,
+      "supporting_text": "policy.rs provides governance policy engine for agent-governance skill",
+      "source_doc": "godmode_handoff_20260606"
+    },
+    {
+      "id": "a427630a-d3dd-4447-8722-9af0449eb87b",
+      "source": "73d949ea-dee2-43e0-90b3-aac52037fe50",
+      "target": "704f00c2-a9d8-4d8f-ade8-62b1d4064850",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: plan",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "9093ded8-4c1c-4f8d-93a0-e4cb734fe073",
+      "source": "009b8471-dc2c-4d03-9b64-957ea1276e0e",
+      "target": "704f00c2-a9d8-4d8f-ade8-62b1d4064850",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: plan",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "21448887-a250-44a8-9b38-6bd66924fe78",
+      "source": "48be87b3-9b5b-4c78-bd61-b85b74f899a4",
+      "target": "704f00c2-a9d8-4d8f-ade8-62b1d4064850",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: plan",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "72492af7-bf8a-4d76-b9b0-4f7ed11d4c98",
+      "source": "8273f1b8-f108-474e-a3d7-afe3bd2e96da",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "b0b39284-24d0-402c-99f6-c45acc0eb25b",
+      "source": "46b0c6f4-41d6-48a5-8c13-1498fde823cd",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "5b6fcb24-3939-4e8c-bc7d-6a83d3efb5d8",
+      "source": "d64ecb3f-08e3-439d-abc2-b505056199bd",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "cbf5093a-50eb-44df-8d54-c2643b28ef50",
+      "source": "da4e7ed5-de0d-4ede-8054-d09e57d4ec19",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "cbd690c3-3825-4c9f-8055-285d3877bf94",
+      "source": "5baa5d2a-a1c7-46ff-a5d1-2cefe2ac4ced",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "535f1685-f75d-45e4-8882-c9dc248b5695",
+      "source": "e3e34d39-79f4-416f-99bf-6b6c702ffa9b",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "327d39d1-6e64-418b-8e99-dffe7b94db44",
+      "source": "7c344a88-3003-4ee4-ab9b-006168d9591b",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "554911e7-fbcc-4097-8701-73f66f7a8b8c",
+      "source": "20775698-3d9c-44cc-a195-4c373d305570",
+      "target": "08abc26c-fc11-4517-907e-3521d96e0c26",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: qual",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "bb80efb6-0954-4783-8021-b969f920468c",
+      "source": "9d0f3ffc-0734-42c3-8d1a-2fe40c392556",
+      "target": "13a957a9-b620-4644-ab65-2485816dca02",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: dbg",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "0c3d25c2-2d6f-4d35-b420-a542cb2865c4",
+      "source": "c436fa6c-59a5-4739-91a0-3a091ace911f",
+      "target": "13a957a9-b620-4644-ab65-2485816dca02",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: dbg",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "ffbf897e-0497-42cc-a62d-830842a7b070",
+      "source": "660b57fb-2e67-4831-b5c3-836aabf0c1a5",
+      "target": "13a957a9-b620-4644-ab65-2485816dca02",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: dbg",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "b0d6a542-6302-471f-8ccd-3cc8e15d6b74",
+      "source": "4ea307f6-01d6-47cf-8527-7ca6fe7d316a",
+      "target": "0b0be6ce-46cd-4414-b11d-ad0991ad03b6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: git",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "0e6eec9d-f43a-42cf-b19f-89c51d7bf940",
+      "source": "bccb0b84-18d5-4264-b1e4-79bd439005f5",
+      "target": "0b0be6ce-46cd-4414-b11d-ad0991ad03b6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: git",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "9e168fef-a4f8-4258-b809-f93af715fb41",
+      "source": "3e19e523-03dc-4a49-b4b7-fd803c5f2d5d",
+      "target": "0b0be6ce-46cd-4414-b11d-ad0991ad03b6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: git",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "b02d4bf1-a966-4bd5-9500-65f1b0fabbfd",
+      "source": "be16f2f0-ac45-49bb-93eb-5ef091229262",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "615b0052-ef55-49cb-9f48-d551e877fd51",
+      "source": "964cb9c9-d9e5-40ff-91d7-2ab3a6e99fd0",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "1997e401-5943-4001-9bee-55f06600fa21",
+      "source": "046e455e-b183-40f5-951e-3b8c46d28c81",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "c2889358-2612-4fb5-acf3-a534b7dd77fc",
+      "source": "f5275559-751b-4c4e-ad57-9e9585d57fe9",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "5811be54-8c5f-4eb6-94a1-c276577da770",
+      "source": "72c276ba-bee4-475c-b35d-86daaf6381d3",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "c576011a-20e8-49e4-8536-4fd8a35147f1",
+      "source": "33acb326-55cb-4730-bfa7-49777ace5c2b",
+      "target": "ade0a849-df8d-47af-b7e2-4cdde6e4a739",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: ops",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "b1354be0-2c9d-473b-a0f9-c0ba1c141691",
+      "source": "917aa455-2c9b-4838-b277-c9293fbe7b89",
+      "target": "7cf1a6c3-4c7a-4864-ab20-692b221c08c5",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: gov",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "ce1d85a3-748d-4428-a500-40d0b0224987",
+      "source": "3c9ec368-b2ae-428a-af1d-ea4838fdee68",
+      "target": "c5d2640c-2c18-4bea-814d-418f22133e0c",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: meta",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "31a1bef0-1c38-40ff-a00a-60493c8f091c",
+      "source": "981bbacc-cb08-4f4d-a42f-5f9b2a3483f3",
+      "target": "6b2ea93a-843d-48a2-981d-d0f2465170a6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: issue",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "c29a9734-b74f-4287-8c25-9909417c5c20",
+      "source": "96e0abd4-c52a-4719-8965-9e708ea588e7",
+      "target": "6b2ea93a-843d-48a2-981d-d0f2465170a6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: issue",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "f3e25776-df32-48ba-b43e-5853635aed92",
+      "source": "08f68594-334b-463c-838a-0efeaf782996",
+      "target": "6b2ea93a-843d-48a2-981d-d0f2465170a6",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: issue",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "d619382e-570d-4ac0-b473-d2450b0c4abd",
+      "source": "78dbf0ab-4de1-486a-a9ce-4e177132184c",
+      "target": "13b61070-c5f5-46c0-baff-7fbc650ec02b",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: refac",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "4bdb9efb-c37d-4594-a12b-2ac587ab03f8",
+      "source": "c1d30e28-ad1d-4ec4-b163-d0d408f49aa6",
+      "target": "13b61070-c5f5-46c0-baff-7fbc650ec02b",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: refac",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "b56830d1-3745-4b53-81ed-cceac3f1d736",
+      "source": "af22170b-e51e-4c43-87a2-89d47e6f7266",
+      "target": "13b61070-c5f5-46c0-baff-7fbc650ec02b",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: refac",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "42bb8c68-74b6-4712-811a-7b7aa2b0b182",
+      "source": "cd565274-a009-47f5-a76b-8c984d096ed0",
+      "target": "996d174d-7ea2-4392-b353-d65bfae39250",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: agent",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "4f19d17c-e297-4b2b-9f0e-f464d5220ae8",
+      "source": "930d898f-d2f7-4b9b-a179-21d859c2fc7f",
+      "target": "996d174d-7ea2-4392-b353-d65bfae39250",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: agent",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "df010091-1789-4408-b842-ca799e6fd5fe",
+      "source": "c323a83c-0578-46aa-b059-49e8eda421fc",
+      "target": "996d174d-7ea2-4392-b353-d65bfae39250",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: agent",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "628c15be-30b4-49ef-b054-b60364953f4c",
+      "source": "b03417c2-08ba-4714-a392-33c1866d69bb",
+      "target": "996d174d-7ea2-4392-b353-d65bfae39250",
+      "type": "related_to",
+      "confidence": 1.0,
+      "supporting_text": "category: agent",
+      "source_doc": "godmode_agents"
+    },
+    {
+      "id": "00644783-a44d-41c6-871c-24f3484ac748",
+      "source": "ccdc1ffe-8525-4a5f-8b0b-de656839a677",
+      "target": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "type": "depends_on",
+      "confidence": 0.9,
+      "supporting_text": "TDD phases execute tasks from the task graph",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "3eeeb3f2-760f-4b6e-adb1-6421bb06fd9e",
+      "source": "59c4aab4-01ad-4040-a28c-4c67d9e154e9",
+      "target": "b0c6f2f2-84fa-4d15-97f3-79afa73d06bc",
+      "type": "depends_on",
+      "confidence": 0.9,
+      "supporting_text": "cap runs verification before committing",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "a60c5ee4-4964-4fb9-b636-1064d3af7b73",
+      "source": "d382b630-729f-499b-9c46-5a4f7caeb219",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "depends_on",
+      "confidence": 0.9,
+      "supporting_text": "wave integration merges parallel agent branches",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "88cb1bc2-bbe7-41fe-b542-14ec83e8cb08",
+      "source": "fdde09bf-8112-465c-b4c7-1b1228f60b0a",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "uses",
+      "confidence": 0.9,
+      "supporting_text": "tackle-issues dispatches agents in parallel",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "3fd62970-af5d-4ae2-b322-f84b9459dfea",
+      "source": "fdde09bf-8112-465c-b4c7-1b1228f60b0a",
+      "target": "b530cb79-73f1-452c-af7d-a56f92835da7",
+      "type": "depends_on",
+      "confidence": 0.8,
+      "supporting_text": "issues must be triaged before tackling",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "7fce7f31-5163-4163-a778-a3adb78cba2a",
+      "source": "a896261e-8964-4d59-aec2-1d8a63658d61",
+      "target": "b1370ea9-9d5e-443c-9afa-fbc247c7aab7",
+      "type": "depends_on",
+      "confidence": 0.8,
+      "supporting_text": "plans are written after brainstorm designs are approved",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "37622b86-9e45-4357-9552-bbd4c0d2639b",
+      "source": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "target": "a896261e-8964-4d59-aec2-1d8a63658d61",
+      "type": "depends_on",
+      "confidence": 0.7,
+      "supporting_text": "task graph populated from implementation plans",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "98707709-9b5e-424e-9d45-baf62a7ecd34",
+      "source": "4fdc8e6b-03c7-43e7-aa70-e9398640055f",
+      "target": "7b24451d-302b-4891-94c7-f18f96185ab2",
+      "type": "related_to",
+      "confidence": 0.7,
+      "supporting_text": "reflection outputs feed pattern extraction",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "d8aeb22f-0e8b-461e-8253-a72f0d5f9434",
+      "source": "ee6c3bdd-6331-4ddf-b395-5eef2bf1e871",
+      "target": "d13109ac-823d-4ca8-a896-205006f4c36d",
+      "type": "related_to",
+      "confidence": 0.7,
+      "supporting_text": "doublecheck verifies claims, context graph stores them",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "5b054c9f-1336-409a-8e02-2cb3bec57198",
+      "source": "66b8fa70-2d3e-42e5-abde-b7e9093691c8",
+      "target": "0cb206ae-0b8a-441b-9a8a-9869b106402c",
+      "type": "related_to",
+      "confidence": 0.7,
+      "supporting_text": "both find orphaned/stale artifacts",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "05a3bea1-2049-4133-8b9b-bc052d7fb275",
+      "source": "60a896be-631a-4fca-88ed-9b2ae91ff00e",
+      "target": "63ac3bc5-bb6a-4a8e-84e9-52a3ba7dcbd2",
+      "type": "related_to",
+      "confidence": 0.8,
+      "supporting_text": "changelog is developer-facing, release notes is user-facing",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "290ae5c7-7cb3-41a4-b2b5-feff5c854ccc",
+      "source": "5febc969-cb3a-4a6d-ac53-bd4777f667fe",
+      "target": "5bcb642a-c329-49c2-83cb-e7dcd0c5d9fa",
+      "type": "depends_on",
+      "confidence": 0.7,
+      "supporting_text": "audit identifies what needs bumping",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "1e7024fe-aac0-49d8-8b0d-8dfb76668dc9",
+      "source": "35e9f5c6-ba54-40c6-b15d-8df529f7110b",
+      "target": "520acf42-cdc6-4950-811f-7026ce40efe3",
+      "type": "related_to",
+      "confidence": 0.7,
+      "supporting_text": "traces feed mistake pattern detection",
+      "source_doc": "godmode_skills"
+    },
+    {
+      "id": "ccd481d4-54d5-4fde-aa4a-a79dfb57aecb",
+      "source": "73d949ea-dee2-43e0-90b3-aac52037fe50",
+      "target": "b1370ea9-9d5e-443c-9afa-fbc247c7aab7",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "10503a93-7abc-4071-ae18-8dc5e5835aab",
+      "source": "009b8471-dc2c-4d03-9b64-957ea1276e0e",
+      "target": "a896261e-8964-4d59-aec2-1d8a63658d61",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "2465b7d7-9655-4396-9405-135ef31f8f04",
+      "source": "8273f1b8-f108-474e-a3d7-afe3bd2e96da",
+      "target": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "4b02de0e-d6af-4298-ad96-13f35a83cc3b",
+      "source": "8273f1b8-f108-474e-a3d7-afe3bd2e96da",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "2e35ff15-fcbe-4ad7-8636-403cfca8e39b",
+      "source": "8273f1b8-f108-474e-a3d7-afe3bd2e96da",
+      "target": "999959c2-361f-412c-b4d8-0a9a9a813203",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "457f785e-1ea8-44ef-b0be-6f4f59a5d7d8",
+      "source": "48be87b3-9b5b-4c78-bd61-b85b74f899a4",
+      "target": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "05ffcc9f-e420-4527-9391-9c7712b81ead",
+      "source": "48be87b3-9b5b-4c78-bd61-b85b74f899a4",
+      "target": "999959c2-361f-412c-b4d8-0a9a9a813203",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "0ecabf88-9d41-47ce-9dff-4cd406b0eb81",
+      "source": "46b0c6f4-41d6-48a5-8c13-1498fde823cd",
+      "target": "6c9a6bad-7e9c-4239-95cd-ab26f57cf65d",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "80fe55b7-d319-4ef9-ae07-8bf118cfb2b3",
+      "source": "d64ecb3f-08e3-439d-abc2-b505056199bd",
+      "target": "6b640574-9da9-4016-8af5-c9e231d4384f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "46d49086-b545-49b0-b33d-2f727e052d54",
+      "source": "da4e7ed5-de0d-4ede-8054-d09e57d4ec19",
+      "target": "b0c6f2f2-84fa-4d15-97f3-79afa73d06bc",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "0c99ff75-4841-42d9-ba25-597c8018e2e8",
+      "source": "5baa5d2a-a1c7-46ff-a5d1-2cefe2ac4ced",
+      "target": "7f58e60b-456f-4794-9cee-509590f64164",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "c262eaaa-0a29-49c4-bf2f-02a3efd92d75",
+      "source": "e3e34d39-79f4-416f-99bf-6b6c702ffa9b",
+      "target": "578da130-d85d-4547-83a8-b9b2d3772844",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "19316ea7-717c-4b70-a176-ea27623c8b9e",
+      "source": "7c344a88-3003-4ee4-ab9b-006168d9591b",
+      "target": "0cb206ae-0b8a-441b-9a8a-9869b106402c",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "cb29a32b-b648-4878-9810-648886de1508",
+      "source": "20775698-3d9c-44cc-a195-4c373d305570",
+      "target": "66b8fa70-2d3e-42e5-abde-b7e9093691c8",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "ac4a35bc-5183-4a1e-a1a7-8254b6485323",
+      "source": "9d0f3ffc-0734-42c3-8d1a-2fe40c392556",
+      "target": "58e84056-c1d1-437b-b572-a99918f2331f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "9178f5a6-c143-4607-bcc3-9a2d3188a8c9",
+      "source": "c436fa6c-59a5-4739-91a0-3a091ace911f",
+      "target": "1e3e532e-bab2-44bd-8c10-2bc1089cba43",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "657cf127-cd21-4bac-a48b-82f6f9a4b113",
+      "source": "660b57fb-2e67-4831-b5c3-836aabf0c1a5",
+      "target": "520acf42-cdc6-4950-811f-7026ce40efe3",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "ccfd5f57-8afb-404b-b448-792ac541ea95",
+      "source": "4ea307f6-01d6-47cf-8527-7ca6fe7d316a",
+      "target": "59c4aab4-01ad-4040-a28c-4c67d9e154e9",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "6b502f95-60df-49f5-801e-c9ded9a32ebb",
+      "source": "4ea307f6-01d6-47cf-8527-7ca6fe7d316a",
+      "target": "b0c6f2f2-84fa-4d15-97f3-79afa73d06bc",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "7b24ad6e-5374-4fe3-8b12-93ec40c98109",
+      "source": "bccb0b84-18d5-4264-b1e4-79bd439005f5",
+      "target": "d382b630-729f-499b-9c46-5a4f7caeb219",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "481f9bc9-cc72-4783-87aa-c1a392ff1c8e",
+      "source": "bccb0b84-18d5-4264-b1e4-79bd439005f5",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "40e33cc5-6908-4cf7-b6bb-17810f230810",
+      "source": "3e19e523-03dc-4a49-b4b7-fd803c5f2d5d",
+      "target": "cbafa28f-b4a4-4db1-aecf-5f7c0c447434",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "d232dc3b-7b3f-4443-a505-11e08ab1b976",
+      "source": "be16f2f0-ac45-49bb-93eb-5ef091229262",
+      "target": "5bcb642a-c329-49c2-83cb-e7dcd0c5d9fa",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "0de56e5b-7554-4a24-8850-ce968774ee05",
+      "source": "964cb9c9-d9e5-40ff-91d7-2ab3a6e99fd0",
+      "target": "5febc969-cb3a-4a6d-ac53-bd4777f667fe",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "17b17531-1af5-4cf3-99cf-b5b558769383",
+      "source": "046e455e-b183-40f5-951e-3b8c46d28c81",
+      "target": "60a896be-631a-4fca-88ed-9b2ae91ff00e",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "676e1476-d761-4cd5-8ff4-f52a5b6f08b0",
+      "source": "f5275559-751b-4c4e-ad57-9e9585d57fe9",
+      "target": "63ac3bc5-bb6a-4a8e-84e9-52a3ba7dcbd2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "427a82e5-0060-4c43-a35e-4124f4bac2af",
+      "source": "72c276ba-bee4-475c-b35d-86daaf6381d3",
+      "target": "999959c2-361f-412c-b4d8-0a9a9a813203",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "e00d9018-6a9c-474d-8285-5d7a92c968b5",
+      "source": "33acb326-55cb-4730-bfa7-49777ace5c2b",
+      "target": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "c3dfa07f-7bce-47f5-8c1d-2c2fc52bc3a7",
+      "source": "33acb326-55cb-4730-bfa7-49777ace5c2b",
+      "target": "999959c2-361f-412c-b4d8-0a9a9a813203",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "ffa448bc-0cea-4072-92b9-61e2f399f747",
+      "source": "917aa455-2c9b-4838-b277-c9293fbe7b89",
+      "target": "35e9f5c6-ba54-40c6-b15d-8df529f7110b",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "8abf4cee-59f0-4fd1-9a22-5194210a5dbe",
+      "source": "3c9ec368-b2ae-428a-af1d-ea4838fdee68",
+      "target": "7b24451d-302b-4891-94c7-f18f96185ab2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "63fd9774-1ca8-4498-83ca-e792913bf738",
+      "source": "981bbacc-cb08-4f4d-a42f-5f9b2a3483f3",
+      "target": "b530cb79-73f1-452c-af7d-a56f92835da7",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "3cb93844-7333-4dbe-a0ab-6285ff486f89",
+      "source": "96e0abd4-c52a-4719-8965-9e708ea588e7",
+      "target": "fdde09bf-8112-465c-b4c7-1b1228f60b0a",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "b6f55faf-3c6d-4c17-a97d-1105351319d7",
+      "source": "96e0abd4-c52a-4719-8965-9e708ea588e7",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "e0261f1f-7e91-45de-be0e-579c88f48295",
+      "source": "08f68594-334b-463c-838a-0efeaf782996",
+      "target": "1266b0ae-5bb3-4621-ba87-a9c0d9c21609",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "cb09ae04-eee9-4f9c-9d2e-64c957ae6719",
+      "source": "78dbf0ab-4de1-486a-a9ce-4e177132184c",
+      "target": "c562bc2a-b51b-4032-9d2b-c654d4fe80ae",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "cecf6f7e-6fda-41f8-919f-c9121fcba701",
+      "source": "c1d30e28-ad1d-4ec4-b163-d0d408f49aa6",
+      "target": "2ac6127d-4126-412c-ba8f-1210fb15844d",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "25875519-9d5e-4933-96d8-31aeb3411178",
+      "source": "af22170b-e51e-4c43-87a2-89d47e6f7266",
+      "target": "35c02a6e-d0da-4f04-8ca5-ea04672cd7a9",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "cc0ba7d1-dcf1-400d-87d9-8f431d6089b8",
+      "source": "cd565274-a009-47f5-a76b-8c984d096ed0",
+      "target": "06d29e0d-eda3-487c-8d49-627783c473ab",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "d52b9d7c-a9ea-46aa-ab94-d18fed727329",
+      "source": "930d898f-d2f7-4b9b-a179-21d859c2fc7f",
+      "target": "443c4c7a-2426-441e-86c0-c8525d3a71f8",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "e3a165fb-e77f-499f-99bf-95e4388c1947",
+      "source": "930d898f-d2f7-4b9b-a179-21d859c2fc7f",
+      "target": "294c90e8-6e98-4aac-aec1-ed1c844acd0f",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
+    },
+    {
+      "id": "c471ed93-8752-4185-a30f-b3757df8bbf1",
+      "source": "b03417c2-08ba-4714-a392-33c1866d69bb",
+      "target": "ccdc1ffe-8525-4a5f-8b0b-de656839a677",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": null,
+      "source_doc": null
     }
   ]
 }

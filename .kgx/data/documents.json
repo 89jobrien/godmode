@@ -1,6 +1,20 @@
 {
   "documents": [
     {
+      "id": "godmode_agents",
+      "title": "Godmode Agent Registry",
+      "source": "agents/cfg/*.cfg.yaml",
+      "raw_content": "36 agents across 9 categories. plan: gm-brainstorm-agent, gm-planner, gm-orchestrator, gm-tasker. qual: gm-code-review-agent, gm-review, gm-verify, gm-testing, gm-health-score-agent, gm-dead-code-agent, gm-introspection-agent. dbg: gm-debug, gm-ci-fix-agent, gm-mistake-tracker-agent. git: gm-cap-agent, gm-wave, gm-pr-author-agent. ops: gm-dep-audit-agent, gm-dep-bump-propagator-agent, gm-changelog-agent, gm-release-notes-agent, gm-orient, gm-orchestrator, valerie. gov: gm-trace-agent. meta: gm-pattern-learner-agent. issue: gm-issue-triage-agent, gm-issues, gm-cross-issue-agent. refac: gm-refactor, gm-workspace-refactor-agent, gm-doc-maintainer-agent. agent: gm-moa-agent, gm-dispatch, gm-crate, gm-tdd-helper.",
+      "chunks": [
+        {
+          "id": "63aae11a-3f92-4837-9e30-22e138e691f4",
+          "doc_id": "godmode_agents",
+          "text": "36 agents across 9 categories. plan: gm-brainstorm-agent, gm-planner, gm-orchestrator, gm-tasker. qual: gm-code-review-agent, gm-review, gm-verify, gm-testing, gm-health-score-agent, gm-dead-code-agent, gm-introspection-agent. dbg: gm-debug, gm-ci-fix-agent, gm-mistake-tracker-agent. git: gm-cap-agent, gm-wave, gm-pr-author-agent. ops: gm-dep-audit-agent, gm-dep-bump-propagator-agent, gm-changelog-agent, gm-release-notes-agent, gm-orient, gm-orchestrator, valerie. gov: gm-trace-agent. meta: gm-pattern-learner-agent. issue: gm-issue-triage-agent, gm-issues, gm-cross-issue-agent. refac: gm-refactor, gm-workspace-refactor-agent, gm-doc-maintainer-agent. agent: gm-moa-agent, gm-dispatch, gm-crate, gm-tdd-helper.",
+          "offset": 0
+        }
+      ]
+    },
+    {
       "id": "godmode_architecture",
       "title": "Godmode Codebase Architecture",
       "source": "crates/godmode-core/src/lib.rs + Cargo.toml + CLAUDE.md",
@@ -29,6 +43,34 @@
           "doc_id": "godmode_architecture",
           "text": "low DAGs per agent. The worktree module manages git worktree lifecycle. The scaffold module generates test stubs. The test_check module checks if .rs files have tests. The pipeline module handles pipeline execution. The report_index module provides SOLID report indexing. The memory_banking module generates .ctx/memory-bank/ context. The session_trace module provides low-level JSONL append helpers. Key dependencies: petgraph for graph algorithms, serde/serde_yaml for serialization, chrono for timestamps, clap for CLI, anyhow/thiserror for errors, slashcrux for slash-command parsing, crux-runtime for agentic runtime, tokio for async, tracing for observability. The plugin layout has .claude-plugin/plugin.json, skills/ directory, and agents/ directory with cfg/*.cfg.yaml source of truth and generated top-level .md files.",
           "offset": 2400
+        }
+      ]
+    },
+    {
+      "id": "godmode_handoff_20260606",
+      "title": "Godmode HANDOFF State 2026-06-06",
+      "source": ".ctx/HANDOFF.godmode.godmode.yaml",
+      "raw_content": "project: godmode. 2 open items: (1) uncommitted-work — 22 files with uncommitted changes spanning CLAUDE.md, Cargo.toml, Cargo.lock, core modules (detect.rs, lib.rs, verify.rs, policy.rs, sarif.rs), CLI main.rs, and agent-governance skill files. Priority P1. (2) scaffold-subcommand — add scaffold subcommand to CLI. Priority P2. Tracked in doob since 2026-05-12. Task graph: 6 tasks all done (d1-d6). Log shows sessions from 2026-06-02 through 2026-06-06.",
+      "chunks": [
+        {
+          "id": "5aff2602-edde-4125-83aa-4d913e4f1012",
+          "doc_id": "godmode_handoff_20260606",
+          "text": "project: godmode. 2 open items: (1) uncommitted-work — 22 files with uncommitted changes spanning CLAUDE.md, Cargo.toml, Cargo.lock, core modules (detect.rs, lib.rs, verify.rs, policy.rs, sarif.rs), CLI main.rs, and agent-governance skill files. Priority P1. (2) scaffold-subcommand — add scaffold subcommand to CLI. Priority P2. Tracked in doob since 2026-05-12. Task graph: 6 tasks all done (d1-d6). Log shows sessions from 2026-06-02 through 2026-06-06.",
+          "offset": 0
+        }
+      ]
+    },
+    {
+      "id": "godmode_skills",
+      "title": "Godmode Skill Registry",
+      "source": "skills/*/SKILL.md",
+      "raw_content": "42 skills organized by function. Planning: brainstorm, context-map, writing-plans, task-management, task-driven-development. Quality: code-review, receiving-review, verification-before-completion, testing-philosophy, health-score, dead-code, introspection, rust-conventions. Git: cap, pr-author, merge, wave-integration. Debugging: ci-fix, systematic-debugging. Dependencies: dep-audit, dep-bump. Issues: issue-triage, tackle-issues, cross-issue, todo-issue-sync. Refactoring: refactoring, workspace-refactor, decompose. Agents: parallel-agents, moa. Ops: changelog, release-notes, using-godmode. Knowledge: mini-context-graph, memory-banking, pattern-learner, mistake-tracker. Governance: agent-governance, observability-as-infrastructure. Meta: self-reflect, doublecheck, doc-maintainer.",
+      "chunks": [
+        {
+          "id": "b869f4dd-fc12-4a6d-8109-102169a755b9",
+          "doc_id": "godmode_skills",
+          "text": "42 skills organized by function. Planning: brainstorm, context-map, writing-plans, task-management, task-driven-development. Quality: code-review, receiving-review, verification-before-completion, testing-philosophy, health-score, dead-code, introspection, rust-conventions. Git: cap, pr-author, merge, wave-integration. Debugging: ci-fix, systematic-debugging. Dependencies: dep-audit, dep-bump. Issues: issue-triage, tackle-issues, cross-issue, todo-issue-sync. Refactoring: refactoring, workspace-refactor, decompose. Agents: parallel-agents, moa. Ops: changelog, release-notes, using-godmode. Knowledge: mini-context-graph, memory-banking, pattern-learner, mistake-tracker. Governance: agent-governance, observability-as-infrastructure. Meta: self-reflect, doublecheck, doc-maintainer.",
+          "offset": 0
         }
       ]
     }

@@ -3,3 +3,6 @@
 - write: Task
 - write: Session
 - write: Integrations
+- write: HANDOFF State 2026-06-06
+- write: Agent Registry
+- write: Skill Registry
