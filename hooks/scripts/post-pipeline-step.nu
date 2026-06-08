@@ -11,14 +11,14 @@
 let input = (open --raw /dev/stdin | from json)
 
 # Only act on Bash tool results.
-let tool_name = ($input | get -i tool_name | default "")
+let tool_name = ($input | get --optional tool_name | default "")
 if $tool_name != "Bash" { exit 0 }
 
-let output = ($input | get -i tool_result.stdout | default "")
+let output = ($input | get --optional tool_result.stdout | default "")
 
 # Detect pipeline state transitions in the output.
-let is_next = ($output | str contains "pipeline next" or ($output | str contains "Advanced to:"))
-let is_skip = ($output | str contains "pipeline skip" or ($output | str contains "Pipeline complete."))
+let is_next = (($output | str contains "pipeline next") or ($output | str contains "Advanced to:"))
+let is_skip = (($output | str contains "pipeline skip") or ($output | str contains "Pipeline complete."))
 
 if not $is_next and not $is_skip { exit 0 }
 
@@ -33,12 +33,12 @@ if not ($sessions_dir | path exists) { exit 0 }
 # Read current pipeline state for context.
 let state_file = $"($root)/.ctx/godmode/pipeline.yaml"
 let pipeline_name = if ($state_file | path exists) {
-    open $state_file | get -i active | default "unknown"
+    open $state_file | get --optional active | default "unknown"
 } else {
     "unknown"
 }
 let step_index = if ($state_file | path exists) {
-    open $state_file | get -i current_step | default 0
+    open $state_file | get --optional current_step | default 0
 } else {
     0
 }

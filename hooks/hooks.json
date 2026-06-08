@@ -11,17 +11,17 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/task-management/hook.nu",
+            "command": "godmode hook run task-management",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/using-godmode/hook.nu",
+            "command": "godmode hook run using-godmode",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-inject.nu",
+            "command": "godmode hook run memory-banking",
             "timeout": 15
           }
         ]
@@ -38,7 +38,7 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/agent-governance/hook.nu",
+            "command": "godmode hook run agent-governance",
             "timeout": 10
           }
         ]
@@ -58,12 +58,12 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/test-driven-development/hook.nu",
+            "command": "godmode hook run task-driven-development",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/moa/hook.nu",
+            "command": "godmode hook run moa",
             "timeout": 10
           }
         ]
@@ -73,12 +73,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/brainstorm/hook.nu",
+            "command": "godmode hook run brainstorm",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/testing-philosophy/hook.nu",
+            "command": "godmode hook run testing-philosophy",
             "timeout": 10
           }
         ]
@@ -88,22 +88,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/refactoring/hook.nu",
+            "command": "godmode hook run refactoring",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/receiving-review/hook.nu",
+            "command": "godmode hook run receiving-review",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/context-map/hook.nu",
+            "command": "godmode hook run context-map",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/rust-conventions/hook.nu",
+            "command": "godmode hook run rust-conventions",
             "timeout": 10
           }
         ]
@@ -120,7 +120,7 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/parallel-agents/hook.nu",
+            "command": "godmode hook run parallel-agents",
             "timeout": 10
           }
         ]
@@ -135,47 +135,57 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-bash-auto-block.nu",
+            "command": "godmode hook run auto-block",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/systematic-debugging/hook.nu",
+            "command": "godmode hook run systematic-debugging",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/ci-fix/hook.nu",
+            "command": "godmode hook run ci-fix",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/cap/hook.nu",
+            "command": "godmode hook run cap",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/code-review/hook.nu",
+            "command": "godmode hook run code-review",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/tackle-issues/hook.nu",
+            "command": "godmode hook run tackle-issues",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/wave-integration/hook.nu",
+            "command": "godmode hook run wave-integration",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/observability-as-infrastructure/hook.nu",
+            "command": "godmode hook run observability-as-infrastructure",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/doublecheck/hook.nu",
+            "command": "godmode hook run doublecheck",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "godmode hook run merge",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "godmode hook run todo-issue-sync",
             "timeout": 10
           }
         ]
@@ -185,7 +195,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/writing-plans/hook.nu",
+            "command": "godmode hook run writing-plans",
             "timeout": 10
           },
           {
@@ -195,7 +205,7 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/mini-context-graph/hook.nu",
+            "command": "godmode hook run mini-context-graph",
             "timeout": 10
           }
         ]
@@ -207,7 +217,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/stop-guard.nu",
+            "command": "godmode hook run stop-guard",
             "timeout": 15
           },
           {
@@ -217,12 +227,12 @@
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/verification-before-completion/hook.nu",
+            "command": "godmode hook run verification-before-completion",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/skills/introspection/hook.nu",
+            "command": "godmode hook run introspection",
             "timeout": 20
           }
         ]

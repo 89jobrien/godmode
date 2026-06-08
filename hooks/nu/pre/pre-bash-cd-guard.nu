@@ -7,7 +7,7 @@
 
 let input = open --raw /dev/stdin | from json
 
-let command = ($input | get input.command? | default "")
+let command = ($input | get --optional input.command | default "")
 
 # Only inspect commands that start with cd
 if not ($command | str starts-with "cd ") {

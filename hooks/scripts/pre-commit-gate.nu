@@ -7,8 +7,9 @@ let cmd = ($input | get --optional tool_input.command | default "")
 # Only intercept git commit commands
 let segments = ($cmd | split row -r '&&|;|\|' | each { str trim })
 let is_commit = ($segments | any { |seg|
-    ($seg | str starts-with "git commit") or
-    (($seg | str starts-with "git -C") and ($seg | str contains "commit"))
+    let a = ($seg | str starts-with "git commit")
+    let b = (($seg | str starts-with "git -C") and ($seg | str contains "commit"))
+    $a or $b
 })
 
 if not $is_commit {
