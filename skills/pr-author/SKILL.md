@@ -86,7 +86,7 @@ Include the issue title or task description if helpful.
 
 The PR author reads `.ctx/godmode/tasks.yaml` to identify which tasks are marked
 `done` on this branch. These are listed in the "Linked Issues" section as
-godmode task IDs (e.g., `t1`, `t3`).
+task IDs from the graph (e.g., `t1`, `t3`).
 
 ## Commit History
 

@@ -155,7 +155,7 @@ impl ConformanceTest for CruxSessionsDirPath {
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let dir = tempfile::TempDir::new().unwrap();
         let path = crux::sessions_dir(dir.path());
-        let expected = dir.path().join(".ctx").join("sessions");
+        let expected = dir.path().join(".ctx").join("godmode").join("sessions");
         if path != expected {
             ctx.fail(&format!("expected {:?}, got {:?}", expected, path));
         }

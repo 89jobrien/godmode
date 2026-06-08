@@ -20,6 +20,7 @@ fn run() -> Result<()> {
         Some("pre-commit") => pre_commit(),
         Some("ci") => ci(),
         Some("dist") => dist(),
+        Some("install") => install(),
         Some(other) => bail!("unknown xtask: {other}"),
         None => {
             print_usage();
@@ -34,7 +35,8 @@ fn print_usage() {
          Commands:\n  \
            pre-commit   fmt-check + clippy + conformance\n  \
            ci           full gate (fmt + clippy -D warnings + nextest + conformance)\n  \
-           dist         release build of godmode-cli"
+           dist         release build of godmode-cli\n  \
+           install      build release and copy to ~/.cargo/bin/"
     );
 }
 
@@ -98,6 +100,31 @@ fn dist() -> Result<()> {
     let binary = project_root()?.join("target/release/godmode");
     eprintln!("Binary: {}", binary.display());
     Ok(())
+}
+
+// ── Install ────────────────────────────────────────────────────────
+
+fn install() -> Result<()> {
+    dist()?;
+
+    let src = project_root()?.join("target/release/godmode");
+    let dest_dir = home_dir()?.join(".cargo/bin");
+    let dest = dest_dir.join("godmode");
+
+    std::fs::create_dir_all(&dest_dir)
+        .with_context(|| format!("failed to create {}", dest_dir.display()))?;
+
+    std::fs::copy(&src, &dest)
+        .with_context(|| format!("failed to copy {} -> {}", src.display(), dest.display()))?;
+
+    eprintln!("Installed: {}", dest.display());
+    Ok(())
+}
+
+fn home_dir() -> Result<std::path::PathBuf> {
+    std::env::var("HOME")
+        .map(std::path::PathBuf::from)
+        .context("HOME not set")
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
