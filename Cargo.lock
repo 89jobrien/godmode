@@ -522,7 +522,7 @@ dependencies = [
 
 [[package]]
 name = "godmode-cli"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -533,7 +533,7 @@ dependencies = [
 
 [[package]]
 name = "godmode-conformance"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -553,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "godmode-core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "chrono",
