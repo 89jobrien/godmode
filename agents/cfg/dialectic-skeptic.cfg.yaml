@@ -1,0 +1,23 @@
+name: dialectic-skeptic
+version: 1.0.0
+description: |
+  Dialectic proposer — Skeptic stance. Finds failure modes, edge cases, and reasons to
+  reject or challenge the premise. Used as a proposer in the dialectic synthesis pipeline.
+triggers: []
+model: inherit
+color: red
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+skills: []
+template: rule
+category: agent
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - dialectic
+    - proposer

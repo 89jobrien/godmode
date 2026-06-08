@@ -5,6 +5,11 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "godmode_core"
+path = "src/lib.rs"
+doctests = false
+
 [features]
 default = []
 testing = ["dep:proptest", "dep:tempfile"]

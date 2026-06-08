@@ -1,0 +1,26 @@
+name: dialectic-orchestrator
+version: 1.0.0
+description: |
+  Dialectic pipeline orchestrator. Frames a question into adversarial roles, dispatches
+  dialectic-advocate, dialectic-skeptic, and dialectic-alternative in parallel, then
+  passes proposals to dialectic-synthesizer. Use when a decision benefits from structured
+  adversarial analysis before committing to an approach.
+triggers: []
+model: inherit
+color: cyan
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Agent
+skills: []
+template: rule
+category: agent
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - dialectic
+    - orchestrator

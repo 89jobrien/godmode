@@ -1,0 +1,24 @@
+name: dialectic-alternative
+version: 1.0.0
+description: |
+  Dialectic proposer — Alternative stance. Proposes a fundamentally different approach
+  that reframes the question or solves it by other means entirely. Used as a proposer
+  in the dialectic synthesis pipeline.
+triggers: []
+model: inherit
+color: yellow
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+skills: []
+template: rule
+category: agent
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - dialectic
+    - proposer

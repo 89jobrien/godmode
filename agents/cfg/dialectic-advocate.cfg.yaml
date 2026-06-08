@@ -1,0 +1,23 @@
+name: dialectic-advocate
+version: 1.0.0
+description: |
+  Dialectic proposer — Advocate stance. Argues for the most straightforward, favorable
+  interpretation of a question. Used as a proposer in the dialectic synthesis pipeline.
+triggers: []
+model: inherit
+color: green
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+skills: []
+template: rule
+category: agent
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - dialectic
+    - proposer

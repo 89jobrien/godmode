@@ -1,0 +1,23 @@
+name: dialectic-synthesizer
+version: 1.0.0
+description: |
+  Dialectic synthesizer. Reads all proposer outputs, maps disagreements, and produces
+  a single reconciled answer with rationale, open questions, and rejected positions.
+triggers: []
+model: inherit
+color: magenta
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+skills: []
+template: rule
+category: agent
+prompt: null
+hooks: []
+metadata:
+  author: ""
+  tags:
+    - dialectic
+    - synthesizer
