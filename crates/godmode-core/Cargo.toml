@@ -8,7 +8,7 @@ license.workspace = true
 [lib]
 name = "godmode_core"
 path = "src/lib.rs"
-doctests = false
+doctest = false
 
 [features]
 default = []
