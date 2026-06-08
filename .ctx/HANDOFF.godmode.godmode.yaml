@@ -1,79 +1,142 @@
 project: godmode
 id: godmode
-updated: 2026-06-06
+updated: 2026-06-07
 items:
 - id: uncommitted-work
   doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (22 files)
+  title: Uncommitted changes (60 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    CLAUDE.md
-    Cargo.lock
-    Cargo.toml
     crates/godmode-cli/src/main.rs
-    crates/godmode-core/Cargo.toml
-    crates/godmode-core/src/detect.rs
-    crates/godmode-core/src/lib.rs
-    crates/godmode-core/src/verify.rs
-    skills/_lib/trace.nu
-    skills/agent-governance/SKILL.md
-    skills/agent-governance/helpers/policy-template.yaml
+    crates/godmode-core/src/hooks/mod.rs
     skills/agent-governance/hook.nu
-    skills/agent-governance/references/governance-levels.md
-    skills/introspection/SKILL.md
-    .globstar/
-    crates/godmode-core/src/policy.rs
-    crates/godmode-core/src/sarif.rs
-    skills/agent-governance/helpers/audit-report.nu
-    skills/agent-governance/helpers/check-tool.nu
-    skills/agent-governance/helpers/resolve-policy.nu
-    skills/agent-governance/policies/
+    skills/brainstorm/hook.nu
+    skills/cap/hook.nu
+    skills/ci-fix/hook.nu
+    skills/code-review/hook.nu
+    skills/context-map/hook.nu
+    skills/doublecheck/hook.nu
+    skills/introspection/hook.nu
+    skills/memory-banking/hook.nu
+    skills/merge/hook.nu
+    skills/mini-context-graph/hook.nu
+    skills/moa/hook.nu
+    skills/observability-as-infrastructure/hook.nu
+    skills/parallel-agents/hook.nu
+    skills/receiving-review/hook.nu
+    skills/refactoring/hook.nu
+    skills/rust-conventions/hook.nu
+    skills/self-reflect/hook.nu
+    skills/systematic-debugging/hook.nu
+    skills/tackle-issues/hook.nu
+    skills/task-driven-development/hook.nu
+    skills/task-management/hook.nu
+    skills/testing-philosophy/hook.nu
+    skills/todo-issue-sync/hook.nu
+    skills/using-godmode/hook.nu
+    skills/verification-before-completion/hook.nu
+    skills/wave-integration/hook.nu
+    skills/writing-plans/hook.nu
+    crates/godmode-core/src/hooks/agent_governance.rs
+    crates/godmode-core/src/hooks/brainstorm.rs
+    crates/godmode-core/src/hooks/cap.rs
+    crates/godmode-core/src/hooks/ci_fix.rs
+    crates/godmode-core/src/hooks/code_review.rs
+    crates/godmode-core/src/hooks/context_map.rs
+    crates/godmode-core/src/hooks/doublecheck.rs
+    crates/godmode-core/src/hooks/introspection.rs
+    crates/godmode-core/src/hooks/memory_banking.rs
+    crates/godmode-core/src/hooks/merge.rs
+    crates/godmode-core/src/hooks/mini_context_graph.rs
+    crates/godmode-core/src/hooks/moa.rs
+    crates/godmode-core/src/hooks/observability.rs
+    crates/godmode-core/src/hooks/parallel_agents.rs
+    crates/godmode-core/src/hooks/receiving_review.rs
+    crates/godmode-core/src/hooks/refactoring.rs
+    crates/godmode-core/src/hooks/rust_conventions.rs
+    crates/godmode-core/src/hooks/self_reflect.rs
+    crates/godmode-core/src/hooks/systematic_debugging.rs
+    crates/godmode-core/src/hooks/tackle_issues.rs
+    crates/godmode-core/src/hooks/task_driven_dev.rs
+    crates/godmode-core/src/hooks/task_management.rs
+    crates/godmode-core/src/hooks/testing_philosophy.rs
+    crates/godmode-core/src/hooks/todo_issue_sync.rs
+    crates/godmode-core/src/hooks/using_godmode.rs
+    crates/godmode-core/src/hooks/verification.rs
+    crates/godmode-core/src/hooks/wave_integration.rs
+    crates/godmode-core/src/hooks/writing_plans.rs
+    skills/_lib/tasks.nu
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - CLAUDE.md
-  - Cargo.lock
-  - Cargo.toml
   - crates/godmode-cli/src/main.rs
-  - crates/godmode-core/Cargo.toml
-  - crates/godmode-core/src/detect.rs
-  - crates/godmode-core/src/lib.rs
-  - crates/godmode-core/src/verify.rs
-  - skills/_lib/trace.nu
-  - skills/agent-governance/SKILL.md
-  - skills/agent-governance/helpers/policy-template.yaml
+  - crates/godmode-core/src/hooks/mod.rs
   - skills/agent-governance/hook.nu
-  - skills/agent-governance/references/governance-levels.md
-  - skills/introspection/SKILL.md
-  - .globstar/
-  - crates/godmode-core/src/policy.rs
-  - crates/godmode-core/src/sarif.rs
-  - skills/agent-governance/helpers/audit-report.nu
-  - skills/agent-governance/helpers/check-tool.nu
-  - skills/agent-governance/helpers/resolve-policy.nu
-  - skills/agent-governance/policies/
+  - skills/brainstorm/hook.nu
+  - skills/cap/hook.nu
+  - skills/ci-fix/hook.nu
+  - skills/code-review/hook.nu
+  - skills/context-map/hook.nu
+  - skills/doublecheck/hook.nu
+  - skills/introspection/hook.nu
+  - skills/memory-banking/hook.nu
+  - skills/merge/hook.nu
+  - skills/mini-context-graph/hook.nu
+  - skills/moa/hook.nu
+  - skills/observability-as-infrastructure/hook.nu
+  - skills/parallel-agents/hook.nu
+  - skills/receiving-review/hook.nu
+  - skills/refactoring/hook.nu
+  - skills/rust-conventions/hook.nu
+  - skills/self-reflect/hook.nu
+  - skills/systematic-debugging/hook.nu
+  - skills/tackle-issues/hook.nu
+  - skills/task-driven-development/hook.nu
+  - skills/task-management/hook.nu
+  - skills/testing-philosophy/hook.nu
+  - skills/todo-issue-sync/hook.nu
+  - skills/using-godmode/hook.nu
+  - skills/verification-before-completion/hook.nu
+  - skills/wave-integration/hook.nu
+  - skills/writing-plans/hook.nu
+  - crates/godmode-core/src/hooks/agent_governance.rs
+  - crates/godmode-core/src/hooks/brainstorm.rs
+  - crates/godmode-core/src/hooks/cap.rs
+  - crates/godmode-core/src/hooks/ci_fix.rs
+  - crates/godmode-core/src/hooks/code_review.rs
+  - crates/godmode-core/src/hooks/context_map.rs
+  - crates/godmode-core/src/hooks/doublecheck.rs
+  - crates/godmode-core/src/hooks/introspection.rs
+  - crates/godmode-core/src/hooks/memory_banking.rs
+  - crates/godmode-core/src/hooks/merge.rs
+  - crates/godmode-core/src/hooks/mini_context_graph.rs
+  - crates/godmode-core/src/hooks/moa.rs
+  - crates/godmode-core/src/hooks/observability.rs
+  - crates/godmode-core/src/hooks/parallel_agents.rs
+  - crates/godmode-core/src/hooks/receiving_review.rs
+  - crates/godmode-core/src/hooks/refactoring.rs
+  - crates/godmode-core/src/hooks/rust_conventions.rs
+  - crates/godmode-core/src/hooks/self_reflect.rs
+  - crates/godmode-core/src/hooks/systematic_debugging.rs
+  - crates/godmode-core/src/hooks/tackle_issues.rs
+  - crates/godmode-core/src/hooks/task_driven_dev.rs
+  - crates/godmode-core/src/hooks/task_management.rs
+  - crates/godmode-core/src/hooks/testing_philosophy.rs
+  - crates/godmode-core/src/hooks/todo_issue_sync.rs
+  - crates/godmode-core/src/hooks/using_godmode.rs
+  - crates/godmode-core/src/hooks/verification.rs
+  - crates/godmode-core/src/hooks/wave_integration.rs
+  - crates/godmode-core/src/hooks/writing_plans.rs
+  - skills/_lib/tasks.nu
   completed: null
   extra: []
-- id: scaffold-subcommand
-  doob_uuid: 0599c6bc-77bb-41a2-ba8d-26236a66b906
-  name: scaffold-subcommand
-  priority: P2
-  status: open
-  title: Add scaffold subcommand to CLI
-  description: Add a godmode scaffold subcommand. Tracked in doob since 2026-05-12.
-  files: []
-  completed: null
-  extra:
-  - date: 2026-06-06
-    type: note
-    field: null
-    value: null
-    reviewed: null
-    note: reconciled with doob — todo id 0599c6bc
 log:
+- date: '20260608.003736'
+  summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260606.171219'
   summary: done=6 running=0 pending=0 blocked=0
   commits: []

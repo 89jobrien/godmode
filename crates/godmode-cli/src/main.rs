@@ -1472,11 +1472,346 @@ fn main() -> Result<()> {
                             }
                             eprintln!("[godmode:quality-gate] all gates passed.");
                         }
+                        "task-management" => {
+                            let msg = hooks::task_management::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "parallel-agents" => {
+                            let msg = hooks::parallel_agents::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "moa" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::moa::run(&root, cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "wave-integration" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::wave_integration::run(&root, cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "introspection" => {
+                            let msg = hooks::introspection::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "agent-governance" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let decision = hooks::agent_governance::check(&root, &input);
+                            let stderr_msg =
+                                hooks::agent_governance::format_reminders(&decision, "agent");
+                            if !stderr_msg.is_empty() {
+                                eprintln!("{stderr_msg}");
+                            }
+                            println!("{}", hooks::agent_governance::format_json(&decision));
+                            if !decision.approved {
+                                std::process::exit(1);
+                            }
+                        }
+                        "brainstorm" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("file_path").or_else(|| v.get("path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::brainstorm::run(&root, file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "code-review" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::code_review::run(cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "ci-fix" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let exit_code = input
+                                .get("tool_result")
+                                .and_then(|v| v.get("exit_code"))
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0);
+                            let msg = hooks::ci_fix::run(cmd, exit_code);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "cap" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::cap::run(&root, cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "merge" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let exit_code = input
+                                .get("tool_result")
+                                .and_then(|v| v.get("exit_code"))
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0);
+                            let msg = hooks::merge::run(&root, cmd, exit_code);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "self-reflect" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let prompt = input.get("prompt").and_then(|v| v.as_str()).unwrap_or("");
+                            let msg = hooks::self_reflect::run(prompt);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "verification-before-completion" => {
+                            let msg = hooks::verification::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "doublecheck" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let exit_code = input
+                                .get("tool_result")
+                                .and_then(|v| v.get("exit_code"))
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0);
+                            let msg = hooks::doublecheck::run(cmd, exit_code);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "systematic-debugging" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let exit_code = input
+                                .get("tool_result")
+                                .and_then(|v| v.get("exit_code"))
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0);
+                            let msg = hooks::systematic_debugging::run(cmd, exit_code);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "task-driven-development" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::task_driven_dev::run(&root, cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "testing-philosophy" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("path").or_else(|| v.get("file_path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::testing_philosophy::run(&root, file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "tackle-issues" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::tackle_issues::run(cmd);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "using-godmode" => {
+                            let msg = hooks::using_godmode::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "writing-plans" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("path").or_else(|| v.get("file_path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            hooks::writing_plans::run(&root, file_path);
+                        }
+                        "memory-banking" => {
+                            let output = hooks::memory_banking::run(&root);
+                            if !output.is_empty() {
+                                println!("{output}");
+                            }
+                        }
+                        "mini-context-graph" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("file_path").or_else(|| v.get("path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::mini_context_graph::run(&root, file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "receiving-review" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("path").or_else(|| v.get("file_path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::receiving_review::run(file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "refactoring" => {
+                            let msg = hooks::refactoring::run(&root);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "rust-conventions" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("file_path").or_else(|| v.get("path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::rust_conventions::run(file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "context-map" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("file_path").or_else(|| v.get("path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::context_map::run(&root, file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
+                        "observability" | "observability-as-infrastructure" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let exit_code = input
+                                .get("tool_result")
+                                .and_then(|v| v.get("exit_code"))
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(0);
+                            hooks::observability::run(&root, cmd, exit_code);
+                        }
+                        "todo-issue-sync" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let cmd = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("command"))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let tool_response =
+                                input.get("tool_response").cloned().unwrap_or_default();
+                            let msg = hooks::todo_issue_sync::run(&root, cmd, &tool_response);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
                         other => {
                             eprintln!("Unknown hook: {other}");
                             eprintln!(
                                 "Available: stop-guard, auto-block, pre-commit, \
-                                 pre-commit-gate, quality-gate"
+                                 pre-commit-gate, quality-gate, task-management, \
+                                 parallel-agents, moa, wave-integration, introspection, \
+                                 agent-governance, brainstorm, code-review, ci-fix"
                             );
                             std::process::exit(1);
                         }
