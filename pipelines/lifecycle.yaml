@@ -1,0 +1,30 @@
+name: lifecycle
+description: Full project lifecycle — ideate through retrospective
+steps:
+  - skill: brainstorm
+    label: ideate
+  - skill: design
+    label: design
+  - skill: writing-plans
+    label: plan
+  - skill: task-management
+    label: ingest
+  - skill: task-driven-development
+    label: execute
+    loop: per-task
+  - skill: verification-before-completion
+    label: verify
+  - skill: code-review
+    label: review
+  - skill: health-score
+    label: release
+  - skill: dep-audit
+  - skill: changelog
+  - skill: release-notes
+  - skill: cap
+  - skill: self-reflect
+    label: retrospective
+  - skill: pattern-learner
+  - skill: mistake-tracker
+  - skill: memory-banking
+entry_points: [brainstorm, design, task-management, task-driven-development]

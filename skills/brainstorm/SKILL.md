@@ -5,7 +5,7 @@ description: >
   adding crates, designing APIs. Triggers on "let's build", "I want to add", "design X",
   "how should we structure", or any request that would produce new code structure.
 requires: []
-next: [writing-plans]
+next: [design]
 ---
 
 # Brainstorm
@@ -42,18 +42,16 @@ For each approach:
 Break the design into sections. Present one section → get feedback → refine → next section.
 Do not present the entire design at once.
 
-### Step 5: Write a design document
+### Step 5: Invoke `godmode:design`
 
-Once the design is approved, write it to `docs/plans/YYYY-MM-DD-<feature>.md`. Include:
+Once the user has approved an approach, hand off to `godmode:design`. Brainstorm does not
+write code, types, or implementation plans — that belongs to the design and planning stages.
 
-- Goal
-- Architecture (crates affected, new traits/types, data flow)
-- Tech decisions made and why
-- What is explicitly out of scope
+Pass forward:
 
-### Step 6: Invoke `godmode:writing-plans`
-
-The only permitted next step after brainstorming is writing an implementation plan.
+- The approved approach (named)
+- The goal statement
+- Any explicit constraints or out-of-scope items stated during brainstorming
 
 ## Design Principles
 

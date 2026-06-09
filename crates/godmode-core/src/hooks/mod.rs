@@ -10,6 +10,7 @@ pub mod cap;
 pub mod ci_fix;
 pub mod code_review;
 pub mod context_map;
+pub mod design;
 pub mod doublecheck;
 pub mod hook_context;
 pub mod introspection;

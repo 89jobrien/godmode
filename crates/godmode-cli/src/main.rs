@@ -1543,6 +1543,19 @@ fn main() -> Result<()> {
                                 eprintln!("{msg}");
                             }
                         }
+                        "design" => {
+                            let input: serde_json::Value =
+                                serde_json::from_str(&stdin).unwrap_or_default();
+                            let file_path = input
+                                .get("tool_input")
+                                .and_then(|v| v.get("file_path").or_else(|| v.get("path")))
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("");
+                            let msg = hooks::design::run(&root, file_path);
+                            if !msg.is_empty() {
+                                eprintln!("{msg}");
+                            }
+                        }
                         "code-review" => {
                             let input: serde_json::Value =
                                 serde_json::from_str(&stdin).unwrap_or_default();
