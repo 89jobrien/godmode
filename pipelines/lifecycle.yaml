@@ -3,6 +3,7 @@ description: Full project lifecycle — ideate through retrospective
 steps:
   - skill: brainstorm
     label: ideate
+    optional: true
   - skill: design
     label: design
   - skill: writing-plans

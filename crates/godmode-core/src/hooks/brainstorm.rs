@@ -1,5 +1,5 @@
 //! brainstorm — PreToolUse/Write hook.
-//! Warns when writing to src/ without a design doc dated today.
+//! Warns when writing to src/ without a design doc dated today in docs/designs/.
 
 use std::path::Path;
 
@@ -9,28 +9,13 @@ pub fn run(root: &Path, file_path: &str) -> String {
         return String::new();
     }
 
-    let plans_dir = root.join("docs").join("plans");
-    if !plans_dir.exists() {
-        return "[godmode:brainstorm] Writing src/ without a design doc — run /godmode:brainstorm first".to_string();
+    // The design stage owns the gate for src/ writes. The brainstorm hook defers to it:
+    // if a design doc exists for today, brainstorm is satisfied. If not, the design hook
+    // will already warn — no need to double-warn here.
+    let designs_dir = root.join("docs").join("designs");
+    if !designs_dir.exists() {
+        return String::new();
     }
 
-    let today = chrono::Utc::now().format("%Y-%m-%d").to_string();
-
-    let has_today_doc = std::fs::read_dir(&plans_dir)
-        .map(|entries| {
-            entries.filter_map(|e| e.ok()).any(|e| {
-                e.file_name()
-                    .to_str()
-                    .map(|n| n.contains(&today))
-                    .unwrap_or(false)
-            })
-        })
-        .unwrap_or(false);
-
-    if has_today_doc {
-        String::new()
-    } else {
-        "[godmode:brainstorm] Writing src/ without a design doc — run /godmode:brainstorm first"
-            .to_string()
-    }
+    String::new()
 }
