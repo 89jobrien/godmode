@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "interpret-rustqual-output",
+  "prompt": "I just ran rustqual on my workspace and got this:\n\nQuality Score: 62.3%    22 findings\n\nIOSP:        78.0%  (3 violations)\nComplexity:  90.0%\nDRY:         70.0%  (4 dead code, 1 boilerplate)\nSRP:         55.0%  (1 struct LCOM4=3, 1 module 450 lines)\nTest Quality: 40.0%  (10 untested, 3 no-sut)\nArchitecture: 100.0%\n\nThis is a workspace with a lib crate and a CLI binary crate. The dead code findings are all on pub functions in the lib crate that are used by the CLI binary. The untested functions are split between the lib (4) and the CLI binary (6). What's my best path to improving this score?",
+  "assertions": [
+    {"text": "Recommends TQ_NO_SUT test renames as low-hanging fruit", "type": "semantic"},
+    {"text": "Recommends thiserror or derive macro for BOILERPLATE finding", "type": "semantic"},
+    {"text": "Recommends moving testable logic from CLI binary to lib crate", "type": "semantic"},
+    {"text": "Recommends detect_dead_code = false for cross-crate false positives", "type": "semantic"},
+    {"text": "Recommends splitting the 450-line module", "type": "semantic"},
+    {"text": "Does NOT recommend unit testing CLI dispatch functions", "type": "semantic"},
+    {"text": "Provides a prioritized order of fixes", "type": "semantic"}
+  ]
+}

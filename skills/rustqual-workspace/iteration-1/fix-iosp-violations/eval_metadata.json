@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "fix-iosp-violations",
+  "prompt": "rustqual is showing 4 IOSP VIOLATION findings on my Rust crate. Here's the output:\n\n  VIOLATION  src/store.rs:45  open  (logic + calls)\n  VIOLATION  src/store.rs:112  load_config  (logic + calls)\n  VIOLATION  src/api.rs:30  handle_request  (logic + calls)\n  VIOLATION  src/api.rs:88  process_batch  (logic + calls)\n\nThe open function checks if a file exists, then reads it. load_config parses TOML with fallback defaults. handle_request is a CLI dispatch function. process_batch iterates over items and calls process_one on each.\n\nHow should I fix these? Which ones should I suppress vs refactor?",
+  "assertions": [
+    {"text": "Recommends qual:allow(iosp) suppression for open as I/O boundary", "type": "semantic"},
+    {"text": "Recommends qual:allow(iosp) suppression for load_config as I/O boundary", "type": "semantic"},
+    {"text": "Recommends suppression for handle_request as integration root", "type": "semantic"},
+    {"text": "Recommends refactoring process_batch to separate logic from calls", "type": "semantic"},
+    {"text": "Warns that splitting functions can increase TQ_UNTESTED count", "type": "semantic"},
+    {"text": "Shows correct qual:allow syntax with reason", "type": "semantic"}
+  ]
+}

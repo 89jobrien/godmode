@@ -1,0 +1,9 @@
+{
+  "expectations": [
+    {"text": "Explains DEAD_CODE cannot be suppressed with qual:allow(dry)", "passed": true, "evidence": "Paragraph 1: 'qual:allow(dry) does not suppress DEAD_CODE findings. This is a documented limitation'"},
+    {"text": "Recommends removing the qual:allow(dry) annotations", "passed": true, "evidence": "'Remove the qual:allow(dry) comments (they are causing ORPHAN_SUPPRESSION without helping)'"},
+    {"text": "Recommends detect_dead_code = false in rustqual.toml", "passed": true, "evidence": "Shows exact config: '[duplicates] detect_dead_code = false'"},
+    {"text": "Explains single-crate analysis limitation (cross-crate invisible)", "passed": true, "evidence": "'rustqual performs single-crate analysis. It cannot trace cross-crate call graphs.'"},
+    {"text": "Does NOT suggest trying qual:allow with a different dimension", "passed": true, "evidence": "Does not suggest any alternative qual:allow tag — goes straight to config-based fix"}
+  ]
+}

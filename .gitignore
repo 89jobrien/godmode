@@ -13,9 +13,9 @@ target/
 # handoff-end
 .worktrees/
 commands/gm-*.md
-# Generated agent .md files (source of truth is cfg/ + prompts/)
-agents/*.md
-!agents/INDEX.md
+# Ignore everything in agents/ except the final .md agents
+agents/*
+!agents/*.md
 .DS_Store
 .idea/
 fuzz/

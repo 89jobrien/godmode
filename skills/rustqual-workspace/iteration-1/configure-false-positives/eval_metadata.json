@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "configure-false-positives",
+  "prompt": "I'm trying to suppress DEAD_CODE findings in rustqual. I added `// qual:allow(dry)` above the flagged functions but now I'm getting ORPHAN_SUPPRESSION findings instead. What's going on? Here are the findings:\n\n  DEAD_CODE  src/lib.rs:20  node_count  (testonly)\n  DEAD_CODE  src/lib.rs:25  edge_count  (testonly)\n  ORPHAN_SUPPRESSION  src/lib.rs:19  qual:allow(dry) has no matching finding\n  ORPHAN_SUPPRESSION  src/lib.rs:24  qual:allow(dry) has no matching finding\n\nThese functions are pub and used by another crate in the workspace.",
+  "assertions": [
+    {"text": "Explains DEAD_CODE cannot be suppressed with qual:allow(dry)", "type": "semantic"},
+    {"text": "Recommends removing the qual:allow(dry) annotations", "type": "semantic"},
+    {"text": "Recommends detect_dead_code = false in rustqual.toml", "type": "semantic"},
+    {"text": "Explains single-crate analysis limitation (cross-crate invisible)", "type": "semantic"},
+    {"text": "Does NOT suggest trying qual:allow with a different dimension", "type": "semantic"}
+  ]
+}

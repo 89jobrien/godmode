@@ -9,6 +9,7 @@ description: >
   matters.
 requires: []
 next: []
+argument-hint: "[--deep]"
 ---
 
 # Doublecheck
@@ -135,6 +136,21 @@ Check every claim for these patterns:
 7. **Missing qualifiers** — nuanced topic presented as settled when significant exceptions,
    limitations, or counterarguments exist.
 
+### Hallucination Pattern Matrix (--deep only)
+
+When invoked with `--deep`, render this matrix for every claim reviewed. One row per claim.
+Columns map directly to the seven patterns above — mark each cell Y (present), N (not
+present), or ? (cannot determine).
+
+| Claim ID | Fabricated citation | Precise # w/o source | Confident on uncertain | Wrong association | Temporal confusion | Overgeneralization | Missing qualifiers | Confidence rating |
+| -------- | :-----------------: | :------------------: | :--------------------: | :---------------: | :----------------: | :----------------: | :----------------: | ----------------- |
+| C1       |                     |                      |                        |                   |                    |                    |                    |                   |
+| C2       |                     |                      |                        |                   |                    |                    |                    |                   |
+
+Fill every cell. A blank cell is not the same as N — unknown is `?`. Any `Y` in columns
+1–2 escalates to FABRICATION RISK regardless of other columns. Any `Y` in columns 3–7
+escalates to DISPUTED or UNVERIFIED depending on whether contradicting evidence was found.
+
 ### Adversarial Questions
 
 For each major claim that passed Layers 1 and 2:
@@ -162,13 +178,13 @@ After completing all three layers, produce the report using
 
 ### Confidence Ratings
 
-| Rating               | Meaning                                                                          | User action                                             |
-| -------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **VERIFIED**         | Supporting source found and linked                                               | Spot-check the link if critical                         |
-| **PLAUSIBLE**        | Consistent with general knowledge; no specific source found                      | Reasonable but unconfirmed; verify before relying on it |
-| **UNVERIFIED**       | No supporting or contradicting evidence found                                    | Do not rely on without independent verification         |
-| **DISPUTED**         | Contradicting evidence found from a credible source                              | Review the contradicting source; this may be wrong      |
-| **FABRICATION RISK** | Matches hallucination pattern (unfindable citation, unsourced precise statistic) | Assume wrong until confirmed from a primary source      |
+| Rating               | Meaning                                                          | User action                                             |
+| -------------------- | ---------------------------------------------------------------- | ------------------------------------------------------- |
+| **VERIFIED**         | Supporting source found and linked                               | Spot-check the link if critical                         |
+| **PLAUSIBLE**        | Consistent with general knowledge; no specific source found      | Reasonable but unconfirmed; verify before relying on it |
+| **UNVERIFIED**       | No supporting or contradicting evidence found                    | Do not rely on without independent verification         |
+| **DISPUTED**         | Contradicting evidence found from a credible source              | Review the contradicting source; this may be wrong      |
+| **FABRICATION RISK** | Matches hallucination pattern (unfindable citation or statistic) | Assume wrong until confirmed from a primary source      |
 
 ### Report Principles
 

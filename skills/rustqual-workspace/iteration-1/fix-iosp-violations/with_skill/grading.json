@@ -1,0 +1,10 @@
+{
+  "expectations": [
+    {"text": "Recommends qual:allow(iosp) suppression for open as I/O boundary", "passed": true, "evidence": "Lines 18-32: 'Suppress with a reason comment: // qual:allow(iosp) reason: \"I/O boundary\"'"},
+    {"text": "Recommends qual:allow(iosp) suppression for load_config as I/O boundary", "passed": false, "evidence": "Recommends refactoring load_config rather than suppressing it, extracting apply_defaults as pure logic. The read_config_raw helper gets suppressed but load_config itself is refactored."},
+    {"text": "Recommends suppression for handle_request as integration root", "passed": true, "evidence": "Lines 97-114: 'CLI dispatch functions inherently match on input... Suppress unconditionally'"},
+    {"text": "Recommends refactoring process_batch to separate logic from calls", "passed": true, "evidence": "Lines 118-158: Shows extracting active_items filter as pure logic, process_batch becomes calls-only"},
+    {"text": "Warns that splitting functions can increase TQ_UNTESTED count", "passed": true, "evidence": "Lines 178-183: 'Each extracted helper is a new function rustqual will check for test coverage. Only split when the resulting function is independently testable'"},
+    {"text": "Shows correct qual:allow syntax with reason", "passed": true, "evidence": "Multiple examples show '// qual:allow(iosp) reason: \"...\"' with correct syntax"}
+  ]
+}

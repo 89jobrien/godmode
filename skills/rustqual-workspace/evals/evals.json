@@ -1,0 +1,23 @@
+{
+  "skill_name": "rustqual",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "rustqual is showing 4 IOSP VIOLATION findings on my Rust crate. Here's the output:\n\n  VIOLATION  src/store.rs:45  open  (logic + calls)\n  VIOLATION  src/store.rs:112  load_config  (logic + calls)\n  VIOLATION  src/api.rs:30  handle_request  (logic + calls)\n  VIOLATION  src/api.rs:88  process_batch  (logic + calls)\n\nThe open function checks if a file exists, then reads it. load_config parses TOML with fallback defaults. handle_request is a CLI dispatch function. process_batch iterates over items and calls process_one on each.\n\nHow should I fix these? Which ones should I suppress vs refactor?",
+      "expected_output": "Should recommend: suppress open and load_config as I/O boundaries with qual:allow(iosp), suppress handle_request as integration root, and refactor process_batch by extracting logic from I/O. Should warn about splitting creating more TQ_UNTESTED findings.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I just ran rustqual on my workspace and got this:\n\nQuality Score: 62.3%    22 findings\n\nIOSP:        78.0%  (3 violations)\nComplexity:  90.0%\nDRY:         70.0%  (4 dead code, 1 boilerplate)\nSRP:         55.0%  (1 struct LCOM4=3, 1 module 450 lines)\nTest Quality: 40.0%  (10 untested, 3 no-sut)\nArchitecture: 100.0%\n\nThis is a workspace with a lib crate and a CLI binary crate. The dead code findings are all on pub functions in the lib crate that are used by the CLI binary. The untested functions are split between the lib (4) and the CLI binary (6). What's my best path to improving this score?",
+      "expected_output": "Should prioritize: 1) TQ_NO_SUT renames (easy), 2) BOILERPLATE fix with thiserror, 3) move testable logic from CLI to lib and add unit tests, 4) split the 450-line module, 5) address LCOM4=3 struct. Should recommend detect_dead_code=false for cross-crate false positives. Should NOT recommend trying to unit test CLI dispatch functions.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm trying to suppress DEAD_CODE findings in rustqual. I added `// qual:allow(dry)` above the flagged functions but now I'm getting ORPHAN_SUPPRESSION findings instead. What's going on? Here are the findings:\n\n  DEAD_CODE  src/lib.rs:20  node_count  (testonly)\n  DEAD_CODE  src/lib.rs:25  edge_count  (testonly)\n  ORPHAN_SUPPRESSION  src/lib.rs:19  qual:allow(dry) has no matching finding\n  ORPHAN_SUPPRESSION  src/lib.rs:24  qual:allow(dry) has no matching finding\n\nThese functions are pub and used by another crate in the workspace.",
+      "expected_output": "Should explain that DEAD_CODE cannot be suppressed with qual:allow(dry) — it's a special case. Should recommend removing the qual:allow annotations and setting detect_dead_code = false in rustqual.toml instead. Should explain why: rustqual only does single-crate analysis so cross-crate usage is invisible.",
+      "files": []
+    }
+  ]
+}

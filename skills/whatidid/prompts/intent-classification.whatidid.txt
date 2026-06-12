@@ -1,0 +1,20 @@
+# Intent Classification — Claude Code session turn classifier
+#
+# Maps user message content to a primary intent label.
+# Used by active_time_quality.txt mode detection.
+# First matching rule wins. Rules are checked case-insensitively.
+#
+# Format: intent | keywords (any match triggers the intent)
+
+Building         | implement, write, add, create, build, generate, scaffold, stub, wire, wire up
+Iterating        | refine, improve, polish, tweak, adjust, also add, also change, also fix, update, revise, rework
+Debugging        | debug, fix, error, bug, crash, broken, fail, panic, doesn't work, not working, wrong output
+Analyzing        | analyze, analyse, why is, explain, what does, understand, trace, profile, benchmark, metric
+Reviewing        | review, check, audit, lint, clippy, sentinel, does this look right, is this correct
+Designing        | design, architecture, plan, how should, what approach, what pattern, propose, spec, schema, diagram
+Researching      | look up, find, search, investigate, explore, what is, how does, show me, list, can you find
+Planning         | steps to, how do I, what order, task list, checklist, breakdown, workflow, strategy
+Configuring      | configure, setup, install, env, secret, token, key, credentials, path, setting
+Shipping         | commit, push, deploy, release, tag, merge, promote, pr, pull request, cap it, ship
+Navigating       | where is, which file, find the, glob, grep, open, show me the file, read the
+Learning         | how does this work, explain this, walk me through, teach me, what is the difference

@@ -1,0 +1,218 @@
+Analyze this day of GitHub Copilot-assisted work and produce a JSON digest.
+
+Your effort estimates are grounded in peer-reviewed research on LLM-assisted productivity
+(Alaswad et al. 2026, Cambon et al. 2023, Ziegler et al. 2024, Forsgren et al. 2021 SPACE
+framework). Each session includes a SIGNALS block with quantitative metrics — use them.
+
+SESSION TRANSCRIPT:
+{transcript}
+
+═══════════════════════════════════════════
+RULE 0 — PERSONAL / OFF-TOPIC FILTER
+═══════════════════════════════════════════
+
+SKIP any user messages that are clearly personal and unrelated to professional work.
+Personal queries include (but are not limited to): health, fitness, nutrition, supplements,
+food, recipes, personal finance, relationships, news, general trivia, shopping, entertainment.
+
+If an ENTIRE session contains only personal queries, omit that session from the output entirely.
+If personal queries are MIXED with professional work in a session, include only the professional tasks.
+Do NOT invent a professional framing for a personal query — just leave it out.
+
+═══════════════════════════════════════════
+RULE 1 — GOAL GROUPING (most important rule)
+═══════════════════════════════════════════
+
+Group work into BUSINESS GOALS. A goal = the high-level outcome accomplished, not the technical steps.
+
+IRON RULE: Everything in the same session that touches the same system is ONE GOAL.
+Iterating, refining, fixing bugs, adding features — all tasks within the original goal, not separate goals.
+
+DEFAULT RULE: When in doubt, MERGE. Too few goals is better than too many.
+
+The only valid reason to create a new goal is: work on a COMPLETELY DIFFERENT subject in a DIFFERENT
+project/session with ZERO shared files or dependencies.
+
+ROOT/HOME FOLDER EXCEPTION: If a session's PROJECT is a user home directory (e.g. "jsmith",
+"username", or a path like /Users/name or C:\Users\name), the user was likely doing ad-hoc work
+that does NOT belong to a single project. In this case:
+- Do NOT merge all sessions from the same home folder into one giant goal.
+- Only group sessions together if they share CLEAR evidence of the same project: same files
+  modified, same topic/domain, same repository, or explicit continuation of prior work.
+- Separate ad-hoc tasks (e.g. a quick research question, installing a tool, answering a question)
+  should each be their own small goal or grouped only with closely related tasks.
+- Look at the actual CONTENT and FILES in each session, not just the project path.
+
+GOOD GOAL TITLES (business outcome, verb-first, INCLUDE the project/repo/tool name):
+  "Built a daily Copilot activity analytics tool with branded HTML reports"
+  "Shipped the What-I-Did-Copilot reporting tool from concept to working system"
+  "Provided strategic rewrite recommendations for the DPG-AI-Skilling presentation"
+  "Diagnosed and resolved checkout regression in the Contoso API"
+
+BAD GOAL TITLES (too granular, or missing project context):
+  "Set up authentication"        ← part of a larger goal
+  "Built report generator"       ← which report generator? Name the project
+  "Updated README"               ← which README? Include the repo/project name
+  "Initialized git repository"   ← setup step, not the goal itself
+  "Improved documentation"       ← too vague — documentation for what?
+
+TITLE RULE: The goal title must describe the PRIMARY DELIVERABLE, not the first thing done.
+If a session starts with "prepare for github" but spends 80% of time building a report tool,
+the title should be about the report tool, not the git setup.
+
+LABEL RULE: The label must include enough context to identify the project. Use the repo name,
+the primary file/tool being worked on, or the product name. Someone reading just the labels
+should know WHICH project each line refers to.
+  GOOD: "What-I-Did-Copilot reporting tool", "Frontier Firm report", "DPG-AI-Skilling deck"
+  BAD:  "Report improvements", "Updated README", "Code refactor", "Documentation"
+
+═══════════════════════════════════════════
+RULE 2 — LANGUAGE
+═══════════════════════════════════════════
+
+Write as if briefing a senior executive on what was accomplished.
+
+NEVER write anything that implies the human was unclear, imprecise, or needed to course-correct.
+NEVER ASSUME CONTEXT NOT IN THE TRANSCRIPT.
+DO use the actual file or document name when it appears in the tool calls.
+
+GOOD framing:
+  ✓ "Designed and shipped X" — confident, direct
+  ✓ "Built X with Y capability" — outcome-focused
+  ✓ "Delivered X that does Y" — value-focused
+
+═══════════════════════════════════════════
+RULE 3 — EFFORT ESTIMATES (research-calibrated)
+═══════════════════════════════════════════
+
+human_hours = what a skilled professional would need WITHOUT AI assistance.
+
+RESEARCH FOUNDATION:
+- LLM-assisted work completes 1.4–4× faster than unassisted work
+  (Cambon et al. 2023, Peng et al. 2023)
+- The human EQUIVALENT is what matters: reverse the speedup to get what
+  it would take without AI
+- Four signals independently explain AI-assisted effort (OLS, 48 days):
+    1. Conversation turns — each substantive turn = expert thinking
+    2. Logic code lines — .py/.ts/.go/.rs/.java/.sh only; HTML/CSS/JSON/MD excluded
+    3. Read/search calls — file reads + grep/glob/search; captures investigation
+    4. Tool invocations — total tool calls; captures non-coding work (image analysis, synthesis, browser)
+       Premium requests serve as fallback interaction signal when turn data unavailable.
+- Boilerplate lines (HTML/CSS/JSON/MD/YAML) correlate NEGATIVELY with effort
+  (r=−0.14); logic lines r=+0.41
+
+THE FORMULA IS A FLOOR, NOT A CEILING.
+The deterministic formula (base × complexity_mult, where base = interaction_h + lines_h + reads_h + tools_h)
+gives the minimum plausible estimate based on mechanical counts. Your semantic judgment about
+QUALITY — what decisions were made, what expertise was required, what would
+an expert firm bill — should land AT OR ABOVE the formula floor, not below.
+The formula cannot see business value; you can.
+
+STEP 1 — Classify task type:
+  Mechanical (install, deploy, git push, config)       → 0.25–0.5h max, always
+  Research/Analysis (read-heavy, low edits)             → active_minutes × 2–3 anchor
+  Implementation (edit-heavy, logic lines added)        → logic lines ÷ 100 LoC/hr + overhead
+  Debugging (run-heavy, high iteration)                 → base + 50% rework premium
+  Complex multi-step (balanced)                         → highest signal as floor, judgment upward
+
+STEP 2 — Estimate from multiple signals; use the HIGHEST as your base:
+
+  ACTIVE TIME (primary real-world anchor):
+    active_minutes × 2 = conservative (routine/mechanical work, 1.4× lower bound)
+    active_minutes × 3 = standard (implementation, feature building)
+    active_minutes × 4 = generous (design, debugging, research, decision-making)
+    active_minutes × 5–6 = complex (high iteration depth + broad file scope,
+      e.g. debugging across 10+ files with repeated rework, architectural refactors)
+    Example: 90 min active on feature design → 3–4h human equivalent.
+    Example: 60 min active on multi-file debugging with 5+ rework cycles → 5–6h.
+
+  CONVERSATION TURNS (substantive only — exclude 'yes'/'commit'/'ok'/confirmations):
+    1–3 = 0.25h  |  4–8 = 0.75h  |  9–15 = 1.5h  |  16–30 = 2.5–3h
+    31–60 = 3–5h  |  61–100 = 5–8h  |  100+ = 8–12h
+    Heavy iteration on the same problem → estimate toward the upper end of range.
+
+  LOGIC CODE LINES (logic files ONLY — not boilerplate):
+    INCLUDE: .py .js .ts .jsx .tsx .go .rs .java .cs .cpp .c .sh .rb .sql .kt .swift
+    EXCLUDE: .html .css .json .md .yaml .yml .csv .xml .toml .lock
+    Expert writes 80–130 LoC/hr of logic code.
+    100 lines ≈ 1h  |  300 lines ≈ 2.5h  |  800 lines ≈ 6h
+
+  READ/SEARCH CALLS (investigation and analysis):
+    Heavy read sessions (40+ reads/searches) add 0.5–1h for navigation and judgment
+    even when no code was written.
+
+  TOOL INVOCATIONS (non-coding work signal):
+    Total tool calls capture work that doesn't produce code: image analysis,
+    document synthesis, browser automation, data exploration, presentation creation.
+    High tool counts with low lines → the work was non-coding but still substantial.
+    50 tools ≈ +0.4h  |  100 tools ≈ +0.5h  |  200+ tools ≈ +0.5–0.6h
+
+STEP 3 — Apply COMPLEXITY MULTIPLIER based on iteration depth and file scope:
+  The deterministic formula applies a bounded complexity multiplier (1.0–1.60×)
+  when base effort ≥ 0.50h. Your AI estimate should reflect the same logic:
+
+  ITERATION DEPTH (avg edits per file — measures rework/debugging intensity):
+    ≥ 2.5 edits/file → +10%    (moderate rework)
+    ≥ 5.0 edits/file → +25%    (heavy debugging/iteration cycles)
+    ≥ 10  edits/file → +35%    (extreme rework — multiple failed approaches)
+
+  FILE SCOPE (unique files touched — measures breadth and context-switching):
+    ≥ 5 files  → +10%     (multi-file change)
+    ≥ 10 files → +25%     (broad architectural change)
+
+  These stack: a session with iteration_depth=8 and 12 files touched gets up to
+  +50% (capped at 1.60×). This reflects Tregubov et al. (2017) finding that 17%
+  of developer time is spent recovering from context switches.
+
+STEP 4 — Apply additional upward semantic adjustments based on transcript content:
+  Significant rework or debugging cycles beyond what iteration_depth captures: +10–20% on base
+  Architecturally significant decisions (APIs, schemas):     scale to upper anchors
+  Novel problem-solving (creative synthesis, not routine):   scale to upper anchors
+  Pure mechanical execution only:                            cap at 0.25–0.5h
+
+STEP 5 — Reality-check against outcome anchors:
+  0.25h    — Trivial: install package, run CLI command, toggle config, push to git
+  0.5h     — Simple: minor code edit, rename, format tweak, answer a question
+  1.0–1.5h — Moderate: implement small feature, debug known issue, draft short doc
+  2–4h     — Substantial: design + implement feature, complex analysis, detailed report
+  4–8h     — Major: architect new module, build complete tool, comprehensive research
+  8–16h    — Large: full system from scratch, multi-day design-implement-test cycle
+
+CAPS AND FLOORS:
+- Mechanical execution (install, deploy, git ops, copy files) → 0.25–0.5h max always
+- No single task should exceed 8h — split into sub-tasks if that large
+- Each number must be nearest 0.25h
+- goal.human_hours must exactly equal the sum of its task hours
+
+═══════════════════════════════════════════
+OUTPUT SCHEMA
+═══════════════════════════════════════════
+
+Return ONLY this JSON (no markdown fences, no explanation before or after):
+
+{{
+  "headline": "One punchy sentence — the most significant thing accomplished today",
+  "primary_focus": "2-4 words (e.g. 'Productivity tooling', 'Deck strategy')",
+  "day_narrative": "Exactly 2 sentences. What was accomplished and why it matters. Confident tone, plain English.",
+  "goals": [
+    {{
+      "title": "Business outcome title (verb-first, MUST include the project/repo/tool name)",
+      "label": "2-5 word noun phrase identifying the deliverable AND which project (e.g. 'What-I-Did-Copilot reporting tool', 'Frontier Firm analysis report')",
+      "summary": "1 sentence, max 20 words. What exists now that didn't before. Confident tone.",
+      "human_hours": <sum of task hours>,
+      "project": "exact project name from the SESSION header",
+      "docs_referenced": ["filenames of docs actually analyzed or produced — empty list if none"],
+      "tasks": [
+        {{
+          "title": "Implementation step (verb-first)",
+          "what_got_done": "One sentence, max 18 words. Outcome only — no tool names.",
+          "domain_skills": ["1-2 from: {domain_list}"],
+          "tech_skills": ["0-2 from: {tech_list} (omit if none)"],
+          "task_type": "one of: Development | Bug Fix & Debug | Analysis & Research | Design & UX | Execution & Ops",
+          "professional_roles": ["1-2 roles a billing firm would charge for this work — e.g. Software Engineer, Data Analyst, UX Designer, Management Consultant, etc."],
+          "human_hours": <single calibrated number per the scale above, nearest 0.25h>
+        }}
+      ]
+    }}
+  ]
+}}

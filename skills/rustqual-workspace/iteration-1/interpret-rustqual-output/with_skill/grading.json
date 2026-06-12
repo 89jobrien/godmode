@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    {"text": "Recommends TQ_NO_SUT test renames as low-hanging fruit", "passed": true, "evidence": "Round 1a: 'Rename the 3 tests whose names don't reference the function under test'"},
+    {"text": "Recommends thiserror or derive macro for BOILERPLATE finding", "passed": true, "evidence": "Round 1b: 'Replace the manual impl Display + impl Error with thiserror::Error'"},
+    {"text": "Recommends moving testable logic from CLI binary to lib crate", "passed": true, "evidence": "Round 3: 'The 4 untested functions in the lib crate are genuine findings. Add unit tests' and Round 2b handles CLI dispatch via ignore_functions"},
+    {"text": "Recommends detect_dead_code = false for cross-crate false positives", "passed": true, "evidence": "Round 2a: 'detect_dead_code = false' with explanation of cross-crate limitation"},
+    {"text": "Recommends splitting the 450-line module", "passed": true, "evidence": "Round 1c: 'Split the large file into submodules'"},
+    {"text": "Does NOT recommend unit testing CLI dispatch functions", "passed": true, "evidence": "Round 2b: 'The 6 untested functions in the CLI binary are dispatch functions... Add them to ignore_functions'"},
+    {"text": "Provides a prioritized order of fixes", "passed": true, "evidence": "Clear 5-round priority order with estimated score at each round, plus summary table"}
+  ]
+}

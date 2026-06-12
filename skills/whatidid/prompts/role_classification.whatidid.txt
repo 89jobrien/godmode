@@ -1,0 +1,33 @@
+# Professional Role Classification (Heuristic Fallback)
+# Keyword-based rules that map task content to professional roles.
+# Used when the AI API is unavailable. The AI prompt uses its own judgment
+# but follows a similar taxonomy.
+#
+# Format: role | keywords (any match triggers the role)
+# Applied to the concatenation of user message text + tool descriptions.
+# Stack: Rust-primary, Nushell, Claude Code agent workflows, minibox ecosystem.
+
+Systems Engineer      | .rs, rust, cargo, tokio, async, unsafe, libc, nix, syscall, crate, trait, impl
+Rust Engineer         | clippy, rustfmt, cargo check, cargo build, cargo test, cargo nextest, xtask
+DevOps Engineer       | github actions, ci, cd, workflow, just, deploy, dockerfile, dockerfile, k8s, kubernetes, terraform
+Container Engineer    | container, namespace, cgroup, overlay, pivot_root, oci, image, layer, rootfs, smolvm, krun
+Network Engineer      | tailscale, wireguard, iptables, netlink, bridge, dnat, socket, tcp, ip, dns
+Security Engineer     | audit, obfsck, gitleaks, secret, credential, vulnerability, cve, permission, auth, peercred
+Agent Engineer        | claude code, skill, agent, hook, subagent, mcp, prompt, handoff, whatidid, sentinel
+QA Engineer           | debug, fix, error, bug, crash, broken, test, nextest, assertion, property test
+Technical Writer      | readme, claude.md, doc, documentation, changelog, comment, how-to, guide, explainer
+Software Architect    | architecture, protocol, api design, schema, domain, port, adapter, hexagonal, trait
+Performance Engineer  | bench, criterion, flamegraph, profil, uftrace, samply, latency, throughput
+Systems Administrator | ssh, vps, remote, minibox, mbx, vm, qemu, colima, tailscale, provision
+Data Analyst          | sql, metric, dashboard, kpi, report, analytics, bi, query, dataset, jsonl
+Management Consultant | strategy, recommendation, roadmap, executive, stakeholder, planning, prioritize
+Product Manager       | roadmap, backlog, user story, feature, requirement, milestone
+Research Scientist    | experiment, hypothesis, literature, simulation, benchmark, research
+
+# Task type classification (first match wins)
+# Format: type | keywords
+Bug Fix & Debug          | debug, fix, error, bug, crash, broken, panic, fail, wrong, unexpected
+Analysis & Research      | analyze, investigate, research, report, metric, trace, profile, why is
+Design & UX              | design, ux, layout, style, css, visual, wireframe, diagram
+Execution & Ops          | deploy, release, push, commit, merge, ci, cd, ops, provision, promote
+Development              | (default)

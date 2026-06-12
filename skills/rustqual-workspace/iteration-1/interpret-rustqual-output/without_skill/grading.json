@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    {"text": "Recommends TQ_NO_SUT test renames as low-hanging fruit", "passed": true, "evidence": "Step 6: 'Fix no-SUT test references (30 min) — add direct function calls to existing tests'"},
+    {"text": "Recommends thiserror or derive macro for BOILERPLATE finding", "passed": false, "evidence": "Mentions boilerplate finding may be 'suppressible as acceptable boilerplate' but doesn't recommend thiserror"},
+    {"text": "Recommends moving testable logic from CLI binary to lib crate", "passed": true, "evidence": "Step 4: 'Extract business logic out of command handlers into lib functions, then test the lib'"},
+    {"text": "Recommends detect_dead_code = false for cross-crate false positives", "passed": false, "evidence": "Suggests '--workspace flag' or 'config exclusion' vaguely, doesn't know the specific detect_dead_code setting"},
+    {"text": "Recommends splitting the 450-line module", "passed": true, "evidence": "Step 5: 'Split 450-line module (1 hour) — mechanical extraction'"},
+    {"text": "Does NOT recommend unit testing CLI dispatch functions", "passed": false, "evidence": "Recommends 'assert_cmd or trycmd for integration tests' for CLI functions — partially correct but doesn't recognize ignore_functions as the right solution"},
+    {"text": "Provides a prioritized order of fixes", "passed": true, "evidence": "6-step numbered sequence with time estimates and expected score gains"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "expectations": [
+    {"text": "Recommends qual:allow(iosp) suppression for open as I/O boundary", "passed": false, "evidence": "Recommends refactoring open instead of suppressing. Suggests removing the exists() guard entirely."},
+    {"text": "Recommends qual:allow(iosp) suppression for load_config as I/O boundary", "passed": false, "evidence": "Recommends refactoring load_config (correct action but for wrong reason — doesn't identify it as I/O boundary)"},
+    {"text": "Recommends suppression for handle_request as integration root", "passed": true, "evidence": "Lines 54-59: 'Suppress with a comment explaining why'"},
+    {"text": "Recommends refactoring process_batch to separate logic from calls", "passed": false, "evidence": "Recommends suppressing process_batch rather than refactoring it"},
+    {"text": "Warns that splitting functions can increase TQ_UNTESTED count", "passed": false, "evidence": "No mention of TQ_UNTESTED side effects from splitting"},
+    {"text": "Shows correct qual:allow syntax with reason", "passed": false, "evidence": "Shows '#[allow(clippy::iosp_violation)]' which is clippy syntax, not rustqual's qual:allow syntax"}
+  ]
+}

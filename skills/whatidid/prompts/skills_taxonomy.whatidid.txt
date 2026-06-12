@@ -1,0 +1,70 @@
+# Skill Taxonomy
+# Domain and technical skill labels used by the AI analysis prompt.
+# These appear as tags on tasks in the report.
+#
+# Updated to reflect actual stack: Rust-primary, Nushell, container runtime,
+# Claude Code agent workflows, minibox/devloop/braid ecosystem.
+
+[domain_skills]
+System Architecture
+Protocol Design
+Security Review
+Code Review
+Performance Engineering
+Observability & Tracing
+Container Runtime
+Image & OCI
+Process Isolation
+Namespace & Cgroup
+Overlay Filesystem
+Network Engineering
+Agent Orchestration
+Prompt Engineering
+Technical Research
+Technical Writing
+Documentation
+Requirements Analysis
+Product Planning
+Product Management
+Project Management
+Stakeholder Communication
+Data Analysis
+Statistical Modelling
+UX Design
+
+[tech_skills]
+Rust
+Nushell
+Go
+Python
+Bash/Shell
+Tokio / Async Rust
+Serde / Protocol Buffers
+Anyhow / Error Handling
+Tracing / OpenTelemetry
+Cargo / Workspace
+Clippy / Rustfmt
+nextest
+xtask
+just
+cargo-deny / cargo-audit
+Linux Syscalls / libc
+Linux Namespaces
+Cgroups v2
+Overlay Mounts
+OCI / Container Image
+Docker / Containerd
+QEMU / KVM
+Tailscale / WireGuard
+SSH
+GitHub Actions / CI-CD
+Claude Code Hooks
+Anthropic API
+OpenAI API
+SQL
+API Design / REST
+HTML/CSS
+JavaScript
+TypeScript
+Debugging
+Refactoring

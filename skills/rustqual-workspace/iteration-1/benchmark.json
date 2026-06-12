@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "skill_name": "rustqual",
+    "skill_path": "/Users/joe/.claude/skills/rustqual",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-opus-4-6",
+    "timestamp": "2026-05-22T18:22:00Z",
+    "evals_run": ["fix-iosp-violations", "interpret-rustqual-output", "configure-false-positives"],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "configuration": "with_skill",
+      "eval_name": "fix-iosp-violations",
+      "pass_rate": 0.833,
+      "passed": 5,
+      "total": 6,
+      "tokens": 28967,
+      "duration_seconds": 49.0
+    },
+    {
+      "configuration": "without_skill",
+      "eval_name": "fix-iosp-violations",
+      "pass_rate": 0.167,
+      "passed": 1,
+      "total": 6,
+      "tokens": 21414,
+      "duration_seconds": 33.3
+    },
+    {
+      "configuration": "with_skill",
+      "eval_name": "interpret-rustqual-output",
+      "pass_rate": 1.0,
+      "passed": 7,
+      "total": 7,
+      "tokens": 32281,
+      "duration_seconds": 63.4
+    },
+    {
+      "configuration": "without_skill",
+      "eval_name": "interpret-rustqual-output",
+      "pass_rate": 0.429,
+      "passed": 3,
+      "total": 7,
+      "tokens": 20957,
+      "duration_seconds": 37.5
+    },
+    {
+      "configuration": "with_skill",
+      "eval_name": "configure-false-positives",
+      "pass_rate": 1.0,
+      "passed": 5,
+      "total": 5,
+      "tokens": 28614,
+      "duration_seconds": 31.6
+    },
+    {
+      "configuration": "without_skill",
+      "eval_name": "configure-false-positives",
+      "pass_rate": 0.2,
+      "passed": 1,
+      "total": 5,
+      "tokens": 20714,
+      "duration_seconds": 22.8
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "mean_pass_rate": 0.944,
+      "mean_tokens": 29954,
+      "mean_duration_seconds": 48.0
+    },
+    "without_skill": {
+      "mean_pass_rate": 0.265,
+      "mean_tokens": 21028,
+      "mean_duration_seconds": 31.2
+    },
+    "delta": {
+      "pass_rate": "+0.679",
+      "time_seconds": "+16.8",
+      "tokens": "+8926"
+    }
+  },
+  "notes": [
+    "Eval 3 (configure-false-positives) is the strongest discriminator: 100% vs 20%. Without the skill, the model fabricates 'qual:allow(dead_code)' which doesn't exist.",
+    "Eval 2 (interpret-rustqual-output) shows skill provides tool-specific config knowledge (detect_dead_code, ignore_functions) the baseline cannot guess.",
+    "Eval 1 baseline uses clippy syntax instead of qual:allow and misses TQ_UNTESTED warning.",
+    "Token overhead ~43% (30k vs 21k) is acceptable given 94.4% vs 26.5% pass rate.",
+    "The one missed assertion in eval 1 with-skill (load_config) is arguably correct -- it chose refactoring over suppression."
+  ]
+}

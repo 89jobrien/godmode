@@ -1,0 +1,9 @@
+{
+  "expectations": [
+    {"text": "Explains DEAD_CODE cannot be suppressed with qual:allow(dry)", "passed": false, "evidence": "Incorrectly says the issue is 'Wrong rule tag (dry vs dead_code)' — implies qual:allow(dead_code) would work"},
+    {"text": "Recommends removing the qual:allow(dry) annotations", "passed": false, "evidence": "Recommends changing to qual:allow(dead_code) rather than removing"},
+    {"text": "Recommends detect_dead_code = false in rustqual.toml", "passed": false, "evidence": "Does not mention detect_dead_code or rustqual.toml config at all"},
+    {"text": "Explains single-crate analysis limitation (cross-crate invisible)", "passed": true, "evidence": "Explains rustqual marks functions testonly when only test call sites are visible"},
+    {"text": "Does NOT suggest trying qual:allow with a different dimension", "passed": false, "evidence": "Suggests 'qual:allow(dead_code)' as the fix — this is incorrect and would also produce ORPHAN_SUPPRESSION"}
+  ]
+}
