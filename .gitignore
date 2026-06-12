@@ -16,6 +16,8 @@ commands/gm-*.md
 # Ignore everything in agents/ except the final .md agents
 agents/*
 !agents/*.md
+agents/cross-issue-agent.md
+agents/issue__cross-issue-agent.md
 .DS_Store
 .idea/
 fuzz/
