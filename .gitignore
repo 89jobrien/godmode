@@ -18,6 +18,7 @@ agents/*
 !agents/*.md
 agents/cross-issue-agent.md
 agents/issue__cross-issue-agent.md
+agents/maestro.md
 .DS_Store
 .idea/
 fuzz/
