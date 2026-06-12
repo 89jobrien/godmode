@@ -9,9 +9,9 @@ let path = $input | get -o tool_input.file_path | default ""
 if not ($path | str ends-with ".json") { exit 0 }
 if not ($path | path exists) { exit 0 }
 
-let result = do { open $path | ignore } | complete
-if $result.exit_code != 0 {
-    let err = $result.stderr | str trim
-    print $"[json-validate] ($path) — invalid JSON\n($err)"
+try {
+    open $path | ignore
+} catch {|e|
+    print $"[json-validate] ($path) — invalid JSON\n($e.msg)"
     exit 2
 }

@@ -10,11 +10,15 @@ let path = $input | get -o tool_input.file_path | default ""
 if not ($path | str ends-with ".nu") { exit 0 }
 if not ($path | path exists) { exit 0 }
 
-let result = do { nu --ide-check $path } | complete
-if $result.exit_code != 0 {
-    let out = ($result.stdout | str trim)
-    let err = ($result.stderr | str trim)
-    let diag = if ($out | is-empty) { $err } else { $out }
-    print $"[nu-check] ($path) — syntax error\n($diag)"
+let result = do { nu --ide-check 100 $path } | complete
+let errors = $result.stdout
+    | lines
+    | each { |line| try { $line | from json } catch { null } }
+    | where { |r| $r != null and ($r | get -o severity) == "Error" }
+
+if ($errors | length) > 0 {
+    let count = ($errors | length)
+    let diag = $errors | each { |e| $"  ($e.message) at ($e.span)" } | str join "\n"
+    print $"[nu-check] ($path) — ($count) syntax errors\n($diag)"
     exit 2
 }

@@ -10,9 +10,9 @@ let is_yaml = ($path | str ends-with ".yaml") or ($path | str ends-with ".yml")
 if not $is_yaml { exit 0 }
 if not ($path | path exists) { exit 0 }
 
-let result = do { open $path | ignore } | complete
-if $result.exit_code != 0 {
-    let err = $result.stderr | str trim
-    print $"[yaml-validate] ($path) — invalid YAML\n($err)"
+try {
+    open $path | ignore
+} catch {|e|
+    print $"[yaml-validate] ($path) — invalid YAML\n($e.msg)"
     exit 2
 }
