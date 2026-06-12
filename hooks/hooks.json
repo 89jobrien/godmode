@@ -200,6 +200,26 @@
         "hooks": [
           {
             "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "godmode hook run writing-plans",
             "timeout": 10
           },
@@ -211,6 +231,31 @@
           {
             "type": "command",
             "command": "godmode hook run mini-context-graph",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu",
             "timeout": 10
           }
         ]

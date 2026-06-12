@@ -7,29 +7,38 @@ items:
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (8 files)
+  title: Uncommitted changes (6 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    .gitignore
-    Cargo.lock
-    agents/cfg/test-driven-development-agent.cfg.yaml
-    skills/.DS_Store
-    skills/pr-author/SKILL.md
-    tests/conformance/src/crux_tests.rs
-    xtask/src/main.rs
+    crates/godmode-core/src/hooks/brainstorm.rs
+    pipelines/lifecycle.yaml
+    AGENTS.md
+    skills/design/helpers/
+    skills/design/references/
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - .gitignore
-  - Cargo.lock
-  - agents/cfg/test-driven-development-agent.cfg.yaml
-  - skills/.DS_Store
-  - skills/pr-author/SKILL.md
-  - tests/conformance/src/crux_tests.rs
-  - xtask/src/main.rs
+  - crates/godmode-core/src/hooks/brainstorm.rs
+  - pipelines/lifecycle.yaml
+  - AGENTS.md
+  - skills/design/helpers/
+  - skills/design/references/
   completed: null
   extra: []
 log:
+- date: '20260609.015541'
+  summary: done=6 running=0 pending=0 blocked=0
+  commits:
+  - !Sha 7ddd0bd24f92eeb56de04dcd3ad8d102ae7097e9
+  - !Sha e4453074f1d12404d1378ce8289f4dc9ca8704e8
+  - !Sha 6827419f6f543cf64246f800f16f89400fc314f6
+  - !Sha 4efa6ccffb26c09f8bc4748a98d1807d4b81f182
+  - !Sha 9902345b11afbc5f8cfbf10d9bd06e97c524c2b2
+  - !Sha f330f01627a6119db7ebd197a2c1cc1fa8662c42
+  - !Sha a9afa3c07bd0c634aae35b3af2a7dde7dad9f4c7
+  - !Sha 027bb5c8e1c83463fdcd4dfc792f1e58342066fa
+  - !Sha aa846ce3b4a9d96c40c5b43064671ad029b45c22
+  - !Sha 847590609b451b6b0b23197465cdcf59317fa0c3
 - date: '20260608.003736'
   summary: done=6 running=0 pending=0 blocked=0
   commits: []
