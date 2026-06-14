@@ -69,7 +69,13 @@ Each change:
 - No new public API surface unless explicitly approved
 - No behaviour changes smuggled into the refactor
 
-### 5. Run full gate
+### 5. Branch guard + full gate
+
+Before committing, verify you are on the correct branch:
+
+```bash
+git branch --show-current   # must NOT be main
+```
 
 > Run via `godmode verify` or use the commands below:
 

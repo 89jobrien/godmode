@@ -164,7 +164,6 @@ godmode handoff && godmode:self-reflect   # handoff + structured retrospective
 
 ## Additional Resources
 
-- **`references/skill-index.json`** — structured skill registry with triggers and phase mappings
 - **`helpers/session-start.sh`** — run at session start to verify CLI and triage
 
 ## CLI Quick Reference

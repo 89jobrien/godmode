@@ -76,7 +76,7 @@ For every `**See also**`, `references/`, or `helpers/` link in a SKILL.md:
 
 ## Step 6: Check skill index completeness
 
-Read `skills/using-godmode/references/skill-index.json` and `skills/using-godmode/SKILL.md`.
+Read `skills/using-godmode/SKILL.md` (the skill table in the "Skill → Phase mapping" section).
 
 Every skill directory with a `SKILL.md` must have an entry in both. Flag any that are missing.
 
@@ -111,13 +111,7 @@ already exists for today.
 
 Also print a summary to stdout.
 
-After writing the report, update the report index:
-
-```bash
-godmode report index-add --category introspection --file "introspection-<YYYY-MM-DD>.md"
-```
-
-If the CLI subcommand is not yet available, read
+After writing the report, update the report index. Read
 `.ctx/godmode/reports/godmode-reports.index.json`, add the filename to
 `categories.introspection.files` (if not already present), and write it back
 with the Write tool.

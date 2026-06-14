@@ -1,18 +1,21 @@
 #!/usr/bin/env nu
 # audit.nu — inventory skills, check reference integrity, and flag missing index entries.
-# Usage: nu skills/introspectionion/helpers/audit.nu
-
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+# Usage: nu skills/introspection/helpers/audit.nu
 
 def main [] {
-    let root = (repo-root)
+    let root = (git rev-parse --show-toplevel | str trim)
     let skills_dir = $"($root)/skills"
-    let tid = (trace-start "introspection" "audit.nu")
 
     let skill_dirs = (ls $skills_dir | where type == "dir" | get name
         | where { |d| ($d | path basename) != "_lib" })
-    let index_content = (open $"($skills_dir)/using-godmode/references/skill-index.md")
+
+    # Check skill-index coverage via using-godmode/SKILL.md
+    let index_path = $"($skills_dir)/using-godmode/SKILL.md"
+    let index_content = if ($index_path | path exists) {
+        open $index_path
+    } else {
+        ""
+    }
 
     mut issues = []
 
@@ -28,20 +31,26 @@ def main [] {
         let content = (open $skill_md)
 
         if not ($index_content | str contains $skill_name) {
-            $issues = ($issues | append $"[($skill_name)] not in skill-index.md")
+            $issues = ($issues | append $"[($skill_name)] not referenced in using-godmode/SKILL.md")
         }
 
         for ref_line in ($content | lines | where { |l| $l | str contains "helpers/" }) {
-            let fname = ($ref_line | parse --regex '`helpers/(?P<f>[^`]+)`' | get f? | first?)
-            if not ($fname | is-empty) and not ($"($skill_dir)/helpers/($fname)" | path exists) {
-                $issues = ($issues | append $"[($skill_name)] broken helper ref: helpers/($fname)")
+            let parsed = ($ref_line | parse --regex '`helpers/(?P<f>[^\s`]+)`')
+            if ($parsed | length) > 0 {
+                let fname = ($parsed | first | get f)
+                if not ($"($skill_dir)/helpers/($fname)" | path exists) {
+                    $issues = ($issues | append $"[($skill_name)] broken helper ref: helpers/($fname)")
+                }
             }
         }
 
         for ref_line in ($content | lines | where { |l| $l | str contains "references/" }) {
-            let fname = ($ref_line | parse --regex '`references/(?P<f>[^`]+)`' | get f? | first?)
-            if not ($fname | is-empty) and not ($"($skill_dir)/references/($fname)" | path exists) {
-                $issues = ($issues | append $"[($skill_name)] broken reference: references/($fname)")
+            let parsed = ($ref_line | parse --regex '`references/(?P<f>[^\s`]+)`')
+            if ($parsed | length) > 0 {
+                let fname = ($parsed | first | get f)
+                if not ($"($skill_dir)/references/($fname)" | path exists) {
+                    $issues = ($issues | append $"[($skill_name)] broken reference: references/($fname)")
+                }
             }
         }
     }
@@ -65,10 +74,8 @@ def main [] {
     $report | save --force $report_path
 
     if ($issues | is-empty) {
-        trace-end $tid
         print $"($skill_dirs | length) skills checked. No issues. Report: ($report_path)"
     } else {
-        trace-error $tid 1 ($issues | str join "\n")
         for issue in $issues { print $issue }
         print $"\nReport written: ($report_path)"
         exit 1

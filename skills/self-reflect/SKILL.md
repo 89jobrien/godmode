@@ -118,13 +118,7 @@ Write to `.ctx/godmode/reports/reflect/reflect-<YYYY-MM-DD>.md` (overwrite if ex
 Use the Write tool to create the file. Print a short summary (Shipped / Unfinished /
 Top insight) to stdout as well.
 
-After writing the report, update the report index:
-
-```bash
-godmode report index-add --category reflect --file "reflect-<YYYY-MM-DD>.md"
-```
-
-If the CLI subcommand is not yet available, read
+After writing the report, update the report index. Read
 `.ctx/godmode/reports/godmode-reports.index.json`, add the filename to
 `categories.reflect.files` (if not already present), and write it back with the
 Write tool.

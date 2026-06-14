@@ -111,12 +111,15 @@ godmode task add "Update README with examples" \
 ### Pull Issues into Tasks
 
 ```bash
-# Fetch open issues (up to 50) and preview as tasks
-godmode task pull --github --repo <owner/repo>
-
-# With filtering
-godmode task pull --github --repo <owner/repo> --label bug
+# Fetch open issues and convert to tasks manually:
+gh issue list --repo <owner/repo> --state open \
+  --json number,title,labels --limit 50
+# Then add each as a task:
+godmode task add "<title>" --id t<N> --crate-name <crate>
 ```
+
+> **Note**: `godmode task pull --github` is not implemented in the CLI.
+> Use `gh issue list` and add tasks individually.
 
 ### View Task Graph After Triage
 
@@ -124,7 +127,6 @@ godmode task pull --github --repo <owner/repo> --label bug
 godmode task list              # show all tasks
 godmode status                 # show ready and runnable
 godmode dispatch               # emit parallel chains JSON
-godmode dispatch --critical-path  # show longest path
 ```
 
 ## Triage Output Format
