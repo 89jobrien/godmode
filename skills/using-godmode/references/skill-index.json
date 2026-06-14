@@ -47,6 +47,25 @@
     { "name": "pattern-learner", "trigger": "Cross-session pattern extraction from traces and git history", "phase": "ORIENT" },
     { "name": "pr-author", "trigger": "Compose PR descriptions from branch diffs and task context", "phase": "SHIP" },
     { "name": "release-notes", "trigger": "Write user-facing release notes from git history", "phase": "SHIP" },
-    { "name": "workspace-refactor", "trigger": "Catalog breaking changes when shared crate APIs change", "phase": "ACT" }
+    { "name": "workspace-refactor", "trigger": "Catalog breaking changes when shared crate APIs change", "phase": "ACT" },
+    { "name": "agents-skill-save", "trigger": "Creating or fixing a local skill saved to wrong path", "phase": "ACT" },
+    { "name": "baml-add-types", "trigger": "Adding BAML types/functions to cruxx-agentic", "phase": "ACT" },
+    { "name": "design", "trigger": "Translate approved brainstorm into architectural spec", "phase": "PLAN" },
+    { "name": "dual-forge-pr-merge", "trigger": "PR across GitHub and Gitea mirrors", "phase": "SHIP" },
+    { "name": "gh-bulk-issues", "trigger": "Creating 3+ GitHub issues with consistent format", "phase": "ACT" },
+    { "name": "notfiles-release-workflow", "trigger": "Release workflow for the notfiles repo", "phase": "SHIP" },
+    { "name": "planning-with-crux", "trigger": "Design crux DSL pipelines and Rust macro agents", "phase": "PLAN" },
+    { "name": "release-readiness-check", "trigger": "Pre-release verification of tags, crates, gates", "phase": "VERIFY" },
+    { "name": "remote-upstream-triage", "trigger": "Git push/PR fails due to upstream or remote drift", "phase": "ACT" },
+    { "name": "repo-gap-backlog", "trigger": "Turn local project gaps into GitHub issues", "phase": "PLAN" },
+    { "name": "rust-release-workflow-author", "trigger": "Create/edit GitHub Actions release workflow for Rust", "phase": "SHIP" },
+    { "name": "rustqual", "trigger": "Rust code quality analysis via rustqual CLI", "phase": "VERIFY" },
+    { "name": "session-wrap-commit-push", "trigger": "End-of-session commit and push closeout", "phase": "SHIP" },
+    { "name": "token-cost-optimizer", "trigger": "Analyze or reduce Claude/agent token usage and costs", "phase": "ORIENT" },
+    { "name": "using-crux", "trigger": "Navigate, build, or extend the crux codebase", "phase": "ACT" },
+    { "name": "whatidid", "trigger": "Generate daily activity report from session data", "phase": "SHIP" },
+    { "name": "workspace-bump-commit", "trigger": "Apply version bumps and create release commit", "phase": "SHIP" },
+    { "name": "workspace-release-impact", "trigger": "Decide which crates need version bumps", "phase": "PLAN" },
+    { "name": "writing-solid-rust", "trigger": "SOLID principles and hexagonal architecture in Rust", "phase": "ACT" }
   ]
 }

@@ -19,7 +19,11 @@ Use this after release impact has already been decided. This is the execution st
 # Stage only release-related files
  git add crates/*/Cargo.toml Cargo.lock
 
-# Create the release commit and tag
+# Verify you are on the expected branch
+ git branch --show-current
+ # If the output is 'main', STOP — do not commit to main directly.
+
+ # Create the release commit and tag
  git commit -m "release: v<version>"
  git tag "v<version>"
 ```

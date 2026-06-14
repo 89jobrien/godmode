@@ -17,20 +17,24 @@ handoff-detect
 sed -n '1,220p' "$(handoff-detect)"
 sed -n '1,220p' "$(handoff-detect | sed 's/\.yaml$/.state.yaml/')"
 
-# 2. Stage everything for the closeout commit
+# 2. Verify you are on the expected branch
+git branch --show-current
+# If the output is 'main', STOP — do not commit to main directly.
+
+# 3. Stage everything for the closeout commit
 git add -A
 
-# 3. Inspect the staged change for commit message generation
+# 4. Inspect the staged change for commit message generation
 git diff --cached --stat
 git diff --cached
 
-# 4. Non-blocking secret scan on the staged diff
+# 5. Non-blocking secret scan on the staged diff
 git diff --cached | redact --level minimal --audit
 
-# 5. Commit with a generated conventional message
+# 6. Commit with a generated conventional message
 git commit -m "<type: short description>"
 
-# 6. Push the current branch to its configured upstream
+# 7. Push the current branch to its configured upstream
 git push
 ```
 

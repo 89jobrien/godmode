@@ -37,7 +37,7 @@ Edit files, run commands, dispatch subagents. Enter on user approval.
 Run tests and quality gates. Return to ACT if failures. Ask to SHIP when green.
 </godmode-phase>
 
-<godmode-phase name="SHIP" mode="commit/push" response-header="# Phase: SHIP" skills="cap, handoff">
+<godmode-phase name="SHIP" mode="commit/push" response-header="# Phase: SHIP" skills="cap, session-wrap-commit-push">
 Commit, push, handoff. Only on explicit approval. Return to ORIENT after.
 </godmode-phase>
 
@@ -109,6 +109,25 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:pr-author`                       | Compose PR descriptions from branch context        |
 | `godmode:release-notes`                   | Write user-facing release notes from git history   |
 | `godmode:workspace-refactor`              | Catalog breaking changes in shared crate APIs      |
+| `godmode:agents-skill-save`               | Create or fix a local skill saved to wrong path    |
+| `godmode:baml-add-types`                  | Add BAML types/functions to cruxx-agentic          |
+| `godmode:design`                          | Translate brainstorm into architectural spec       |
+| `godmode:dual-forge-pr-merge`             | PR across GitHub and Gitea mirrors                 |
+| `godmode:gh-bulk-issues`                  | Create 3+ GitHub issues with consistent format     |
+| `godmode:notfiles-release-workflow`       | Release workflow for the notfiles repo             |
+| `godmode:planning-with-crux`              | Design crux DSL pipelines and macro agents         |
+| `godmode:release-readiness-check`         | Pre-release verification of tags, crates, gates    |
+| `godmode:remote-upstream-triage`          | Fix git push/PR upstream or remote drift           |
+| `godmode:repo-gap-backlog`                | Turn local project gaps into GitHub issues         |
+| `godmode:rust-release-workflow-author`    | Create GitHub Actions release workflow for Rust    |
+| `godmode:rustqual`                        | Rust code quality analysis via rustqual CLI        |
+| `godmode:session-wrap-commit-push`        | End-of-session commit and push closeout            |
+| `godmode:token-cost-optimizer`            | Analyze or reduce Claude/agent token costs         |
+| `godmode:using-crux`                      | Navigate, build, or extend the crux codebase       |
+| `godmode:whatidid`                        | Generate daily activity report from session data   |
+| `godmode:workspace-bump-commit`           | Apply version bumps and create release commit      |
+| `godmode:workspace-release-impact`        | Decide which crates need version bumps             |
+| `godmode:writing-solid-rust`              | SOLID principles and hexagonal arch in Rust        |
 
 ## Always-Active Rules
 
@@ -156,7 +175,10 @@ godmode handoff                         # session end closeout
 godmode plan ingest <plan.md>           # ingest plan → task graph
 godmode task list [--json]              # all tasks
 godmode task next [--json]              # next runnable (exit 1 if none)
-godmode task add <id> "<title>" [opts]  # add task
+godmode task add <title> [--id <id>] [opts]  # add task
+<!-- TODO: argument order above was reversed (id before title). Confirmed correct
+     signature is: task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X].
+     Verify against binary and update all SKILL.md examples that show the old order. -->
 godmode task start <id>                 # mark running
 godmode task done <id> [--commit <sha>] # mark done
 godmode task block <id> "<reason>"      # mark blocked

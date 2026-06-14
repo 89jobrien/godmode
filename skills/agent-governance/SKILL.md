@@ -113,49 +113,30 @@ audit:
   log_reviews: true
 ```
 
-## CLI (`godmode policy`)
+## CLI (`godmode policy`) — NOT IMPLEMENTED
 
-The primary interface. All subcommands support `--json`.
+> **Warning**: `godmode policy` subcommands (`resolve`, `check`, `list`, `audit`) are
+> not implemented in the current CLI. Use the Nushell helpers directly (see below).
+> The examples below document the intended API for when this is implemented.
+
+All subcommands support `--json`.
 
 ### godmode policy resolve
 
 Resolve the effective policy for an agent by composing default + category + level.
 
-```bash
-godmode policy resolve gm-orchestrator
-godmode policy resolve gm-cap-agent --json
-godmode policy resolve gm-dispatch --level strict --json
-```
+<!-- godmode policy subcommands (resolve, check, list, audit) are NOT YET
+     IMPLEMENTED in the godmode binary. The examples below are aspirational
+     design sketches. Do NOT invoke them in automation or agent code blocks
+     until the CLI ships them. Track: godmode issue backlog. -->
 
-### godmode policy check
-
-Point check: is a specific tool call allowed for an agent? Exits 1 on deny.
-
-```bash
-godmode policy check gm-cap-agent Bash --input "git push --force origin main"
-# → DENY: content matches blocked pattern: (?i)git\s+push\s+--force
-
-godmode policy check gm-orchestrator Agent
-# → ALLOW: passed all policy checks
-```
-
-### godmode policy list
-
-Show all available policies (default, categories, levels).
-
-```bash
-godmode policy list
-godmode policy list --json
-```
-
-### godmode policy audit
-
-Show governance audit trail for a date (defaults to today).
-
-```bash
-godmode policy audit
-godmode policy audit --date 2026-06-04
-godmode policy audit --json
+```text
+# PLANNED — not yet callable:
+# godmode policy resolve gm-orchestrator
+# godmode policy resolve gm-cap-agent --json
+# godmode policy check gm-cap-agent Bash --input "..."
+# godmode policy list [--json]
+# godmode policy audit [--date YYYY-MM-DD] [--json]
 ```
 
 ## Nushell Helpers (fallback)

@@ -63,6 +63,8 @@ The optional `**Run**:` annotation attaches a shell command to the task. When pr
 `godmode task run <id>` executes it. Use `--auto-done` to automatically mark the task done
 on exit 0: `godmode task run t1 --auto-done`.
 
+<!-- Verified 2026-06-13: --auto-done flag confirmed in godmode task run --help. -->
+
 Prefix with `rx:` to invoke a script from the rx registry: `**Run**: rx:my-script`
 
 Commands containing shell metacharacters (`>`, `|`, `&`, `;`) are automatically run via
