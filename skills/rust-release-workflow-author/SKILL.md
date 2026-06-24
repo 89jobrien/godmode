@@ -13,7 +13,7 @@ Use this when the repo needs a real release workflow rather than just CI. This i
 
 ```bash
 # Read existing workflows first
-find .github -maxdepth 3 -type f | sort
+# Use Glob tool: glob '.github/**/*'
 sed -n '1,260p' .github/workflows/ci.yml
 sed -n '1,260p' .github/workflows/nightly.yml 2>/dev/null || true
 
@@ -25,9 +25,8 @@ cargo metadata --no-deps --format-version 1
 rg -n '^version\s*=|^name\s*=' Cargo.toml crates/*/Cargo.toml
 
 # Write workflow via heredoc
-cat > .github/workflows/release.yml <<'EOF2'
-# ...workflow contents...
-EOF2
+# Use the Write tool to create .github/workflows/release.yml with the full content.
+# (Bash heredoc cat-redirect is blocked; Write tool is the correct approach.)
 
 # Validate YAML
 ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release.yml"); puts "yaml-ok"'

@@ -114,19 +114,21 @@ fn global_dir() -> Option<PathBuf> {
 }
 
 /// Locate a template file by name. Checks local dir first, then global.
-/// Returns the path to the `.yaml` file.
+/// Returns the path to the `.yaml` or `.template.yaml` file.
 pub fn find(root: &Path, name: &str) -> Result<PathBuf> {
-    let filename = format!("{}.yaml", name);
-
-    let local = local_dir(root).join(&filename);
-    if local.exists() {
-        return Ok(local);
+    for filename in candidate_filenames(name) {
+        let local = local_dir(root).join(&filename);
+        if local.exists() {
+            return Ok(local);
+        }
     }
 
     if let Some(global) = global_dir() {
-        let g = global.join(&filename);
-        if g.exists() {
-            return Ok(g);
+        for filename in candidate_filenames(name) {
+            let g = global.join(&filename);
+            if g.exists() {
+                return Ok(g);
+            }
         }
     }
 
@@ -267,6 +269,10 @@ pub fn apply(graph: &mut TaskGraph, template: Template) -> Result<(usize, usize)
 
 // ── internal helpers ───────────────────────────────────────────────────────
 
+fn candidate_filenames(name: &str) -> [String; 2] {
+    [format!("{name}.yaml"), format!("{name}.template.yaml")]
+}
+
 /// Parse a slice of `"key=value"` strings into a map.
 fn parse_vars(vars: &[String]) -> Result<HashMap<String, String>> {
     let mut map = HashMap::new();
@@ -395,6 +401,19 @@ tasks:
         write_template(&root.path().join("templates"), "my-tmpl", BASIC_TEMPLATE);
         let found = find(root.path(), "my-tmpl").unwrap();
         assert!(found.starts_with(root.path()));
+    }
+
+    #[test]
+    fn find_resolves_template_yaml_suffix() {
+        let root = TempDir::new().unwrap();
+        std::fs::create_dir_all(root.path().join("templates")).unwrap();
+        let expected = write_template(
+            &root.path().join("templates"),
+            "AICHAT-SYSTEM.template",
+            BASIC_TEMPLATE,
+        );
+        let found = find(root.path(), "AICHAT-SYSTEM").unwrap();
+        assert_eq!(found, expected);
     }
 
     #[test]

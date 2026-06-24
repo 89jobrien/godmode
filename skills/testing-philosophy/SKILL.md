@@ -218,7 +218,7 @@ recur.
 
 - **`references/dimension-examples.md`** — concrete Rust examples for each dimension (unit,
   property, fuzz, model check, conformance, integration, regression)
-- **`godmode scaffold <crate> <dimension>`** — generate test module stubs (Rust impl in
-  `godmode-core/src/scaffold.rs`; `helpers/test-scaffold.nu` is a thin shim)
-- **`godmode test-check <path>`** — check whether a `.rs` file has associated tests (Rust
-  impl in `godmode-core/src/test_check.rs`; `hook.nu` is a thin shim)
+- **`helpers/test-scaffold.nu <crate> <dimension>`** — generate test module stubs
+  (run via `nu helpers/test-scaffold.nu <crate> <dimension>`)
+- To check whether a `.rs` file has associated tests, use Grep tool to search for
+  `#\[test\]` or `#\[cfg\(test\)\]` in the file's directory.

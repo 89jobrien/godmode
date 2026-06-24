@@ -69,7 +69,7 @@ Report: tasks completed, tasks blocked, commit SHAs.
 
 ### Step 3: Initialize wave state
 
-> (generate via `godmode wave init --wave N --agents <agent-names>`)
+> Write `.ctx/wave-status.json` manually (`godmode wave init` is not implemented):
 
 Before dispatching, write `.ctx/wave-status.json`:
 
@@ -113,7 +113,7 @@ Instruct each agent to update wave state on finish:
 
 ### Step 5: Integrate results
 
-> (run via `godmode wave check` then merge sequentially)
+> Read `.ctx/wave-status.json` manually (`godmode wave check` is not implemented):
 
 After all agents report:
 

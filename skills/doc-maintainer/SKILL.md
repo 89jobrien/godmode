@@ -73,6 +73,7 @@ When asked to fix (not just audit):
 
 1. Fix blocking issues first
 2. Use Edit for targeted changes — do not rewrite whole files
-3. For `agents/INDEX.md`, recommend `godmode agent index` over hand-editing
+3. For `agents/INDEX.md`, hand-edit it directly — `godmode agent index` is not
+   implemented in the CLI
 4. Re-audit after fixing to confirm zero blocking findings
 5. Make minimum edits — do not restructure or restyle documents

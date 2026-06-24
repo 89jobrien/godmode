@@ -111,9 +111,9 @@ already exists for today.
 
 Also print a summary to stdout.
 
-After writing the report, update the report index. Read
-`.ctx/godmode/reports/godmode-reports.index.json`, add the filename to
-`categories.introspection.files` (if not already present), and write it back
+After writing the report, update the report index by reading
+`.ctx/godmode/reports/godmode-reports.index.json`, adding the filename to
+`categories.introspection.files` (if not already present), and writing it back
 with the Write tool.
 
 ## Step 8: Fix

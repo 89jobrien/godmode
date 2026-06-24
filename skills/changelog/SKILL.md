@@ -85,16 +85,11 @@ Produce grouped markdown changelog:
 Omit sections with no entries. "Other" includes `docs`, `test`, `chore`, `ci`
 and commits without a crate scope.
 
-## Integration with `godmode release`
+## Integration with Release Workflow
 
-The changelog output can be fed into the `godmode release` workflow:
-
-```bash
-godmode release changelog
-```
-
-This subcommand uses the changelog skill to generate release notes and update
-`CHANGELOG.md`.
+Write the generated changelog to `CHANGELOG.md` or `.ctx/` manually and commit.
+(`godmode release changelog` is not implemented in the CLI — generate output from
+this skill and write it with the Write tool.)
 
 ## Guardrails
 

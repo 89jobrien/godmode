@@ -128,6 +128,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:workspace-bump-commit`           | Apply version bumps and create release commit      |
 | `godmode:workspace-release-impact`        | Decide which crates need version bumps             |
 | `godmode:writing-solid-rust`              | SOLID principles and hexagonal arch in Rust        |
+| `godmode:depgraph`                        | Hexagonal architecture report for Rust workspace   |
 
 ## Always-Active Rules
 
@@ -175,9 +176,6 @@ godmode plan ingest <plan.md>           # ingest plan → task graph
 godmode task list [--json]              # all tasks
 godmode task next [--json]              # next runnable (exit 1 if none)
 godmode task add <title> [--id <id>] [opts]  # add task
-<!-- TODO: argument order above was reversed (id before title). Confirmed correct
-     signature is: task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X].
-     Verify against binary and update all SKILL.md examples that show the old order. -->
 godmode task start <id>                 # mark running
 godmode task done <id> [--commit <sha>] # mark done
 godmode task block <id> "<reason>"      # mark blocked

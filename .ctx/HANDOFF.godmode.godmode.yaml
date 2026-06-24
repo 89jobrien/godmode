@@ -1,71 +1,124 @@
 project: godmode
 id: godmode
-updated: 2026-06-08
+updated: 2026-06-24
 items:
+- id: t6
+  name: validate-aichat-system-pack
+  priority: P2
+  status: open
+  title: Validate AIChat system pack
+  description: Task t6 in progress
 - id: uncommitted-work
-  doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (6 files)
+  title: Uncommitted changes (35 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    crates/godmode-core/src/hooks/brainstorm.rs
-    pipelines/lifecycle.yaml
+    crates/godmode-core/src/templates.rs
+    skills/agents-skill-save/SKILL.md
+    skills/changelog/SKILL.md
+    skills/dead-code/SKILL.md
+    skills/doc-maintainer/SKILL.md
+    skills/health-score/SKILL.md
+    skills/introspection/SKILL.md
+    skills/notfiles-release-workflow/SKILL.md
+    skills/observability-as-infrastructure/helpers/session-summary.nu
+    skills/observability-as-infrastructure/helpers/trace-failures.nu
+    skills/observability-as-infrastructure/helpers/trace-stats.nu
+    skills/observability-as-infrastructure/helpers/trace-tail.nu
+    skills/parallel-agents/SKILL.md
+    skills/release-notes/SKILL.md
+    skills/repo-gap-backlog/SKILL.md
+    skills/rust-release-workflow-author/SKILL.md
+    skills/tackle-issues/SKILL.md
+    skills/task-management/SKILL.md
+    skills/testing-philosophy/SKILL.md
+    skills/using-crux/SKILL.md
+    skills/using-godmode/SKILL.md
+    skills/using-godmode/references/skill-index.json
+    skills/wave-integration/.DS_Store
+    skills/whatidid/helpers/analyze.rs
+    skills/workspace-refactor/SKILL.md
+    templates/PLAN.template.yaml
+    .codex-plugin/
     AGENTS.md
-    skills/design/helpers/
-    skills/design/references/
+    aichat/
+    docs/aichat-system.md
+    pipelines/aichat-system.yaml
+    scripts/aichat-system-install.nu
+    skills/depgraph/
+    templates/AICHAT-SYSTEM.template.yaml
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - crates/godmode-core/src/hooks/brainstorm.rs
-  - pipelines/lifecycle.yaml
+  - crates/godmode-core/src/templates.rs
+  - skills/agents-skill-save/SKILL.md
+  - skills/changelog/SKILL.md
+  - skills/dead-code/SKILL.md
+  - skills/doc-maintainer/SKILL.md
+  - skills/health-score/SKILL.md
+  - skills/introspection/SKILL.md
+  - skills/notfiles-release-workflow/SKILL.md
+  - skills/observability-as-infrastructure/helpers/session-summary.nu
+  - skills/observability-as-infrastructure/helpers/trace-failures.nu
+  - skills/observability-as-infrastructure/helpers/trace-stats.nu
+  - skills/observability-as-infrastructure/helpers/trace-tail.nu
+  - skills/parallel-agents/SKILL.md
+  - skills/release-notes/SKILL.md
+  - skills/repo-gap-backlog/SKILL.md
+  - skills/rust-release-workflow-author/SKILL.md
+  - skills/tackle-issues/SKILL.md
+  - skills/task-management/SKILL.md
+  - skills/testing-philosophy/SKILL.md
+  - skills/using-crux/SKILL.md
+  - skills/using-godmode/SKILL.md
+  - skills/using-godmode/references/skill-index.json
+  - skills/wave-integration/.DS_Store
+  - skills/whatidid/helpers/analyze.rs
+  - skills/workspace-refactor/SKILL.md
+  - templates/PLAN.template.yaml
+  - .codex-plugin/
   - AGENTS.md
-  - skills/design/helpers/
-  - skills/design/references/
-  completed: null
-  extra: []
+  - aichat/
+  - docs/aichat-system.md
+  - pipelines/aichat-system.yaml
+  - scripts/aichat-system-install.nu
+  - skills/depgraph/
+  - templates/AICHAT-SYSTEM.template.yaml
 log:
+- date: '20260624.031109'
+  summary: done=11 running=1 pending=0 blocked=0
+  commits:
+  - b2a03f83fc1cd48f75d5fdba877948e9d640394b
+  - 0ce0b6efcb9a2315aefc65b8ac743c4ade688637
+  - 1813d2113babab172632a43d3d3024751c9e4d53
+  - 73ed9e7e6860aca08da259a6dc896ef1794d5258
+  - b106f299d7df3a566569e3f049e50ae4c4e67c9e
+  - 2db1b8c5f111f1a520eb616249c5661d6c95570d
+  - 3c9dff5df23bc83ba88881fa281952ffebd15780
+  - f45b6418ee7dfa97708ee36b02dbcd93f196268b
+  - 4c136262767587f69bac42a83677763d294ed857
+  - 7ddd0bd24f92eeb56de04dcd3ad8d102ae7097e9
 - date: '20260609.015541'
   summary: done=6 running=0 pending=0 blocked=0
-  commits:
-  - !Sha 7ddd0bd24f92eeb56de04dcd3ad8d102ae7097e9
-  - !Sha e4453074f1d12404d1378ce8289f4dc9ca8704e8
-  - !Sha 6827419f6f543cf64246f800f16f89400fc314f6
-  - !Sha 4efa6ccffb26c09f8bc4748a98d1807d4b81f182
-  - !Sha 9902345b11afbc5f8cfbf10d9bd06e97c524c2b2
-  - !Sha f330f01627a6119db7ebd197a2c1cc1fa8662c42
-  - !Sha a9afa3c07bd0c634aae35b3af2a7dde7dad9f4c7
-  - !Sha 027bb5c8e1c83463fdcd4dfc792f1e58342066fa
-  - !Sha aa846ce3b4a9d96c40c5b43064671ad029b45c22
-  - !Sha 847590609b451b6b0b23197465cdcf59317fa0c3
 - date: '20260608.003736'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260606.171219'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260605.042525'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.081919'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.074109'
   summary: done=26 running=1 pending=0 blocked=0
-  commits: []
 - date: '20260604.055151'
   summary: done=0 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.054949'
   summary: done=18 running=1 pending=8 blocked=0
-  commits: []
 - date: '20260604.054344'
   summary: done=2 running=1 pending=24 blocked=0
-  commits: []
 - date: '20260604.050028'
   summary: done=1 running=0 pending=7 blocked=0
-  commits: []
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
-  commits: []

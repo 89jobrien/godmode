@@ -1,6 +1,6 @@
 meta:
   name: PLAN
-  description: "Standard aichat-planned feature: brainstorm → plan → implement → verify"
+  description: "Standard godmode feature loop: brainstorm → plan → implement → verify"
   vars:
     - name: feature
       required: true
@@ -18,14 +18,18 @@ tasks:
     status: pending
     depends_on: []
     crate_name: "{{crate}}"
-    notes: "Run godmode:brainstorm or aichat-plan.nu to explore approaches before coding"
+    priority: high
+    tags: ["design", "brainstorm", "godmode"]
+    notes: "Use godmode:brainstorm to compare approaches before coding"
 
   - id: "{{prefix}}2"
     title: "Plan: write implementation steps for {{feature}}"
     status: pending
     depends_on: ["{{prefix}}1"]
     crate_name: "{{crate}}"
-    notes: "Use aichat-plan.nu to generate ordered step list; review before proceeding"
+    priority: high
+    tags: ["plan", "context-map", "godmode"]
+    notes: "Create a context map and write a plan with exact files and validation commands"
 
   - id: "{{prefix}}3"
     title: "Implement: {{feature}} (TDD — red)"
@@ -33,7 +37,9 @@ tasks:
     depends_on: ["{{prefix}}2"]
     crate_name: "{{crate}}"
     run: "cargo nextest run -p {{crate}}"
-    notes: "Write failing tests first — do not touch implementation until tests are red"
+    priority: high
+    tags: ["tdd", "red", "test"]
+    notes: "Write failing tests first; do not touch implementation until tests are red"
 
   - id: "{{prefix}}4"
     title: "Implement: {{feature}} (TDD — green)"
@@ -41,12 +47,19 @@ tasks:
     depends_on: ["{{prefix}}3"]
     crate_name: "{{crate}}"
     run: "cargo nextest run -p {{crate}}"
-    notes: "Write minimum implementation to make tests pass"
+    priority: high
+    tags: ["tdd", "green", "implementation"]
+    notes: "Write the minimum implementation to make the focused tests pass"
 
   - id: "{{prefix}}5"
     title: "Verify: clippy + nextest + fmt for {{feature}}"
     status: pending
     depends_on: ["{{prefix}}4"]
     crate_name: "{{crate}}"
-    run: "cargo clippy --workspace -- -D warnings && cargo nextest run --workspace"
-    notes: "Run godmode verify; fix all warnings before committing"
+    run: >-
+      cargo clippy --workspace -- -D warnings &&
+      cargo nextest run --workspace &&
+      cargo fmt --all --check
+    priority: high
+    tags: ["verification", "clippy", "nextest", "fmt"]
+    notes: "Run workspace gates; fix warnings and formatting before claiming completion"

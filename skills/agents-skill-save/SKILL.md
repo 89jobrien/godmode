@@ -15,7 +15,7 @@ It is especially useful after creating a skill from session work and needing to 
 ```bash
 # 1. Confirm the active skills tree
 ls -la ~/.agents ~/.agents/skills
-find ~/.agents/skills -maxdepth 2 -name SKILL.md | sort
+# Use Glob tool: glob '/Users/joe/.agents/skills/**/SKILL.md'
 
 # 2. Inspect the existing skill content before changing it
 sed -n '1,260p' /path/to/SKILL.md

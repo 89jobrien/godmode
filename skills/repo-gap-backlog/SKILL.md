@@ -15,8 +15,8 @@ It is especially useful when the GitHub repo may not exist yet, or when the loca
 ```bash
 # 1. Inspect the local workspace for completion signals
 ls -la
-find . -maxdepth 2 -name .git -type d
-find . -maxdepth 2 \( -name 'README*' -o -name 'HANDOFF*' -o -name 'TODO*' \) | sort
+# Use Glob tool: glob './**/.git' (maxdepth 2 equivalent)
+# Use Glob tool: glob './**/README*', './**/HANDOFF*', './**/TODO*'
 rg -n "TODO|FIXME|WIP|TBD|XXX|not implemented|unimplemented!|panic!\(|todo!\(" . --glob '!target' --glob '!.git'
 
 # 2. Read the product surface and verify the code actually works

@@ -139,7 +139,8 @@ If the user asks you to apply the migrations:
 Use the `parallel-agents` pattern (see helper or skill reference). For each
 dependent repo:
 
-1. Create a subagent worktree (e.g., `godmode worktree add <branch>`)
+1. Create a subagent worktree (`git worktree add .worktrees/<branch> -b <branch>`)
+   — `godmode worktree add` is not implemented; use git worktree directly.
 2. Pass the migration checklist to the subagent
 3. Subagent applies changes:
    - Edit files according to checklist

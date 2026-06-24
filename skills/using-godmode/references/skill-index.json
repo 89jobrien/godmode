@@ -1,71 +1,335 @@
 {
   "phases": {
-    "ORIENT": ["task-management", "memory-banking"],
-    "PLAN": ["brainstorm", "writing-plans", "context-map"],
-    "ACT": ["task-driven-development", "parallel-agents", "systematic-debugging"],
-    "VERIFY": ["verification-before-completion", "code-review", "testing-philosophy"],
-    "SHIP": ["cap", "merge", "wave-integration"]
+    "ORIENT": [
+      "task-management",
+      "memory-banking"
+    ],
+    "PLAN": [
+      "brainstorm",
+      "writing-plans",
+      "context-map"
+    ],
+    "ACT": [
+      "task-driven-development",
+      "parallel-agents",
+      "systematic-debugging"
+    ],
+    "VERIFY": [
+      "verification-before-completion",
+      "code-review",
+      "testing-philosophy"
+    ],
+    "SHIP": [
+      "cap",
+      "merge",
+      "wave-integration"
+    ]
   },
   "skills": [
-    { "name": "writing-plans", "trigger": "Design approved, ready to implement multi-step task", "phase": "PLAN" },
-    { "name": "cap", "trigger": "\"cap\", \"commit and push\", \"ship it\"", "phase": "SHIP" },
-    { "name": "ci-fix", "trigger": "CI failing, \"fix CI\", broken pipeline after push", "phase": "ACT" },
-    { "name": "brainstorm", "trigger": "\"let's build\", \"add feature\", \"design X\", new code", "phase": "PLAN" },
-    { "name": "task-driven-development", "trigger": "TDD with serialized YAML task lists and sequential issue chains", "phase": "ACT" },
-    { "name": "systematic-debugging", "trigger": "Bug, test failure, panic, unexpected behaviour", "phase": "ACT" },
-    { "name": "parallel-agents", "trigger": "2+ independent task chains or crates to implement", "phase": "ACT" },
-    { "name": "verification-before-completion", "trigger": "Before any \"done\" claim, commit, or PR", "phase": "VERIFY" },
-    { "name": "task-management", "trigger": "Creating, tracking, or executing a task graph", "phase": "ORIENT" },
-    { "name": "code-review", "trigger": "Before merge, after feature complete", "phase": "VERIFY" },
-    { "name": "introspection", "trigger": "After adding skills, before plugin release, \"audit godmode\"", "phase": "VERIFY" },
-    { "name": "refactoring", "trigger": "Restructuring code without changing behaviour", "phase": "ACT" },
-    { "name": "receiving-review", "trigger": "Processing incoming review comments", "phase": "ACT" },
-    { "name": "tackle-issues", "trigger": "Working on GitHub issues in parallel", "phase": "ACT" },
-    { "name": "observability-as-infrastructure", "trigger": "Adding tracing to helpers and subagents", "phase": "ACT" },
-    { "name": "testing-philosophy", "trigger": "Designing test strategy, reviewing test coverage", "phase": "VERIFY" },
-    { "name": "wave-integration", "trigger": "Merging parallel agent branches into a single integration commit", "phase": "SHIP" },
-    { "name": "moa", "trigger": "Mixture-of-agents patterns for multi-model reasoning", "phase": "ACT" },
-    { "name": "todo-issue-sync", "trigger": "Auditing inline TODOs and syncing uncovered items to issues", "phase": "VERIFY" },
-    { "name": "self-reflect", "trigger": "End-of-session retrospective — \"reflect\", \"what did we do\"", "phase": "SHIP" },
-    { "name": "merge", "trigger": "Merge branch, create/merge PR, squash, worktree cleanup", "phase": "SHIP" },
-    { "name": "rust-conventions", "trigger": "Rust conventions for writing/reviewing *.rs code", "phase": "ACT" },
-    { "name": "context-map", "trigger": "Map relevant files before any implementation task", "phase": "PLAN" },
-    { "name": "decompose", "trigger": "Split large diff/PR/branch into smaller independent units", "phase": "PLAN" },
-    { "name": "doublecheck", "trigger": "Three-layer verification pipeline for factual claims", "phase": "VERIFY" },
-    { "name": "mini-context-graph", "trigger": "Persistent knowledge base with entity graph and wiki pages", "phase": "ORIENT" },
-    { "name": "agent-governance", "trigger": "Governance, safety, and trust patterns for AI agent systems", "phase": "ACT" },
-    { "name": "memory-banking", "trigger": "Generate/maintain .ctx/memory-bank/ with source-backed context", "phase": "ORIENT" },
-    { "name": "changelog", "trigger": "Parse git history into structured changelogs", "phase": "SHIP" },
-    { "name": "cross-issue", "trigger": "Cross-repo issue coordination and linked tracking", "phase": "PLAN" },
-    { "name": "dead-code", "trigger": "Find unused public API, orphaned tests, stale plugin refs", "phase": "VERIFY" },
-    { "name": "dep-audit", "trigger": "Audit deps via cargo outdated, cargo deny, cargo audit", "phase": "VERIFY" },
-    { "name": "dep-bump", "trigger": "Propagate workspace crate version bumps to downstream repos", "phase": "SHIP" },
-    { "name": "doc-maintainer", "trigger": "Audit project docs against source code for drift", "phase": "VERIFY" },
-    { "name": "health-score", "trigger": "Measure codebase health across seven metrics", "phase": "VERIFY" },
-    { "name": "issue-triage", "trigger": "Triage GitHub issues by type, complexity, priority", "phase": "ORIENT" },
-    { "name": "mistake-tracker", "trigger": "Catalog recurring mistakes and failure modes across sessions", "phase": "ORIENT" },
-    { "name": "pattern-learner", "trigger": "Cross-session pattern extraction from traces and git history", "phase": "ORIENT" },
-    { "name": "pr-author", "trigger": "Compose PR descriptions from branch diffs and task context", "phase": "SHIP" },
-    { "name": "release-notes", "trigger": "Write user-facing release notes from git history", "phase": "SHIP" },
-    { "name": "workspace-refactor", "trigger": "Catalog breaking changes when shared crate APIs change", "phase": "ACT" },
-    { "name": "agents-skill-save", "trigger": "Creating or fixing a local skill saved to wrong path", "phase": "ACT" },
-    { "name": "baml-add-types", "trigger": "Adding BAML types/functions to cruxx-agentic", "phase": "ACT" },
-    { "name": "design", "trigger": "Translate approved brainstorm into architectural spec", "phase": "PLAN" },
-    { "name": "dual-forge-pr-merge", "trigger": "PR across GitHub and Gitea mirrors", "phase": "SHIP" },
-    { "name": "gh-bulk-issues", "trigger": "Creating 3+ GitHub issues with consistent format", "phase": "ACT" },
-    { "name": "notfiles-release-workflow", "trigger": "Release workflow for the notfiles repo", "phase": "SHIP" },
-    { "name": "planning-with-crux", "trigger": "Design crux DSL pipelines and Rust macro agents", "phase": "PLAN" },
-    { "name": "release-readiness-check", "trigger": "Pre-release verification of tags, crates, gates", "phase": "VERIFY" },
-    { "name": "remote-upstream-triage", "trigger": "Git push/PR fails due to upstream or remote drift", "phase": "ACT" },
-    { "name": "repo-gap-backlog", "trigger": "Turn local project gaps into GitHub issues", "phase": "PLAN" },
-    { "name": "rust-release-workflow-author", "trigger": "Create/edit GitHub Actions release workflow for Rust", "phase": "SHIP" },
-    { "name": "rustqual", "trigger": "Rust code quality analysis via rustqual CLI", "phase": "VERIFY" },
-    { "name": "session-wrap-commit-push", "trigger": "End-of-session commit and push closeout", "phase": "SHIP" },
-    { "name": "token-cost-optimizer", "trigger": "Analyze or reduce Claude/agent token usage and costs", "phase": "ORIENT" },
-    { "name": "using-crux", "trigger": "Navigate, build, or extend the crux codebase", "phase": "ACT" },
-    { "name": "whatidid", "trigger": "Generate daily activity report from session data", "phase": "SHIP" },
-    { "name": "workspace-bump-commit", "trigger": "Apply version bumps and create release commit", "phase": "SHIP" },
-    { "name": "workspace-release-impact", "trigger": "Decide which crates need version bumps", "phase": "PLAN" },
-    { "name": "writing-solid-rust", "trigger": "SOLID principles and hexagonal architecture in Rust", "phase": "ACT" }
+    {
+      "name": "writing-plans",
+      "trigger": "Design approved, ready to implement multi-step task",
+      "phase": "PLAN"
+    },
+    {
+      "name": "cap",
+      "trigger": "\"cap\", \"commit and push\", \"ship it\"",
+      "phase": "SHIP"
+    },
+    {
+      "name": "ci-fix",
+      "trigger": "CI failing, \"fix CI\", broken pipeline after push",
+      "phase": "ACT"
+    },
+    {
+      "name": "brainstorm",
+      "trigger": "\"let's build\", \"add feature\", \"design X\", new code",
+      "phase": "PLAN"
+    },
+    {
+      "name": "task-driven-development",
+      "trigger": "TDD with serialized YAML task lists and sequential issue chains",
+      "phase": "ACT"
+    },
+    {
+      "name": "systematic-debugging",
+      "trigger": "Bug, test failure, panic, unexpected behaviour",
+      "phase": "ACT"
+    },
+    {
+      "name": "parallel-agents",
+      "trigger": "2+ independent task chains or crates to implement",
+      "phase": "ACT"
+    },
+    {
+      "name": "verification-before-completion",
+      "trigger": "Before any \"done\" claim, commit, or PR",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "task-management",
+      "trigger": "Creating, tracking, or executing a task graph",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "using-godmode",
+      "trigger": "Use at the start of every conversation to orient to available skills and workspace rules",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "code-review",
+      "trigger": "Before merge, after feature complete",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "introspection",
+      "trigger": "After adding skills, before plugin release, \"audit godmode\"",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "refactoring",
+      "trigger": "Restructuring code without changing behaviour",
+      "phase": "ACT"
+    },
+    {
+      "name": "receiving-review",
+      "trigger": "Processing incoming review comments",
+      "phase": "ACT"
+    },
+    {
+      "name": "tackle-issues",
+      "trigger": "Working on GitHub issues in parallel",
+      "phase": "ACT"
+    },
+    {
+      "name": "observability-as-infrastructure",
+      "trigger": "Adding tracing to helpers and subagents",
+      "phase": "ACT"
+    },
+    {
+      "name": "testing-philosophy",
+      "trigger": "Designing test strategy, reviewing test coverage",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "wave-integration",
+      "trigger": "Merging parallel agent branches into a single integration commit",
+      "phase": "SHIP"
+    },
+    {
+      "name": "moa",
+      "trigger": "Mixture-of-agents patterns for multi-model reasoning",
+      "phase": "ACT"
+    },
+    {
+      "name": "todo-issue-sync",
+      "trigger": "Auditing inline TODOs and syncing uncovered items to issues",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "self-reflect",
+      "trigger": "End-of-session retrospective \u2014 \"reflect\", \"what did we do\"",
+      "phase": "SHIP"
+    },
+    {
+      "name": "merge",
+      "trigger": "Merge branch, create/merge PR, squash, worktree cleanup",
+      "phase": "SHIP"
+    },
+    {
+      "name": "rust-conventions",
+      "trigger": "Rust conventions for writing/reviewing *.rs code",
+      "phase": "ACT"
+    },
+    {
+      "name": "context-map",
+      "trigger": "Map relevant files before any implementation task",
+      "phase": "PLAN"
+    },
+    {
+      "name": "decompose",
+      "trigger": "Split large diff/PR/branch into smaller independent units",
+      "phase": "PLAN"
+    },
+    {
+      "name": "doublecheck",
+      "trigger": "Three-layer verification pipeline for factual claims",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "mini-context-graph",
+      "trigger": "Persistent knowledge base with entity graph and wiki pages",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "agent-governance",
+      "trigger": "Governance, safety, and trust patterns for AI agent systems",
+      "phase": "ACT"
+    },
+    {
+      "name": "memory-banking",
+      "trigger": "Generate/maintain .ctx/memory-bank/ with source-backed context",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "changelog",
+      "trigger": "Parse git history into structured changelogs",
+      "phase": "SHIP"
+    },
+    {
+      "name": "cross-issue",
+      "trigger": "Cross-repo issue coordination and linked tracking",
+      "phase": "PLAN"
+    },
+    {
+      "name": "dead-code",
+      "trigger": "Find unused public API, orphaned tests, stale plugin refs",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "dep-audit",
+      "trigger": "Audit deps via cargo outdated, cargo deny, cargo audit",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "dep-bump",
+      "trigger": "Propagate workspace crate version bumps to downstream repos",
+      "phase": "SHIP"
+    },
+    {
+      "name": "doc-maintainer",
+      "trigger": "Audit project docs against source code for drift",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "health-score",
+      "trigger": "Measure codebase health across seven metrics",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "issue-triage",
+      "trigger": "Triage GitHub issues by type, complexity, priority",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "mistake-tracker",
+      "trigger": "Catalog recurring mistakes and failure modes across sessions",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "pattern-learner",
+      "trigger": "Cross-session pattern extraction from traces and git history",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "pr-author",
+      "trigger": "Compose PR descriptions from branch diffs and task context",
+      "phase": "SHIP"
+    },
+    {
+      "name": "release-notes",
+      "trigger": "Write user-facing release notes from git history",
+      "phase": "SHIP"
+    },
+    {
+      "name": "workspace-refactor",
+      "trigger": "Catalog breaking changes when shared crate APIs change",
+      "phase": "ACT"
+    },
+    {
+      "name": "agents-skill-save",
+      "trigger": "Creating or fixing a local skill saved to wrong path",
+      "phase": "ACT"
+    },
+    {
+      "name": "baml-add-types",
+      "trigger": "Adding BAML types/functions to cruxx-agentic",
+      "phase": "ACT"
+    },
+    {
+      "name": "design",
+      "trigger": "Translate approved brainstorm into architectural spec",
+      "phase": "PLAN"
+    },
+    {
+      "name": "dual-forge-pr-merge",
+      "trigger": "PR across GitHub and Gitea mirrors",
+      "phase": "SHIP"
+    },
+    {
+      "name": "gh-bulk-issues",
+      "trigger": "Creating 3+ GitHub issues with consistent format",
+      "phase": "ACT"
+    },
+    {
+      "name": "notfiles-release-workflow",
+      "trigger": "Release workflow for the notfiles repo",
+      "phase": "SHIP"
+    },
+    {
+      "name": "planning-with-crux",
+      "trigger": "Design crux DSL pipelines and Rust macro agents",
+      "phase": "PLAN"
+    },
+    {
+      "name": "release-readiness-check",
+      "trigger": "Pre-release verification of tags, crates, gates",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "remote-upstream-triage",
+      "trigger": "Git push/PR fails due to upstream or remote drift",
+      "phase": "ACT"
+    },
+    {
+      "name": "repo-gap-backlog",
+      "trigger": "Turn local project gaps into GitHub issues",
+      "phase": "PLAN"
+    },
+    {
+      "name": "rust-release-workflow-author",
+      "trigger": "Create/edit GitHub Actions release workflow for Rust",
+      "phase": "SHIP"
+    },
+    {
+      "name": "rustqual",
+      "trigger": "Rust code quality analysis via rustqual CLI",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "session-wrap-commit-push",
+      "trigger": "End-of-session commit and push closeout",
+      "phase": "SHIP"
+    },
+    {
+      "name": "token-cost-optimizer",
+      "trigger": "Analyze or reduce Claude/agent token usage and costs",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "using-crux",
+      "trigger": "Navigate, build, or extend the crux codebase",
+      "phase": "ACT"
+    },
+    {
+      "name": "whatidid",
+      "trigger": "Generate daily activity report from session data",
+      "phase": "SHIP"
+    },
+    {
+      "name": "workspace-bump-commit",
+      "trigger": "Apply version bumps and create release commit",
+      "phase": "SHIP"
+    },
+    {
+      "name": "workspace-release-impact",
+      "trigger": "Decide which crates need version bumps",
+      "phase": "PLAN"
+    },
+    {
+      "name": "writing-solid-rust",
+      "trigger": "SOLID principles and hexagonal architecture in Rust",
+      "phase": "ACT"
+    }
   ]
 }

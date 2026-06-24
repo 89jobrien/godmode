@@ -28,7 +28,7 @@ Use this after `rust-release-workflow-author` when the target repo is `notfiles`
 
 ```bash
 # Read the repo workflows and package list
-find .github -maxdepth 3 -type f | sort
+# Use Glob tool: glob '.github/**/*'
 sed -n '1,260p' .github/workflows/ci.yml
 sed -n '1,260p' .github/workflows/nightly.yml
 cargo metadata --no-deps --format-version 1

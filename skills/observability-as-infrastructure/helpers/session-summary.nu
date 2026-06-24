@@ -2,9 +2,13 @@
 # session-summary.nu — cross-session triage: what the last session left behind.
 # Usage: nu session-summary.nu [--sessions 3]
 
-let root = (do { git rev-parse --show-toplevel } | complete)
-if $root.exit_code != 0 { print "Not inside a git repo."; exit 1 }
-use ($"($root.stdout | str trim)/skills/_lib/helpers.nu") *
+def open-trace [] {
+    let r = (do { run-external "git" "rev-parse" "--show-toplevel" } | complete)
+    if $r.exit_code != 0 { print "Not inside a git repo."; exit 1 }
+    let trace = $"($r.stdout | str trim)/.ctx/godmode/traces/trace.jsonl"
+    if not ($trace | path exists) { print "No trace file."; exit 0 }
+    open $trace | lines | each { from json }
+}
 
 def main [--sessions: int = 3] {
     let events = (open-trace)
