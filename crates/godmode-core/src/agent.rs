@@ -259,6 +259,11 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
+    #[test]
+    fn default_version_is_stable() {
+        assert_eq!(default_version(), "1.0.0");
+    }
+
     fn sample_agent() -> AgentDef {
         AgentDef {
             name: "test-agent".to_string(),

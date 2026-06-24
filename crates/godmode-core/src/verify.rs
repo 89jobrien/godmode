@@ -10,6 +10,20 @@ pub struct StepResult {
     pub output: String,
 }
 
+impl StepResult {
+    fn new(name: String, ok: bool, output: String) -> Self {
+        Self { name, ok, output }
+    }
+}
+
+fn combined_output(stdout: &[u8], stderr: &[u8]) -> String {
+    format!(
+        "{}{}",
+        String::from_utf8_lossy(stdout),
+        String::from_utf8_lossy(stderr)
+    )
+}
+
 /// A single verification step. Implement this trait to add custom gates.
 pub trait VerifyStep {
     /// Human-readable name for this step (e.g. "nextest", "clippy").
@@ -48,16 +62,11 @@ impl VerifyStep for NextestStep {
         }
         cmd.current_dir(root);
         let out = cmd.output()?;
-        let output = format!(
-            "{}{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        );
-        Ok(StepResult {
-            name: self.name().into(),
-            ok: out.status.success(),
-            output,
-        })
+        Ok(StepResult::new(
+            self.name().into(),
+            out.status.success(),
+            combined_output(&out.stdout, &out.stderr),
+        ))
     }
 }
 
@@ -80,16 +89,11 @@ impl VerifyStep for ClippyStep {
         cmd.args(["--", "-D", "warnings"]);
         cmd.current_dir(root);
         let out = cmd.output()?;
-        let output = format!(
-            "{}{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        );
-        Ok(StepResult {
-            name: self.name().into(),
-            ok: out.status.success(),
-            output,
-        })
+        Ok(StepResult::new(
+            self.name().into(),
+            out.status.success(),
+            combined_output(&out.stdout, &out.stderr),
+        ))
     }
 }
 
@@ -103,16 +107,11 @@ impl VerifyStep for FmtStep {
             .args(["fmt", "--all", "--check"])
             .current_dir(root)
             .output()?;
-        let output = format!(
-            "{}{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        );
-        Ok(StepResult {
-            name: self.name().into(),
-            ok: out.status.success(),
-            output,
-        })
+        Ok(StepResult::new(
+            self.name().into(),
+            out.status.success(),
+            combined_output(&out.stdout, &out.stderr),
+        ))
     }
 }
 
@@ -143,36 +142,31 @@ impl VerifyStep for GlobstarStep {
     fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
         // Skip if globstar is not installed or no .globstar/ dir exists
         if !root.join(".globstar").exists() {
-            return Ok(StepResult {
-                name: self.name().into(),
-                ok: true,
-                output: "skipped (no .globstar/ directory)".into(),
-            });
+            return Ok(StepResult::new(
+                self.name().into(),
+                true,
+                "skipped (no .globstar/ directory)".into(),
+            ));
         }
         let globstar = match which::which("globstar") {
             Ok(p) => p,
             Err(_) => {
-                return Ok(StepResult {
-                    name: self.name().into(),
-                    ok: true,
-                    output: "skipped (globstar not on PATH)".into(),
-                });
+                return Ok(StepResult::new(
+                    self.name().into(),
+                    true,
+                    "skipped (globstar not on PATH)".into(),
+                ));
             }
         };
         let out = Command::new(globstar)
             .args(["check", "--checkers=local"])
             .current_dir(root)
             .output()?;
-        let output = format!(
-            "{}{}",
-            String::from_utf8_lossy(&out.stdout),
-            String::from_utf8_lossy(&out.stderr)
-        );
-        Ok(StepResult {
-            name: self.name().into(),
-            ok: out.status.success(),
-            output,
-        })
+        Ok(StepResult::new(
+            self.name().into(),
+            out.status.success(),
+            combined_output(&out.stdout, &out.stderr),
+        ))
     }
 }
 
@@ -231,11 +225,7 @@ mod tests {
     use super::*;
 
     fn step(name: &str, ok: bool, output: &str) -> StepResult {
-        StepResult {
-            name: name.into(),
-            ok,
-            output: output.into(),
-        }
+        StepResult::new(name.into(), ok, output.into())
     }
 
     #[test]
@@ -298,11 +288,7 @@ mod tests {
                 "fake"
             }
             fn run(&self, _root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
-                Ok(StepResult {
-                    name: self.name().into(),
-                    ok: true,
-                    output: "pass".into(),
-                })
+                Ok(StepResult::new(self.name().into(), true, "pass".into()))
             }
         }
         let s = FakeStep;

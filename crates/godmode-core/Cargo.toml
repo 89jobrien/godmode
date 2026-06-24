@@ -12,6 +12,7 @@ doctest = false
 
 [features]
 default = []
+test-utils = ["testing"]
 testing = ["dep:proptest", "dep:tempfile"]
 
 [dependencies]
@@ -22,6 +23,7 @@ serde_json = { workspace = true }
 chrono = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+miette = { workspace = true, features = ["derive"] }
 slashcrux = { workspace = true }
 crux-runtime = { workspace = true }
 regex = { workspace = true }

@@ -41,7 +41,7 @@ fn run_hook(
     // Inherit PATH then optionally prepend a fake-bin dir.
     let base_path = std::env::var("PATH").unwrap_or_default();
     let path_val = match path_prefix {
-        Some(prefix) => format!("{}:{}", prefix, base_path),
+        Some(prefix) => join_path_prefix(prefix, &base_path),
         None => base_path,
     };
     cmd.env("PATH", &path_val);
@@ -56,6 +56,10 @@ fn run_hook(
             .expect("write stdin");
     }
     child.wait_with_output().expect("wait")
+}
+
+fn join_path_prefix(prefix: &str, base_path: &str) -> String {
+    format!("{}:{}", prefix, base_path)
 }
 
 // ---------------------------------------------------------------------------

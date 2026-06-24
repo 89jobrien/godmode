@@ -71,16 +71,7 @@ impl Config {
     /// Load config: repo-local `.godmode.toml` wins, then global
     /// `~/.config/godmode/config.toml`, then defaults.
     pub fn load(root: &Path) -> Config {
-        // Try repo-local first
-        let local = root.join(".godmode.toml");
-        if let Ok(cfg) = Self::from_file(&local) {
-            return cfg;
-        }
-        // Try global
-        if let Ok(cfg) = Self::from_file(&global_config_path()) {
-            return cfg;
-        }
-        Config::default()
+        load_config(root)
     }
 
     fn from_file(path: &Path) -> Result<Config> {
@@ -104,6 +95,21 @@ impl Config {
             .unwrap_or("unknown")
             .to_string()
     }
+}
+
+fn load_config(root: &Path) -> Config {
+    load_local_config(root)
+        .or_else(load_global_config)
+        .unwrap_or_default()
+}
+
+fn load_local_config(root: &Path) -> Option<Config> {
+    let local = root.join(".godmode.toml");
+    Config::from_file(&local).ok()
+}
+
+fn load_global_config() -> Option<Config> {
+    Config::from_file(&global_config_path()).ok()
 }
 
 /// Extract project name from `git remote get-url origin` — takes the repo

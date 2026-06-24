@@ -78,7 +78,7 @@ pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
             .tasks
             .iter()
             .find(|t| t.id == id)
-            .with_context(|| format!("task '{id}' not found"))?;
+            .with_context(|| task_not_found(id))?;
         if task.status != Status::Pending {
             bail!(
                 "task '{}' is {} — can only start pending tasks",
@@ -114,6 +114,10 @@ pub fn start(graph: &mut TaskGraph, id: &str) -> Result<()> {
     }
     graph.invalidate_done_cache();
     Ok(())
+}
+
+fn task_not_found(id: &str) -> String {
+    format!("task '{id}' not found")
 }
 
 /// Mark a running task as done, recording an optional commit SHA.

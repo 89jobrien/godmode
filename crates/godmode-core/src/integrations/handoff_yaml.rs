@@ -29,6 +29,55 @@ pub struct HandoffItem {
     pub extra: Vec<HandoffExtra>,
 }
 
+impl HandoffItem {
+    fn running(task: &Task) -> Self {
+        Self {
+            id: task.id.clone(),
+            doob_uuid: None,
+            name: slug(&task.title),
+            priority: priority_to_handoff(&task.priority),
+            status: "open".into(),
+            title: task.title.clone(),
+            description: if task.notes.is_empty() {
+                format!("Task {} in progress", task.id)
+            } else {
+                task.notes.clone()
+            },
+            files: vec![],
+            completed: None,
+            extra: vec![],
+        }
+    }
+
+    fn blocked(task: &Task) -> Self {
+        let reason = if task.notes.is_empty() {
+            "blocked (no reason recorded)".into()
+        } else {
+            task.notes.clone()
+        };
+        Self {
+            id: task.id.clone(),
+            doob_uuid: None,
+            name: slug(&task.title),
+            priority: priority_to_handoff(&task.priority),
+            status: "blocked".into(),
+            title: task.title.clone(),
+            description: reason,
+            files: vec![],
+            completed: None,
+            extra: vec![HandoffExtra {
+                date: Some(Utc::now().format("%Y-%m-%d").to_string()),
+                kind: Some("blocker".into()),
+                note: Some(if task.notes.is_empty() {
+                    "no reason recorded".into()
+                } else {
+                    task.notes.clone()
+                }),
+            }],
+        }
+    }
+}
+
 /// Extra metadata on a handoff item (notes, blockers, etc).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffExtra {
@@ -69,51 +118,8 @@ pub fn items_from_tasks(tasks: &[Task]) -> Vec<HandoffItem> {
 
     for t in tasks {
         match t.status {
-            Status::Running => {
-                items.push(HandoffItem {
-                    id: t.id.clone(),
-                    doob_uuid: None,
-                    name: slug(&t.title),
-                    priority: priority_to_handoff(&t.priority),
-                    status: "open".into(),
-                    title: t.title.clone(),
-                    description: if t.notes.is_empty() {
-                        format!("Task {} in progress", t.id)
-                    } else {
-                        t.notes.clone()
-                    },
-                    files: vec![],
-                    completed: None,
-                    extra: vec![],
-                });
-            }
-            Status::Blocked => {
-                let reason = if t.notes.is_empty() {
-                    "blocked (no reason recorded)".into()
-                } else {
-                    t.notes.clone()
-                };
-                items.push(HandoffItem {
-                    id: t.id.clone(),
-                    doob_uuid: None,
-                    name: slug(&t.title),
-                    priority: priority_to_handoff(&t.priority),
-                    status: "blocked".into(),
-                    title: t.title.clone(),
-                    description: reason,
-                    files: vec![],
-                    completed: None,
-                    extra: vec![HandoffExtra {
-                        date: Some(Utc::now().format("%Y-%m-%d").to_string()),
-                        kind: Some("blocker".into()),
-                        note: Some(if t.notes.is_empty() {
-                            "no reason recorded".into()
-                        } else {
-                            t.notes.clone()
-                        }),
-                    }],
-                });
-            }
+            Status::Running => items.push(HandoffItem::running(t)),
+            Status::Blocked => items.push(HandoffItem::blocked(t)),
             Status::Pending | Status::Done => {}
         }
     }
@@ -207,23 +213,18 @@ pub fn write_handoff(
     };
 
     // Read existing file or create new
+    let base = HandoffFile {
+        project: project.clone(),
+        id: project.clone(),
+        updated: today,
+        items: vec![],
+        log: vec![],
+    };
     let mut handoff = if path.exists() {
         let raw = std::fs::read_to_string(&path)?;
-        serde_yaml::from_str::<HandoffFile>(&raw).unwrap_or(HandoffFile {
-            project: project.clone(),
-            id: project.clone(),
-            updated: today,
-            items: vec![],
-            log: vec![],
-        })
+        serde_yaml::from_str::<HandoffFile>(&raw).unwrap_or(base)
     } else {
-        HandoffFile {
-            project: project.clone(),
-            id: project.clone(),
-            updated: today,
-            items: vec![],
-            log: vec![],
-        }
+        base
     };
 
     // Replace items (current state is source of truth)

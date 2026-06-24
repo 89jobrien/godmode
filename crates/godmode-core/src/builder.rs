@@ -31,6 +31,17 @@ pub struct BuildSummary {
     pub next: Vec<String>,
 }
 
+impl BuildSummary {
+    fn new(added: usize, wired: usize, findings: Vec<String>, next: Vec<String>) -> Self {
+        Self {
+            added,
+            wired,
+            findings,
+            next,
+        }
+    }
+}
+
 // ── public API ─────────────────────────────────────────────────────────────
 
 /// Drive interactive graph construction on stdin/stdout.
@@ -56,12 +67,10 @@ pub fn build_from_file(root: &Path, path: &Path, vars: &[String]) -> Result<Buil
     let findings = validate(&g);
     let next = graph::runnable(&g).iter().map(|t| t.id.clone()).collect();
 
-    Ok(BuildSummary {
-        added,
-        wired: 0, // deps come from the template file, not prompted
-        findings,
-        next,
-    })
+    Ok(BuildSummary::new(
+        added, 0, // deps come from the template file, not prompted
+        findings, next,
+    ))
 }
 
 /// Inspect a graph and return human-readable finding strings.
@@ -234,12 +243,7 @@ where
         writeln!(writer, "\nNo tasks added.")?;
         let findings = validate(&g);
         let next = graph::runnable(&g).iter().map(|t| t.id.clone()).collect();
-        return Ok(BuildSummary {
-            added: 0,
-            wired: 0,
-            findings,
-            next,
-        });
+        return Ok(BuildSummary::new(0, 0, findings, next));
     }
 
     // ── Phase 2: Wire ──────────────────────────────────────────────────────
@@ -336,12 +340,7 @@ where
         writeln!(writer, "\nGraph ready. Run: godmode task next")?;
     }
 
-    Ok(BuildSummary {
-        added,
-        wired,
-        findings,
-        next,
-    })
+    Ok(BuildSummary::new(added, wired, findings, next))
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────

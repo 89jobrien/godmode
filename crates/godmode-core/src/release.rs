@@ -389,15 +389,14 @@ fn load_config(root: &Path) -> Result<VersionBumpConfig> {
     let path = config_path(root);
     let content =
         fs::read_to_string(&path).with_context(|| format!("missing {}", path.display()))?;
-    serde_json::from_str(&content).with_context(|| format!("invalid JSON in {}", path.display()))
+    parse_json(&content, &path)
 }
 
 fn read_version_field(root: &Path, target: &FileTarget) -> Result<String> {
     let path = root.join(&target.path);
     let content =
         fs::read_to_string(&path).with_context(|| format!("cannot read {}", path.display()))?;
-    let json: serde_json::Value = serde_json::from_str(&content)
-        .with_context(|| format!("invalid JSON in {}", path.display()))?;
+    let json: serde_json::Value = parse_json(&content, &path)?;
     json.get(&target.field)
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
@@ -408,8 +407,7 @@ fn write_version_field(root: &Path, target: &FileTarget, version: &str) -> Resul
     let path = root.join(&target.path);
     let content =
         fs::read_to_string(&path).with_context(|| format!("cannot read {}", path.display()))?;
-    let mut json: serde_json::Value = serde_json::from_str(&content)
-        .with_context(|| format!("invalid JSON in {}", path.display()))?;
+    let mut json: serde_json::Value = parse_json(&content, &path)?;
     let obj = json
         .as_object_mut()
         .with_context(|| format!("expected JSON object in {}", path.display()))?;
@@ -421,6 +419,10 @@ fn write_version_field(root: &Path, target: &FileTarget, version: &str) -> Resul
     fs::write(&path, updated + "\n")
         .with_context(|| format!("failed to write {}", path.display()))?;
     Ok(())
+}
+
+fn parse_json<T: serde::de::DeserializeOwned>(content: &str, path: &Path) -> Result<T> {
+    serde_json::from_str(content).with_context(|| format!("invalid JSON in {}", path.display()))
 }
 
 fn bump_patch(version: &str) -> Result<String> {

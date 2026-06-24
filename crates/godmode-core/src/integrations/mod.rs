@@ -19,6 +19,10 @@ use crate::{config::Config, graph, model::Status, pipeline, session};
 
 /// Run the full handon sequence: hj handon + doob next todo + local graph triage.
 pub fn handon(root: &Path) -> Result<HandonOutput> {
+    build_handon(root)
+}
+
+fn build_handon(root: &Path) -> Result<HandonOutput> {
     let cfg = Config::load(root);
 
     // Ensure sessions dir exists so trace writes don't silently fail
@@ -88,6 +92,10 @@ pub fn handon(root: &Path) -> Result<HandonOutput> {
 
 /// Run the full handoff sequence: local graph check + hj handoff + dirty tree.
 pub fn handoff(root: &Path) -> Result<HandoffOutput> {
+    build_handoff(root)
+}
+
+fn build_handoff(root: &Path) -> Result<HandoffOutput> {
     let cfg = Config::load(root);
     let summary = session::handoff(root)?;
 

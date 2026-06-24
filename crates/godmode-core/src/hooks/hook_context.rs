@@ -36,29 +36,13 @@ impl HookContext {
     /// Build hook context from stdin JSON and the current repo.
     /// Returns `None` if any precondition fails (not a git repo, no task file, etc.).
     pub fn load(stdin_json: &str) -> Option<Self> {
-        let input: HookInput = serde_json::from_str(stdin_json).ok()?;
         let git_root = find_git_root()?;
-        let task_file = crate::graph::task_file(&git_root);
-        if !task_file.exists() {
-            return None;
-        }
-        let ctx = context::build(&git_root).ok()?;
-        Some(Self::from_session_context(input, git_root, ctx))
+        load_hook_context(stdin_json, &git_root)
     }
 
     /// Build from an already-resolved git root (skips git-root detection).
     pub fn load_with_root(stdin_json: &str, git_root: &Path) -> Option<Self> {
-        let input: HookInput = serde_json::from_str(stdin_json).ok()?;
-        let task_file = crate::graph::task_file(git_root);
-        if !task_file.exists() {
-            return None;
-        }
-        let ctx = context::build(git_root).ok()?;
-        Some(Self::from_session_context(
-            input,
-            git_root.to_path_buf(),
-            ctx,
-        ))
+        load_hook_context(stdin_json, git_root)
     }
 
     fn from_session_context(input: HookInput, git_root: PathBuf, ctx: SessionContext) -> Self {
@@ -108,6 +92,24 @@ impl HookContext {
             .and_then(|v| v.as_str())
             .unwrap_or("")
     }
+}
+
+fn load_hook_context(stdin_json: &str, git_root: &Path) -> Option<HookContext> {
+    let input = parse_hook_input(stdin_json)?;
+    let task_file = crate::graph::task_file(git_root);
+    if !task_file.exists() {
+        return None;
+    }
+    let ctx = context::build(git_root).ok()?;
+    Some(HookContext::from_session_context(
+        input,
+        git_root.to_path_buf(),
+        ctx,
+    ))
+}
+
+fn parse_hook_input(stdin_json: &str) -> Option<HookInput> {
+    serde_json::from_str(stdin_json).ok()
 }
 
 /// Walk up from CWD to find the git root.

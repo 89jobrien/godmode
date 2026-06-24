@@ -582,6 +582,11 @@ subagent:
     }
 
     #[test]
+    fn default_max_calls_is_stable() {
+        assert_eq!(default_max_calls(), 200);
+    }
+
+    #[test]
     fn resolve_default_policy() {
         let tmp = TempDir::new().unwrap();
         setup_policies(tmp.path());

@@ -6,28 +6,62 @@ items:
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (9 files)
+  title: Uncommitted changes (26 files)
   description: |-
     Working tree has uncommitted changes:
+    .ctx/HANDOFF.godmode.godmode.yaml
+    Cargo.lock
+    Cargo.toml
+    crates/godmode-cli/Cargo.toml
+    crates/godmode-cli/src/main.rs
+    crates/godmode-core/Cargo.toml
+    crates/godmode-core/src/agent.rs
+    crates/godmode-core/src/builder.rs
+    crates/godmode-core/src/config.rs
+    crates/godmode-core/src/doctor.rs
+    crates/godmode-core/src/graph.rs
+    crates/godmode-core/src/hooks/agent_governance.rs
+    crates/godmode-core/src/hooks/hook_context.rs
+    crates/godmode-core/src/integrations/handoff_yaml.rs
+    crates/godmode-core/src/integrations/hook_migrate.rs
+    crates/godmode-core/src/integrations/mod.rs
+    crates/godmode-core/src/pipeline.rs
+    crates/godmode-core/src/policy.rs
+    crates/godmode-core/src/release.rs
+    crates/godmode-core/src/templates.rs
+    crates/godmode-core/src/verify.rs
+    crates/godmode-core/tests/hooks_integration.rs
+    skills/rustqual-workspace/helpers/triage.nu
     .codex-plugin/
     AGENTS.md
-    aichat/
-    docs/aichat-system.md
-    pipelines/aichat-system.yaml
-    scripts/aichat-system-install.nu
     skills/depgraph/
-    skills/rustqual-workspace/references/
-    templates/AICHAT-SYSTEM.template.yaml
   files:
+  - .ctx/HANDOFF.godmode.godmode.yaml
+  - Cargo.lock
+  - Cargo.toml
+  - crates/godmode-cli/Cargo.toml
+  - crates/godmode-cli/src/main.rs
+  - crates/godmode-core/Cargo.toml
+  - crates/godmode-core/src/agent.rs
+  - crates/godmode-core/src/builder.rs
+  - crates/godmode-core/src/config.rs
+  - crates/godmode-core/src/doctor.rs
+  - crates/godmode-core/src/graph.rs
+  - crates/godmode-core/src/hooks/agent_governance.rs
+  - crates/godmode-core/src/hooks/hook_context.rs
+  - crates/godmode-core/src/integrations/handoff_yaml.rs
+  - crates/godmode-core/src/integrations/hook_migrate.rs
+  - crates/godmode-core/src/integrations/mod.rs
+  - crates/godmode-core/src/pipeline.rs
+  - crates/godmode-core/src/policy.rs
+  - crates/godmode-core/src/release.rs
+  - crates/godmode-core/src/templates.rs
+  - crates/godmode-core/src/verify.rs
+  - crates/godmode-core/tests/hooks_integration.rs
+  - skills/rustqual-workspace/helpers/triage.nu
   - .codex-plugin/
   - AGENTS.md
-  - aichat/
-  - docs/aichat-system.md
-  - pipelines/aichat-system.yaml
-  - scripts/aichat-system-install.nu
   - skills/depgraph/
-  - skills/rustqual-workspace/references/
-  - templates/AICHAT-SYSTEM.template.yaml
 log:
 - date: '20260624.034755'
   summary: done=12 running=0 pending=0 blocked=0

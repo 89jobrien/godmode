@@ -276,12 +276,41 @@ pub struct StepResult {
     pub skipped: bool,
 }
 
+impl StepResult {
+    fn new(skill: String, tasks_run: usize, tasks_failed: usize, skipped: bool) -> Self {
+        Self {
+            skill,
+            tasks_run,
+            tasks_failed,
+            skipped,
+        }
+    }
+}
+
 /// Result of a full pipeline run.
 #[derive(Debug, Clone, Serialize)]
 pub struct RunResult {
     pub steps: Vec<StepResult>,
     pub completed: bool,
     pub stopped_at: Option<String>,
+}
+
+impl RunResult {
+    fn complete(steps: Vec<StepResult>, completed: bool) -> Self {
+        Self {
+            steps,
+            completed,
+            stopped_at: None,
+        }
+    }
+
+    fn stopped_at(steps: Vec<StepResult>, stopped_at: String) -> Self {
+        Self {
+            steps,
+            completed: false,
+            stopped_at: Some(stopped_at),
+        }
+    }
 }
 
 /// Walk the pipeline, executing task `run:` fields for each step.
@@ -333,12 +362,7 @@ pub fn run_tasks(root: &Path, pipeline_name: &str, fail_fast: bool) -> Result<Ru
 
         if runnables.is_empty() {
             // No runnable tasks with run: fields — skip this step.
-            results.push(StepResult {
-                skill: step.skill.clone(),
-                tasks_run: 0,
-                tasks_failed: 0,
-                skipped: true,
-            });
+            results.push(StepResult::new(step.skill.clone(), 0, 0, true));
             advance(&mut state, &p);
             save_state(root, &state)?;
             continue;
@@ -418,34 +442,25 @@ pub fn run_tasks(root: &Path, pipeline_name: &str, fail_fast: bool) -> Result<Ru
             }
         }
 
-        let step_result = StepResult {
-            skill: step.skill.clone(),
+        results.push(StepResult::new(
+            step.skill.clone(),
             tasks_run,
             tasks_failed,
-            skipped: false,
-        };
-        results.push(step_result);
+            false,
+        ));
 
         // Advance pipeline state.
         if tasks_failed > 0 {
             // Don't advance on failure — record where we stopped.
             save_state(root, &state)?;
-            return Ok(RunResult {
-                stopped_at: Some(step.skill.clone()),
-                steps: results,
-                completed: false,
-            });
+            return Ok(RunResult::stopped_at(results, step.skill.clone()));
         }
 
         advance(&mut state, &p);
         save_state(root, &state)?;
     }
 
-    Ok(RunResult {
-        steps: results,
-        completed: is_complete(&state, &p),
-        stopped_at: None,
-    })
+    Ok(RunResult::complete(results, is_complete(&state, &p)))
 }
 
 // ---------------------------------------------------------------------------

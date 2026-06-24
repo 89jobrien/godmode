@@ -17,6 +17,24 @@ pub struct GovernanceDecision {
     pub reminders: Vec<String>,
 }
 
+impl GovernanceDecision {
+    fn approve(reason: impl Into<String>, reminders: Vec<String>) -> Self {
+        Self {
+            approved: true,
+            reason: reason.into(),
+            reminders,
+        }
+    }
+
+    fn block(reason: impl Into<String>) -> Self {
+        Self {
+            approved: false,
+            reason: reason.into(),
+            reminders: vec![],
+        }
+    }
+}
+
 /// Run governance check. Returns a decision.
 pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
     let tool_input = input.get("tool_input").cloned().unwrap_or(Value::Null);
@@ -44,55 +62,37 @@ pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
     // Resolve policy
     let resolved = match policy::resolve(root, resolve_name, None) {
         Ok(r) => r,
-        Err(_) => {
-            return GovernanceDecision {
-                approved: true,
-                reason: "policy_resolution_failed".into(),
-                reminders: vec![],
-            };
-        }
+        Err(_) => return GovernanceDecision::approve("policy_resolution_failed", vec![]),
     };
 
     // Check if Agent tool is blocked
     if resolved.policy.blocked_tools.contains(&"Agent".to_string()) {
-        return GovernanceDecision {
-            approved: false,
-            reason: format!("Policy for {resolve_name} blocks Agent tool"),
-            reminders: vec![],
-        };
+        return GovernanceDecision::block(format!("Policy for {resolve_name} blocks Agent tool"));
     }
 
     // Check allowed_tools intersection
     if !resolved.policy.allowed_tools.is_empty()
         && !resolved.policy.allowed_tools.contains(&"Agent".to_string())
     {
-        return GovernanceDecision {
-            approved: false,
-            reason: format!("Policy for {resolve_name} does not include Agent in allowed_tools"),
-            reminders: vec![],
-        };
+        return GovernanceDecision::block(format!(
+            "Policy for {resolve_name} does not include Agent in allowed_tools"
+        ));
     }
 
     // Check blocked patterns against prompt/description content
     let content = format!("{description}\n{prompt_text}");
     for pattern in &resolved.policy.blocked_patterns {
         if regex::Regex::new(pattern).is_ok_and(|re| re.is_match(&content)) {
-            return GovernanceDecision {
-                approved: false,
-                reason: format!("Content matches blocked pattern: {pattern}"),
-                reminders: vec![],
-            };
+            return GovernanceDecision::block(format!(
+                "Content matches blocked pattern: {pattern}"
+            ));
         }
     }
 
     // Check subagent constraints
     let subagent = &resolved.policy.subagent;
     if subagent.max_concurrent == 0 {
-        return GovernanceDecision {
-            approved: false,
-            reason: "Policy forbids subagent dispatch (max_concurrent: 0)".into(),
-            reminders: vec![],
-        };
+        return GovernanceDecision::block("Policy forbids subagent dispatch (max_concurrent: 0)");
     }
 
     // Build reminders
@@ -117,11 +117,7 @@ pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
         ));
     }
 
-    GovernanceDecision {
-        approved: true,
-        reason: "passed all checks".into(),
-        reminders,
-    }
+    GovernanceDecision::approve("passed all checks", reminders)
 }
 
 /// Format the decision as JSON for stdout.

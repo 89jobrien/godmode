@@ -13,6 +13,9 @@
 def main [
     --crate: string = ""    # path to a single crate (default: scan all)
     --json                  # output as JSON instead of table
+    # TODO(#82): add --top N flag to limit output to top N findings per category
+    # TODO(#83): add --only <code> flag to filter to a single finding code (e.g. --only DEAD_CODE)
+    # TODO(#84): add --fix-config flag to auto-generate a rustqual.toml patch for config-only findings
 ] {
     let workspace_root = $env.PWD
 
@@ -112,6 +115,7 @@ def main [
                               line: ($f | get -o line | default 0),
                               function: ($f | get -o name | default ""),
                               detail: "logic + calls"} }
+                # TODO(#85): also surface complexity warnings from functions where cognitive > threshold
 
             let findings = [$dead, $tq, $bp, $srp_struct, $srp_mod, $violations]
                 | flatten

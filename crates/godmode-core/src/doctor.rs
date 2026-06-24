@@ -8,6 +8,16 @@ pub struct CheckResult {
     pub detail: String,
 }
 
+impl CheckResult {
+    fn new(name: String, passed: bool, detail: String) -> Self {
+        Self {
+            name,
+            passed,
+            detail,
+        }
+    }
+}
+
 /// Full doctor report.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct DoctorReport {
@@ -42,41 +52,41 @@ pub fn run_doctor(probe: &dyn EnvironmentProbe) -> DoctorReport {
     // Tool checks
     for &tool in REQUIRED_TOOLS {
         let found = probe.has_tool(tool);
-        checks.push(CheckResult {
-            name: format!("tool:{tool}"),
-            passed: found,
-            detail: if found {
+        checks.push(CheckResult::new(
+            format!("tool:{tool}"),
+            found,
+            if found {
                 "found".into()
             } else {
                 "not found on PATH".into()
             },
-        });
+        ));
     }
 
     // 1Password auth
     let op_ok = probe.op_authed();
-    checks.push(CheckResult {
-        name: "op:auth".into(),
-        passed: op_ok,
-        detail: if op_ok {
+    checks.push(CheckResult::new(
+        "op:auth".into(),
+        op_ok,
+        if op_ok {
             "authenticated".into()
         } else {
             "not authenticated".into()
         },
-    });
+    ));
 
     // Stale worktrees
     let stale = probe.stale_worktrees();
     let wt_ok = stale.is_empty();
-    checks.push(CheckResult {
-        name: "worktrees:stale".into(),
-        passed: wt_ok,
-        detail: if wt_ok {
+    checks.push(CheckResult::new(
+        "worktrees:stale".into(),
+        wt_ok,
+        if wt_ok {
             "none".into()
         } else {
             format!("stale: {}", stale.join(", "))
         },
-    });
+    ));
 
     let all_passed = checks.iter().all(|c| c.passed);
     DoctorReport { checks, all_passed }

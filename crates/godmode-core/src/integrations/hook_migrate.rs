@@ -11,6 +11,12 @@ pub struct MigrationResult {
     pub output: String,
 }
 
+impl MigrationResult {
+    fn new(name: String, ok: bool, output: String) -> Self {
+        Self { name, ok, output }
+    }
+}
+
 /// Run all `hooks/migrations/*.nu` scripts in sorted order.
 ///
 /// Each script is expected to be idempotent. Individual failures are recorded
@@ -46,17 +52,9 @@ pub fn run_migrations(root: &Path) -> Result<Vec<MigrationResult>> {
                     String::from_utf8_lossy(&o.stdout),
                     String::from_utf8_lossy(&o.stderr)
                 );
-                MigrationResult {
-                    name,
-                    ok: o.status.success(),
-                    output: combined.trim().to_string(),
-                }
+                MigrationResult::new(name, o.status.success(), combined.trim().to_string())
             }
-            Err(e) => MigrationResult {
-                name,
-                ok: false,
-                output: format!("failed to launch nu: {}", e),
-            },
+            Err(e) => MigrationResult::new(name, false, format!("failed to launch nu: {}", e)),
         };
         results.push(result);
     }

@@ -776,7 +776,25 @@ fn exit_empty(json: bool) -> ! {
     std::process::exit(2);
 }
 
-fn main() -> Result<()> {
+fn main() -> miette::Result<()> {
+    install_miette_theme();
+    match run() {
+        Ok(()) => Ok(()),
+        Err(err) => match err.downcast::<templates::TemplateError>() {
+            Ok(err) => Err(miette::Report::new(err)),
+            Err(err) => Err(miette::miette!("{err:#}")),
+        },
+    }
+}
+
+fn install_miette_theme() {
+    let handler = miette::MietteHandlerOpts::new()
+        .graphical_theme(miette::GraphicalTheme::unicode())
+        .color(true);
+    let _ = miette::set_hook(Box::new(move |_| Box::new(handler.clone().build())));
+}
+
+fn run() -> Result<()> {
     let cli = Cli::parse();
     let json = cli.json;
     let sarif = cli.sarif;
