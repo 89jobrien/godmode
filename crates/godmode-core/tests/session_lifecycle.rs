@@ -112,7 +112,7 @@ fn lifecycle_invalid_transitions_are_rejected() {
     let cfg = disabled_config();
     let mut s = Session::open_with_config(dir.path(), &cfg).unwrap();
 
-    let mut t1 = Task::new("t1", "First");
+    let t1 = Task::new("t1", "First");
     let mut t2 = Task::new("t2", "Second");
     t2.depends_on = vec!["t1".into()];
     s.add_task(t1).unwrap();

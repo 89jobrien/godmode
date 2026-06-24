@@ -1,3 +1,5 @@
+#![allow(clippy::items_after_test_module)]
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use godmode_core::integrations::hook_runner;

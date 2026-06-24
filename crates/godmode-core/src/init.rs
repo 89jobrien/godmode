@@ -225,7 +225,7 @@ mod tests {
         )
         .unwrap();
         assert!(report.global_created);
-        assert!(report.project_created == false);
+        assert!(!report.project_created);
         assert!(report.project_path.is_none());
         assert!(
             fs.get_file(Path::new("/home/user/.config/godmode/config.toml"))

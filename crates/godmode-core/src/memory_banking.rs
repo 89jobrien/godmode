@@ -269,8 +269,7 @@ mod tests {
     use tempfile::TempDir;
 
     fn setup_fake_root() -> TempDir {
-        let tmp = TempDir::new().expect("create tempdir");
-        tmp
+        TempDir::new().expect("create tempdir")
     }
 
     fn setup_with_memory_bank(files: &[(&str, &str)]) -> TempDir {

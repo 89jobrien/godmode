@@ -1,0 +1,63 @@
+meta:
+  name: AICHAT-SYSTEM
+  description: "Install and validate the godmode AIChat assistant system"
+  vars:
+    - name: prefix
+      default: "ai"
+    - name: agent
+      default: "godmode-assistant"
+    - name: target
+      default: "$HOME/.config/aichat"
+
+tasks:
+  - id: "{{prefix}}1"
+    title: "Inspect AIChat assistant source assets"
+    status: pending
+    depends_on: []
+    crate_name: "godmode"
+    run: "aichat --version && find aichat -maxdepth 4 -type f | sort"
+    priority: high
+    tags: ["aichat", "inspection"]
+    notes: "Confirm the repo-local source pack exists before installing"
+
+  - id: "{{prefix}}2"
+    title: "Install {{agent}} into {{target}}"
+    status: pending
+    depends_on: ["{{prefix}}1"]
+    crate_name: "godmode"
+    run: "nu scripts/aichat-system-install.nu --target {{target}}"
+    priority: high
+    tags: ["aichat", "install"]
+    notes: "Installer merges agents.txt and copies agent, role, and config assets"
+
+  - id: "{{prefix}}3"
+    title: "Validate {{agent}} with AIChat info mode"
+    status: pending
+    depends_on: ["{{prefix}}2"]
+    crate_name: "godmode"
+    run: "AICHAT_CONFIG_DIR={{target}} aichat --agent {{agent}} --info"
+    priority: high
+    tags: ["aichat", "validation", "dry-run"]
+    notes: "Info mode validates agent definition without spending model tokens"
+
+  - id: "{{prefix}}4"
+    title: "Dry-run {{agent}} prompt rendering"
+    status: pending
+    depends_on: ["{{prefix}}3"]
+    crate_name: "godmode"
+    run: >-
+      AICHAT_CONFIG_DIR={{target}} aichat --agent {{agent}} --dry-run
+      "Create a godmode task graph for a Rust feature"
+    priority: normal
+    tags: ["aichat", "smoke"]
+    notes: "Dry-run may require a configured model in the target config"
+
+  - id: "{{prefix}}5"
+    title: "Document {{agent}} usage"
+    status: pending
+    depends_on: ["{{prefix}}4"]
+    crate_name: "godmode"
+    run: "sed -n '1,220p' docs/aichat-system.md"
+    priority: normal
+    tags: ["docs", "aichat"]
+    notes: "Confirm the usage guide documents install, path caveats, and validation"

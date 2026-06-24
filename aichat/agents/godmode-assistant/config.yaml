@@ -1,0 +1,8 @@
+model: null
+temperature: 0
+top_p: null
+use_tools: null
+agent_prelude: null
+variables:
+  repo: /Users/joe/dev/godmode
+  config_dir: $HOME/.config/aichat

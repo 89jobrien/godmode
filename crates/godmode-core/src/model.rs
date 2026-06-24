@@ -1,3 +1,5 @@
+#![allow(clippy::items_after_test_module)]
+
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 

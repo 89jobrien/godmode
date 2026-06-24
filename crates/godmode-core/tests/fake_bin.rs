@@ -1,4 +1,6 @@
 //! Fake-binary test harness.
+#![allow(dead_code)]
+#![allow(clippy::new_ret_no_self)]
 //!
 //! `FakeBin` writes a minimal shell script to a `TempDir` that prints fixed output and
 //! exits with a configured code. Prepend `dir()` to `PATH` before calling any integration

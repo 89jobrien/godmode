@@ -5,7 +5,7 @@
 
 #[cfg(test)]
 mod session_properties {
-    use godmode_core::model::{Status, Task, TaskGraph};
+    use godmode_core::model::{Status, Task};
     use godmode_core::session::Session;
     use proptest::prelude::*;
 

@@ -1,0 +1,12 @@
+name: aichat-system
+description: Build, install, validate, and review the godmode AIChat assistant system
+steps:
+  - skill: context-map
+  - skill: writing-plans
+  - skill: task-management
+  - skill: task-driven-development
+    loop: per-task
+  - skill: testing-philosophy
+  - skill: code-review
+  - skill: verification-before-completion
+entry_points: [context-map, task-management]

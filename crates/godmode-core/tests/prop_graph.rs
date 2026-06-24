@@ -1,4 +1,5 @@
 //! Property-based tests for `graph`, `plan`, and `dispatch`.
+#![allow(clippy::needless_range_loop)]
 //!
 //! Run with: cargo nextest run --test prop_graph
 

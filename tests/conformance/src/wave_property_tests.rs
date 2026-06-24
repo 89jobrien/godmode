@@ -177,11 +177,8 @@ mod wave_properties {
             };
             let mut health = SlotHealth::default();
             let mut retry_count = 0usize;
-            loop {
-                match wave::on_blocked(&mut health, &cfg) {
-                    BlockOutcome::Retry { .. } => retry_count += 1,
-                    BlockOutcome::Exhausted => break,
-                }
+            while let BlockOutcome::Retry { .. } = wave::on_blocked(&mut health, &cfg) {
+                retry_count += 1;
             }
             prop_assert_eq!(retry_count, max_retries);
         }
