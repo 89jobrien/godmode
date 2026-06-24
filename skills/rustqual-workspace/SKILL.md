@@ -21,6 +21,15 @@ that require configuration rather than code changes.
 For full rustqual reference (finding codes, CLI flags, config schema, quality loop),
 see the `rustqual` skill. This skill covers only the workspace-specific patterns.
 
+## Reference Files
+
+- **`references/workspace-toml-examples.md`** — Annotated `rustqual.toml` configs for
+  four common workspace shapes: lib+binary, multi-crate with per-crate overrides,
+  cfg-gated code (Kani/testutil), and workspaces with integration test binaries.
+- **`helpers/triage.nu`** — Per-crate triage script. Runs rustqual on each crate,
+  annotates findings with recommended actions (fix vs. config vs. suppress), and
+  groups output by action type. Usage: `nu helpers/triage.nu [--crate <path>] [--json]`
+
 ## The Core Limitation
 
 rustqual analyzes one crate at a time. It cannot see:
