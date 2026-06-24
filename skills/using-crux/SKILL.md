@@ -120,7 +120,7 @@ and SOLID decomposition.
 
 Pipeline definitions use the `.crux` file extension (YAML syntax). See the
 `planning-with-crux` skill for pipeline authoring guidance, or
-the `planning-with-crux` skill's `references/handler-catalog.md` for the full handler reference.
+the `planning-with-crux` skill's references/handler-catalog.md for the full handler reference.
 
 ## Testing
 
