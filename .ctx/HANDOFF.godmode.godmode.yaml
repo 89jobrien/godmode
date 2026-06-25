@@ -1,113 +1,78 @@
 project: godmode
 id: godmode
-updated: 2026-06-24
+updated: 2026-06-25
 items:
 - id: uncommitted-work
+  doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (26 files)
+  title: Uncommitted changes (7 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    Cargo.lock
-    Cargo.toml
     crates/godmode-cli/Cargo.toml
     crates/godmode-cli/src/main.rs
-    crates/godmode-core/Cargo.toml
-    crates/godmode-core/src/agent.rs
-    crates/godmode-core/src/builder.rs
-    crates/godmode-core/src/config.rs
-    crates/godmode-core/src/doctor.rs
-    crates/godmode-core/src/graph.rs
-    crates/godmode-core/src/hooks/agent_governance.rs
-    crates/godmode-core/src/hooks/hook_context.rs
-    crates/godmode-core/src/integrations/handoff_yaml.rs
-    crates/godmode-core/src/integrations/hook_migrate.rs
-    crates/godmode-core/src/integrations/mod.rs
-    crates/godmode-core/src/pipeline.rs
-    crates/godmode-core/src/policy.rs
-    crates/godmode-core/src/release.rs
-    crates/godmode-core/src/templates.rs
-    crates/godmode-core/src/verify.rs
-    crates/godmode-core/tests/hooks_integration.rs
-    skills/rustqual-workspace/helpers/triage.nu
     .codex-plugin/
     AGENTS.md
+    crates/godmode-cli/src/commands/
     skills/depgraph/
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - Cargo.lock
-  - Cargo.toml
   - crates/godmode-cli/Cargo.toml
   - crates/godmode-cli/src/main.rs
-  - crates/godmode-core/Cargo.toml
-  - crates/godmode-core/src/agent.rs
-  - crates/godmode-core/src/builder.rs
-  - crates/godmode-core/src/config.rs
-  - crates/godmode-core/src/doctor.rs
-  - crates/godmode-core/src/graph.rs
-  - crates/godmode-core/src/hooks/agent_governance.rs
-  - crates/godmode-core/src/hooks/hook_context.rs
-  - crates/godmode-core/src/integrations/handoff_yaml.rs
-  - crates/godmode-core/src/integrations/hook_migrate.rs
-  - crates/godmode-core/src/integrations/mod.rs
-  - crates/godmode-core/src/pipeline.rs
-  - crates/godmode-core/src/policy.rs
-  - crates/godmode-core/src/release.rs
-  - crates/godmode-core/src/templates.rs
-  - crates/godmode-core/src/verify.rs
-  - crates/godmode-core/tests/hooks_integration.rs
-  - skills/rustqual-workspace/helpers/triage.nu
   - .codex-plugin/
   - AGENTS.md
+  - crates/godmode-cli/src/commands/
   - skills/depgraph/
+  completed: null
+  extra: []
 log:
+- date: '20260625.120000'
+  summary: Agent-improvement-loop skill added; rustqual quality improvements; doc fixes
+  commits:
+  - e93fe01
+  - c12b55b
+  - eb5bf32
+- date: '20260625.011539'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260624.034755'
   summary: done=12 running=0 pending=0 blocked=0
-  commits:
-  - ede1a3d262ec3f518c3ecc8743640bd3f95a2d0c
-  - b2a03f83fc1cd48f75d5fdba877948e9d640394b
-  - 0ce0b6efcb9a2315aefc65b8ac743c4ade688637
-  - 1813d2113babab172632a43d3d3024751c9e4d53
-  - 73ed9e7e6860aca08da259a6dc896ef1794d5258
-  - b106f299d7df3a566569e3f049e50ae4c4e67c9e
-  - 2db1b8c5f111f1a520eb616249c5661d6c95570d
-  - 3c9dff5df23bc83ba88881fa281952ffebd15780
-  - f45b6418ee7dfa97708ee36b02dbcd93f196268b
-  - 4c136262767587f69bac42a83677763d294ed857
+  commits: []
 - date: '20260624.031109'
   summary: done=11 running=1 pending=0 blocked=0
-  commits:
-  - b2a03f83fc1cd48f75d5fdba877948e9d640394b
-  - 0ce0b6efcb9a2315aefc65b8ac743c4ade688637
-  - 1813d2113babab172632a43d3d3024751c9e4d53
-  - 73ed9e7e6860aca08da259a6dc896ef1794d5258
-  - b106f299d7df3a566569e3f049e50ae4c4e67c9e
-  - 2db1b8c5f111f1a520eb616249c5661d6c95570d
-  - 3c9dff5df23bc83ba88881fa281952ffebd15780
-  - f45b6418ee7dfa97708ee36b02dbcd93f196268b
-  - 4c136262767587f69bac42a83677763d294ed857
-  - 7ddd0bd24f92eeb56de04dcd3ad8d102ae7097e9
+  commits: []
 - date: '20260609.015541'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260608.003736'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260606.171219'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260605.042525'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.081919'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.074109'
   summary: done=26 running=1 pending=0 blocked=0
+  commits: []
 - date: '20260604.055151'
   summary: done=0 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.054949'
   summary: done=18 running=1 pending=8 blocked=0
+  commits: []
 - date: '20260604.054344'
   summary: done=2 running=1 pending=24 blocked=0
+  commits: []
 - date: '20260604.050028'
   summary: done=1 running=0 pending=7 blocked=0
+  commits: []
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
+  commits: []
