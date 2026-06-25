@@ -227,6 +227,7 @@ pub enum ChainOutcome {
 /// `Err(true)` for a transient block (retry-eligible) or `Err(false)` for permanent failure.
 ///
 /// Returns the per-chain outcomes in chain order.
+// qual:test_helper
 pub fn dispatch_with_config<F>(
     chains: &[Chain],
     config: &WaveConfig,
@@ -284,6 +285,7 @@ where
 /// is called per-chain. Retries use `tokio::time::sleep` instead of `thread::sleep`.
 ///
 /// Returns per-chain outcomes in the same order as input chains.
+// qual:test_helper
 pub async fn async_dispatch_with_config<F, Fut>(
     chains: &[Chain],
     config: &WaveConfig,
@@ -364,6 +366,7 @@ where
 /// Check if any two chains target the same crate, which would cause merge
 /// conflicts when dispatched in parallel. Returns pairs of conflicting chain
 /// indices with the shared crate name.
+// qual:test_helper
 pub fn file_overlap_warnings(chains: &[Chain]) -> Vec<(usize, usize, String)> {
     let mut warnings = Vec::new();
     for (i, a) in chains.iter().enumerate() {

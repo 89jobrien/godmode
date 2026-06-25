@@ -35,14 +35,20 @@ pub enum GovernanceLevel {
     Locked,
 }
 
+impl GovernanceLevel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Open => "open",
+            Self::Standard => "standard",
+            Self::Strict => "strict",
+            Self::Locked => "locked",
+        }
+    }
+}
+
 impl std::fmt::Display for GovernanceLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Open => write!(f, "open"),
-            Self::Standard => write!(f, "standard"),
-            Self::Strict => write!(f, "strict"),
-            Self::Locked => write!(f, "locked"),
-        }
+        f.write_str(self.as_str())
     }
 }
 
@@ -460,6 +466,7 @@ pub struct GovernanceEvent {
 }
 
 /// Append a governance audit event to the JSONL trail.
+// qual:test_helper
 pub fn emit_audit_event(root: &Path, event: &GovernanceEvent) -> Result<()> {
     let trace_dir = root.join(".ctx").join("godmode").join("traces");
     std::fs::create_dir_all(&trace_dir)?;

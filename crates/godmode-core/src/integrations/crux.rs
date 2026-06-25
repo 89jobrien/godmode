@@ -14,6 +14,7 @@ fn started_at() -> chrono::DateTime<Utc> {
 }
 
 /// Build a `Step` for a task entering the pending state (just added to the graph).
+// qual:test_helper
 #[instrument(
     name = "crux::step_pending",
     fields(integration = "crux"),

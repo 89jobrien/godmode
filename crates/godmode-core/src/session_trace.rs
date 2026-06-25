@@ -39,11 +39,13 @@ impl Session {
     }
 
     /// Append a step to the session trace.
+    // qual:test_helper
     pub fn record(&mut self, step: Step) {
         self.inner.steps.push(step);
     }
 
     /// Finalise with the current graph state, write `.ctx/sessions/<id>.json`.
+    // qual:test_helper
     pub fn finish(mut self) -> Result<PathBuf> {
         self.inner.finished_at = Some(Utc::now());
         self.write_session()

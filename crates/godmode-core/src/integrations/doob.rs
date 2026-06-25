@@ -119,15 +119,6 @@ pub fn todo_done(uuid: &str) -> Result<()> {
     Ok(())
 }
 
-/// Add a new todo to doob for a given project.
-#[instrument(name = "doob::todo_add", fields(integration = "doob"))]
-pub fn todo_add(project: &str, title: &str) -> Result<()> {
-    let args = todo_add_args(project, title);
-    let args_ref: Vec<&str> = args.iter().map(String::as_str).collect();
-    subprocess::run("doob", &args_ref, "doob not found on PATH")?;
-    Ok(())
-}
-
 /// Sync a HANDOFF YAML file into doob's handoff_item table.
 ///
 /// Doob derives the project name from the YAML file's parent directory,

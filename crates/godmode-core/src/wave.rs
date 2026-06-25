@@ -157,10 +157,12 @@ impl ConcurrencyTracker {
         self.active = self.active.saturating_sub(1);
     }
 
+    // qual:test_helper
     pub fn active(&self) -> usize {
         self.active
     }
 
+    // qual:test_helper
     pub fn available(&self) -> usize {
         self.max.saturating_sub(self.active)
     }
@@ -196,6 +198,7 @@ pub enum HealthOutcome {
 }
 
 /// Check slot health by calling `probe`; returns the outcome and records it in `health`.
+// qual:test_helper
 pub fn health_check_slot<F>(health: &mut SlotHealth, probe: F) -> HealthOutcome
 where
     F: FnOnce() -> bool,

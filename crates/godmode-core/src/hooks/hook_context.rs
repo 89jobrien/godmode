@@ -112,6 +112,26 @@ fn parse_hook_input(stdin_json: &str) -> Option<HookInput> {
     serde_json::from_str(stdin_json).ok()
 }
 
+/// Load the graph and return the joined IDs of running tasks with no commit SHA.
+/// Returns `None` when the graph can't be loaded or no such tasks exist.
+pub(super) fn running_without_commit_ids(root: &Path) -> Option<String> {
+    let graph = crate::graph::load(root).ok()?;
+    let ids: Vec<&str> = graph
+        .tasks
+        .iter()
+        .filter(|t| {
+            t.status == crate::model::Status::Running
+                && t.commit.as_deref().unwrap_or("").is_empty()
+        })
+        .map(|t| t.id.as_str())
+        .collect();
+    if ids.is_empty() {
+        None
+    } else {
+        Some(ids.join(", "))
+    }
+}
+
 /// Walk up from CWD to find the git root.
 fn find_git_root() -> Option<PathBuf> {
     let output = std::process::Command::new("git")

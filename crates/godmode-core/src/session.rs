@@ -63,6 +63,7 @@ impl Session {
 
     /// Escape hatch for direct graph mutation. Prefer typed Session methods
     /// (clear_tasks, apply_template) which maintain auto-save and trace invariants.
+    // qual:test_helper
     #[doc(hidden)]
     pub fn graph_mut(&mut self) -> &mut TaskGraph {
         &mut self.graph
@@ -218,17 +219,9 @@ impl Session {
 
     /// Write a summary record to the summary JSONL file. Non-fatal.
     pub fn write_summary_jsonl(&self, summary: &SessionSummary) -> Result<()> {
-        use std::io::Write;
         let dir = crux::sessions_dir(&self.root);
-        std::fs::create_dir_all(&dir)?;
         let date = chrono::Local::now().format("%Y-%m-%d").to_string();
-        let path = dir.join(format!("{date}-summary.jsonl"));
-        let mut f = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
-        writeln!(f, "{}", serde_json::to_string(summary)?)?;
-        Ok(())
+        append_jsonl(&dir.join(format!("{date}-summary.jsonl")), summary)
     }
 
     // -----------------------------------------------------------------------
@@ -244,18 +237,28 @@ impl Session {
     }
 
     fn append_step(&self, step: crux_runtime::types::step::Step) -> Result<()> {
-        use std::io::Write;
         let dir = crux::sessions_dir(&self.root);
-        std::fs::create_dir_all(&dir)?;
         let date = chrono::Local::now().format("%Y-%m-%d").to_string();
-        let path = dir.join(format!("{date}.jsonl"));
-        let mut f = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(path)?;
-        writeln!(f, "{}", serde_json::to_string(&step)?)?;
-        Ok(())
+        append_jsonl(&dir.join(format!("{date}.jsonl")), &step)
     }
+}
+
+// ---------------------------------------------------------------------------
+// Module-level helpers
+// ---------------------------------------------------------------------------
+
+/// Append a JSON-serialised value as a single line to a JSONL file.
+fn append_jsonl(path: &std::path::Path, value: &impl serde::Serialize) -> Result<()> {
+    use std::io::Write;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let mut f = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
+    writeln!(f, "{}", serde_json::to_string(value)?)?;
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------

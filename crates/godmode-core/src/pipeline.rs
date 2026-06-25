@@ -51,14 +51,20 @@ pub enum StepStatus {
     Skipped,
 }
 
+impl StepStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            StepStatus::Pending => "pending",
+            StepStatus::Running => "running",
+            StepStatus::Done => "done",
+            StepStatus::Skipped => "skipped",
+        }
+    }
+}
+
 impl std::fmt::Display for StepStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StepStatus::Pending => write!(f, "pending"),
-            StepStatus::Running => write!(f, "running"),
-            StepStatus::Done => write!(f, "done"),
-            StepStatus::Skipped => write!(f, "skipped"),
-        }
+        f.write_str(self.as_str())
     }
 }
 
@@ -219,14 +225,15 @@ pub fn current_step<'a>(state: &PipelineState, pipeline: &'a Pipeline) -> Option
     pipeline.steps.get(state.current_step)
 }
 
-/// Mark the current step as done and advance to the next step.
-/// Returns the next step to execute, or `None` if the pipeline is complete.
-pub fn advance<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<&'a PipelineStep> {
-    // Record completion of the current step.
+fn record_and_advance<'a>(
+    state: &mut PipelineState,
+    pipeline: &'a Pipeline,
+    status: StepStatus,
+) -> Option<&'a PipelineStep> {
     if let Some(step) = pipeline.steps.get(state.current_step) {
         state.history.push(StepRecord {
             skill: step.skill.clone(),
-            status: StepStatus::Done,
+            status,
             completed_at: Some(Utc::now()),
         });
     }
@@ -234,18 +241,16 @@ pub fn advance<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<
     pipeline.steps.get(state.current_step)
 }
 
+/// Mark the current step as done and advance to the next step.
+/// Returns the next step to execute, or `None` if the pipeline is complete.
+pub fn advance<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<&'a PipelineStep> {
+    record_and_advance(state, pipeline, StepStatus::Done)
+}
+
 /// Skip the current step without executing and advance.
 /// Returns the next step, or `None` if the pipeline is complete.
 pub fn skip<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<&'a PipelineStep> {
-    if let Some(step) = pipeline.steps.get(state.current_step) {
-        state.history.push(StepRecord {
-            skill: step.skill.clone(),
-            status: StepStatus::Skipped,
-            completed_at: Some(Utc::now()),
-        });
-    }
-    state.current_step += 1;
-    pipeline.steps.get(state.current_step)
+    record_and_advance(state, pipeline, StepStatus::Skipped)
 }
 
 /// Returns `true` when `current_step` is past the last step.
@@ -254,6 +259,7 @@ pub fn is_complete(state: &PipelineState, pipeline: &Pipeline) -> bool {
 }
 
 /// Remaining step count (including current).
+// qual:test_helper
 pub fn remaining(state: &PipelineState, pipeline: &Pipeline) -> usize {
     pipeline.steps.len().saturating_sub(state.current_step)
 }
