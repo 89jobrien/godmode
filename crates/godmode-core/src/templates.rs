@@ -21,7 +21,6 @@
 //!     run: "cargo nextest run -p {{crate}}"
 //! ```
 
-use std::collections::HashMap;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -34,34 +33,41 @@ use thiserror::Error;
 use crate::graph;
 use crate::model::{Task, TaskGraph};
 
-// ── raw deserialization types ──────────────────────────────────────────────
+#[path = "template_loader.rs"]
+pub mod template_loader;
+#[path = "template_render.rs"]
+pub mod template_render;
+
+pub use template_loader::{find, list};
+
+// ── Raw deserialization types ───────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
-struct RawVarDef {
-    name: String,
+pub(crate) struct RawVarDef {
+    pub name: String,
     #[serde(default)]
-    required: bool,
+    pub required: bool,
     #[serde(default)]
-    default: Option<String>,
+    pub default: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
-struct RawMeta {
-    name: String,
+pub(crate) struct RawMeta {
+    pub name: String,
     #[serde(default)]
-    description: String,
+    pub description: String,
     #[serde(default)]
-    vars: Vec<RawVarDef>,
+    pub vars: Vec<RawVarDef>,
 }
 
 #[derive(Debug, Deserialize)]
-struct RawTemplate {
-    meta: RawMeta,
+pub(crate) struct RawTemplate {
+    pub meta: RawMeta,
     #[serde(default)]
-    tasks: Vec<Task>,
+    pub tasks: Vec<Task>,
 }
 
-// ── public types ───────────────────────────────────────────────────────────
+// ── Public types ────────────────────────────────────────────────────
 
 /// Resolved template metadata.
 #[derive(Debug, Clone)]
@@ -101,7 +107,7 @@ pub struct TemplateEntry {
 }
 
 impl TemplateEntry {
-    fn new(meta: TemplateMeta, path: PathBuf, source: TemplateSource) -> Self {
+    pub(crate) fn new(meta: TemplateMeta, path: PathBuf, source: TemplateSource) -> Self {
         Self { meta, path, source }
     }
 }
@@ -179,115 +185,32 @@ pub enum TemplateError {
     InvalidVar { value: String },
 }
 
-type TemplateResult<T> = std::result::Result<T, TemplateError>;
+pub(crate) type TemplateResult<T> = std::result::Result<T, TemplateError>;
 
-// ── resolution ─────────────────────────────────────────────────────────────
-
-/// Local templates directory relative to repo root.
-fn local_dir(root: &Path) -> PathBuf {
-    root.join("templates")
+/// Internal parse phase marker.
+#[derive(Clone, Copy)]
+pub(crate) enum ParsePhase {
+    Metadata,
+    Substituted,
 }
 
-/// Global templates directory: `$HOME/.config/godmode/templates/`.
-fn global_dir() -> Option<PathBuf> {
-    std::env::var("HOME").ok().map(|h| {
-        PathBuf::from(h)
-            .join(".config")
-            .join("godmode")
-            .join("templates")
-    })
-}
-
-/// Locate a template file by name. Checks local dir first, then global.
-/// Returns the path to the `.yaml` or `.template.yaml` file.
-pub fn find(root: &Path, name: &str) -> TemplateResult<PathBuf> {
-    for filename in candidate_filenames(name) {
-        let local = local_dir(root).join(&filename);
-        if local.exists() {
-            return Ok(local);
-        }
-    }
-
-    if let Some(global) = global_dir() {
-        for filename in candidate_filenames(name) {
-            let g = global.join(&filename);
-            if g.exists() {
-                return Ok(g);
-            }
-        }
-    }
-
-    Err(TemplateError::NotFound {
-        name: name.to_string(),
-    })
-}
-
-/// List all templates in local and global dirs. Local entries take precedence
-/// (duplicate names from global are omitted).
-pub fn list(root: &Path) -> TemplateResult<Vec<TemplateEntry>> {
-    let mut entries: Vec<TemplateEntry> = Vec::new();
-    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
-
-    // Local first.
-    let local = local_dir(root);
-    if local.is_dir() {
-        for entry in read_dir(&local)?.flatten() {
-            let p = entry.path();
-            if p.extension().and_then(|e| e.to_str()) == Some("yaml")
-                && let Ok(tmpl) = load_meta(&p)
-            {
-                seen.insert(tmpl.name.clone());
-                entries.push(TemplateEntry::new(tmpl, p, TemplateSource::Local));
-            }
-        }
-    }
-
-    // Global fallback — skip names already found locally.
-    if let Some(global) = global_dir()
-        && global.is_dir()
-    {
-        for entry in read_dir(&global)?.flatten() {
-            let p = entry.path();
-            if p.extension().and_then(|e| e.to_str()) == Some("yaml")
-                && let Ok(tmpl) = load_meta(&p)
-                && !seen.contains(&tmpl.name)
-            {
-                entries.push(TemplateEntry::new(tmpl, p, TemplateSource::Global));
-            }
-        }
-    }
-
-    Ok(entries)
-}
-
-// ── loading ────────────────────────────────────────────────────────────────
-
-/// Load only metadata from a template file (no substitution).
-fn load_meta(path: &Path) -> TemplateResult<TemplateMeta> {
-    let raw = read_template(path)?;
-    let t: RawTemplate = serde_yaml::from_str(&raw)
-        .map_err(|source| parse_error(path, &raw, source, ParsePhase::Metadata))?;
-    Ok(TemplateMeta {
-        name: t.meta.name,
-        description: t.meta.description,
-    })
-}
+// ── Loading ─────────────────────────────────────────────────────────
 
 /// Load a template file, apply variable substitution, and return a resolved `Template`.
 ///
 /// `vars` is a slice of `"key=value"` strings (same format as `--var` CLI flag).
 pub fn load(path: &Path, vars: &[String]) -> TemplateResult<Template> {
+    use template_loader::{parse_error, read_template};
+    use template_render::{parse_vars, substitute};
+
     let raw = read_template(path)?;
 
-    // Parse var definitions first (pre-substitution) to validate required vars.
     let raw_tmpl: RawTemplate = serde_yaml::from_str(&raw)
         .map_err(|source| parse_error(path, &raw, source, ParsePhase::Metadata))?;
 
-    // Build substitution map from supplied vars.
     let supplied = parse_vars(vars)?;
 
-    // Apply defaults for missing vars, error on missing required vars.
-    let mut sub_map: HashMap<String, String> = HashMap::new();
+    let mut sub_map = std::collections::HashMap::new();
     for var_def in &raw_tmpl.meta.vars {
         if let Some(val) = supplied.get(&var_def.name) {
             sub_map.insert(var_def.name.clone(), val.clone());
@@ -301,7 +224,6 @@ pub fn load(path: &Path, vars: &[String]) -> TemplateResult<Template> {
         }
     }
 
-    // Substitute vars into the raw YAML string, then re-parse.
     let substituted = substitute(&raw, &sub_map);
     let resolved: RawTemplate = serde_yaml::from_str(&substituted)
         .map_err(|source| parse_error(path, &substituted, source, ParsePhase::Substituted))?;
@@ -315,7 +237,7 @@ pub fn load(path: &Path, vars: &[String]) -> TemplateResult<Template> {
     })
 }
 
-// ── application ────────────────────────────────────────────────────────────
+// ── Application ─────────────────────────────────────────────────────
 
 /// Apply a resolved template into a task graph.
 ///
@@ -333,106 +255,13 @@ pub fn apply(graph: &mut TaskGraph, template: Template) -> Result<(usize, usize)
     Ok((applied, skipped))
 }
 
-// ── internal helpers ───────────────────────────────────────────────────────
-
-fn candidate_filenames(name: &str) -> [String; 2] {
-    [format!("{name}.yaml"), format!("{name}.template.yaml")]
-}
-
-/// Parse a slice of `"key=value"` strings into a map.
-fn parse_vars(vars: &[String]) -> TemplateResult<HashMap<String, String>> {
-    let mut map = HashMap::new();
-    for v in vars {
-        let (k, val) = v
-            .split_once('=')
-            .ok_or_else(|| TemplateError::InvalidVar { value: v.clone() })?;
-        map.insert(k.to_string(), val.to_string());
-    }
-    Ok(map)
-}
-
-fn read_dir(path: &Path) -> TemplateResult<std::fs::ReadDir> {
-    std::fs::read_dir(path).map_err(|source| TemplateError::ReadDir {
-        path: path.to_path_buf(),
-        source,
-    })
-}
-
-fn read_template(path: &Path) -> TemplateResult<String> {
-    std::fs::read_to_string(path).map_err(|source| TemplateError::Read {
-        path: path.to_path_buf(),
-        source,
-    })
-}
-
-#[derive(Clone, Copy)]
-enum ParsePhase {
-    Metadata,
-    Substituted,
-}
-
-fn parse_error(
-    path: &Path,
-    raw: &str,
-    source: serde_yaml::Error,
-    phase: ParsePhase,
-) -> TemplateError {
-    let span = source
-        .location()
-        .and_then(|location| source_span_for_location(raw, location.line(), location.column()));
-    let src = Arc::new(NamedSource::new(
-        path.display().to_string(),
-        raw.to_string(),
-    ));
-    match phase {
-        ParsePhase::Metadata => TemplateError::ParseMetadata {
-            path: path.to_path_buf(),
-            src,
-            span,
-            source: Box::new(source),
-        },
-        ParsePhase::Substituted => TemplateError::ParseSubstituted {
-            path: path.to_path_buf(),
-            src,
-            span,
-            source: Box::new(source),
-        },
-    }
-}
-
-fn source_span_for_location(raw: &str, line: usize, column: usize) -> Option<SourceSpan> {
-    let line = line.checked_sub(1)?;
-    let column = column.checked_sub(1)?;
-    let mut offset = 0usize;
-    for (idx, text) in raw.split_inclusive('\n').enumerate() {
-        if idx == line {
-            let column_offset = text
-                .char_indices()
-                .nth(column)
-                .map(|(byte_idx, _)| byte_idx)
-                .unwrap_or_else(|| text.trim_end_matches('\n').len());
-            return Some((offset + column_offset, 1).into());
-        }
-        offset += text.len();
-    }
-    None
-}
-
-/// Replace all `{{key}}` occurrences in `raw` with values from `vars`.
-fn substitute(raw: &str, vars: &HashMap<String, String>) -> String {
-    let mut result = raw.to_string();
-    for (k, v) in vars {
-        let placeholder = format!("{{{{{}}}}}", k);
-        result = result.replace(&placeholder, v);
-    }
-    result
-}
-
-// ── tests ──────────────────────────────────────────────────────────────────
+// ── Tests ────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
+    use super::template_render::{parse_vars, substitute};
     use super::*;
+    use std::collections::HashMap;
     use tempfile::TempDir;
 
     fn write_template(dir: &Path, name: &str, content: &str) -> PathBuf {
@@ -512,7 +341,6 @@ tasks:
         let dir = TempDir::new().unwrap();
         let path = write_template(dir.path(), "tdd-cycle", BASIC_TEMPLATE);
         let tmpl = load(&path, &["crate=foo".to_string()]).unwrap();
-        // prefix defaults to "t"
         assert_eq!(tmpl.tasks[0].id, "t-red");
     }
 
