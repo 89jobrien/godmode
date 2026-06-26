@@ -1,33 +1,33 @@
 project: godmode
 id: godmode
-updated: 2026-06-25
+updated: 2026-06-26
 items:
 - id: uncommitted-work
-  doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (7 files)
+  title: Uncommitted changes (2 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    crates/godmode-cli/Cargo.toml
-    crates/godmode-cli/src/main.rs
-    .codex-plugin/
-    AGENTS.md
-    crates/godmode-cli/src/commands/
-    skills/depgraph/
+    crates/godmode-core/src/review.rs
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - crates/godmode-cli/Cargo.toml
-  - crates/godmode-cli/src/main.rs
-  - .codex-plugin/
-  - AGENTS.md
-  - crates/godmode-cli/src/commands/
-  - skills/depgraph/
-  completed: null
-  extra: []
+  - crates/godmode-core/src/review.rs
 log:
+- date: '20260626.041620'
+  summary: done=0 running=0 pending=0 blocked=0
+  commits:
+  - c5e80847df0ad3ac612036e48e3c94262b9bce87
+  - e93fe0167ebf88bba37a56071eed6807999cf927
+  - eb5bf326d70066dc4aaea6cb376431dc95d084d5
+  - c12b55b54c6774bb6fdadc8af00740455d8eb38a
+  - f8600a71d9f5392e34c69db390fd4fd2b259ae8a
+  - 0b36386bdcf49da422424ac15e8aaf2b2b32e997
+  - 3987814454777ae04e858ffac73d68bf3b3cdc05
+  - 3ce53a4a11b40d8bf6040c73aa025388939bcbd5
+  - ede1a3d262ec3f518c3ecc8743640bd3f95a2d0c
+  - b2a03f83fc1cd48f75d5fdba877948e9d640394b
 - date: '20260625.120000'
   summary: Agent-improvement-loop skill added; rustqual quality improvements; doc fixes
   commits:
@@ -36,43 +36,29 @@ log:
   - eb5bf32
 - date: '20260625.011539'
   summary: done=12 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260624.034755'
   summary: done=12 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260624.031109'
   summary: done=11 running=1 pending=0 blocked=0
-  commits: []
 - date: '20260609.015541'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260608.003736'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260606.171219'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260605.042525'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.081919'
   summary: done=6 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.074109'
   summary: done=26 running=1 pending=0 blocked=0
-  commits: []
 - date: '20260604.055151'
   summary: done=0 running=0 pending=0 blocked=0
-  commits: []
 - date: '20260604.054949'
   summary: done=18 running=1 pending=8 blocked=0
-  commits: []
 - date: '20260604.054344'
   summary: done=2 running=1 pending=24 blocked=0
-  commits: []
 - date: '20260604.050028'
   summary: done=1 running=0 pending=7 blocked=0
-  commits: []
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
-  commits: []

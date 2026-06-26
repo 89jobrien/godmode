@@ -174,200 +174,102 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
     let index_content = fs::read_to_string(&index_path).unwrap_or_default();
     let using_content = fs::read_to_string(&using_path).unwrap_or_default();
 
-    // Collect valid skill names for orphan check
-    let mut known_names: Vec<String> = vec![];
-
     for dir in &dirs {
-        let skill_name = dir
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
-        let skill_md = dir.join("SKILL.md");
+        r.merge(check_skill_frontmatter(
+            root,
+            dir,
+            &index_content,
+            &using_content,
+        )?);
+        r.merge(check_skill_links(root, dir)?);
+        r.merge(check_skill_subcommands(dir)?);
+        r.merge(check_skill_consistency(dir)?);
+    }
 
-        // Check 1: SKILL.md exists
-        r.checks += 1;
-        if !skill_md.exists() {
-            r.fail(
-                &skill_name,
-                "missing SKILL.md",
-                format!("[{skill_name}] missing SKILL.md"),
-            );
-            continue;
-        }
+    r.merge(check_skill_index_entries(root, &dirs, &index_content)?);
 
-        let content = fs::read_to_string(&skill_md)?;
+    Ok(r)
+}
 
-        // Check 2: frontmatter name present
-        r.checks += 1;
-        let fm_name = extract_fm_name(&content);
-        if fm_name.is_none() {
-            r.fail(
-                &skill_name,
-                "missing frontmatter name",
-                format!("[{skill_name}] missing or empty frontmatter name:"),
-            );
-        }
+fn skill_name_of(dir: &Path) -> String {
+    dir.file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string()
+}
 
-        if let Some(ref full_name) = fm_name {
-            known_names.push(full_name.clone());
+/// Check SKILL.md existence and frontmatter name; check index/using-godmode entries.
+fn check_skill_frontmatter(
+    _root: &Path,
+    dir: &Path,
+    index_content: &str,
+    using_content: &str,
+) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let skill_name = skill_name_of(dir);
+    let skill_md = dir.join("SKILL.md");
 
-            // Check 3: name in skill-index.md (skip using-godmode itself)
-            if skill_name != "using-godmode" {
-                r.checks += 1;
-                if !index_content.contains(full_name.as_str()) {
-                    r.fail(
-                        &skill_name,
-                        "not in skill-index.md",
-                        format!("[{skill_name}] name '{full_name}' not found in skill-index.md"),
-                    );
-                }
+    // Check 1: SKILL.md exists
+    r.checks += 1;
+    if !skill_md.exists() {
+        r.fail(
+            &skill_name,
+            "missing SKILL.md",
+            format!("[{skill_name}] missing SKILL.md"),
+        );
+        return Ok(r);
+    }
 
-                // Check 4: name in using-godmode/SKILL.md
-                r.checks += 1;
-                if !using_content.contains(full_name.as_str()) {
-                    r.fail(
-                        &skill_name,
-                        "not in using-godmode SKILL.md",
-                        format!(
-                            "[{skill_name}] name '{full_name}' not found in using-godmode/SKILL.md"
-                        ),
-                    );
-                }
-            }
-        }
+    let content = fs::read_to_string(&skill_md)?;
 
-        // Check 5: references/ links resolve
-        for line in content.lines() {
-            if let Some(cap) = extract_backtick_path(line, "references/") {
-                r.checks += 1;
-                let resolved = dir.join(&cap);
-                if !resolved.exists() {
-                    r.fail(
-                        &skill_name,
-                        "broken references link",
-                        format!("[{skill_name}] broken references link: {cap}"),
-                    );
-                }
-            }
-        }
+    // Check 2: frontmatter name present
+    r.checks += 1;
+    let fm_name = extract_fm_name(&content);
+    if fm_name.is_none() {
+        r.fail(
+            &skill_name,
+            "missing frontmatter name",
+            format!("[{skill_name}] missing or empty frontmatter name:"),
+        );
+    }
 
-        // Check 6: helpers/ links resolve
-        for line in content.lines() {
-            if let Some(cap) = extract_backtick_path(line, "helpers/") {
-                r.checks += 1;
-                let resolved = dir.join(&cap);
-                if !resolved.exists() {
-                    r.fail(
-                        &skill_name,
-                        "broken helpers link",
-                        format!("[{skill_name}] broken helpers link: {cap}"),
-                    );
-                }
-            }
-        }
-
-        // Check 7: CLI subcommand validity
-        for (lineno, line) in content.lines().enumerate() {
-            let trimmed = line.trim();
-            if !trimmed.starts_with("godmode ") {
-                continue;
-            }
-            let parts: Vec<&str> = trimmed
-                .split_whitespace()
-                .skip(1)
-                .filter(|p| !p.is_empty())
-                .collect();
-            if parts.is_empty() {
-                continue;
-            }
-            let first = parts[0];
-            if first.starts_with('-')
-                || first.starts_with('<')
-                || first.starts_with('$')
-                || first.starts_with('#')
-            {
-                continue;
-            }
-            let two = if parts.len() >= 2 {
-                let second = parts[1];
-                if !second.starts_with('-')
-                    && !second.starts_with('<')
-                    && !second.starts_with('$')
-                    && !second.starts_with('[')
-                {
-                    format!("{first} {second}")
-                } else {
-                    String::new()
-                }
-            } else {
-                String::new()
-            };
-
+    if let Some(ref full_name) = fm_name {
+        // Check 3: name in skill-index.md (skip using-godmode itself)
+        if skill_name != "using-godmode" {
             r.checks += 1;
-            let matched = if !two.is_empty() {
-                CANONICAL_SUBCOMMANDS.contains(&two.as_str())
-                    || CANONICAL_SUBCOMMANDS.contains(&first)
-            } else {
-                CANONICAL_SUBCOMMANDS.contains(&first)
-            };
-            if !matched {
-                let shown = if !two.is_empty() { &two } else { first };
+            if !index_content.contains(full_name.as_str()) {
                 r.fail(
                     &skill_name,
-                    "unknown subcommand",
+                    "not in skill-index.md",
+                    format!("[{skill_name}] name '{full_name}' not found in skill-index.md"),
+                );
+            }
+
+            // Check 4: name in using-godmode/SKILL.md
+            r.checks += 1;
+            if !using_content.contains(full_name.as_str()) {
+                r.fail(
+                    &skill_name,
+                    "not in using-godmode SKILL.md",
                     format!(
-                        "[{skill_name}:{}] unknown subcommand: godmode {shown}",
-                        lineno + 1
+                        "[{skill_name}] name '{full_name}' not found in using-godmode/SKILL.md"
                     ),
                 );
             }
         }
-
-        // Check 8: merge strategy — git merge must use --no-ff
-        r.checks += 1;
-        if content.contains("git merge") && !content.contains("--no-ff") {
-            r.fail(
-                &skill_name,
-                "merge strategy",
-                format!(
-                    "[{skill_name}] consistency violation: merge strategy — mentions 'git merge' \
-                     but not '--no-ff'"
-                ),
-            );
-        }
-
-        // Check 9: branch guard — git commit requires git branch --show-current
-        r.checks += 1;
-        if content.contains("git commit") && !content.contains("git branch --show-current") {
-            r.fail(
-                &skill_name,
-                "branch guard",
-                format!(
-                    "[{skill_name}] consistency violation: branch guard — has 'git commit' but no \
-                     'git branch --show-current' check"
-                ),
-            );
-        }
-
-        // Check 10: _lib/ references resolve
-        for line in content.lines() {
-            if let Some(cap) = extract_backtick_path(line, "skills/_lib/") {
-                r.checks += 1;
-                let resolved = root.join(&cap);
-                if !resolved.exists() {
-                    r.fail(
-                        &skill_name,
-                        "broken _lib link",
-                        format!("[{skill_name}] broken _lib link: {cap}"),
-                    );
-                }
-            }
-        }
     }
 
-    // Check 11: orphan index entries
-    for entry_name in extract_godmode_names_from_index(&index_content) {
+    Ok(r)
+}
+
+/// Check orphan index entries (entries in skill-index.md with no matching skill dir).
+fn check_skill_index_entries(
+    _root: &Path,
+    dirs: &[PathBuf],
+    index_content: &str,
+) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    for entry_name in extract_godmode_names_from_index(index_content) {
         r.checks += 1;
         let short = entry_name.trim_start_matches("godmode:");
         let exists = dirs
@@ -381,6 +283,171 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
             );
         }
     }
+    Ok(r)
+}
+
+/// Check references/, helpers/, and _lib/ links resolve.
+fn check_skill_links(root: &Path, dir: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let skill_name = skill_name_of(dir);
+    let skill_md = dir.join("SKILL.md");
+    if !skill_md.exists() {
+        return Ok(r);
+    }
+    let content = fs::read_to_string(&skill_md)?;
+
+    // Check 5: references/ links resolve
+    for line in content.lines() {
+        if let Some(cap) = extract_backtick_path(line, "references/") {
+            r.checks += 1;
+            let resolved = dir.join(&cap);
+            if !resolved.exists() {
+                r.fail(
+                    &skill_name,
+                    "broken references link",
+                    format!("[{skill_name}] broken references link: {cap}"),
+                );
+            }
+        }
+    }
+
+    // Check 6: helpers/ links resolve
+    for line in content.lines() {
+        if let Some(cap) = extract_backtick_path(line, "helpers/") {
+            r.checks += 1;
+            let resolved = dir.join(&cap);
+            if !resolved.exists() {
+                r.fail(
+                    &skill_name,
+                    "broken helpers link",
+                    format!("[{skill_name}] broken helpers link: {cap}"),
+                );
+            }
+        }
+    }
+
+    // Check 10: _lib/ references resolve
+    for line in content.lines() {
+        if let Some(cap) = extract_backtick_path(line, "skills/_lib/") {
+            r.checks += 1;
+            let resolved = root.join(&cap);
+            if !resolved.exists() {
+                r.fail(
+                    &skill_name,
+                    "broken _lib link",
+                    format!("[{skill_name}] broken _lib link: {cap}"),
+                );
+            }
+        }
+    }
+
+    Ok(r)
+}
+
+/// Check CLI subcommand validity.
+fn check_skill_subcommands(dir: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let skill_name = skill_name_of(dir);
+    let skill_md = dir.join("SKILL.md");
+    if !skill_md.exists() {
+        return Ok(r);
+    }
+    let content = fs::read_to_string(&skill_md)?;
+
+    // Check 7: CLI subcommand validity
+    for (lineno, line) in content.lines().enumerate() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("godmode ") {
+            continue;
+        }
+        let parts: Vec<&str> = trimmed
+            .split_whitespace()
+            .skip(1)
+            .filter(|p| !p.is_empty())
+            .collect();
+        if parts.is_empty() {
+            continue;
+        }
+        let first = parts[0];
+        if first.starts_with('-')
+            || first.starts_with('<')
+            || first.starts_with('$')
+            || first.starts_with('#')
+        {
+            continue;
+        }
+        let two = if parts.len() >= 2 {
+            let second = parts[1];
+            if !second.starts_with('-')
+                && !second.starts_with('<')
+                && !second.starts_with('$')
+                && !second.starts_with('[')
+            {
+                format!("{first} {second}")
+            } else {
+                String::new()
+            }
+        } else {
+            String::new()
+        };
+
+        r.checks += 1;
+        let matched = if !two.is_empty() {
+            CANONICAL_SUBCOMMANDS.contains(&two.as_str()) || CANONICAL_SUBCOMMANDS.contains(&first)
+        } else {
+            CANONICAL_SUBCOMMANDS.contains(&first)
+        };
+        if !matched {
+            let shown = if !two.is_empty() { &two } else { first };
+            r.fail(
+                &skill_name,
+                "unknown subcommand",
+                format!(
+                    "[{skill_name}:{}] unknown subcommand: godmode {shown}",
+                    lineno + 1
+                ),
+            );
+        }
+    }
+
+    Ok(r)
+}
+
+/// Check cross-skill consistency: merge strategy and branch guard.
+fn check_skill_consistency(dir: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let skill_name = skill_name_of(dir);
+    let skill_md = dir.join("SKILL.md");
+    if !skill_md.exists() {
+        return Ok(r);
+    }
+    let content = fs::read_to_string(&skill_md)?;
+
+    // Check 8: merge strategy — git merge must use --no-ff
+    r.checks += 1;
+    if content.contains("git merge") && !content.contains("--no-ff") {
+        r.fail(
+            &skill_name,
+            "merge strategy",
+            format!(
+                "[{skill_name}] consistency violation: merge strategy — mentions 'git merge' \
+                 but not '--no-ff'"
+            ),
+        );
+    }
+
+    // Check 9: branch guard — git commit requires git branch --show-current
+    r.checks += 1;
+    if content.contains("git commit") && !content.contains("git branch --show-current") {
+        r.fail(
+            &skill_name,
+            "branch guard",
+            format!(
+                "[{skill_name}] consistency violation: branch guard — has 'git commit' but no \
+                 'git branch --show-current' check"
+            ),
+        );
+    }
 
     Ok(r)
 }
@@ -388,108 +455,139 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
 /// Check agent frontmatter: name, model, tools fields all present and non-empty.
 /// Also checks description length, skill directory existence, and tools non-empty.
 pub fn check_agents(root: &Path) -> Result<ReviewReport> {
-    use crate::agent_index;
-
     let mut r = ReviewReport::new();
     let files = agent_files(root)?;
 
     for path in &files {
-        let agent_name = path
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
-        let content = fs::read_to_string(path)?;
+        r.merge(check_agent_frontmatter(root, path)?);
+        r.merge(check_agent_tools(path)?);
+        r.merge(check_agent_skill_refs(root, path)?);
+    }
 
-        for field in ["name", "model", "tools"] {
-            r.checks += 1;
-            match extract_fm_field(&content, field) {
-                None => {
-                    r.fail(
-                        &agent_name,
-                        format!("missing {field}"),
-                        format!("[{agent_name}] agent missing frontmatter field: {field}"),
-                    );
-                }
-                Some("") => {
-                    r.fail(
-                        &agent_name,
-                        format!("empty {field}"),
-                        format!("[{agent_name}] agent frontmatter field empty: {field}"),
-                    );
-                }
-                _ => {}
+    Ok(r)
+}
+
+/// Check agent name/model/description frontmatter fields.
+fn check_agent_frontmatter(root: &Path, path: &Path) -> Result<ReviewReport> {
+    use crate::agent_index;
+
+    let mut r = ReviewReport::new();
+    let agent_name = path
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let content = fs::read_to_string(path)?;
+
+    for field in ["name", "model", "tools"] {
+        r.checks += 1;
+        match extract_fm_field(&content, field) {
+            None => {
+                r.fail(
+                    &agent_name,
+                    format!("missing {field}"),
+                    format!("[{agent_name}] agent missing frontmatter field: {field}"),
+                );
             }
+            Some("") => {
+                r.fail(
+                    &agent_name,
+                    format!("empty {field}"),
+                    format!("[{agent_name}] agent frontmatter field empty: {field}"),
+                );
+            }
+            _ => {}
         }
+    }
 
-        // Check: description non-empty and > 20 chars
-        r.checks += 1;
-        let desc_raw = extract_fm_field(&content, "description").unwrap_or("");
-        // Multi-line block scalars ("> \n  text") need the full content section
-        let desc_text = desc_raw.trim();
-        // For block scalars the value may span multiple lines; fall back to parsing the entry
-        let effective_desc = if desc_text.is_empty() {
-            // try agent_index parser which handles block scalars
-            agent_index::list_agents(root)
-                .ok()
-                .and_then(|agents| {
-                    agents.into_iter().find(|a| {
-                        a.path.file_stem().and_then(|s| s.to_str()).unwrap_or("") == agent_name
-                    })
+    // Check: description non-empty and > 20 chars
+    r.checks += 1;
+    let desc_raw = extract_fm_field(&content, "description").unwrap_or("");
+    let desc_text = desc_raw.trim();
+    let effective_desc = if desc_text.is_empty() {
+        agent_index::list_agents(root)
+            .ok()
+            .and_then(|agents| {
+                agents.into_iter().find(|a| {
+                    a.path.file_stem().and_then(|s| s.to_str()).unwrap_or("") == agent_name
                 })
-                .map(|a| a.description)
-                .unwrap_or_default()
-        } else {
-            desc_text.to_string()
-        };
-        if effective_desc.is_empty() {
-            r.fail(
-                &agent_name,
-                "description empty",
-                format!("[{agent_name}] agent description is empty"),
-            );
-        } else if effective_desc.len() <= 20 {
-            r.fail(
-                &agent_name,
-                "description too short",
-                format!(
-                    "[{agent_name}] agent description is too short ({} chars, need > 20)",
-                    effective_desc.len()
-                ),
-            );
-        }
+            })
+            .map(|a| a.description)
+            .unwrap_or_default()
+    } else {
+        desc_text.to_string()
+    };
+    if effective_desc.is_empty() {
+        r.fail(
+            &agent_name,
+            "description empty",
+            format!("[{agent_name}] agent description is empty"),
+        );
+    } else if effective_desc.len() <= 20 {
+        r.fail(
+            &agent_name,
+            "description too short",
+            format!(
+                "[{agent_name}] agent description is too short ({} chars, need > 20)",
+                effective_desc.len()
+            ),
+        );
+    }
 
-        // Check: tools field non-empty (already checked for presence above, check length here)
-        let tools_val = extract_fm_field(&content, "tools").unwrap_or("");
-        r.checks += 1;
-        if tools_val.trim().is_empty() || tools_val.trim() == "[]" {
-            r.fail(
-                &agent_name,
-                "tools empty",
-                format!("[{agent_name}] agent tools field is empty"),
-            );
-        }
+    Ok(r)
+}
 
-        // Check: skills reference existing skill dirs
-        let skills_val = extract_fm_field(&content, "skills").unwrap_or("");
-        if !skills_val.is_empty() {
-            for skill in skills_val
-                .split(',')
-                .map(|s| s.trim())
-                .filter(|s| !s.is_empty())
-            {
-                r.checks += 1;
-                let skill_dir = root.join("skills").join(skill);
-                if !skill_dir.exists() {
-                    r.fail(
-                        &agent_name,
-                        "unknown skill reference",
-                        format!(
-                            "[{agent_name}] skill '{skill}' referenced but skills/{skill}/ does \
-                             not exist"
-                        ),
-                    );
-                }
+/// Check that the tools field is non-empty.
+fn check_agent_tools(path: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let agent_name = path
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let content = fs::read_to_string(path)?;
+
+    let tools_val = extract_fm_field(&content, "tools").unwrap_or("");
+    r.checks += 1;
+    if tools_val.trim().is_empty() || tools_val.trim() == "[]" {
+        r.fail(
+            &agent_name,
+            "tools empty",
+            format!("[{agent_name}] agent tools field is empty"),
+        );
+    }
+
+    Ok(r)
+}
+
+/// Check that skill references in frontmatter point to existing skill dirs.
+fn check_agent_skill_refs(root: &Path, path: &Path) -> Result<ReviewReport> {
+    let mut r = ReviewReport::new();
+    let agent_name = path
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let content = fs::read_to_string(path)?;
+
+    let skills_val = extract_fm_field(&content, "skills").unwrap_or("");
+    if !skills_val.is_empty() {
+        for skill in skills_val
+            .split(',')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+        {
+            r.checks += 1;
+            let skill_dir = root.join("skills").join(skill);
+            if !skill_dir.exists() {
+                r.fail(
+                    &agent_name,
+                    "unknown skill reference",
+                    format!(
+                        "[{agent_name}] skill '{skill}' referenced but skills/{skill}/ does \
+                         not exist"
+                    ),
+                );
             }
         }
     }
@@ -547,33 +645,43 @@ pub fn check_plugin_json(root: &Path) -> Result<ReviewReport> {
     let content = fs::read_to_string(&plugin_path)?;
     let json: serde_json::Value = serde_json::from_str(&content)?;
 
-    let allowed = ["name", "version", "author", "description"];
     if let Some(obj) = json.as_object() {
-        for key in obj.keys() {
+        r.merge(validate_plugin_fields(obj));
+    }
+
+    Ok(r)
+}
+
+/// Validate top-level and author fields in a plugin.json object.
+fn validate_plugin_fields(obj: &serde_json::Map<String, serde_json::Value>) -> ReviewReport {
+    let mut r = ReviewReport::new();
+    let allowed = ["name", "version", "author", "description"];
+
+    for key in obj.keys() {
+        r.checks += 1;
+        if !allowed.contains(&key.as_str()) {
+            r.fail(
+                "plugin.json",
+                "disallowed field",
+                format!("[plugin.json] disallowed field: {key}"),
+            );
+        }
+    }
+
+    if let Some(author) = obj.get("author").and_then(|a| a.as_object()) {
+        for key in author.keys() {
             r.checks += 1;
-            if !allowed.contains(&key.as_str()) {
+            if key != "name" {
                 r.fail(
                     "plugin.json",
-                    "disallowed field",
-                    format!("[plugin.json] disallowed field: {key}"),
+                    "disallowed author field",
+                    format!("[plugin.json] disallowed author field: {key}"),
                 );
-            }
-        }
-        if let Some(author) = obj.get("author").and_then(|a| a.as_object()) {
-            for key in author.keys() {
-                r.checks += 1;
-                if key != "name" {
-                    r.fail(
-                        "plugin.json",
-                        "disallowed author field",
-                        format!("[plugin.json] disallowed author field: {key}"),
-                    );
-                }
             }
         }
     }
 
-    Ok(r)
+    r
 }
 
 /// Check _lib/*.nu files parse without error.
