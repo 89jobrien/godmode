@@ -9,13 +9,18 @@
 #   nu triage.nu                        # scan all crates in current workspace
 #   nu triage.nu --crate crates/core    # scan one crate
 #   nu triage.nu --json                 # machine-readable output
+#   nu triage.nu --top 5                # limit each category to top 5 findings
+#   nu triage.nu --only DEAD_CODE       # show only DEAD_CODE findings
+#   nu triage.nu --fix-config           # emit rustqual.toml patch instead of breakdown
+#   nu triage.nu --complexity-threshold 15  # set cognitive complexity threshold (default 18)
 
 def main [
     --crate: string = ""    # path to a single crate (default: scan all)
     --json                  # output as JSON instead of table
-    # TODO(#82): add --top N flag to limit output to top N findings per category
-    # TODO(#83): add --only <code> flag to filter to a single finding code (e.g. --only DEAD_CODE)
-    # TODO(#84): add --fix-config flag to auto-generate a rustqual.toml patch for config-only findings
+    --top: int = 0          # limit each action category to top N findings (0 = no limit)
+    --only: string = ""     # filter to a single finding code (e.g. DEAD_CODE, TQ_UNTESTED)
+    --fix-config            # emit a rustqual.toml patch instead of full breakdown
+    --complexity-threshold: int = 18  # cognitive complexity threshold for COMPLEXITY findings
 ] {
     let workspace_root = $env.PWD
 
@@ -115,9 +120,22 @@ def main [
                               line: ($f | get -o line | default 0),
                               function: ($f | get -o name | default ""),
                               detail: "logic + calls"} }
-                # TODO(#85): also surface complexity warnings from functions where cognitive > threshold
 
-            let findings = [$dead, $tq, $bp, $srp_struct, $srp_mod, $violations]
+            # #85: surface COMPLEXITY findings from functions exceeding cognitive threshold
+            let complexity = ($data | get -o functions | default [])
+                | where { |f|
+                    let cc = ($f | get -o cognitive_complexity | default 0)
+                    $cc > $complexity_threshold
+                }
+                | each { |f|
+                    let cc = ($f | get -o cognitive_complexity | default 0)
+                    {code: "COMPLEXITY", file: ($f | get -o file | default ""),
+                     line: ($f | get -o line | default 0),
+                     function: ($f | get -o name | default ""),
+                     detail: $"cognitive_complexity=($cc)"}
+                }
+
+            let findings = [$dead, $tq, $bp, $srp_struct, $srp_mod, $violations, $complexity]
                 | flatten
 
             {crate: $crate_name, path: $crate_path, type: $crate_type,
@@ -132,14 +150,30 @@ def main [
         $r | merge {findings: $findings}
     }
 
+    # #83: filter to a single finding code when --only is set
+    let annotated = if ($only | is-empty) {
+        $annotated
+    } else {
+        $annotated | each { |r|
+            let filtered = $r.findings | where { |f| $f.code == $only }
+            $r | merge {findings: $filtered}
+        }
+    }
+
     if $json {
         print ($annotated | to json)
         return
     }
 
+    # #84: emit rustqual.toml patch when --fix-config is set
+    if $fix_config {
+        print_fix_config $annotated
+        return
+    }
+
     print_summary $annotated
     print ""
-    print_finding_breakdown $annotated
+    print_finding_breakdown $annotated $top
 }
 
 def classify_finding [finding: record, crate_type: string] {
@@ -166,6 +200,7 @@ def classify_finding [finding: record, crate_type: string] {
             let io_boundary = ($fn_name | str contains "handle") or ($fn_name == "run") or ($fn_name == "open") or ($fn_name | str contains "read")
             if $io_boundary { "suppress: qual:allow(iosp) — I/O boundary or integration root" } else { "fix: extract pure logic into separate function" }
         }
+        "COMPLEXITY" => "fix: reduce cognitive complexity (extract helpers or simplify branches)"
         "SRP_MODULE" => "fix: split file into submodules"
         "SRP_STRUCT" => "fix: split struct or extract method cluster"
         _            => "review"
@@ -184,7 +219,8 @@ def print_summary [results: list] {
     print ($rows | table)
 }
 
-def print_finding_breakdown [results: list] {
+# #82: accepts $top param to limit findings per action category
+def print_finding_breakdown [results: list, top: int] {
     print "# Finding Breakdown by Action"
     print ""
 
@@ -198,13 +234,55 @@ def print_finding_breakdown [results: list] {
     }
 
     for group in ($all_findings | group-by action | transpose key value) {
+        let findings = if $top > 0 {
+            $group.value | first $top
+        } else {
+            $group.value
+        }
         let count = ($group.value | length)
-        print $"## ($group.key)  ($count) findings"
+        let shown = ($findings | length)
+        let suffix = if ($top > 0) and ($shown < $count) { $"  (showing ($shown) of ($count))" } else { "" }
+        print $"## ($group.key)  ($count) findings($suffix)"
         print ""
-        for f in $group.value {
+        for f in $findings {
             let loc = $"($f.file):($f.line)"
             print $"  [($f.crate)]  ($loc)  ($f.function)  ($f.detail)"
         }
         print ""
+    }
+}
+
+# #84: emit a rustqual.toml patch based on config-suppressible findings
+def print_fix_config [results: list] {
+    print "# rustqual.toml patch — append to your existing rustqual.toml"
+    print ""
+
+    let all_findings = $results | each { |r|
+        $r.findings | each { |f| $f | merge {crate: $r.crate} }
+    } | flatten
+
+    let has_dead_code = ($all_findings | where { |f| $f.code == "DEAD_CODE" } | length) > 0
+
+    let ignore_fns = $all_findings
+        | where { |f| $f.code == "TQ_UNTESTED" }
+        | where { |f| ($f.function | is-not-empty) }
+        | get function
+        | uniq
+
+    if $has_dead_code {
+        print "detect_dead_code = false"
+    }
+
+    if ($ignore_fns | length) > 0 {
+        print ""
+        print "ignore_functions = ["
+        for fn_name in $ignore_fns {
+            print $"  \"($fn_name)\","
+        }
+        print "]"
+    }
+
+    if (not $has_dead_code) and (($ignore_fns | length) == 0) {
+        print "# No config-suppressible findings found."
     }
 }
