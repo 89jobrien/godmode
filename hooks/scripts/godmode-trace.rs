@@ -23,6 +23,18 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+const SECS_PER_MIN: u64 = 60;
+const MINS_PER_HOUR: u64 = 60;
+const SECS_PER_HOUR: u64 = SECS_PER_MIN * MINS_PER_HOUR;
+const HOURS_PER_DAY: u64 = 24;
+const SECS_PER_DAY: u64 = SECS_PER_HOUR * HOURS_PER_DAY;
+
+const DAYS_IN_MONTH: [u64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const LEAP_MONTH_DAYS: u64 = 29;
+const LEAP_CYCLE_4: u64 = 4;
+const LEAP_CYCLE_100: u64 = 100;
+const LEAP_CYCLE_400: u64 = 400;
+
 #[derive(Serialize, Deserialize)]
 struct Session {
     session_id: String,
@@ -42,32 +54,33 @@ fn iso_now() -> String {
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs();
-    let h = secs / 3600 % 24;
-    let m = secs / 60 % 60;
-    let s = secs % 60;
+    let h = secs / SECS_PER_HOUR % HOURS_PER_DAY;
+    let m = secs / SECS_PER_MIN % MINS_PER_HOUR;
+    let s = secs % SECS_PER_MIN;
     // Date portion via days since epoch
-    let days = secs / 86400;
+    let days = secs / SECS_PER_DAY;
     let (y, mo, d) = days_to_ymd(days);
     format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
 fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
     let mut y = 1970u64;
+    let is_leap =
+        |y: u64| (y % LEAP_CYCLE_4 == 0 && y % LEAP_CYCLE_100 != 0) || y % LEAP_CYCLE_400 == 0;
     loop {
-        let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-        let dy = if leap { 366 } else { 365 };
+        let dy = if is_leap(y) { 366 } else { 365 };
         if days < dy {
             break;
         }
         days -= dy;
         y += 1;
     }
-    let leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
-    let month_days: &[u64] = if leap {
-        &[31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    } else {
-        &[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    };
+    let leap = is_leap(y);
+    let mut leap_month = DAYS_IN_MONTH;
+    if leap {
+        leap_month[1] = LEAP_MONTH_DAYS;
+    }
+    let month_days: &[u64] = if leap { &leap_month } else { &DAYS_IN_MONTH };
     let mut mo = 1u64;
     for &md in month_days {
         if days < md {
@@ -81,7 +94,13 @@ fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
 
 fn git_short_sha(git_root: &PathBuf) -> String {
     process::Command::new("git")
-        .args(["-C", git_root.to_str().unwrap_or("."), "rev-parse", "--short", "HEAD"])
+        .args([
+            "-C",
+            git_root.to_str().unwrap_or("."),
+            "rev-parse",
+            "--short",
+            "HEAD",
+        ])
         .output()
         .ok()
         .and_then(|o| String::from_utf8(o.stdout).ok())
@@ -100,7 +119,11 @@ fn read_session_id(ctx_dir: &PathBuf) -> Option<String> {
 fn append_event(ctx_dir: &PathBuf, event: Value) {
     let trace_file = ctx_dir.join("traces").join("trace.jsonl");
     if let Ok(line) = serde_json::to_string(&event) {
-        if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(&trace_file) {
+        if let Ok(mut f) = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&trace_file)
+        {
             let _ = writeln!(f, "{}", line);
         }
     }
@@ -131,21 +154,27 @@ fn main() {
             if let Ok(json) = serde_json::to_string(&session) {
                 let _ = fs::write(ctx_dir.join("session.json"), json);
             }
-            append_event(&ctx_dir, serde_json::json!({
-                "event": "session.start",
-                "session_id": sid,
-                "cwd": git_root.to_str().unwrap_or(""),
-                "ts": iso_now(),
-            }));
+            append_event(
+                &ctx_dir,
+                serde_json::json!({
+                    "event": "session.start",
+                    "session_id": sid,
+                    "cwd": git_root.to_str().unwrap_or(""),
+                    "ts": iso_now(),
+                }),
+            );
             eprintln!("[godmode] session started: {sid}");
         }
         "end" => {
             if let Some(session_id) = read_session_id(&ctx_dir) {
-                append_event(&ctx_dir, serde_json::json!({
-                    "event": "session.end",
-                    "session_id": session_id,
-                    "ts": iso_now(),
-                }));
+                append_event(
+                    &ctx_dir,
+                    serde_json::json!({
+                        "event": "session.end",
+                        "session_id": session_id,
+                        "ts": iso_now(),
+                    }),
+                );
                 eprintln!("[godmode] session ended: {session_id}");
             }
         }
