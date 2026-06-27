@@ -61,6 +61,55 @@ When creating or fully regenerating the memory bank:
 - **system-patterns.md** — update when architecture decisions are made
 - **project-brief.md / product-context.md** — rarely change; update only on scope shifts
 
+## Conversation knowledge capture (`remember`)
+
+Use when the user explicitly asks to "remember this", "save what we learned", "update memory",
+or asks for "capturing learnings."
+
+1. Re-scan the current conversation and list candidate learnings.
+2. Classify each item into one of these buckets:
+   1. **Best practices** — patterns that worked, anti-patterns to avoid, and decision rationale.
+   2. **Quality standards** — criteria for good code, docs, processes, or outputs.
+   3. **Operational knowledge** — architecture decisions, workflows, tools, and reusable conventions.
+3. For each best practice or decision, identify where to store it:
+   1. **Global memory** (`~/.deepagents/agent/AGENTS.md`) for universal preferences.
+   2. **Project memory** (`.deepagents/AGENTS.md`) for repo-specific rules.
+   3. **Reusable skill** (`~/.deepagents/agent/skills/<name>/SKILL.md`) for multi-step methods.
+4. Capture reusable workflows as skills when they include repeated methodology.
+5. Add simple preferences to AGENTS files with one or two concrete bullet rules.
+6. Keep records minimal and non-obvious; avoid dumping conversational noise.
+
+### Memory storage decision rules
+
+- If a behavior is a one-off preference, store it as a memory bullet.
+- If a process is repeatable and decision-heavy, store it as a dedicated skill.
+- Never store unverified claims; prefer concrete paths, commands, and evidence from files.
+
+### Memory-first file convention
+
+- Prefer project file updates for preferences that depend on this repository.
+- Use global memory only when the rule applies across projects.
+- Prefer skill updates when behavior requires multiple ordered steps or quality gates.
+
+### Quick validation
+
+Before handing off or committing `memory-banking`, run:
+
+- `rust-script skills/memory-banking/helpers/quick_validate.rs skills/memory-banking/SKILL.md`
+
+This Rust-script validator checks:
+
+- frontmatter starts and closes correctly;
+- required keys (`name`, `description`) exist;
+- only approved frontmatter keys are present;
+- empty, long, or malformed fields are rejected.
+
+For stronger checks, run:
+
+`agentlint --difficulty hard skills/memory-banking/SKILL.md`
+
+This uses `plugins/agentlint.memory-banking.toml` if the custom plugin is present.
+
 ## Staleness detection
 
 The SessionStart hook checks file modification times. If any memory-bank file is older than

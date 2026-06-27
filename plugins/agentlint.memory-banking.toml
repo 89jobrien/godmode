@@ -1,0 +1,76 @@
+# Declarative plugin: memory-banking skill frontmatter validation
+[plugin]
+name = "memory-banking"
+prefix = "memory-banking"
+
+[plugin.constants]
+allowed_frontmatter_keys = [
+  "name",
+  "description",
+  "license",
+  "allowed-tools",
+  "metadata",
+  "requires",
+  "next",
+]
+
+[[validator]]
+id = "skills"
+patterns = ["skills/memory-banking/SKILL.md"]
+format = "frontmatter"
+
+[[validator.rules]]
+id = "memory-banking/skills/empty"
+check = "non-empty"
+severity = "error"
+difficulty = "easy"
+message = "SKILL.md is empty"
+
+[[validator.rules]]
+id = "memory-banking/skills/missing-frontmatter"
+check = "has-frontmatter"
+severity = "error"
+difficulty = "easy"
+message = "missing or invalid frontmatter"
+
+[[validator.rules]]
+id = "memory-banking/skills/missing-name"
+check = "field-required"
+field = "name"
+severity = "error"
+difficulty = "easy"
+message = "missing or empty 'name' in frontmatter"
+
+[[validator.rules]]
+id = "memory-banking/skills/invalid-name-length"
+check = "field-max-length"
+field = "name"
+max = 64
+severity = "error"
+difficulty = "hard"
+message = "'name' is too long; max 64 chars"
+
+[[validator.rules]]
+id = "memory-banking/skills/missing-description"
+check = "field-required"
+field = "description"
+severity = "error"
+difficulty = "easy"
+message = "missing or empty 'description' in frontmatter"
+
+[[validator.rules]]
+id = "memory-banking/skills/description-length"
+check = "field-max-length"
+field = "description"
+max = 1024
+severity = "warning"
+difficulty = "normal"
+message = "'description' is too long; max 1024 chars"
+
+[[validator.rules]]
+id = "memory-banking/skills/known-keys"
+check = "known-keys"
+severity = "error"
+difficulty = "hard"
+message = "unknown frontmatter key"
+values = "$allowed_frontmatter_keys"
