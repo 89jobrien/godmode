@@ -48,6 +48,8 @@ fn epoch_ms() -> u128 {
         .as_millis()
 }
 
+// TODO(rustqual,#94): extract named constants for time arithmetic magic numbers.
+// magic_numbers: 3600 (SECS_PER_HOUR), 60 (SECS_PER_MIN / MINS_PER_HOUR), 86400 (SECS_PER_DAY).
 fn iso_now() -> String {
     // RFC3339-ish via SystemTime — no chrono dep needed for hook use
     let secs = SystemTime::now()
@@ -63,6 +65,9 @@ fn iso_now() -> String {
     format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
+// TODO(rustqual,#95): extract named constants for calendar arithmetic magic numbers in days_to_ymd().
+// magic_numbers: 365 (DAYS_PER_YEAR), 366 (DAYS_PER_LEAP_YEAR), 4/100/400 (leap-year divisors),
+// month-length values (28, 29, 30, 31). Consider a const DAYS_IN_MONTH: [u64; 12] lookup.
 fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
     let mut y = 1970u64;
     let is_leap =

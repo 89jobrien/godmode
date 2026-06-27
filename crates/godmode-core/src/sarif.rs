@@ -1,3 +1,7 @@
+// TODO(rustqual,#92): split sarif.rs (442 lines) by SRP — three distinct responsibilities:
+//   1. sarif_types.rs   — SarifRoot, Run, Result, Location, Region serde structs
+//   2. sarif_builder.rs — builder helpers that construct SARIF from ReviewReport/VerifyResult
+//   3. sarif.rs         — public serialize_to_sarif() entry point
 //! SARIF v2.1.0 output for verify and review reports.
 //!
 //! Implements the minimum SARIF schema needed to produce valid output

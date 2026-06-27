@@ -163,6 +163,10 @@ pub fn run_all(root: &Path) -> Result<ReviewReport> {
     Ok(report)
 }
 
+// TODO(rustqual,#87): split check_skills() into focused, single-responsibility helpers.
+// cognitive_complexity=80, cyclomatic_complexity=39, long_function=219 lines.
+// Suggested split: check_skill_frontmatter(), check_skill_index_entries(),
+// check_skill_links(), check_skill_subcommands(), check_skill_consistency().
 /// Check skill dirs: SKILL.md present, frontmatter name, index/using-godmode entries,
 /// link resolution, CLI subcommand validity, cross-skill consistency.
 pub fn check_skills(root: &Path) -> Result<ReviewReport> {
@@ -452,6 +456,9 @@ fn check_skill_consistency(dir: &Path) -> Result<ReviewReport> {
     Ok(r)
 }
 
+// TODO(rustqual,#88): split check_agents() into focused helpers.
+// cognitive_complexity=24, long_function=109 lines.
+// Suggested split: check_agent_frontmatter(), check_agent_skill_refs(), check_agent_tools().
 /// Check agent frontmatter: name, model, tools fields all present and non-empty.
 /// Also checks description length, skill directory existence, and tools non-empty.
 pub fn check_agents(root: &Path) -> Result<ReviewReport> {
@@ -627,6 +634,8 @@ pub fn check_agent_naming(root: &Path) -> Result<ReviewReport> {
     Ok(r)
 }
 
+// TODO(rustqual,#89): reduce cognitive complexity in check_plugin_json().
+// cognitive_complexity=16. Extract field-validation and nu-parse loops into helpers.
 /// Check plugin.json allowed fields and _lib/*.nu parse.
 pub fn check_plugin_json(root: &Path) -> Result<ReviewReport> {
     let mut r = ReviewReport::new();

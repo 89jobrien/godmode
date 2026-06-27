@@ -3,62 +3,95 @@ id: godmode
 updated: 2026-06-26
 items:
 - id: uncommitted-work
+  doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (2 files)
+  title: Uncommitted changes (5 files)
   description: |-
     Working tree has uncommitted changes:
-    .ctx/HANDOFF.godmode.godmode.yaml
-    crates/godmode-core/src/review.rs
+    .codex-plugin/
+    AGENTS.md
+    crates/godmode-cli/src/commands/
+    skills/depgraph/
+    skills/open-knowledge-discovery/
   files:
-  - .ctx/HANDOFF.godmode.godmode.yaml
-  - crates/godmode-core/src/review.rs
+  - .codex-plugin/
+  - AGENTS.md
+  - crates/godmode-cli/src/commands/
+  - skills/depgraph/
+  - skills/open-knowledge-discovery/
+  completed: null
+  extra: []
 log:
+- date: '20260626.043024'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits:
+  - !Sha 440d6ce99b732ed5bc83cfda2a1bce2d9e21c908
+  - !Sha 96f8ac99829acb33eaf1682ed6f77ae884d2a3af
+  - !Sha 0bccbbccb2c0d31903af820c78237a25aafca0c0
+  - !Sha 81cef6021713aea362b33fc5e1fc05ad573c9724
+  - !Sha 58e149f46df4452e1b7b9a047a2731d3833c7896
+  - !Sha 525728963dd3bd5aece8b6bfc9361ce502841dc0
+  - !Sha 1c4529c66c4a67a69dfb6ed0119251680c057c28
+  - !Sha f4b474ca55fe213851a7b088090b6ba8cb1f1b01
+  - !Sha 96e54e1c6544effc1717b53bb04355ff20a0ecc1
+  - !Sha 1fa38bdddc685ce0b3d395c7951021c896643cb0
 - date: '20260626.041620'
   summary: done=0 running=0 pending=0 blocked=0
   commits:
-  - c5e80847df0ad3ac612036e48e3c94262b9bce87
-  - e93fe0167ebf88bba37a56071eed6807999cf927
-  - eb5bf326d70066dc4aaea6cb376431dc95d084d5
-  - c12b55b54c6774bb6fdadc8af00740455d8eb38a
-  - f8600a71d9f5392e34c69db390fd4fd2b259ae8a
-  - 0b36386bdcf49da422424ac15e8aaf2b2b32e997
-  - 3987814454777ae04e858ffac73d68bf3b3cdc05
-  - 3ce53a4a11b40d8bf6040c73aa025388939bcbd5
-  - ede1a3d262ec3f518c3ecc8743640bd3f95a2d0c
-  - b2a03f83fc1cd48f75d5fdba877948e9d640394b
+  - !Sha c5e80847df0ad3ac612036e48e3c94262b9bce87
+  - !Sha e93fe0167ebf88bba37a56071eed6807999cf927
+  - !Sha eb5bf326d70066dc4aaea6cb376431dc95d084d5
+  - !Sha c12b55b54c6774bb6fdadc8af00740455d8eb38a
+  - !Sha f8600a71d9f5392e34c69db390fd4fd2b259ae8a
+  - !Sha 0b36386bdcf49da422424ac15e8aaf2b2b32e997
+  - !Sha 3987814454777ae04e858ffac73d68bf3b3cdc05
+  - !Sha 3ce53a4a11b40d8bf6040c73aa025388939bcbd5
+  - !Sha ede1a3d262ec3f518c3ecc8743640bd3f95a2d0c
+  - !Sha b2a03f83fc1cd48f75d5fdba877948e9d640394b
 - date: '20260625.120000'
   summary: Agent-improvement-loop skill added; rustqual quality improvements; doc fixes
-  commits:
-  - e93fe01
-  - c12b55b
-  - eb5bf32
+  commits: []
 - date: '20260625.011539'
   summary: done=12 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260624.034755'
   summary: done=12 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260624.031109'
   summary: done=11 running=1 pending=0 blocked=0
+  commits: []
 - date: '20260609.015541'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260608.003736'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260606.171219'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260605.042525'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.081919'
   summary: done=6 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.074109'
   summary: done=26 running=1 pending=0 blocked=0
+  commits: []
 - date: '20260604.055151'
   summary: done=0 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260604.054949'
   summary: done=18 running=1 pending=8 blocked=0
+  commits: []
 - date: '20260604.054344'
   summary: done=2 running=1 pending=24 blocked=0
+  commits: []
 - date: '20260604.050028'
   summary: done=1 running=0 pending=7 blocked=0
+  commits: []
 - date: '20260602.093547'
   summary: done=1 running=0 pending=7 blocked=0
+  commits: []

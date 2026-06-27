@@ -130,6 +130,8 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:workspace-release-impact`        | Decide which crates need version bumps             |
 | `godmode:writing-solid-rust`              | SOLID principles and hexagonal arch in Rust        |
 | `godmode:depgraph`                        | Hexagonal architecture report for Rust workspace   |
+| `godmode:open-knowledge-discovery`        | Install and use Open Knowledge on a repository     |
+| `godmode:agent-improvement-loop`          | Collect traces, feedback, evals, HALO diagnosis    |
 
 ## Always-Active Rules
 
@@ -183,6 +185,10 @@ godmode task block <id> "<reason>"      # mark blocked
 godmode task unblock <id>               # reset to pending
 godmode task unblock-all                # reset ALL blocked tasks to pending
 godmode task run <id>                   # run task's run: command
+godmode task remove <id>               # remove a task from the graph
 godmode dispatch [--max 5] [--json]     # parallel chains for orca-strait
 godmode agent dispatch <path> [--max N] # ingest + dispatch in one step
+godmode status                          # graph counts + next runnable
+godmode context [--json]                # session context for hooks/subagents
+godmode verify [--crate-name <crate>]   # nextest + clippy + fmt gate
 ```

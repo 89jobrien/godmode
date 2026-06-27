@@ -16,5 +16,9 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 miette = { workspace = true, features = ["fancy"] }
 
+[features]
+default = []
+test-utils = []
+
 [dev-dependencies]
 tempfile = "3"

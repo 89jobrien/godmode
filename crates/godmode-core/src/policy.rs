@@ -1,3 +1,7 @@
+// TODO(rustqual,#90): split policy.rs (395 lines) by SRP — three distinct responsibilities:
+//   1. policy_loader.rs  — YAML loading, path resolution, default/category/agent layering
+//   2. policy_engine.rs  — resolve(), check(), audit() enforcement logic
+//   3. policy.rs         — public types (GovernanceLevel, Policy, PolicyRule, AuditEvent)
 //! Governance policy engine — loads, composes, and enforces agent policies.
 //!
 //! Policies live in `skills/agent-governance/policies/`:

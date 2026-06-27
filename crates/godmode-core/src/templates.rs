@@ -1,3 +1,7 @@
+// TODO(rustqual,#93): split templates.rs (324 lines) by SRP — three distinct responsibilities:
+//   1. template_loader.rs — path resolution (local/global), YAML deserialization
+//   2. template_render.rs — {{var}} substitution, variable validation
+//   3. templates.rs       — apply_to_graph() orchestration and public Template types
 //! Task template loading, variable substitution, and graph application.
 //!
 //! Templates live in `<repo-root>/templates/<name>.yaml` (local) or

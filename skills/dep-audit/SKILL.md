@@ -56,15 +56,20 @@ cargo deny check
 Any advisory or license failure is Blocking or Suggestion level (depending on
 license policy).
 
-### Tool 3: cargo audit
+### Tool 3: cargo deny check advisories
 
 Scans the vulnerability database for known CVEs in transitive dependencies.
+Use `cargo deny check advisories` instead of `cargo audit` — cargo-audit 0.22
+cannot parse CVSS 4.0 entries in the advisory DB (upstream bug; crashes at DB
+load time before any `--ignore` flags can be applied).
 
 ```bash
-cargo audit
+cargo deny check advisories --config .config/deny.toml
 ```
 
-Reports CVE ID, affected versions, and fix version. Always Blocking.
+Reports advisory ID, affected crate, and severity. Always Blocking.
+Findings that are expected/accepted should be added to the `[advisories] ignore`
+list in `.config/deny.toml` with a documented rationale comment.
 
 ## Output Format
 
@@ -105,7 +110,7 @@ note version mismatches:
 When asked to "apply patches" or "fix it":
 
 1. For each patch bump: `cargo update -p <crate> --precise <version>`
-2. Rerun `cargo audit` to verify no new conflicts introduced
+2. Rerun `cargo deny check advisories --config .config/deny.toml` to verify no new conflicts
 3. Run `cargo check --workspace` to verify all builds succeed
 4. Report: updated crates and re-audit status
 
