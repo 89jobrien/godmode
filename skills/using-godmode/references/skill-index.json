@@ -330,6 +330,26 @@
       "name": "writing-solid-rust",
       "trigger": "SOLID principles and hexagonal architecture in Rust",
       "phase": "ACT"
+    },
+    {
+      "name": "agent-improvement-loop",
+      "trigger": "Collect traces, generate evals, run HALO diagnosis cycle",
+      "phase": "ACT"
+    },
+    {
+      "name": "depgraph",
+      "trigger": "Visualize crate dependency graph as hexagonal architecture report",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "open-knowledge-discovery",
+      "trigger": "What is Open Knowledge, install on repo, share notes",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "rustqual-workspace",
+      "trigger": "rustqual for Rust workspaces with multiple crates",
+      "phase": "VERIFY"
     }
   ]
 }
