@@ -66,9 +66,7 @@ Read each commit message. Identify:
 
 ### Step 5: Read task context
 
-```bash
-cat .ctx/godmode/tasks.yaml
-```
+Read `.ctx/godmode/tasks.yaml`.
 
 Identify which tasks have `status: done` on this branch. Note their titles and
 IDs — these become part of the "linked issues" section.

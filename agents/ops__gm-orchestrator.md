@@ -29,7 +29,7 @@ Inspect the target pipeline to understand its steps, loops, and optional flags:
 godmode pipeline list --name <pipeline>
 ```
 
-Read the raw YAML for full detail: `cat pipelines/<name>.yaml`
+Read the raw YAML for full detail using the Read tool on `pipelines/<name>.yaml`.
 
 Key fields to note:
 

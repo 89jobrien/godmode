@@ -38,10 +38,11 @@ use `cargo test --no-run` and parse the binary count instead.
 ### Step 2: Collect clippy warning count
 
 ```bash
-cargo clippy --workspace 2>&1 | grep "warning\[" | wc -l
+cargo clippy --workspace 2>&1
 ```
 
-Count only warnings, not notes. If clippy output is empty, the count is zero.
+Use the Grep tool on the output (or pipe through `grep "warning\["`) to count lines matching
+`warning\[`. Count only warnings, not notes. If clippy output is empty, the count is zero.
 
 ### Step 3: Collect TODO/FIXME density
 

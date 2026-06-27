@@ -41,10 +41,7 @@ Read the most recent 10–20 session JSONL files. Each record contains:
 
 ### Step 2: Check memory-bank baseline
 
-```bash
-# Read existing patterns to avoid duplication
-cat .ctx/memory-bank/patterns.md 2>/dev/null || echo "No existing patterns"
-```
+Use the Read tool on `.ctx/memory-bank/patterns.md`. If the file does not exist, note "No existing patterns".
 
 Note which patterns are already documented.
 

@@ -22,13 +22,19 @@ into a populated godmode task graph.
    infer `doctype = spec` from path)
 3. **Repo spec** — `spec.{project}.md` under `docs/`
 
-```bash
-# Find most recent explicit spec
-ls docs/specs/ 2>/dev/null | grep -E '\.spec\.md$' | sort | tail -1
+Use the Glob tool to find the most recent explicit spec:
 
-# Fall back to legacy implicit design docs
-ls docs/plans/ 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}-' | sort | tail -1
 ```
+Pattern: docs/specs/*.spec.md
+```
+
+Fall back to legacy implicit design docs:
+
+```
+Pattern: docs/plans/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md
+```
+
+Sort results and take the last entry.
 
 Read the resolved spec fully before doing anything else.
 
@@ -106,7 +112,7 @@ Run `godmode status` and show the output to the user. Verify:
 Tell the user:
 
 > "Task graph populated with N tasks. Run `godmode task next` to see what's runnable, or
-> invoke `/godmode:tdd-agent` to begin implementation."
+> invoke `/godmode:tdd-crate-agent` to begin implementation."
 
 ## Rules
 

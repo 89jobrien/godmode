@@ -24,7 +24,7 @@ bd --version
 gh --version && gh auth status
 
 # Check config
-cat ~/.doob/sync_providers.toml 2>/dev/null || echo "No config file"
+Read `~/.doob/sync_providers.toml` (if it exists) — if absent, note "No config file"
 ```
 
 ### Step 2: Identify SyncError Variant

@@ -67,11 +67,11 @@ If the file does not exist, proceed to Step 4.
 
 Search session traces and recent commits for clippy warnings:
 
-```bash
-# Find references to clippy in traces
-grep -i "clippy" .ctx/sessions/*.jsonl || true
+Use the Grep tool to search for `clippy` (case-insensitive) in `.ctx/sessions/*.jsonl`.
 
-# Find clippy-related commits
+Find clippy-related commits:
+
+```bash
 git log --all --oneline -100 | grep -i clippy || true
 ```
 
@@ -85,11 +85,11 @@ Mark as recurring if it appears in 2+ sessions or commits.
 
 ### Step 5: Detect Test Failures
 
-```bash
-# Find test failures in traces
-grep -i "test.*fail\|FAILED" .ctx/sessions/*.jsonl || true
+Use the Grep tool to search for `test.*fail|FAILED` (case-insensitive) in `.ctx/sessions/*.jsonl`.
 
-# Find test-related reverts or fixes
+Find test-related reverts or fixes:
+
+```bash
 git log --all --oneline -100 | grep -i "test\|revert.*test" || true
 ```
 
