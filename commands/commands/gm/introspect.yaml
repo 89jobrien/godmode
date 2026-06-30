@@ -1,0 +1,18 @@
+name: introspect
+template: review
+prompt: |
+  Audit all godmode skills, agents, and plugin files for internal consistency.
+  Follow godmode:introspection exactly:
+  1. Run skills/introspection/helpers/audit.nu — fix any broken references or missing index entries.
+  2. Cross-reference every godmode subcommand call against CLAUDE.md CLI reference.
+  3. Check tool hygiene: flag cat/grep/find/cd&&git/--no-verify/gh run watch anti-patterns.
+  4. Check cross-skill consistency: merge strategy, branch guard, concurrency cap (5), BLOCKED.md trigger (3).
+  5. Fix all findings in one pass. Commit with "fix(skills): introspection corrections — <summary>".
+allowedTools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+maxTurns: 40

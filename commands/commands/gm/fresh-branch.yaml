@@ -1,0 +1,25 @@
+name: fresh-branch
+template: dev
+prompt: |
+  Create a fresh branch from origin/main containing only the intended changes.
+
+  Arguments: $ARGUMENTS (branch name suffix or description, e.g. "fix/my-fix")
+
+  1. Run `git branch --show-current` — note the current branch.
+  2. Run `git stash` to save any uncommitted changes.
+  3. Run `git fetch origin main` then `git checkout -b $ARGUMENTS origin/main`.
+  4. If there are specific commits to include, cherry-pick them by SHA.
+     Otherwise, re-implement the fix cleanly from scratch on this branch.
+  5. Run `git log --oneline origin/main..HEAD` — verify ONLY the intended commits are present.
+     If unrelated commits appear, STOP and report to the user before proceeding.
+  6. Run `cargo fmt --check --all`, `cargo clippy --workspace -- -D warnings`,
+     and `cargo nextest run --workspace`. Fix any failures before pushing.
+  7. Push the branch and report the branch name and commit SHAs included.
+allowedTools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+maxTurns: 25

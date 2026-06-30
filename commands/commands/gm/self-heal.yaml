@@ -1,0 +1,52 @@
+name: self-heal
+template: dev
+prompt: |
+  Self-healing CI loop. Run cargo clippy + nextest + fmt, diagnose each failure, apply the
+  minimal fix, re-run, repeat until all three pass clean. Do NOT commit until all green.
+
+  Arguments: $ARGUMENTS (optional: specific crate path or --workspace; default: --workspace)
+
+  ## Loop
+
+  Repeat until all gates pass or 10 iterations reached:
+
+  ### Gate 1: clippy
+  Run: cargo clippy --workspace --all-targets -- -D warnings
+  For each warning/error:
+  - Identify the exact file and line
+  - Apply the minimal fix (do not refactor surrounding code)
+  - Re-run clippy immediately after each fix
+  - Do not move to gate 2 until clippy is clean
+
+  ### Gate 2: tests
+  Run: cargo nextest run --workspace
+  For each failure:
+  - Read the full failure output — do NOT dismiss as flakiness
+  - Check environment variables, recent changes, and actual error messages
+  - Identify root cause before proposing any fix
+  - Apply fix, re-run the specific failing test first, then full suite
+  - Do not move to gate 3 until nextest is clean
+
+  ### Gate 3: fmt
+  Run: cargo fmt --all --check
+  If it fails: run `cargo fmt --all` to fix, then re-check.
+
+  ## Exit conditions
+
+  - All 3 gates pass: report a summary of every fix applied and why. Offer to commit.
+  - 10 iterations reached without passing: write a BLOCKED.md at the repo root listing
+    remaining failures and what was attempted. Stop and escalate to user.
+
+  ## Rules
+
+  - Never use --no-verify
+  - Never skip a gate because "it was passing before"
+  - Always read actual error output before proposing a fix
+  - Fix one thing at a time; re-run before fixing the next
+allowedTools:
+  - Bash
+  - Read
+  - Edit
+  - Glob
+  - Grep
+maxTurns: 40
