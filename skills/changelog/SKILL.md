@@ -88,8 +88,8 @@ and commits without a crate scope.
 ## Integration with Release Workflow
 
 Write the generated changelog to `CHANGELOG.md` or `.ctx/` manually and commit.
-(`godmode release changelog` is not implemented in the CLI — generate output from
-this skill and write it with the Write tool.)
+(`godmode release changelog` generates and prepends an entry from commits since the last
+tag; this skill is for authoring richer notes and writing them with the Write tool.)
 
 ## Guardrails
 

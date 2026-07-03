@@ -167,7 +167,7 @@ user decide what to remove.
 ## See Also
 
 - `gm-code-review-agent` — detects dead code as part of multi-dimensional review
-- Use the `introspection` skill to audit plugin artifact integrity
-  (`godmode review agents` is not implemented in the CLI)
+- Use the `introspection` skill to audit plugin artifact integrity, or run
+  `godmode review agents` for an agent-frontmatter conformance check
 - Rust compiler warning: `#[warn(dead_code)]` — catches some unused functions (this
   skill finds unused _public_ surface the compiler allows)

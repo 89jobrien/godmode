@@ -72,7 +72,7 @@ if missing:
 
 For each slot, create a worktree branched from the latest main:
 
-> (`godmode worktree add` is not implemented — use git worktree directly:)
+> (Use `godmode worktree add <branch> --issue <N>`, or drive git worktree directly:)
 
 ```bash
 git -C "$REPO_ROOT" fetch origin main
@@ -144,7 +144,7 @@ git -C "$REPO_ROOT/.worktrees/issue-<N>" log --oneline -3
 
 Empty log = agent did not finish. Escalate to user, do not proceed with that slot.
 
-> (`godmode wave check` is not implemented — verify agent commits manually:)
+> (Use `godmode wave check`, or verify agent commits manually:)
 
 2. Merge each branch into main sequentially (never octopus):
 

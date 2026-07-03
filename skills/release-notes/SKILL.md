@@ -145,7 +145,7 @@ Produce markdown with these sections (omit if empty):
 
 Write final notes to `.ctx/` or `docs/` as appropriate, then commit.
 When bumping versions, pass the notes manually to your release script or commit
-alongside the version bump. (`godmode release` is not implemented in the CLI.)
+alongside the version bump (`godmode release bump` / `tag` / `push` handle the version side).
 
 ## Guardrails
 

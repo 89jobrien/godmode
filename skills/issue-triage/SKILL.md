@@ -118,8 +118,8 @@ gh issue list --repo <owner/repo> --state open \
 godmode task add "<title>" --id t<N> --crate-name <crate>
 ```
 
-> **Note**: `godmode task pull --github` is not implemented in the CLI.
-> Use `gh issue list` and add tasks individually.
+> **Note**: `godmode task pull --github [--repo owner/repo] [--label <label>]` imports
+> open GitHub issues as tasks. Or use `gh issue list` and add tasks individually.
 
 ### View Task Graph After Triage
 
