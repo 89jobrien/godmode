@@ -113,11 +113,11 @@ audit:
   log_reviews: true
 ```
 
-## CLI (`godmode policy`) — NOT IMPLEMENTED
+## CLI (`godmode policy`)
 
-> **Warning**: `godmode policy` subcommands (`resolve`, `check`, `list`, `audit`) are
-> not implemented in the current CLI. Use the Nushell helpers directly (see below).
-> The examples below document the intended API for when this is implemented.
+> `godmode policy` subcommands (`resolve`, `check`, `list`, `audit`) are available in
+> the CLI. The examples below document the API; the Nushell helpers remain as an
+> alternative for scripting.
 
 All subcommands support `--json`.
 
