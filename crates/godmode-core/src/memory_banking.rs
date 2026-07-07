@@ -20,7 +20,7 @@ const TEMPLATE_FILES: &[&str] = &[
 /// Resolved memory-bank directory for a git root.
 ///
 /// Prefers `.ctx/godmode/memory-bank/` (new layout). Falls back to the legacy
-/// `.ctx/godmode/memory-bank/` if it exists and the new path does not.
+/// `.ctx/memory-banking/` if it exists and the new path does not.
 pub fn memory_banking_dir(git_root: &Path) -> PathBuf {
     let new = git_root.join(".ctx").join("godmode").join("memory-bank");
     if new.exists() {

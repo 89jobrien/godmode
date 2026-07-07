@@ -66,72 +66,73 @@ then quality gates (`verification-before-completion`, `code-review`).
 
 ## Available Skills
 
-| Skill                                     | When                                               |
-| ----------------------------------------- | -------------------------------------------------- |
-| `godmode:task-driven-development`         | TDD with serialized task lists and issue chains    |
-| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior         |
-| `godmode:brainstorm`                      | Before any creative or design work                 |
-| `godmode:writing-plans`                   | Multi-step task with a spec or requirements        |
-| `godmode:verification-before-completion`  | Before claiming work is done                       |
-| `godmode:task-management`                 | Creating, tracking, or executing a task graph      |
-| `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently     |
-| `godmode:cap`                             | "cap", "commit and push", "ship it"                |
-| `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline              |
-| `godmode:tackle-issues`                   | Working on GitHub issues in parallel               |
-| `godmode:code-review`                     | Before merge, after feature complete               |
-| `godmode:refactoring`                     | Restructuring code without changing behaviour      |
-| `godmode:receiving-review`                | Processing incoming review comments                |
-| `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents            |
-| `godmode:testing-philosophy`              | Designing test strategy for new code               |
-| `godmode:introspection`                   | Auditing skills for consistency after changes      |
-| `godmode:moa`                             | Multi-model synthesis via Mixture of Agents        |
-| `godmode:todo-issue-sync`                 | Auditing inline TODOs against tracked issues       |
-| `godmode:self-reflect`                    | End-of-session retrospective — "reflect"           |
-| `godmode:wave-integration`                | Merge parallel agent branches sequentially         |
-| `godmode:merge`                           | Merge branch, create PR, squash, worktree cleanup  |
-| `godmode:rust-conventions`                | Rust coding conventions for writing/reviewing code |
-| `godmode:context-map`                     | Map all relevant files before implementation       |
-| `godmode:decompose`                       | Split large diff/PR into smaller branches          |
-| `godmode:doublecheck`                     | Three-layer verification of factual claims         |
-| `godmode:mini-context-graph`              | Persistent knowledge base with entity graph        |
-| `godmode:agent-governance`                | Governance/safety patterns for AI agent systems    |
-| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context        |
-| `godmode:changelog`                       | Parse git history into structured changelogs       |
-| `godmode:cross-issue`                     | Cross-repo issue coordination and linking          |
-| `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs |
-| `godmode:dep-audit`                       | Audit deps via cargo outdated/deny/audit           |
-| `godmode:dep-bump`                        | Propagate workspace crate version bumps downstream |
-| `godmode:doc-maintainer`                  | Audit docs against source code for drift           |
-| `godmode:health-score`                    | Measure codebase health across seven metrics       |
-| `godmode:issue-triage`                    | Triage and prioritize GitHub issues                |
-| `godmode:mistake-tracker`                 | Catalog recurring mistakes and failure modes       |
-| `godmode:pattern-learner`                 | Cross-session pattern extraction from traces       |
-| `godmode:pr-author`                       | Compose PR descriptions from branch context        |
-| `godmode:release-notes`                   | Write user-facing release notes from git history   |
-| `godmode:workspace-refactor`              | Catalog breaking changes in shared crate APIs      |
-| `godmode:agents-skill-save`               | Create or fix a local skill saved to wrong path    |
-| `godmode:baml-add-types`                  | Add BAML types/functions to cruxx-agentic          |
-| `godmode:design`                          | Translate brainstorm into architectural spec       |
-| `godmode:dual-forge-pr-merge`             | PR across GitHub and Gitea mirrors                 |
-| `godmode:gh-bulk-issues`                  | Create 3+ GitHub issues with consistent format     |
-| `godmode:notfiles-release-workflow`       | Release workflow for the notfiles repo             |
-| `godmode:planning-with-crux`              | Design crux DSL pipelines and macro agents         |
-| `godmode:release-readiness-check`         | Pre-release verification of tags, crates, gates    |
-| `godmode:remote-upstream-triage`          | Fix git push/PR upstream or remote drift           |
-| `godmode:repo-gap-backlog`                | Turn local project gaps into GitHub issues         |
-| `godmode:rust-release-workflow-author`    | Create GitHub Actions release workflow for Rust    |
-| `godmode:rustqual`                        | Rust code quality analysis via rustqual CLI        |
-| `godmode:rustqual-workspace`              | rustqual guidance for multi-crate Rust workspaces  |
-| `godmode:session-wrap-commit-push`        | End-of-session commit and push closeout            |
-| `godmode:token-cost-optimizer`            | Analyze or reduce Claude/agent token costs         |
-| `godmode:using-crux`                      | Navigate, build, or extend the crux codebase       |
-| `godmode:whatidid`                        | Generate daily activity report from session data   |
-| `godmode:workspace-bump-commit`           | Apply version bumps and create release commit      |
-| `godmode:workspace-release-impact`        | Decide which crates need version bumps             |
-| `godmode:writing-solid-rust`              | SOLID principles and hexagonal arch in Rust        |
-| `godmode:depgraph`                        | Hexagonal architecture report for Rust workspace   |
-| `godmode:open-knowledge-discovery`        | Install and use Open Knowledge on a repository     |
-| `godmode:agent-improvement-loop`          | Collect traces, feedback, evals, HALO diagnosis    |
+| Skill                                     | When                                                 |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `godmode:task-driven-development`         | TDD with serialized task lists and issue chains      |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior           |
+| `godmode:brainstorm`                      | Before any creative or design work                   |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements          |
+| `godmode:verification-before-completion`  | Before claiming work is done                         |
+| `godmode:task-management`                 | Creating, tracking, or executing a task graph        |
+| `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently       |
+| `godmode:cap`                             | "cap", "commit and push", "ship it"                  |
+| `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline                |
+| `godmode:tackle-issues`                   | Working on GitHub issues in parallel                 |
+| `godmode:code-review`                     | Before merge, after feature complete                 |
+| `godmode:refactoring`                     | Restructuring code without changing behaviour        |
+| `godmode:receiving-review`                | Processing incoming review comments                  |
+| `godmode:observability-as-infrastructure` | Adding tracing to helpers and subagents              |
+| `godmode:testing-philosophy`              | Designing test strategy for new code                 |
+| `godmode:introspection`                   | Auditing skills for consistency after changes        |
+| `godmode:moa`                             | Multi-model synthesis via Mixture of Agents          |
+| `godmode:todo-issue-sync`                 | Auditing inline TODOs against tracked issues         |
+| `godmode:self-reflect`                    | End-of-session retrospective — "reflect"             |
+| `godmode:wave-integration`                | Merge parallel agent branches sequentially           |
+| `godmode:merge`                           | Merge branch, create PR, squash, worktree cleanup    |
+| `godmode:rust-conventions`                | Rust coding conventions for writing/reviewing code   |
+| `godmode:context-map`                     | Map all relevant files before implementation         |
+| `godmode:decompose`                       | Split large diff/PR into smaller branches            |
+| `godmode:doublecheck`                     | Three-layer verification of factual claims           |
+| `godmode:mini-context-graph`              | Persistent knowledge base with entity graph          |
+| `godmode:agent-governance`                | Governance/safety patterns for AI agent systems      |
+| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context          |
+| `godmode:changelog`                       | Parse git history into structured changelogs         |
+| `godmode:cross-issue`                     | Cross-repo issue coordination and linking            |
+| `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs   |
+| `godmode:dep-audit`                       | Audit deps via cargo outdated/deny/audit             |
+| `godmode:dep-bump`                        | Propagate workspace crate version bumps downstream   |
+| `godmode:doc-maintainer`                  | Audit docs against source code for drift             |
+| `godmode:health-score`                    | Measure codebase health across seven metrics         |
+| `godmode:issue-triage`                    | Triage and prioritize GitHub issues                  |
+| `godmode:mistake-tracker`                 | Catalog recurring mistakes and failure modes         |
+| `godmode:pattern-learner`                 | Cross-session pattern extraction from traces         |
+| `godmode:pr-author`                       | Compose PR descriptions from branch context          |
+| `godmode:release-notes`                   | Write user-facing release notes from git history     |
+| `godmode:workspace-refactor`              | Catalog breaking changes in shared crate APIs        |
+| `godmode:agents-skill-save`               | Create or fix a local skill saved to wrong path      |
+| `godmode:baml-add-types`                  | Add BAML types/functions to cruxx-agentic            |
+| `godmode:design`                          | Translate brainstorm into architectural spec         |
+| `godmode:dual-forge-pr-merge`             | PR across GitHub and Gitea mirrors                   |
+| `godmode:gh-bulk-issues`                  | Create 3+ GitHub issues with consistent format       |
+| `godmode:notfiles-release-workflow`       | Release workflow for the notfiles repo               |
+| `godmode:planning-with-crux`              | Design crux DSL pipelines and macro agents           |
+| `godmode:release-readiness-check`         | Pre-release verification of tags, crates, gates      |
+| `godmode:remote-upstream-triage`          | Fix git push/PR upstream or remote drift             |
+| `godmode:repo-gap-backlog`                | Turn local project gaps into GitHub issues           |
+| `godmode:rust-release-workflow-author`    | Create GitHub Actions release workflow for Rust      |
+| `godmode:rustqual`                        | Rust code quality analysis via rustqual CLI          |
+| `godmode:rustqual-workspace`              | rustqual guidance for multi-crate Rust workspaces    |
+| `godmode:session-wrap-commit-push`        | End-of-session commit and push closeout              |
+| `godmode:token-cost-optimizer`            | Analyze or reduce Claude/agent token costs           |
+| `godmode:using-crux`                      | Navigate, build, or extend the crux codebase         |
+| `godmode:whatidid`                        | Generate daily activity report from session data     |
+| `godmode:workspace-bump-commit`           | Apply version bumps and create release commit        |
+| `godmode:workspace-release-impact`        | Decide which crates need version bumps               |
+| `godmode:writing-solid-rust`              | SOLID principles and hexagonal arch in Rust          |
+| `godmode:depgraph`                        | Hexagonal architecture report for Rust workspace     |
+| `godmode:open-knowledge-discovery`        | Install and use Open Knowledge on a repository       |
+| `godmode:open-knowledge-write-skill`      | Author, draft, and install a new OpenKnowledge skill |
+| `godmode:agent-improvement-loop`          | Collect traces, feedback, evals, HALO diagnosis      |
 
 ## Always-Active Rules
 
