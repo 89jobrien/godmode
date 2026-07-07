@@ -48,6 +48,10 @@ def main [] {
             let parsed = ($ref_line | parse --regex '`references/(?P<f>[^\s`]+)`')
             if ($parsed | length) > 0 {
                 let fname = ($parsed | first | get f)
+                # Skip template placeholders like <topic>.md or *.md
+                if ($fname | str contains "<") or ($fname | str contains "*") {
+                    continue
+                }
                 if not ($"($skill_dir)/references/($fname)" | path exists) {
                     $issues = ($issues | append $"[($skill_name)] broken reference: references/($fname)")
                 }
