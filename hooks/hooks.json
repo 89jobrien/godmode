@@ -13,16 +13,6 @@
             "type": "command",
             "command": "godmode hook run task-management",
             "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run using-godmode",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run memory-banking",
-            "timeout": 15
           }
         ]
       }
@@ -58,11 +48,6 @@
           },
           {
             "type": "command",
-            "command": "godmode hook run task-driven-development",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "godmode hook run moa",
             "timeout": 10
           }
@@ -74,41 +59,6 @@
           {
             "type": "command",
             "command": "godmode hook run brainstorm",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run design",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run testing-philosophy",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "godmode hook run refactoring",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run receiving-review",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run context-map",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run rust-conventions",
             "timeout": 10
           }
         ]
@@ -145,18 +95,8 @@
           },
           {
             "type": "command",
-            "command": "godmode hook run systematic-debugging",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "godmode hook run ci-fix",
             "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run cap",
-            "timeout": 10
           },
           {
             "type": "command",
@@ -165,32 +105,7 @@
           },
           {
             "type": "command",
-            "command": "godmode hook run tackle-issues",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "godmode hook run wave-integration",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run observability-as-infrastructure",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run doublecheck",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run merge",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run todo-issue-sync",
             "timeout": 10
           }
         ]
@@ -220,18 +135,8 @@
           },
           {
             "type": "command",
-            "command": "godmode hook run writing-plans",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-write-plan-ingest.rs",
             "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run mini-context-graph",
-            "timeout": 10
           }
         ]
       },
@@ -274,11 +179,6 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-update-remind.nu",
             "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run verification-before-completion",
-            "timeout": 15
           },
           {
             "type": "command",
