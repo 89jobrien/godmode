@@ -1,0 +1,24 @@
+name: improve-agent
+template: dev
+prompt: |
+  Identify recurring agent behaviour patterns and codify improvements into skills or agents.
+  1. Run godmode:self-reflect — review recent sessions for friction, repeated corrections,
+     and process gaps.
+  2. Run godmode:pattern-learner — extract recurring patterns from session traces and
+     mistake ledger. Classify: best practice / anti-pattern / process gap.
+  3. Run godmode:agent-improvement-loop — for each high-signal pattern, propose a concrete
+     change: new skill rule, updated agent description, or new command.
+     Present proposed changes one at a time. Wait for approval before applying each.
+  4. Run godmode:agents-skill-save — write approved changes to the relevant skill or agent
+     file. Validate frontmatter after each write.
+  5. Commit: feat(godmode): improve <skill/agent name> based on session patterns.
+  Every improvement must be grounded in observed behaviour — not hypothetical issues.
+  Do not modify a skill or agent file without showing the proposed diff and getting approval.
+allowedTools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Glob
+  - Grep
+maxTurns: 30
