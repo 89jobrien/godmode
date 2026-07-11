@@ -198,8 +198,31 @@ brainstorm → writing-plans → plan ingest → handon
 
 ## Commands
 
-Slash commands live in `commands/gm/` and map directly to skills. They can be invoked from
-the Claude Code command palette (e.g. `/gm:cap`, `/gm:tdd`, `/gm:debug`).
+Slash commands live in `commands/gm/` and map to skills or multi-skill workflows. Invoked
+from the Claude Code command palette (e.g. `/gm:cap`, `/gm:tdd`, `/gm:feature`).
+
+**Atomic** (single skill): `cap`, `tdd`, `debug`, `refactor`, `review-code`, `ci-fix`,
+`self-heal`, `plan`, `tackle-issues`, `moa-review`, `preflight`, `handon`, `handoff`,
+`fresh-branch`, `introspect`, `dispatch-all`, `auth-fail-fast`, `test-fix-commit`, `trace`
+
+**Workflow** (multi-skill pipelines):
+
+| Command           | Pipeline                                                                    |
+| ----------------- | --------------------------------------------------------------------------- |
+| `brainstorm`      | brainstorm → design                                                         |
+| `ideate`          | repo scan → gap analysis → brainstorm                                       |
+| `feature`         | brainstorm → design → writing-plans → tdd → verify → cap                    |
+| `ship`            | verification → changelog → release-notes → cap                              |
+| `release`         | readiness-check → impact → bump → changelog → release-notes → cap           |
+| `audit`           | health-score → dead-code → dep-audit → mistake-tracker → repo-gap-backlog   |
+| `pr`              | code-review → doublecheck → pr-author → merge                               |
+| `review-incoming` | receiving-review → verify → cap                                             |
+| `deps`            | dep-audit → dep-bump → cap                                                  |
+| `session-end`     | whatidid → self-reflect → mistake-tracker → memory-banking → session-wrap   |
+| `improve-agent`   | self-reflect → pattern-learner → agent-improvement-loop → agents-skill-save |
+| `context`         | context-map → memory-banking → mini-context-graph                           |
+
+See `commands/gm/README.md` for the full reference.
 
 ## Helpers
 
