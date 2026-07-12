@@ -102,6 +102,10 @@ If no running task exists, skip this step.
 
 ## Guardrails
 
+- Before staging ANY Rust change outside of the cap workflow, run:
+  `cargo clippy --all-targets --all-features -- -D warnings`
+  The feat-then-fix commit cycle is the top recurring anti-pattern in this workspace.
+  Do not commit until clippy is clean.
 - Never use `--no-verify`.
 - Never force-push without explicit user instruction.
 - Never commit to `main` directly — verify with `git branch --show-current` first.

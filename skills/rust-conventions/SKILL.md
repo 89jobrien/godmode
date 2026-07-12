@@ -212,8 +212,8 @@ mod tests {
 - Include `description`, `license`, `repository`, `keywords`, `categories` in every crate.
 - Use feature flags for optional functionality.
 - Keep `main.rs` and `lib.rs` minimal — move logic to named modules.
-- Organise modules as named files (`context.rs`) rather than `mod.rs` directories where
-  possible (cleaner in editor file pickers).
+- Organise modules as `mod.rs` directory layout (`src/foo/mod.rs`) rather than flat files
+  (`src/foo.rs`). This is the preferred convention in this workspace.
 
 ---
 
