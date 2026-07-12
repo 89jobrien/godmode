@@ -1,0 +1,21 @@
+name: debug-loop
+template: debug
+prompt: |
+  Systematically debug a failure, verify the fix, and commit.
+  1. Run godmode:systematic-debugging — read the full error, check recent changes,
+     state one hypothesis before touching code, apply the minimal fix.
+     3-attempt rule: if 3 sequential fixes all fail, write BLOCKED.md and stop.
+  2. Run godmode:doublecheck — independent verification of the fix; confirm the root
+     cause was addressed, not just the symptom.
+  3. Run godmode:verification-before-completion — all gates green before committing.
+  4. Run godmode:cap — commit with message describing the root cause and fix.
+  Do not skip doublecheck even if systematic-debugging feels thorough — it catches
+  fixes that address the symptom but leave the root cause intact.
+allowedTools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+maxTurns: 40
