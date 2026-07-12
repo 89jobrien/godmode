@@ -48,6 +48,11 @@ Multi-skill pipelines that chain skills in sequence.
 | `/gm:session-end`     | `whatidid` → `self-reflect` → `mistake-tracker` → `memory-banking` → `session-wrap-commit-push`                          |
 | `/gm:improve-agent`   | `self-reflect` → `pattern-learner` → `agent-improvement-loop` → `agents-skill-save`                                      |
 | `/gm:context`         | `context-map` → `memory-banking` → `mini-context-graph`                                                                  |
+| `/gm:debug-loop`      | `systematic-debugging` → `doublecheck` → `verification-before-completion` → `cap`                                        |
+| `/gm:doc-enrich`      | `doc-review` → `doc-maintainer` → `doc-sync` → `cap`                                                                     |
+| `/gm:polish`          | `refactoring` → `testing-philosophy` → `rustqual` → `release-readiness-check` → `changelog` → `cap`                      |
+| `/gm:issues`          | `issue-triage` → `tackle-issues` → `todo-issue-sync` → `cap`                                                             |
+| `/gm:observe`         | `observability-as-infrastructure` → `health-score` → `issue-triage` (read-only)                                          |
 
 ## Adding a Command
 
