@@ -4,5 +4,5 @@
   },
   "description": "Rust-native development methodology: TDD, debugging, collaboration patterns, and proven techniques for Rust workspaces",
   "name": "godmode",
-  "version": "e178504"
+  "version": "5b513aa5bbce0e4ba5264c2a81c45dc0b58473ec"
 }
