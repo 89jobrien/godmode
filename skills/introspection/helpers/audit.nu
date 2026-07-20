@@ -6,8 +6,17 @@ def main [] {
     let root = (git rev-parse --show-toplevel | str trim)
     let skills_dir = $"($root)/skills"
 
+    # Exclude non-skill container dirs: shared lib dirs, scratch worktree
+    # dirs (name ends in "-workspace"), and namespace containers that hold
+    # nested skill subdirectories (each with their own SKILL.md) rather than
+    # being a skill themselves.
     let skill_dirs = (ls $skills_dir | where type == "dir" | get name
-        | where { |d| ($d | path basename) != "_lib" })
+        | where { |d|
+            let name = ($d | path basename)
+            let has_own_skill_md = ($"($d)/SKILL.md" | path exists)
+            let has_nested_skill_md = ((glob $"($d)/*/SKILL.md") | length) > 0
+            ($name != "_lib") and ($name != "lib") and (not ($name | str ends-with "-workspace")) and (not ((not $has_own_skill_md) and $has_nested_skill_md))
+        })
 
     # Check skill-index coverage via using-godmode/SKILL.md
     let index_path = $"($skills_dir)/using-godmode/SKILL.md"
@@ -37,9 +46,20 @@ def main [] {
         for ref_line in ($content | lines | where { |l| $l | str contains "helpers/" }) {
             let parsed = ($ref_line | parse --regex '`helpers/(?P<f>[^\s`]+)`')
             if ($parsed | length) > 0 {
-                let fname = ($parsed | first | get f)
-                if not ($"($skill_dir)/helpers/($fname)" | path exists) {
-                    $issues = ($issues | append $"[($skill_name)] broken helper ref: helpers/($fname)")
+                let raw = ($parsed | first | get f)
+                # Expand shell brace-alternation refs like "name.{sh,fish,nu}"
+                # into their real candidate filenames before checking existence.
+                let brace = ($raw | parse --regex '^(?P<base>[^{]+)\{(?P<alts>[^}]+)\}(?P<rest>.*)$')
+                let candidates = if ($brace | length) > 0 {
+                    let b = ($brace | first)
+                    ($b.alts | split row "," | each { |alt| $"($b.base)($alt)($b.rest)" })
+                } else {
+                    [$raw]
+                }
+                for fname in $candidates {
+                    if not ($"($skill_dir)/helpers/($fname)" | path exists) {
+                        $issues = ($issues | append $"[($skill_name)] broken helper ref: helpers/($fname)")
+                    }
                 }
             }
         }
@@ -61,7 +81,7 @@ def main [] {
 
     let date = (date now | format date "%Y-%m-%d")
     let timestamp = (date now | format date "%Y-%m-%d %H:%M")
-    let ctx_dir = $"($root)/.ctx"
+    let ctx_dir = $"($root)/.ctx/godmode/reports/introspection"
     let report_path = $"($ctx_dir)/introspection-($date).md"
 
     if not ($ctx_dir | path exists) {
