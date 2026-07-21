@@ -18,5 +18,5 @@ def main [--n: int = 20, --session: string = ""] {
         $events | where session_id == $session
     }
 
-    $filtered | last $n | table
+    print ($filtered | last $n | table)
 }

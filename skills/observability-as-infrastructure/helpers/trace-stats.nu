@@ -24,7 +24,7 @@ def main [--session: string = ""] {
             let ms = ($row.runs | get duration_ms)
             { skill: $row.skill, runs: ($ms | length), avg_ms: ($ms | math avg | into int), max_ms: ($ms | math max) }
         })
-    if ($durations | is-empty) { print "(none)" } else { $durations | table }
+    if ($durations | is-empty) { print "(none)" } else { print ($durations | table) }
 
     # Agent convergence
     print "\n=== agent convergence ==="
@@ -51,6 +51,6 @@ def main [--session: string = ""] {
     if ($decisions | is-empty) {
         print "(none)"
     } else {
-        $decisions | select skill helper kind value ts | table
+        print ($decisions | select skill helper kind value ts | table)
     }
 }

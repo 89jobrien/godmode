@@ -63,6 +63,6 @@ Always produce:
 export OPENAI_API_KEY=$(grep ^OPENAI_API_KEY ~/.secrets | cut -d= -f2)
 ```
 
-## Narrative Style
+## Output Format
 
-Write like a journalist, not a commit log. Name sagas. Connect themes across repos. One clean paragraph per repo that had real activity. End with the cross-project close — what the day resolved, what it left open.
+Follow the `herald` skill for format rules and the vault template path.

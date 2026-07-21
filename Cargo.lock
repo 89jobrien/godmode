@@ -344,7 +344,7 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "crux-domain"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -353,13 +353,13 @@ dependencies = [
 
 [[package]]
 name = "crux-runtime"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
- "anyhow",
  "chrono",
  "crux-domain",
  "crux-types",
  "futures",
+ "miette",
  "serde",
  "serde_json",
  "slashcrux",
@@ -369,9 +369,10 @@ dependencies = [
 
 [[package]]
 name = "crux-types"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "chrono",
+ "miette",
  "serde",
  "serde_json",
  "ulid",

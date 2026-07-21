@@ -1,55 +1,103 @@
 project: godmode
 id: godmode
-updated: 2026-06-26
+updated: 2026-07-20
 items:
 - id: uncommitted-work
   doob_uuid: null
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (5 files)
+  title: Uncommitted changes (26 files)
   description: |-
     Working tree has uncommitted changes:
+    .ctx/HANDOFF.godmode.godmode.yaml
+    Cargo.lock
+    agents/agent__dialectic-orchestrator.md
+    agents/herald.md
+    skills/tackle-issues/SKILL.md
+    skills/using-godmode/SKILL.md
+    skills/whatidid/helpers/analyze.rs
+    skills/whatidid/model_pricing.json
     .codex-plugin/
+    .ctx/HANDOFF.tools.yaml
+    .plugin-eval/
     AGENTS.md
     crates/godmode-cli/src/commands/
+    skills/crs-hook-testing-workspace/
+    skills/crs-hook-testing/
     skills/depgraph/
+    skills/joe:inject
+    skills/joe:persona
+    skills/joe:portfolio
     skills/open-knowledge-discovery/
+    skills/open-knowledge-write-skill/
+    skills/rust-release-orchestrator-workspace/
+    skills/rust-release-orchestrator/
+    skills/think-consistency/
+    skills/using-doob/
+    toolkit.nu
   files:
+  - .ctx/HANDOFF.godmode.godmode.yaml
+  - Cargo.lock
+  - agents/agent__dialectic-orchestrator.md
+  - agents/herald.md
+  - skills/tackle-issues/SKILL.md
+  - skills/using-godmode/SKILL.md
+  - skills/whatidid/helpers/analyze.rs
+  - skills/whatidid/model_pricing.json
   - .codex-plugin/
+  - .ctx/HANDOFF.tools.yaml
+  - .plugin-eval/
   - AGENTS.md
   - crates/godmode-cli/src/commands/
+  - skills/crs-hook-testing-workspace/
+  - skills/crs-hook-testing/
   - skills/depgraph/
+  - skills/joe:inject
+  - skills/joe:persona
+  - skills/joe:portfolio
   - skills/open-knowledge-discovery/
+  - skills/open-knowledge-write-skill/
+  - skills/rust-release-orchestrator-workspace/
+  - skills/rust-release-orchestrator/
+  - skills/think-consistency/
+  - skills/using-doob/
+  - toolkit.nu
   completed: null
   extra: []
 log:
-- date: '20260626.043024'
+- date: '20260720.073752'
   summary: done=12 running=0 pending=0 blocked=0
   commits:
+  - !Sha f1ea24a5c1dd776ced8e80f4b7c51c26c21a6d29
+  - !Sha 9435423432769d4cab62c8fe905e25f3bd4240a2
+  - !Sha bb3f520a97bd23708f16d75211ce9c8fedd166c6
+  - !Sha a92f39a5a873200714de0e2746a69beff36c9b5d
+  - !Sha 70bb5be77e8c20f2946b9b17e3f7c78663a32b5c
+  - !Sha 5b513aa5bbce0e4ba5264c2a81c45dc0b58473ec
+  - !Sha d60e93aad4fcd2e473af8e886b4948d8d79bdfc0
+  - !Sha e17850401b95fd8388454a6bf3f903d97825d08e
+  - !Sha 7eb896b564a924ffda36975272a002e97aeb8842
+  - !Sha 3700cb177f0633b827fbd1467899490f43c6eb08
+- date: '20260703.005625'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits:
+  - !Sha e551b272950ecc7052bd008270f0a7d50f60cd26
+  - !Sha c4a2433a1456a953875cf1b8dd3a791c40eb8c5f
+  - !Sha 75ea2acd9b8854e49dc92570102bf1aa36d7e3ec
+  - !Sha 70769e3f230657843d8ae03acbcedb42642ab83f
+  - !Sha df068e940861913c187c23cde96466fbdc279f19
+  - !Sha d6708d5e78216dba760a8008ed8f2214a22f534a
+  - !Sha 74e679dcbca8bb7d7cf4e56baeaf79a6e6560108
+  - !Sha a4eca102871060b7f996fbcb093fcab3dfd52506
   - !Sha 440d6ce99b732ed5bc83cfda2a1bce2d9e21c908
   - !Sha 96f8ac99829acb33eaf1682ed6f77ae884d2a3af
-  - !Sha 0bccbbccb2c0d31903af820c78237a25aafca0c0
-  - !Sha 81cef6021713aea362b33fc5e1fc05ad573c9724
-  - !Sha 58e149f46df4452e1b7b9a047a2731d3833c7896
-  - !Sha 525728963dd3bd5aece8b6bfc9361ce502841dc0
-  - !Sha 1c4529c66c4a67a69dfb6ed0119251680c057c28
-  - !Sha f4b474ca55fe213851a7b088090b6ba8cb1f1b01
-  - !Sha 96e54e1c6544effc1717b53bb04355ff20a0ecc1
-  - !Sha 1fa38bdddc685ce0b3d395c7951021c896643cb0
+- date: '20260626.043024'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits: []
 - date: '20260626.041620'
   summary: done=0 running=0 pending=0 blocked=0
-  commits:
-  - !Sha c5e80847df0ad3ac612036e48e3c94262b9bce87
-  - !Sha e93fe0167ebf88bba37a56071eed6807999cf927
-  - !Sha eb5bf326d70066dc4aaea6cb376431dc95d084d5
-  - !Sha c12b55b54c6774bb6fdadc8af00740455d8eb38a
-  - !Sha f8600a71d9f5392e34c69db390fd4fd2b259ae8a
-  - !Sha 0b36386bdcf49da422424ac15e8aaf2b2b32e997
-  - !Sha 3987814454777ae04e858ffac73d68bf3b3cdc05
-  - !Sha 3ce53a4a11b40d8bf6040c73aa025388939bcbd5
-  - !Sha ede1a3d262ec3f518c3ecc8743640bd3f95a2d0c
-  - !Sha b2a03f83fc1cd48f75d5fdba877948e9d640394b
+  commits: []
 - date: '20260625.120000'
   summary: Agent-improvement-loop skill added; rustqual quality improvements; doc fixes
   commits: []
