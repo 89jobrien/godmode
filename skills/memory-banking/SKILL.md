@@ -34,9 +34,13 @@ actual code, not assumptions.
   progress.md           # what works, what's in progress, what's not started
 ```
 
-The CLI (`godmode memory-banking`) creates and prefers `.ctx/godmode/memory-bank/`.
-It still reads a legacy `.ctx/memory-banking/` directory as a fallback when the new
-path is absent, so older projects on that layout keep working.
+This skill creates and prefers `.ctx/godmode/memory-bank/`. `godmode memory-banking init`
+scaffolds the directory with empty TODO-stubbed template files — actual content still
+comes from following the generation procedure below, not from the CLI. `godmode
+memory-banking status`, `inject`, and `remind` are also implemented (staleness check,
+context injection, and a post-commit reminder, respectively). It still reads a legacy
+`.ctx/memory-banking/` directory as a fallback when the new path is absent, so older
+projects on that layout keep working.
 
 ## Generation procedure
 

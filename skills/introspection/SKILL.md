@@ -76,7 +76,7 @@ For every `**See also**`, `references/`, or `helpers/` link in a SKILL.md:
 
 ## Step 6: Check skill index completeness
 
-Read `skills/using-godmode/SKILL.md` (the skill table in the "Skill → Phase mapping" section).
+Read `skills/using-godmode/SKILL.md` (the skill table in the "Available Skills" section).
 
 Every skill directory with a `SKILL.md` must have an entry in both. Flag any that are missing.
 

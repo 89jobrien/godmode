@@ -157,6 +157,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:obfsck-workflow`                 | obfsck feature work — ObfuscationLevel, PII gating           |
 | `godmode:obsidian-vault`                  | Working in the Obsidian Vault directory                      |
 | `godmode:pieces`                          | Working with Pieces on-device AI memory platform             |
+| `godmode:pieces-health`                   | Pieces MCP timeout/disconnect — check/restart PiecesOS       |
 | `godmode:pieces-ltm`                      | Historical context from Pieces long-term memory              |
 | `godmode:rust-release-orchestrator`       | Coordinating a Rust workspace release                        |
 | `godmode:rust-script`                     | Writing a standalone rust-script one-off utility             |
