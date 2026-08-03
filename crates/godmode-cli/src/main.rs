@@ -1248,7 +1248,9 @@ fn run() -> Result<()> {
         },
 
         Cmd::Verify { crate_name } => {
-            let report = godmode_core::verify::run(&root, crate_name.as_deref())?;
+            let config = godmode_core::config::Config::load(&root);
+            let report =
+                godmode_core::verify::run_with_config(&root, crate_name.as_deref(), &config)?;
             if sarif {
                 let mut log = godmode_core::sarif::from_verify(&report);
                 // Merge rich clippy SARIF (with file locations) as a second run

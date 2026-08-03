@@ -129,7 +129,16 @@ fn append_event(ctx_dir: &PathBuf, event: Value) {
             .append(true)
             .open(&trace_file)
         {
-            let _ = writeln!(f, "{}", line);
+            // Concurrent godmode-trace invocations (multiple sessions) share this
+            // O_APPEND file. `writeln!` can split the content and trailing "\n"
+            // literal across two write() syscalls, letting another process's
+            // atomic append land in between and corrupt the line (two JSON
+            // objects concatenated with no separating newline). Build the full
+            // line in one buffer and issue a single write_all so O_APPEND's
+            // per-write atomicity actually covers the whole record.
+            let mut buf = line.into_bytes();
+            buf.push(b'\n');
+            let _ = f.write_all(&buf);
         }
     }
 }
