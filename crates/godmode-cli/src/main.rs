@@ -1,7 +1,7 @@
 #![allow(clippy::items_after_test_module)]
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use godmode_core::{
     agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
     memory_banking, model, pipeline, plan, policy, registry, release, review, session::Session,
@@ -778,6 +778,15 @@ fn exit_empty(json: bool) -> ! {
 }
 
 fn main() -> miette::Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("completions") {
+        clap_complete::generate(
+            clap_complete_nushell::Nushell,
+            &mut Cli::command(),
+            "godmode",
+            &mut std::io::stdout(),
+        );
+        return Ok(());
+    }
     install_miette_theme();
     match run() {
         Ok(()) => Ok(()),
@@ -803,6 +812,7 @@ fn run() -> Result<()> {
     let cli = Cli::parse();
     let json = cli.json;
     let sarif = cli.sarif;
+
     let root = detect::root_or_cwd()?;
 
     match cli.cmd {
