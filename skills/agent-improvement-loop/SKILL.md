@@ -298,6 +298,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"<sample>"}}' | coursers pre [
 **On all green:**
 
 ```
+git branch --show-current   # MUST verify — stop if output is "main"
 git add <changed files>
 git commit -m "fix(agent): <cluster_id> — <one-line diagnosis>"
 git push

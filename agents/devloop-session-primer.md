@@ -57,9 +57,7 @@ git diff --stat HEAD 2>/dev/null | tail -3
 
 ### 6. Stale .snap.new files
 
-```bash
-find . -name "*.snap.new" -not -path "*/target/*" 2>/dev/null
-```
+Use the Glob tool with pattern `**/*.snap.new`, excluding `target/` matches, instead of shelling out to `find`.
 
 ### 7. devloop binary currency
 

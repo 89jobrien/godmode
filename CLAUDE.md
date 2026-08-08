@@ -147,6 +147,12 @@ godmode task list-templates                     # list available templates (loca
 godmode task push-done                          # sync completed tasks back to doob
 godmode plan ingest <path>                      # parse plan markdown into task graph
 godmode dispatch [--max N] [--critical-path]    # emit parallel chains JSON
+godmode visualize-graph [--format dot|svg] [--out <path>]  # render task graph
+godmode pin [<path>]                            # pin session to a repo root
+godmode unpin                                   # remove the pinned root
+godmode init                                    # first-time setup: global config + state dirs
+godmode doctor                                  # validate environment: tools, 1Password, worktrees
+godmode memory-banking inject / remind / init / status  # persistent source-backed project context
 godmode agent list [--filter <kw>]              # list installed agents
 godmode agent index                             # regenerate agents/INDEX.md
 godmode agent dispatch <path> [--max N]         # plan ingest + dispatch in one shot
@@ -161,7 +167,7 @@ godmode worktree remove <branch>
 godmode ci triage [--run-id <id>]
 godmode issue list [--repo owner/repo] [--label <label>]
 godmode issue close <number> --commit <sha> [--repo owner/repo]
-godmode hook list / log [--tail N] / test <script> / migrate
+godmode hook list / log [--tail N] / test <script> / migrate / run <name>  # built-in hook: stop-guard, auto-block, pre-commit, quality-gate
 godmode skill list / install <path> / uninstall <name>
 godmode review self / skills / agents
 godmode release current / bump [--version X] / tag / push / changelog
@@ -192,6 +198,7 @@ godmode pipeline next                           # advance and invoke next step
 godmode pipeline skip                           # advance without invoking
 godmode pipeline stop                           # deactivate pipeline, preserve state
 godmode pipeline status                         # show active pipeline + position
+godmode pipeline run <name> [--from <skill>] [--fail-fast]  # headless: walk task graph, execute run: fields
 ```
 
 Six pipelines are defined in `pipelines/`:

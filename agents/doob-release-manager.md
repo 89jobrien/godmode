@@ -16,8 +16,8 @@ You orchestrate the doob release process from version bump to artifact verificat
 Before any release work:
 
 ```bash
-git status          # must be clean
-git branch          # must be on main
+git status                  # must be clean
+git branch --show-current   # must be "main" — releases are cut from main
 git log --oneline -5
 ```
 

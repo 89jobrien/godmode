@@ -24,10 +24,7 @@ Run these in order. Stop and report on first blocking error.
 
 ### 1. Version parity check
 
-```bash
-grep 'version' crates/baml/baml_src/generators.baml
-grep 'baml' crates/baml/Cargo.toml | grep version
-```
+Use the Grep tool to search for `version` in `crates/baml/baml_src/generators.baml`, and for `baml.*version` in `crates/baml/Cargo.toml`.
 
 Known footgun: `generators.baml` says `"0.220.0"` but Cargo.toml pins `baml = "0.218.0"`. This mismatch is intentional (cosmetic VS Code warning). Only flag if Cargo.toml version is HIGHER than generators.baml version — that would break compilation.
 
@@ -58,10 +55,7 @@ Report any errors with file:line context.
 
 For each BAML function defined in baml_src/, verify there's a corresponding entry in baml_source_map.rs:
 
-```bash
-grep -h "^function " crates/baml/baml_src/*.baml | sort
-grep "fn " crates/baml/baml_client/baml_source_map.rs | grep -v "//" | sort
-```
+Use the Grep tool to search for `^function ` in `crates/baml/baml_src/*.baml`, and for `fn ` in `crates/baml/baml_client/baml_source_map.rs` (ignore commented-out matches).
 
 Report missing or extra entries.
 
