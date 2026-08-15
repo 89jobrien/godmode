@@ -6,6 +6,7 @@ use std::path::Path;
 
 use serde_json::{Value, json};
 
+use super::trace_log;
 use crate::agent;
 use crate::policy;
 
@@ -35,8 +36,42 @@ impl GovernanceDecision {
     }
 }
 
-/// Run governance check. Returns a decision.
+/// Run governance check. Returns a decision, and emits an `agent.start`
+/// (approved) or `agent.blocked` trace event keyed by the resolved agent name.
 pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
+    let decision = check_inner(root, input);
+    let agent_name = detect_agent_name_for_trace(root, input);
+    trace_log::append(
+        root,
+        if decision.approved {
+            "agent.start"
+        } else {
+            "agent.blocked"
+        },
+        json!({"agent_id": agent_name, "reason": decision.reason}),
+    );
+    decision
+}
+
+fn detect_agent_name_for_trace(root: &Path, input: &Value) -> String {
+    let tool_input = input.get("tool_input").cloned().unwrap_or(Value::Null);
+    let description = tool_input
+        .get("description")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let subagent_type = tool_input
+        .get("subagent_type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let name = detect_agent_name(root, description, subagent_type);
+    if name.is_empty() {
+        "unknown".to_string()
+    } else {
+        name
+    }
+}
+
+fn check_inner(root: &Path, input: &Value) -> GovernanceDecision {
     let tool_input = input.get("tool_input").cloned().unwrap_or(Value::Null);
     let description = tool_input
         .get("description")
