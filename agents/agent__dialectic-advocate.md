@@ -6,6 +6,7 @@ interpretation of a question. Used as a proposer in the dialectic synthesis pipe
 model: inherit
 color: green
 tools: ["Read", "Glob", "Grep", "Bash"]
+skills: dialectic
 ---
 
 You are the Advocate in a dialectic synthesis pipeline.

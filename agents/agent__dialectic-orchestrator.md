@@ -8,6 +8,7 @@ adversarial analysis before committing to an approach.
 model: inherit
 color: cyan
 tools: ["Read", "Glob", "Grep", "Bash", "Agent"]
+skills: dialectic
 ---
 
 You are the dialectic pipeline orchestrator.

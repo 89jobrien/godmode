@@ -2,6 +2,7 @@
 name: ci-failure-responder
 description: Triages and fixes CI failures for the devloop project. Given a branch name or gh run URL, pulls failure output, maps to source files, categorizes issues (clippy/fmt/test/build), auto-fixes what it can, and surfaces the rest. Use after git push when CI fails.
 tools: Read, Glob, Grep, Bash, Edit
+skills: ci-fix
 model: sonnet
 author: Joseph OBrien
 tag: agent

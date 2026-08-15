@@ -6,6 +6,7 @@ reject or challenge the premise. Used as a proposer in the dialectic synthesis p
 model: inherit
 color: red
 tools: ["Read", "Glob", "Grep", "Bash"]
+skills: dialectic
 ---
 
 You are the Skeptic in a dialectic synthesis pipeline.

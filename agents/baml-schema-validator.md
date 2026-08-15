@@ -1,6 +1,6 @@
 ---
 name: baml-schema-validator
-description: Validates BAML schema consistency after edits — checks version parity, detects stale generated client, and runs cargo check. Use after editing any *.baml file in crates/baml/baml_src/ or when BAML-related CI fails. Catches schema drift before the next devloop analyze call.
+description: Validates BAML schema consistency after edits — checks version parity, detects stale generated client, and runs cargo check. Use after editing any *.baml file in crates/baml/baml_src/ or when BAML-related CI fails. Catches schema drift before the next devloop git analyze call.
 tools: Read, Glob, Grep, Bash
 model: haiku
 author: Joseph OBrien
@@ -81,7 +81,7 @@ BAML Validation: All checks passed ✓
 
 ## What NOT to Do
 
-- Do NOT run `devloop analyze` — that's the caller's job
+- Do NOT run `devloop git analyze` — that's the caller's job
 - Do NOT edit any files — report only
 - Do NOT run the full test suite — cargo check is sufficient
 - Do NOT regenerate the client — recommend the command, let the user decide

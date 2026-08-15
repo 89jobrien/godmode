@@ -45,7 +45,7 @@ After dispatching, stay available to act on the findings.
 ### Tools
 
 - `gkg` — knowledge graph queries for crate structure
-- `devloop git` — branch health and council analysis
+- `devloop git analyze <branch>` — branch health and analysis
 - `doob todo` — task management (JSON output available with `--json`)
 - `devkit review` / `devkit council` / `devkit ci-agent` — AI-powered code and CI analysis
 - `rtk` — CLI proxy (all commands auto-rewritten by hook, use normally)

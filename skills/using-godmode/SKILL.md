@@ -139,7 +139,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:chunked-file-reading`            | Reading large files that exceed context limits               |
 | `godmode:crs-hook-testing`                | Adding/debugging a crs hook pipeline rule                    |
 | `godmode:daily-orchestration`             | Daily maintenance across all repos                           |
-| `godmode:devloop-analyze`                 | Running devloop council analysis on a repo                   |
+| `godmode:devloop-analyze`                 | Running `devloop git analyze` on a repo                      |
 | `godmode:devloop-bench-cycle`             | Full benchmark cycle — criterion, budgets, regressions       |
 | `godmode:devloop-daily-update`            | Update daily note / standup from devloop analysis            |
 | `godmode:devloop-standup`                 | Summarize recent repo activity / timeline view               |

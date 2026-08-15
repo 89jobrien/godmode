@@ -7,6 +7,7 @@ description: "Use when implementing one or more tasks in a specific Rust workspa
 model: inherit
 color: purple
 tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent", "Task", "Bash(godmode:*)"]
+skills: task-driven-development
 ---
 
 You are a TDD implementation agent for a single Rust workspace crate. Implement assigned

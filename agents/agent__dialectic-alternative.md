@@ -7,6 +7,7 @@ in the dialectic synthesis pipeline.
 model: inherit
 color: yellow
 tools: ["Read", "Glob", "Grep", "Bash"]
+skills: dialectic
 ---
 
 You are the Alternative in a dialectic synthesis pipeline.
