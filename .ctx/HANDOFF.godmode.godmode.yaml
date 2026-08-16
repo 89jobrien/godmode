@@ -1,21 +1,18 @@
 project: godmode
 id: godmode
-updated: 2026-08-03
+updated: 2026-08-16
 items:
 - id: uncommitted-work
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (23 files)
+  title: Uncommitted changes (20 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    crates/godmode-cli/src/main.rs
-    crates/godmode-core/src/config.rs
-    crates/godmode-core/src/verify.rs
-    crates/godmode-core/tests/prop_config.rs
-    hooks/scripts/godmode-trace.rs
-    skills/observability-as-infrastructure/helpers/session-summary.nu
+    CLAUDE.md
+    skills/task-management/helpers/session-workflow.md
+    skills/using-godmode/SKILL.md
     .codex-plugin/
     .ctx/HANDOFF.tools.yaml
     .plugin-eval/
@@ -34,12 +31,9 @@ items:
     toolkit.nu
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - crates/godmode-cli/src/main.rs
-  - crates/godmode-core/src/config.rs
-  - crates/godmode-core/src/verify.rs
-  - crates/godmode-core/tests/prop_config.rs
-  - hooks/scripts/godmode-trace.rs
-  - skills/observability-as-infrastructure/helpers/session-summary.nu
+  - CLAUDE.md
+  - skills/task-management/helpers/session-workflow.md
+  - skills/using-godmode/SKILL.md
   - .codex-plugin/
   - .ctx/HANDOFF.tools.yaml
   - .plugin-eval/
@@ -57,6 +51,32 @@ items:
   - skills/using-doob/
   - toolkit.nu
 log:
+- date: '20260816.231505'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits:
+  - e4dac8e7c64e6be1967f477c8b996eb533a938b9
+  - 097618030001830810e00299d233e002ddae6543
+  - a6897bc53c13cd725efdec9bbda8ae02d564f2b5
+  - 23cd41c4d98b6825c2d486126bc17ea6c7722bcd
+  - e3e1b7d64c29b23d996d3c5daa760ffd1f6acefc
+  - f11df7d3b7da1f1430752e309befd7057244b7c2
+  - caaf0e6d92e47cec2746bb6b3d3b4691196d2754
+  - d14d8b934a86b223b97e8602265a8b8c678009aa
+  - f1ea24a5c1dd776ced8e80f4b7c51c26c21a6d29
+  - 9435423432769d4cab62c8fe905e25f3bd4240a2
+- date: '20260808.163715'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits:
+  - 23cd41c4d98b6825c2d486126bc17ea6c7722bcd
+  - e3e1b7d64c29b23d996d3c5daa760ffd1f6acefc
+  - f11df7d3b7da1f1430752e309befd7057244b7c2
+  - caaf0e6d92e47cec2746bb6b3d3b4691196d2754
+  - d14d8b934a86b223b97e8602265a8b8c678009aa
+  - f1ea24a5c1dd776ced8e80f4b7c51c26c21a6d29
+  - 9435423432769d4cab62c8fe905e25f3bd4240a2
+  - bb3f520a97bd23708f16d75211ce9c8fedd166c6
+  - a92f39a5a873200714de0e2746a69beff36c9b5d
+  - 70bb5be77e8c20f2946b9b17e3f7c78663a32b5c
 - date: '20260803.123842'
   summary: done=12 running=0 pending=0 blocked=0
   commits:

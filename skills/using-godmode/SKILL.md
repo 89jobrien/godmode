@@ -142,10 +142,14 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:devloop-analyze`                 | Running `devloop git analyze` on a repo                      |
 | `godmode:devloop-bench-cycle`             | Full benchmark cycle — criterion, budgets, regressions       |
 | `godmode:devloop-daily-update`            | Update daily note / standup from devloop analysis            |
+| `godmode:devloop-session-primer`          | Fast pre-flight briefing for a devloop session               |
 | `godmode:devloop-standup`                 | Summarize recent repo activity / timeline view               |
+| `godmode:dialectic`                       | Adversarial reasoning for contentious/tradeoff decisions     |
 | `godmode:doc-review`                      | Reviewing documentation changes                              |
 | `godmode:doc-sync`                        | Syncing docs against source drift                            |
 | `godmode:doc-writer`                      | Writing new documentation from scratch                       |
+| `godmode:doob-db-inspector`               | Audit live doob SurrealDB — health, drift, orphaned todos    |
+| `godmode:doob-release-manager`            | Doob release pipeline — version, gates, tag, verify          |
 | `godmode:doob-triage`                     | Prioritized todo triage for the current project              |
 | `godmode:env-chain-tracer`                | Tracing source_up chain for missing/wrong env vars           |
 | `godmode:env-debug`                       | op run/direnv secret resolution failures                     |

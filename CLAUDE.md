@@ -167,6 +167,27 @@ godmode worktree remove <branch>
 godmode ci triage [--run-id <id>]
 godmode issue list [--repo owner/repo] [--label <label>]
 godmode issue close <number> --commit <sha> [--repo owner/repo]
+godmode skill list                              # list registered skills
+godmode skill install <path>                    # install skill from a local dir
+godmode skill uninstall <name>                  # remove a skill from the registry
+godmode release current                         # show current plugin version
+godmode release bump [--version X]              # increment patch version everywhere
+godmode release tag                             # create annotated git tag
+godmode release push                            # push branch + tag to origin
+godmode release changelog                       # generate/prepend changelog entry
+godmode release validate                        # cross-check plugin.json/Cargo.toml/tag
+godmode pipeline list                           # list available pipelines
+godmode pipeline show <name>                    # show steps + current position
+godmode pipeline start <name> [--from <skill>]  # activate a pipeline
+godmode pipeline next                           # mark current step done, advance
+godmode pipeline skip                           # advance without marking done
+godmode pipeline stop                           # deactivate current pipeline
+godmode pipeline status                         # active pipeline + progress
+godmode pipeline run <name> [--from <skill>] [--fail-fast]  # run headlessly
+godmode policy resolve <agent> [--level L]      # effective policy for an agent
+godmode policy check <agent> <tool> [--input <text>] [--level L]  # check a tool call
+godmode policy list                             # list default/category/level policies
+godmode policy audit [--date YYYY-MM-DD]        # governance audit trail
 godmode hook list / log [--tail N] / test <script> / migrate / run <name>  # built-in hook: stop-guard, auto-block, pre-commit, quality-gate
 godmode skill list / install <path> / uninstall <name>
 godmode review self / skills / agents
