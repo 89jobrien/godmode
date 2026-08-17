@@ -2,7 +2,9 @@ use anyhow::Result;
 use serde::Serialize;
 use std::path::Path;
 
+use crate::config::Config;
 use crate::graph;
+use crate::integrations::coursers;
 use crate::integrations::subprocess;
 use crate::model::Status;
 
@@ -16,6 +18,8 @@ pub struct SessionContext {
     pub blocked: Vec<BlockedSummary>,
     pub recent_commits: Vec<String>,
     pub critical_path_depth: usize,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub coursers_failures: Vec<coursers::FailingSummary>,
 }
 
 #[derive(Debug, Serialize)]
@@ -73,6 +77,13 @@ pub fn build(root: &Path) -> Result<SessionContext> {
 
     let critical_path_depth = crate::dispatch::critical_path(&task_graph).len();
 
+    let cfg = Config::load(root);
+    let coursers_failures = if cfg.integrations.crs {
+        coursers::failing_commands(root)
+    } else {
+        Vec::new()
+    };
+
     Ok(SessionContext {
         git_root,
         project,
@@ -81,6 +92,7 @@ pub fn build(root: &Path) -> Result<SessionContext> {
         blocked,
         recent_commits,
         critical_path_depth,
+        coursers_failures,
     })
 }
 
