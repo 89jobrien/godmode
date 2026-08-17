@@ -252,6 +252,12 @@ cause validation failure on `claude plugin install`.
 
 ## Gotchas
 
+- CLI Quick Reference (`## CLI subcommands`) can silently drift from `crates/godmode-cli/src/main.rs`
+  — when adding/changing a `Cmd` variant, grep `enum.*Action` in `main.rs` and diff against the
+  reference block. `skill`/`release`/`pipeline`/`policy` families were undocumented for a while.
+- `skills/introspection/helpers/audit.nu` checks skill-index completeness and cross-references
+  subcommand calls; run it after editing any `skills/*/SKILL.md` or `agents/*.md`. Report lands in
+  `.ctx/godmode/reports/introspection/` (gitignored).
 - `godmode plan ingest` skips tasks whose IDs already exist — plans reuse `t1`/`t2`/etc.
   If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
 - `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,

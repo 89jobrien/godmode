@@ -63,7 +63,7 @@ prompt: |
 
   ## Phase 3: Parallel fix agents
 
-  For each HIGH priority finding, dispatch one godmode:gm-crate agent (cap 5 concurrent).
+  For each HIGH priority finding, dispatch one godmode:tdd-crate-agent (cap 5 concurrent).
   Each agent:
   1. Verifies branch with `git branch --show-current` before any commit
   2. Writes a failing test for the finding first
