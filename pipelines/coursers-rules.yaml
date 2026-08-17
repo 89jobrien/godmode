@@ -1,0 +1,9 @@
+name: coursers-rules
+description: Discover unhandled commands and propose new blocking rules
+steps:
+  - skill: crs-discover
+  - skill: crs-propose-rules
+    optional: true
+  - skill: crs-validate
+  - skill: crs-install
+entry_points: [crs-discover]
