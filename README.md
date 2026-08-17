@@ -44,37 +44,38 @@ cargo gates run.
 
 ## Skills
 
-| Skill                                     | When                                                   |
-| ----------------------------------------- | ------------------------------------------------------ |
-| `godmode:using-godmode`                   | Session orientation, available skills, rules           |
-| `godmode:task-driven-development`         | Implementing any feature or fix (TDD + YAML task list) |
-| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior             |
-| `godmode:brainstorm`                      | Before any creative or design work                     |
-| `godmode:writing-plans`                   | Multi-step task with a spec or requirements            |
-| `godmode:verification-before-completion`  | Before claiming work is done                           |
-| `godmode:task-management`                 | Creating, tracking, executing a task graph             |
-| `godmode:parallel-agents`                 | 2+ independent tasks to run concurrently               |
-| `godmode:code-review`                     | Quality pass before merge                              |
-| `godmode:refactoring`                     | Restructure code without changing behaviour            |
-| `godmode:receiving-review`                | Process incoming review feedback                       |
-| `godmode:cap`                             | Commit and push with validation                        |
-| `godmode:ci-fix`                          | Fix a failing CI pipeline                              |
-| `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees               |
-| `godmode:testing-philosophy`              | Choose the right test type for the situation           |
-| `godmode:introspection`                   | Audit skills and plugin files for consistency          |
-| `godmode:observability-as-infrastructure` | Query and tail the session trace log                   |
-| `godmode:wave-integration`                | Merge parallel agent branches into one commit          |
-| `godmode:moa`                             | Multi-model reasoning via mixture of agents            |
-| `godmode:todo-issue-sync`                 | Audit inline TODOs and sync to GitHub issues           |
-| `godmode:self-reflect`                    | Session retrospective — patterns and surprises         |
-| `godmode:decompose`                       | Break a large diff/PR into smaller independent PRs     |
-| `godmode:merge`                           | Merge branches, resolve conflicts, create PRs          |
-| `godmode:agent-governance`                | Governance and trust controls for AI agent systems     |
-| `godmode:context-map`                     | Map all files relevant to a task before changes        |
-| `godmode:doublecheck`                     | Three-layer verification of AI-generated output        |
-| `godmode:rust-conventions`                | Rust coding conventions and best practices             |
-| `godmode:mini-context-graph`              | Persistent knowledge graph for codebase exploration    |
-| `godmode:memory-banking`                  | Generate and maintain .ctx/memory-bank/ context        |
+| Skill                                     | When                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| `godmode:using-godmode`                   | Session orientation, available skills, rules                          |
+| `godmode:task-driven-development`         | Implementing any feature or fix (TDD + YAML task list)                |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior                            |
+| `godmode:brainstorm`                      | Before any creative or design work                                    |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements                           |
+| `godmode:verification-before-completion`  | Before claiming work is done                                          |
+| `godmode:task-management`                 | Creating, tracking, executing a task graph                            |
+| `godmode:parallel-agents`                 | 2+ independent tasks to run concurrently                              |
+| `godmode:code-review`                     | Quality pass before merge                                             |
+| `godmode:refactoring`                     | Restructure code without changing behaviour                           |
+| `godmode:receiving-review`                | Process incoming review feedback                                      |
+| `godmode:cap`                             | Commit and push with validation                                       |
+| `godmode:ci-fix`                          | Fix a failing CI pipeline                                             |
+| `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees                              |
+| `godmode:testing-philosophy`              | Choose the right test type for the situation                          |
+| `godmode:introspection`                   | Audit skills and plugin files for consistency                         |
+| `godmode:observability-as-infrastructure` | Query and tail the session trace log                                  |
+| `godmode:wave-integration`                | Merge parallel agent branches into one commit                         |
+| `godmode:moa`                             | Multi-model reasoning via mixture of agents                           |
+| `godmode:todo-issue-sync`                 | Audit inline TODOs and sync to GitHub issues                          |
+| `godmode:self-reflect`                    | Session retrospective — patterns and surprises                        |
+| `godmode:decompose`                       | Break a large diff/PR into smaller independent PRs                    |
+| `godmode:merge`                           | Merge branches, resolve conflicts, create PRs                         |
+| `godmode:agent-governance`                | Governance and trust controls for AI agent systems                    |
+| `godmode:context-map`                     | Map all files relevant to a task before changes                       |
+| `godmode:doublecheck`                     | Three-layer verification of AI-generated output                       |
+| `godmode:rust-conventions`                | Rust coding conventions and best practices                            |
+| `godmode:mini-context-graph`              | Persistent knowledge graph for codebase exploration                   |
+| `godmode:memory-banking`                  | Generate and maintain .ctx/memory-bank/ context                       |
+| `godmode:crs-hook-testing`                | Coursers rule lifecycle: author → validate → probe → observe → refine |
 
 ## Agents
 
