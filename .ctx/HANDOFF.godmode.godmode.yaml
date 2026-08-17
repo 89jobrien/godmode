@@ -51,6 +51,17 @@ items:
   - skills/using-doob/
   - toolkit.nu
 log:
+- date: '20260816'
+  summary: |-
+    Surfaced coursers failure-learning data in handoff and context (godmode-core).
+    Fixed introspection issues: missing skill index entries, broken agent subcommand ref,
+    undocumented CLI families (skills).
+  commits:
+  - bfc958b
+  - 5059d20
+  build_state: clean
+  test_state: all passed (369)
+  branch: fix/coursers-followups-2026-08-03
 - date: '20260816.231505'
   summary: done=12 running=0 pending=0 blocked=0
   commits:
