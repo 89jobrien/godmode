@@ -1,0 +1,24 @@
+pipeline: check_refs
+# Ports scripts/check-refs.nu into a crux pipeline gate.
+# Audits skills/*/SKILL.md for broken helpers/references/scripts/assets links
+# and fails the pipeline (non-zero exit) if any are found.
+#
+# Run (from the godmode repo root):
+#   just crux-check-refs
+#   cargo run --quiet --manifest-path ../crux/Cargo.toml -p crux-agentic --bin crux -- \
+#     run pipelines/crux/check_refs.crux
+budget: { calls: 4 }
+
+steps:
+  # -- 1. Run the existing nu audit script; --ci makes it exit 1 on findings -
+  - step: check_refs
+    handler: shell::capture
+    args:
+      cmd: "nu scripts/check-refs.nu --ci"
+
+  # -- 2. Surface the human-readable report ----------------------------------
+  - step: log_result
+    handler: ctrl::log
+    args:
+      field: stdout
+      pretty: true

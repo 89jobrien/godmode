@@ -24,3 +24,8 @@ test:
 ci: test
     cargo clippy --workspace -- -D warnings
     cargo fmt --all --check
+
+# Run the check-refs crux pipeline gate (requires the sibling ../crux checkout)
+crux-check-refs:
+    cargo run --quiet --manifest-path ../crux/Cargo.toml -p crux-agentic --bin crux -- \
+        run pipelines/crux/check_refs.crux -v
