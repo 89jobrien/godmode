@@ -11,10 +11,12 @@ def open-trace [] {
 }
 
 def main [--sessions: int = 3] {
-    let events = (open-trace)
-
-    # Collect unique session_ids in order of first appearance
+    # Not every event carries session_id (e.g. plan_created, hook_observed) —
+    # `default null` backfills the column on rows missing it so `get`/`where
+    # session_id == ...` below don't throw column_not_found on the first such row.
+    let events = (open-trace | default null session_id)
     let session_ids = ($events
+        | where event in ["session.start", "session.end"]
         | get session_id
         | uniq
         | last $sessions)

@@ -32,6 +32,9 @@ pub struct Integrations {
     pub crux: bool,
     /// Validate task run commands via `rx`.
     pub rx: bool,
+    /// Run `crs validate` as a `godmode verify` step. Off by default — not
+    /// every repo has coursers hooks installed.
+    pub crs: bool,
 }
 
 impl Default for Integrations {
@@ -41,6 +44,7 @@ impl Default for Integrations {
             hj: true,
             crux: true,
             rx: true,
+            crs: false,
         }
     }
 }

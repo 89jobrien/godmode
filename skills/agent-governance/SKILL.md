@@ -125,18 +125,12 @@ All subcommands support `--json`.
 
 Resolve the effective policy for an agent by composing default + category + level.
 
-<!-- godmode policy subcommands (resolve, check, list, audit) are NOT YET
-     IMPLEMENTED in the godmode binary. The examples below are aspirational
-     design sketches. Do NOT invoke them in automation or agent code blocks
-     until the CLI ships them. Track: godmode issue backlog. -->
-
 ```text
-# PLANNED — not yet callable:
-# godmode policy resolve gm-orchestrator
-# godmode policy resolve gm-cap-agent --json
-# godmode policy check gm-cap-agent Bash --input "..."
-# godmode policy list [--json]
-# godmode policy audit [--date YYYY-MM-DD] [--json]
+godmode policy resolve gm-orchestrator
+godmode policy resolve gm-cap-agent --json
+godmode policy check gm-cap-agent Bash --input "..."
+godmode policy list [--json]
+godmode policy audit [--date YYYY-MM-DD] [--json]
 ```
 
 ## Nushell Helpers (fallback)

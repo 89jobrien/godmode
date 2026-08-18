@@ -19,6 +19,6 @@ def main [--session: string = ""] {
     if ($failures | is-empty) {
         print "No failures."
     } else {
-        $failures | select event skill? agent_id? slot? exit_code? reason? ts | table
+        print ($failures | select event skill? agent_id? slot? exit_code? reason? ts | table)
     }
 }

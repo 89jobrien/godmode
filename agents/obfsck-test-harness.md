@@ -5,6 +5,7 @@ tools: Read, Glob, Grep, Bash, Write, Edit
 model: sonnet
 author: Joseph OBrien
 tag: agent
+skills: obfsck-workflow
 ---
 
 # obfsck Test Harness Builder

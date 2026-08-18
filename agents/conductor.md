@@ -21,10 +21,10 @@ You run pipelines. You connect devloop → doob → devkit into a cohesive workf
 
 Execute each step and log what you did before moving to the next.
 
-**Step 1: Run devloop council analysis**
+**Step 1: Run devloop analysis**
 
 ```bash
-devloop git --json
+devloop --format json git analyze $(git branch --show-current)
 ```
 
 Parse: health score (0-100), findings per council role (strict_critic, creative_explorer, analyst, security_reviewer, performance_analyst).
@@ -64,7 +64,7 @@ doob todo add "Fix CI: <failure summary>" --priority 3 -p <repo-path> -t "ci,blo
 Task description must include: what failed, probable cause, relevant files, suggested fix direction.
 
 **Step 3: Get health context**
-Run `devloop git --json` and include the health score in the report so the CI failure can be seen in context.
+Run `devloop --format json git analyze $(git branch --show-current)` and include the health score in the report so the CI failure can be seen in context.
 
 **Step 4: Report**
 Output summary: what failed, task created, health score.

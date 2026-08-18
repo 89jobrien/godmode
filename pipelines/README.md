@@ -27,16 +27,17 @@ Fields:
 
 ## Pipelines
 
-| Pipeline                | Description                                         |
-| ----------------------- | --------------------------------------------------- |
-| `feature.yaml`          | Core development loop — idea to merged PR           |
-| `release.yaml`          | Release pipeline — readiness check to published tag |
-| `maintenance.yaml`      | Dependency updates and dead code cleanup            |
-| `lifecycle.yaml`        | Full session lifecycle from handon to handoff       |
-| `parallel-feature.yaml` | Feature development with parallel agent dispatch    |
-| `retrospective.yaml`    | Session retrospective and memory bank update        |
-| `triage.yaml`           | Issue triage and backlog grooming                   |
-| `aichat-system.yaml`    | aichat system prompt generation and installation    |
+| Pipeline                | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| `feature.yaml`          | Core development loop — idea to merged PR            |
+| `release.yaml`          | Release pipeline — readiness check to published tag  |
+| `maintenance.yaml`      | Dependency updates and dead code cleanup             |
+| `lifecycle.yaml`        | Full session lifecycle from handon to handoff        |
+| `parallel-feature.yaml` | Feature development with parallel agent dispatch     |
+| `retrospective.yaml`    | Session retrospective and memory bank update         |
+| `triage.yaml`           | Issue triage and backlog grooming                    |
+| `aichat-system.yaml`    | aichat system prompt generation and installation     |
+| `coursers-rules.yaml`   | Coursers rule lifecycle — discover to installed rule |
 
 ## Relationship to Commands
 

@@ -93,11 +93,11 @@ cargo nextest run --workspace
 
 ### 4. Merge to main
 
-Verify you are on main before merging (`guardrails.nu check-branch main`):
+Switch to main and verify the checkout succeeded before merging (`guardrails.nu check-branch main`):
 
 ```bash
-git branch --show-current   # must be main — stop if not
 git checkout main
+git branch --show-current   # must print main — stop if not
 git merge --no-ff <branch> -m "integrate(<scope>): merge <branch>"
 ```
 

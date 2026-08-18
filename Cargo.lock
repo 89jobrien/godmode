@@ -246,6 +246,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete"
+version = "4.6.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f84a88507dbd05c695f2cb5e8558e747179134005e9893882dec964190ed89"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "clap_complete_nushell"
+version = "4.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "933b05d5d83ff65fd7eaf5d106c792f2264908790a2642aca57429767b762ce2"
+dependencies = [
+ "clap",
+ "clap_complete",
+]
+
+[[package]]
 name = "clap_derive"
 version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -344,7 +363,7 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "crux-domain"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -353,13 +372,13 @@ dependencies = [
 
 [[package]]
 name = "crux-runtime"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
- "anyhow",
  "chrono",
  "crux-domain",
  "crux-types",
  "futures",
+ "miette",
  "serde",
  "serde_json",
  "slashcrux",
@@ -369,9 +388,10 @@ dependencies = [
 
 [[package]]
 name = "crux-types"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "chrono",
+ "miette",
  "serde",
  "serde_json",
  "ulid",
@@ -570,6 +590,8 @@ version = "0.7.0"
 dependencies = [
  "anyhow",
  "clap",
+ "clap_complete",
+ "clap_complete_nushell",
  "godmode-core",
  "miette",
  "serde_json",

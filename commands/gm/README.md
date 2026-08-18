@@ -8,27 +8,30 @@ do not edit them directly.
 
 Single-skill wrappers for direct invocation.
 
-| Command               | Skill                                     | Purpose                                      |
-| --------------------- | ----------------------------------------- | -------------------------------------------- |
-| `/gm:cap`             | `godmode:cap`                             | Commit and push with cargo gates             |
-| `/gm:tdd`             | `godmode:task-driven-development`         | Strict TDD — failing test before code        |
-| `/gm:debug`           | `godmode:systematic-debugging`            | Root cause before fix                        |
-| `/gm:trace`           | `godmode:observability-as-infrastructure` | Query session trace log                      |
-| `/gm:refactor`        | `godmode:refactoring`                     | Restructure without changing behaviour       |
-| `/gm:review-code`     | `godmode:code-review`                     | Quality pass before merge                    |
-| `/gm:ci-fix`          | `godmode:ci-fix`                          | Fix a failing CI pipeline                    |
-| `/gm:self-heal`       | `godmode:ci-fix` (loop)                   | Self-healing CI loop until all gates pass    |
-| `/gm:plan`            | `godmode:writing-plans`                   | Scaffold an implementation plan              |
-| `/gm:test-fix-commit` | —                                         | Test → fix → commit cycle                    |
-| `/gm:tackle-issues`   | `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees     |
-| `/gm:moa-review`      | `godmode:moa`                             | Multi-model review via mixture of agents     |
-| `/gm:preflight`       | —                                         | Pre-session environment checks               |
-| `/gm:handon`          | —                                         | Session start — triage outstanding work      |
-| `/gm:handoff`         | —                                         | Session end — write HANDOFF state            |
-| `/gm:fresh-branch`    | —                                         | Create a clean branch from latest main       |
-| `/gm:introspect`      | `godmode:introspection`                   | Audit plugin files for conformance           |
-| `/gm:dispatch-all`    | `godmode:parallel-agents`                 | Fan out all pending tasks to parallel agents |
-| `/gm:auth-fail-fast`  | —                                         | Detect and surface auth failures early       |
+| Command               | Skill                                                                            | Purpose                                       |
+| --------------------- | -------------------------------------------------------------------------------- | --------------------------------------------- |
+| `/gm:cap`             | `godmode:cap`                                                                    | Commit and push with cargo gates              |
+| `/gm:tdd`             | `godmode:task-driven-development`                                                | Strict TDD — failing test before code         |
+| `/gm:debug`           | `godmode:systematic-debugging`                                                   | Root cause before fix                         |
+| `/gm:trace`           | `godmode:observability-as-infrastructure`                                        | Query session trace log                       |
+| `/gm:refactor`        | `godmode:refactoring`, `godmode:code-review`                                     | Restructure without changing behaviour        |
+| `/gm:review-code`     | `godmode:code-review`, `godmode:verification-before-completion`                  | Quality pass before merge                     |
+| `/gm:doc-review`      | `godmode:doc-review`, `godmode:doc-writer`, `godmode:cap`                        | Review docs, then commit and push             |
+| `/gm:doc-sync`        | `godmode:doc-review`, `godmode:doc-sync`, `godmode:doc-writer`                   | Detect and fix doc/code drift                 |
+| `/gm:doc-writer`      | `godmode:doc-review`, `godmode:doc-writer`                                       | Write new documentation from scratch          |
+| `/gm:ci-fix`          | `godmode:ci-fix`                                                                 | Fix a failing CI pipeline                     |
+| `/gm:self-heal`       | `godmode:ci-fix` (loop)                                                          | Self-healing CI loop until all gates pass     |
+| `/gm:plan`            | `godmode:writing-plans`                                                          | Scaffold an implementation plan               |
+| `/gm:test-fix-commit` | —                                                                                | Test → fix → commit cycle                     |
+| `/gm:tackle-issues`   | `godmode:tackle-issues`                                                          | Work GitHub issues in parallel worktrees      |
+| `/gm:moa-review`      | `godmode:tdd-crate-agent` (dispatched directly, no `moa` skill call)             | Multi-lens review + parallel fix agents       |
+| `/gm:preflight`       | —                                                                                | Pre-session environment checks                |
+| `/gm:handon`          | —                                                                                | Session start — triage outstanding work       |
+| `/gm:handoff`         | —                                                                                | Session end — write HANDOFF state             |
+| `/gm:fresh-branch`    | —                                                                                | Create a clean branch from latest main        |
+| `/gm:introspect`      | `godmode:introspection`                                                          | Audit plugin files for conformance            |
+| `/gm:dispatch-all`    | `godmode:tdd-crate-agent` (dispatched directly, no `parallel-agents` skill call) | Fan out open GitHub issues to parallel agents |
+| `/gm:auth-fail-fast`  | —                                                                                | Detect and surface auth failures early        |
 
 ## Workflow Commands
 

@@ -33,7 +33,7 @@ prompt: |
 
   ## Step 4: Dispatch agents
 
-  Spawn one godmode:gm-crate agent per slot (background). Each agent prompt must include:
+  Spawn one godmode:tdd-crate-agent per slot (background). Each agent prompt must include:
   - Worktree absolute path
   - Branch name (verify with git branch --show-current before every commit)
   - Full issue body for each issue in the slot

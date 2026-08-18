@@ -83,6 +83,13 @@ Then verify the new run passes:
 gh run list --limit 3   # polling fallback — interactive run watching requires a TTY
 ```
 
+## Devloop specialization
+
+`agents/ci-failure-responder.md` is a devloop-specific specialization of this workflow —
+same triage/classify/fix/verify loop, with devloop-only notes baked in (edition 2024
+let-chain style for `collapsible_if`, `_DEVLOOP_OP_WRAPPED=1` prefix for nextest,
+worktree snapshot exclusions, BAML client drift). Use it directly when working in devloop.
+
 ## Guardrails
 
 - Fix one root cause per pass. If there are multiple independent failures, fix them

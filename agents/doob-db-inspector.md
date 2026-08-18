@@ -3,6 +3,7 @@ name: doob-db-inspector
 description: Inspects and reports on the live doob SurrealDB database — todo health, overdue items, stale in-progress, orphaned todos, cross-project drift, and tag distribution. Use when auditing the database state or diagnosing data quality issues.
 tools: Read, Bash
 model: haiku
+skills: doob-db-inspector
 author: Joseph OBrien
 tag: agent
 ---

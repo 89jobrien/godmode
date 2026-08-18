@@ -2,7 +2,7 @@ name: tdd
 template: dev
 prompt: |
   Implement a feature or fix using strict test-driven development.
-  Follow godmode:test-driven-development exactly:
+  Follow godmode:task-driven-development exactly:
   1. Write a FAILING test first. Run it — confirm it fails for the right reason.
   2. Write the minimum code to make it pass. Run cargo nextest — all green.
   3. Refactor: cargo clippy -p <crate> -- -D warnings, cargo fmt, cargo nextest (still green).

@@ -1,3 +1,4 @@
+pub mod coursers;
 pub mod crux;
 pub mod doob;
 pub mod gh;
@@ -15,7 +16,13 @@ use std::path::Path;
 
 use anyhow::Result;
 
-use crate::{config::Config, graph, model::Status, pipeline, session};
+use crate::{
+    config::Config,
+    graph,
+    model::Status,
+    pipeline, session,
+    verify::{NextestStep, VerifyStep},
+};
 
 /// Run the full handon sequence: hj handon + doob next todo + local graph triage.
 pub fn handon(root: &Path) -> Result<HandonOutput> {
@@ -40,6 +47,11 @@ fn build_handon(root: &Path) -> Result<HandonOutput> {
         doob::todo_next_for_root(root).ok().flatten()
     } else {
         None
+    };
+    let coursers_failures = if cfg.integrations.crs {
+        coursers::failing_commands(root)
+    } else {
+        Vec::new()
     };
 
     let running_tasks: Vec<String> = g
@@ -73,6 +85,7 @@ fn build_handon(root: &Path) -> Result<HandonOutput> {
         &next_runnable,
         next_todo.as_ref(),
         pipeline_out.as_ref(),
+        &coursers_failures,
     );
 
     Ok(HandonOutput {
@@ -87,12 +100,49 @@ fn build_handon(root: &Path) -> Result<HandonOutput> {
         next_todo,
         hj: hj_out,
         pipeline: pipeline_out,
+        coursers_failures,
     })
 }
 
 /// Run the full handoff sequence: local graph check + hj handoff + dirty tree.
 pub fn handoff(root: &Path) -> Result<HandoffOutput> {
     build_handoff(root)
+}
+
+/// Detect real build/test status for the handoff summary instead of the
+/// literal string "unknown". Best-effort: any non-cargo root, or a missing
+/// `cargo`/`cargo-nextest`, degrades back to "unknown" rather than failing
+/// the whole handoff.
+///
+/// Tests are only run if the build is clean — running nextest against code
+/// that doesn't compile just reports "failing" for a reason unrelated to
+/// test outcomes, which is less honest than "unknown".
+fn detect_build_test_status(root: &Path) -> (String, String) {
+    if !root.join("Cargo.toml").exists() {
+        return ("unknown".into(), "unknown".into());
+    }
+
+    let build = std::process::Command::new("cargo")
+        .args(["check", "--workspace", "--quiet"])
+        .current_dir(root)
+        .output();
+    let build_status = match build {
+        Ok(out) if out.status.success() => "clean",
+        Ok(_) => "broken",
+        Err(_) => "unknown",
+    };
+
+    let tests_status = if build_status == "clean" {
+        match NextestStep.run(root, None) {
+            Ok(res) if res.ok => "passing",
+            Ok(_) => "failing",
+            Err(_) => "unknown",
+        }
+    } else {
+        "unknown"
+    };
+
+    (build_status.into(), tests_status.into())
 }
 
 fn build_handoff(root: &Path) -> Result<HandoffOutput> {
@@ -108,7 +158,8 @@ fn build_handoff(root: &Path) -> Result<HandoffOutput> {
         .collect();
 
     let hj_out = if cfg.integrations.hj {
-        hj::handoff(root, "unknown", "unknown", "session closed", &[]).ok()
+        let (build, tests) = detect_build_test_status(root);
+        hj::handoff(root, &build, &tests, "session closed", &[]).ok()
     } else {
         None
     };
@@ -183,6 +234,7 @@ pub fn format_handon_report(
     next_runnable: &[&crate::model::Task],
     next_todo: Option<&serde_json::Value>,
     pipeline: Option<&output::PipelineOut>,
+    coursers_failures: &[coursers::FailingSummary],
 ) -> String {
     let mut out = String::new();
     if let Some(hj) = hj {
@@ -219,6 +271,15 @@ pub fn format_handon_report(
     if let Some(todo) = next_todo {
         let title = todo.get("content").and_then(|v| v.as_str()).unwrap_or("?");
         out.push_str(&format!("Next todo (doob): {}\n", title));
+    }
+    if !coursers_failures.is_empty() {
+        out.push_str("Failing commands (coursers):\n");
+        for f in coursers_failures {
+            out.push_str(&format!(
+                "  {} ({}x, last {}s ago)\n",
+                f.command_preview, f.count, f.last_seen_ago_secs
+            ));
+        }
     }
     out
 }

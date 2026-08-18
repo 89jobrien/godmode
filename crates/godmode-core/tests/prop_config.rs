@@ -18,8 +18,9 @@ fn arb_max_commits() -> impl Strategy<Value = usize> {
 
 prop_compose! {
     fn arb_integrations()(doob in any::<bool>(), hj in any::<bool>(),
-                          crux in any::<bool>(), rx in any::<bool>()) -> Integrations {
-        Integrations { doob, hj, crux, rx }
+                          crux in any::<bool>(), rx in any::<bool>(),
+                          crs in any::<bool>()) -> Integrations {
+        Integrations { doob, hj, crux, rx, crs }
     }
 }
 

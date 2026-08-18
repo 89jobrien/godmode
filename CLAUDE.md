@@ -147,6 +147,12 @@ godmode task list-templates                     # list available templates (loca
 godmode task push-done                          # sync completed tasks back to doob
 godmode plan ingest <path>                      # parse plan markdown into task graph
 godmode dispatch [--max N] [--critical-path]    # emit parallel chains JSON
+godmode visualize-graph [--format dot|svg] [--out <path>]  # render task graph
+godmode pin [<path>]                            # pin session to a repo root
+godmode unpin                                   # remove the pinned root
+godmode init                                    # first-time setup: global config + state dirs
+godmode doctor                                  # validate environment: tools, 1Password, worktrees
+godmode memory-banking inject / remind / init / status  # persistent source-backed project context
 godmode agent list [--filter <kw>]              # list installed agents
 godmode agent index                             # regenerate agents/INDEX.md
 godmode agent dispatch <path> [--max N]         # plan ingest + dispatch in one shot
@@ -161,7 +167,28 @@ godmode worktree remove <branch>
 godmode ci triage [--run-id <id>]
 godmode issue list [--repo owner/repo] [--label <label>]
 godmode issue close <number> --commit <sha> [--repo owner/repo]
-godmode hook list / log [--tail N] / test <script> / migrate
+godmode skill list                              # list registered skills
+godmode skill install <path>                    # install skill from a local dir
+godmode skill uninstall <name>                  # remove a skill from the registry
+godmode release current                         # show current plugin version
+godmode release bump [--version X]              # increment patch version everywhere
+godmode release tag                             # create annotated git tag
+godmode release push                            # push branch + tag to origin
+godmode release changelog                       # generate/prepend changelog entry
+godmode release validate                        # cross-check plugin.json/Cargo.toml/tag
+godmode pipeline list                           # list available pipelines
+godmode pipeline show <name>                    # show steps + current position
+godmode pipeline start <name> [--from <skill>]  # activate a pipeline
+godmode pipeline next                           # mark current step done, advance
+godmode pipeline skip                           # advance without marking done
+godmode pipeline stop                           # deactivate current pipeline
+godmode pipeline status                         # active pipeline + progress
+godmode pipeline run <name> [--from <skill>] [--fail-fast]  # run headlessly
+godmode policy resolve <agent> [--level L]      # effective policy for an agent
+godmode policy check <agent> <tool> [--input <text>] [--level L]  # check a tool call
+godmode policy list                             # list default/category/level policies
+godmode policy audit [--date YYYY-MM-DD]        # governance audit trail
+godmode hook list / log [--tail N] / test <script> / migrate / run <name>  # built-in hook: stop-guard, auto-block, pre-commit, quality-gate
 godmode skill list / install <path> / uninstall <name>
 godmode review self / skills / agents
 godmode release current / bump [--version X] / tag / push / changelog
@@ -192,6 +219,7 @@ godmode pipeline next                           # advance and invoke next step
 godmode pipeline skip                           # advance without invoking
 godmode pipeline stop                           # deactivate pipeline, preserve state
 godmode pipeline status                         # show active pipeline + position
+godmode pipeline run <name> [--from <skill>] [--fail-fast]  # headless: walk task graph, execute run: fields
 ```
 
 Six pipelines are defined in `pipelines/`:
@@ -224,6 +252,12 @@ cause validation failure on `claude plugin install`.
 
 ## Gotchas
 
+- CLI Quick Reference (`## CLI subcommands`) can silently drift from `crates/godmode-cli/src/main.rs`
+  — when adding/changing a `Cmd` variant, grep `enum.*Action` in `main.rs` and diff against the
+  reference block. `skill`/`release`/`pipeline`/`policy` families were undocumented for a while.
+- `skills/introspection/helpers/audit.nu` checks skill-index completeness and cross-references
+  subcommand calls; run it after editing any `skills/*/SKILL.md` or `agents/*.md`. Report lands in
+  `.ctx/godmode/reports/introspection/` (gitignored).
 - `godmode plan ingest` skips tasks whose IDs already exist — plans reuse `t1`/`t2`/etc.
   If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
 - `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,

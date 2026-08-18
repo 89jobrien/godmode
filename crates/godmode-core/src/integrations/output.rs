@@ -18,6 +18,9 @@ pub struct HandonOutput {
     /// Active pipeline info, if a pipeline is running.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pipeline: Option<PipelineOut>,
+    /// Frequently-failing commands surfaced by coursers, if enabled.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub coursers_failures: Vec<crate::integrations::coursers::FailingSummary>,
 }
 
 /// Active pipeline summary for handon/handoff output.
@@ -69,12 +72,17 @@ mod tests {
             next_todo: None,
             hj: None,
             pipeline: None,
+            coursers_failures: vec![],
         };
         let json = serde_json::to_string(&out).unwrap();
         assert!(!json.contains("next_todo"), "None fields should be skipped");
         assert!(!json.contains("hj"), "None fields should be skipped");
         assert!(
             !json.contains("running_tasks"),
+            "empty vec should be skipped"
+        );
+        assert!(
+            !json.contains("coursers_failures"),
             "empty vec should be skipped"
         );
     }

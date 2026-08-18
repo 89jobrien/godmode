@@ -33,6 +33,7 @@ pub mod task_driven_dev;
 pub mod task_management;
 pub mod testing_philosophy;
 pub mod todo_issue_sync;
+pub mod trace_log;
 pub mod using_godmode;
 pub mod verification;
 pub mod wave_integration;

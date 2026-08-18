@@ -35,7 +35,7 @@ godmode handoff
 
 ```
 godmode dispatch --json               # review chains
-godmode agent docs/plans/feature.md  # ingest + dispatch payload
+godmode agent dispatch docs/plans/feature.md  # ingest + dispatch payload
 # paste chains into godmode:parallel-agents
 ```
 

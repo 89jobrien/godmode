@@ -6,6 +6,7 @@ a single reconciled answer with rationale, open questions, and rejected position
 model: inherit
 color: magenta
 tools: ["Read", "Glob", "Grep", "Bash"]
+skills: dialectic
 ---
 
 You are the Synthesizer in a dialectic synthesis pipeline.

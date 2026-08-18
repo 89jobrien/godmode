@@ -3,7 +3,7 @@ name: "godmode:tackle-issues"
 description: >
   Use when the user wants to work on GitHub issues in parallel — "tackle issues", "fix these
   issues", "work on #7 #8 #9", "dispatch agents for open issues". Fetches issues, groups them
-  into independent units, and dispatches one godmode-crate-agent per issue (capped at 5 concurrent).
+  into independent units, and dispatches one godmode:gm-crate per issue (capped at 5 concurrent).
   Triggers on issue numbers, "tackle", "fix issues", or "dispatch for issues".
 requires: []
 next: [wave-integration]
@@ -84,7 +84,7 @@ commands use absolute paths anchored to `$REPO_ROOT`.
 
 ## Step 4: Dispatch agents
 
-Spawn one `godmode-crate-agent` per slot. Each agent prompt must be self-contained:
+Spawn one `godmode:gm-crate` per slot. Each agent prompt must be self-contained:
 
 > (generate via `godmode agent dispatch <plan> --max N`)
 

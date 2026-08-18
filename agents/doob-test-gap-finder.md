@@ -27,18 +27,11 @@ Note: any failures must be fixed before coverage is meaningful.
 
 ## Step 2: Check for Uncovered Paths
 
-Without llvm-cov, use static analysis:
+Without llvm-cov, use static analysis via the Grep tool (glob `src/**/*.rs`):
 
-```bash
-# Find unimplemented stubs
-grep -rn "unimplemented!\|todo!\|unreachable!" src/ --include="*.rs"
-
-# Find untested public functions (no corresponding test)
-grep -rn "^pub fn\|^pub async fn" src/ --include="*.rs" | grep -v "test"
-
-# Find error paths with no test
-grep -rn "SyncError::" src/ --include="*.rs" -l
-```
+- Unimplemented stubs: search `unimplemented!|todo!|unreachable!`
+- Untested public functions: search `^pub fn|^pub async fn`, then manually exclude matches already covered by a test
+- Error paths with no test: search `SyncError::`, list matching files
 
 ## Step 3: Map to Test Files
 

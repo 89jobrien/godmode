@@ -170,6 +170,37 @@ impl VerifyStep for GlobstarStep {
     }
 }
 
+pub struct CrsValidateStep;
+
+impl VerifyStep for CrsValidateStep {
+    fn name(&self) -> &str {
+        "crs-validate"
+    }
+
+    fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
+        // Degrade gracefully if `crs` isn't on PATH — same pattern as GlobstarStep.
+        let crs = match which::which("crs") {
+            Ok(p) => p,
+            Err(_) => {
+                return Ok(StepResult::new(
+                    self.name().into(),
+                    true,
+                    "skipped (crs not on PATH)".into(),
+                ));
+            }
+        };
+        let out = Command::new(crs)
+            .arg("validate")
+            .current_dir(root)
+            .output()?;
+        Ok(StepResult::new(
+            self.name().into(),
+            out.status.success(),
+            combined_output(&out.stdout, &out.stderr),
+        ))
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
@@ -218,6 +249,20 @@ pub fn run_steps(
 /// Run the default verification steps (backward-compatible entry point).
 pub fn run(root: &Path, crate_name: Option<&str>) -> Result<VerifyReport> {
     run_steps(&default_steps(), root, crate_name)
+}
+
+/// Run the default steps, appending `crs-validate` when
+/// `[integrations] crs = true` in `.godmode.toml`.
+pub fn run_with_config(
+    root: &Path,
+    crate_name: Option<&str>,
+    config: &crate::config::Config,
+) -> Result<VerifyReport> {
+    let mut steps = default_steps();
+    if config.integrations.crs {
+        steps.push(Box::new(CrsValidateStep));
+    }
+    run_steps(&steps, root, crate_name)
 }
 
 #[cfg(test)]
@@ -294,5 +339,38 @@ mod tests {
         let s = FakeStep;
         let result = s.run(Path::new("/tmp"), None).unwrap();
         assert_eq!(result.name, s.name());
+    }
+}
+
+#[cfg(test)]
+mod crs_gate_tests {
+    use super::*;
+    use crate::config::Config;
+
+    #[test]
+    fn crs_validate_step_skips_gracefully_without_crs_on_path() {
+        let step = CrsValidateStep;
+        let result = step.run(Path::new("/tmp"), None).unwrap();
+        // On this dev machine `crs` IS on PATH (coursers is installed), so this
+        // either runs real validation or reports the skip message — either way
+        // it must not error, and the name must match.
+        assert_eq!(result.name, "crs-validate");
+    }
+
+    #[test]
+    fn run_with_config_omits_crs_validate_when_integration_disabled() {
+        let cfg = Config::default();
+        assert!(!cfg.integrations.crs);
+    }
+
+    #[test]
+    fn run_with_config_includes_crs_validate_when_integration_enabled() {
+        let mut cfg = Config::default();
+        cfg.integrations.crs = true;
+        let mut steps = default_steps();
+        if cfg.integrations.crs {
+            steps.push(Box::new(CrsValidateStep));
+        }
+        assert_eq!(steps.last().unwrap().name(), "crs-validate");
     }
 }

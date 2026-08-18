@@ -2,6 +2,7 @@
 name: devloop-session-primer
 description: Pre-flight context briefing for the devloop project. Checks git state, GKG health, pending doob todos, and recent CI status in one pass. Use at the start of a session or when you need to quickly re-orient after a context switch.
 tools: Read, Glob, Grep, Bash
+skills: devloop-session-primer
 model: haiku
 author: Joseph OBrien
 tag: agent
@@ -57,9 +58,7 @@ git diff --stat HEAD 2>/dev/null | tail -3
 
 ### 6. Stale .snap.new files
 
-```bash
-find . -name "*.snap.new" -not -path "*/target/*" 2>/dev/null
-```
+Use the Glob tool with pattern `**/*.snap.new`, excluding `target/` matches, instead of shelling out to `find`.
 
 ### 7. devloop binary currency
 
@@ -93,14 +92,14 @@ Ready. Highest priority: obfsck P100 PII gating
 
 ## Warnings to surface
 
-- If GKG has stale lock/WAL: `⚠ GKG stale — run cleanup before devloop analyze`
+- If GKG has stale lock/WAL: `⚠ GKG stale — run cleanup before devloop git analyze`
 - If CI is failing: `⚠ CI failing on <branch> — fix before new work`
 - If uncommitted changes on main: `⚠ Uncommitted changes — consider committing or stashing`
 - If `.snap.new` files exist: `⚠ N snapshot updates pending — run snapshot-acceptor`
 
 ## What NOT to do
 
-- Do NOT run `devloop analyze` — too slow for a primer
+- Do NOT run `devloop git analyze` — too slow for a primer
 - Do NOT run any tests
 - Do NOT read source files
 - Do NOT make any changes

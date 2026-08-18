@@ -26,28 +26,18 @@ Ask the user which crate to analyse if not already clear. Then locate:
 
 For each `src/*.rs` file, check:
 
-```bash
-# Inline tests
-grep -r "#\[cfg(test)\]" crates/<crate>/src/
+Use the Grep tool for each check:
 
-# Integration tests
-ls crates/<crate>/tests/ 2>/dev/null
+- Inline tests: search `#\[cfg(test)\]` in `crates/<crate>/src/`
+- Property tests: search `proptest` in `crates/<crate>/`
+- Kani model-check proofs: search `#\[kani::proof\]` in `crates/<crate>/src/`
+- Snapshot tests: search `insta|expect_test` in `crates/<crate>/`
+- Trait conformance tests: search `fn assert_.*contract|fn.*satisfies` in `crates/<crate>/`
 
-# Property tests
-grep -r "proptest" crates/<crate>/
+Use the Glob tool to check for:
 
-# Fuzz targets
-ls crates/<crate>/fuzz/fuzz_targets/ 2>/dev/null
-
-# Kani model-check proofs
-grep -r "#\[kani::proof\]" crates/<crate>/src/
-
-# Snapshot tests
-grep -r "insta\|expect_test" crates/<crate>/
-
-# Trait conformance tests
-grep -r "fn assert_.*contract\|fn.*satisfies" crates/<crate>/
-```
+- Integration tests: `crates/<crate>/tests/`
+- Fuzz targets: `crates/<crate>/fuzz/fuzz_targets/`
 
 ### 3. Score each dimension
 
