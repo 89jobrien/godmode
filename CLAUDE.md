@@ -40,6 +40,12 @@ Two-crate workspace:
 - **`crates/godmode-core`** — library; all domain logic and integrations
 - **`crates/godmode-cli`** — binary (`godmode`); thin clap CLI that calls into core
 
+`godmode-cli/src/main.rs` holds only the clap `Cli`/`Cmd`/`*Action` definitions and a thin
+`run()` dispatcher. Each subcommand's logic lives in `godmode-cli/src/commands/<name>.rs`
+behind a `pub fn run_<name>_action(root, json, action) -> Result<()>` entry point, re-exported
+from `commands/mod.rs`. When adding a subcommand: declare the variant in `main.rs`, add the
+handler module, and wire one arm in `run()`.
+
 ### Core modules (`godmode-core/src/`)
 
 | Module          | Responsibility                                                                                                                                                                            |
