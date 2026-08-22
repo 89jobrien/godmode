@@ -847,6 +847,6 @@ fn run() -> Result<()> {
             crate_name,
             dimension,
         } => commands::run_scaffold(crate_name, dimension),
-        Cmd::TestCheck { path } => commands::run_test_check(json, path),
+        Cmd::TestCheck { path } => commands::run_test_check(&root, json, path),
     }
 }
