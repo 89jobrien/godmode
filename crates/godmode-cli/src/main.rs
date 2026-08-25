@@ -242,6 +242,19 @@ enum AgentAction {
         #[arg(long)]
         all: bool,
     },
+    /// Install global OpenCode workspace router and project specialists.
+    #[command(name = "install-opencode")]
+    InstallOpenCode {
+        /// Optional project-agent catalog. Uses the embedded catalog by default.
+        #[arg(long)]
+        catalog: Option<std::path::PathBuf>,
+        /// Agent output directory. Defaults to $HOME/.config/opencode/agents.
+        #[arg(long)]
+        output_dir: Option<std::path::PathBuf>,
+        /// Print destination paths without writing files.
+        #[arg(long)]
+        dry_run: bool,
+    },
     /// Migrate agents/*.md frontmatter to agents/*.yaml stubs.
     Migrate {
         /// Name of a single agent .md to migrate (stem, no extension). Omit for --all.
@@ -1162,6 +1175,46 @@ fn run() -> Result<()> {
                         "{}",
                         serde_json::json!({"ok": true, "generated": generated})
                     );
+                }
+                Ok(())
+            }
+
+            AgentAction::InstallOpenCode {
+                catalog,
+                output_dir,
+                dry_run,
+            } => {
+                let catalog = agent::load_opencode_catalog(catalog.as_deref())?;
+                let output_dir = if let Some(path) = output_dir {
+                    path
+                } else {
+                    let home = std::env::var_os("HOME")
+                        .ok_or_else(|| anyhow::anyhow!("HOME is not set"))?;
+                    std::path::PathBuf::from(home)
+                        .join(".config")
+                        .join("opencode")
+                        .join("agents")
+                };
+                let paths = agent::install_opencode_agents(&catalog, &output_dir, dry_run)?;
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "ok": true,
+                            "dry_run": dry_run,
+                            "agents": paths,
+                        }))?
+                    );
+                } else {
+                    let verb = if dry_run {
+                        "Would install"
+                    } else {
+                        "Installed"
+                    };
+                    println!("{verb} {} OpenCode agents:", paths.len());
+                    for path in paths {
+                        println!("  {}", path.display());
+                    }
                 }
                 Ok(())
             }

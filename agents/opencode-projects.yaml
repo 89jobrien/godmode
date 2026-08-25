@@ -1,0 +1,28 @@
+router:
+  name: workspace
+  description: Route workspace requests to project specialists that prefer governed project tools.
+
+projects:
+  - { name: workspace-maestro, description: "Use and maintain the Maestro Kubernetes pod manager.", project: maestro, repo_path: maestro }
+  - { name: workspace-crux, description: "Use and maintain the Crux agentic Rust DSL and runtime.", project: crux, repo_path: crux, visible: true }
+  - { name: workspace-slash, description: "Use and maintain the Slash command parser and orchestration language.", project: slash, repo_path: slash }
+  - { name: workspace-braid, description: "Use and maintain the Braid multi-agent orchestration platform.", project: braid, repo_path: braid }
+  - { name: workspace-minibox, description: "Use and maintain the minibox Linux VM and container manager.", project: minibox, repo_path: minibox, visible: true }
+  - { name: workspace-devloop, description: "Use and maintain DevLoop development history and agent analysis.", project: devloop, repo_path: devloop, visible: true }
+  - { name: workspace-doob, description: "Use and maintain the doob todo and handoff task tracker.", project: doob, repo_path: doob, visible: true }
+  - { name: workspace-rx, description: "Use and maintain the rx command-prefix learning system.", project: rx, repo_path: rx }
+  - { name: workspace-obfsck, description: "Use and maintain obfsck secret detection and redaction tooling.", project: obfsck, repo_path: obfsck }
+  - { name: workspace-taskit, description: "Use and maintain the taskit Rust workspace task runner.", project: taskit, repo_path: taskit, visible: true }
+  - { name: workspace-sparkfile, description: "Use and maintain the Sparkfile project scaffolding CLI.", project: sparkfile, repo_path: sparkfile }
+  - { name: workspace-godmode, description: "Use and maintain the godmode development workflow system.", project: godmode, repo_path: godmode }
+  - { name: workspace-personal-mcp, description: "Use and maintain the personal MCP local tool gateway.", project: personal-mcp, repo_path: personal-mcp }
+  - { name: workspace-numcp, description: "Use and maintain the Nushell MCP server.", project: numcp, repo_path: numcp }
+  - { name: workspace-mcpipe, description: "Use and maintain the mcpipe MCP proxy and CLI bridge.", project: mcpipe, repo_path: mcpipe }
+  - { name: workspace-agentlint, description: "Use and maintain the agent harness file linter.", project: agentlint, repo_path: agentlint }
+  - { name: workspace-coursers, description: "Use and maintain the coursers course-correction and hook engine.", project: coursers, repo_path: coursers }
+  - { name: workspace-maid, description: "Use and maintain the Maid filesystem organization CLI.", project: maid, repo_path: maid }
+  - { name: workspace-romp, description: "Use and maintain the Romp Rust proxy utilities.", project: romp, repo_path: romp }
+  - { name: workspace-gooey, description: "Use and maintain the Gooey TUI and UI framework prototype.", project: gooey, repo_path: gooey }
+  - { name: workspace-hj, description: "Use and maintain the hj handoff and journal CLI.", project: hj, repo_path: hj }
+  - { name: workspace-dotfiles, description: "Inspect and maintain system and agent configuration snapshots.", project: dotfiles, repo_path: claude-dotfiles }
+  - { name: workspace-nu-libs, description: "Use and maintain shared Nushell library modules.", project: nu_libs, repo_path: nu_libs }
