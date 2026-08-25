@@ -1,3 +1,7 @@
+//! Shared conformance harness building blocks.
+//!
+//! Re-exports provide a single import surface for test modules.
+
 pub mod comparison;
 pub mod context;
 pub mod fixtures;

@@ -1,3 +1,8 @@
+//! Crux-based session trace envelope for task-graph lifecycle events.
+//!
+//! This module wraps `Crux<TaskGraph>` and persists one JSON trace file per
+//! session in `.ctx/godmode/sessions/`.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -14,6 +19,7 @@ use crate::model::TaskGraph;
 // Public API
 // ---------------------------------------------------------------------------
 
+/// Session-scoped trace writer backed by a `Crux<TaskGraph>` envelope.
 pub struct Session {
     inner: Crux<TaskGraph>,
     root: PathBuf,

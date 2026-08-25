@@ -5,12 +5,14 @@ use anyhow::{Context, Result, bail};
 
 use crate::integrations::subprocess;
 
+/// Result payload returned when a worktree is created.
 pub struct WorktreeInfo {
     pub branch: String,
     pub path: PathBuf,
     pub issue_number: Option<u64>,
 }
 
+/// Check whether `.gitignore` contains an exact line entry.
 pub fn gitignore_contains(root: &Path, entry: &str) -> bool {
     let path = root.join(".gitignore");
     match fs::read_to_string(&path) {
@@ -19,6 +21,7 @@ pub fn gitignore_contains(root: &Path, entry: &str) -> bool {
     }
 }
 
+/// Ensure `.gitignore` includes the provided entry exactly once.
 pub fn ensure_gitignore(root: &Path, entry: &str) -> Result<()> {
     if gitignore_contains(root, entry) {
         return Ok(());
@@ -30,6 +33,10 @@ pub fn ensure_gitignore(root: &Path, entry: &str) -> Result<()> {
     Ok(())
 }
 
+/// Create a branch worktree under `.worktrees/<branch>`.
+///
+/// The function also ensures `.worktrees/` is present in `.gitignore` and
+/// performs a best-effort `git fetch origin main` before creating the worktree.
 pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<WorktreeInfo> {
     let worktrees_dir = root.join(".worktrees");
     fs::create_dir_all(&worktrees_dir)
@@ -70,6 +77,7 @@ pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<Workt
     })
 }
 
+/// Remove a branch worktree after verifying it has no commits ahead of `main`.
 pub fn remove(root: &Path, branch: &str) -> Result<()> {
     let root_str = root.to_str().unwrap_or(".");
 

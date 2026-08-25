@@ -2,6 +2,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+/// Kind of installable artifact tracked in the global registry.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum EntryKind {
@@ -9,6 +10,7 @@ pub enum EntryKind {
     Agent,
 }
 
+/// Single installed skill/agent entry persisted in `registry.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryEntry {
     pub name: String,
@@ -17,11 +19,13 @@ pub struct RegistryEntry {
     pub version: String,
 }
 
+/// Global registry of installed skills and agents.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Registry {
     pub entries: Vec<RegistryEntry>,
 }
 
+/// Resolve the global registry file path under `$HOME/.config/godmode/`.
 fn global_registry_path() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
     PathBuf::from(home)

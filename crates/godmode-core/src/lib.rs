@@ -1,3 +1,9 @@
+//! Core domain and integration library for the `godmode` CLI.
+//!
+//! This crate contains task-graph domain logic, session orchestration, and
+//! external-tool integrations. `godmode-cli` is intentionally thin and delegates
+//! nearly all behavior to modules exported here.
+
 pub mod agent;
 pub mod agent_index;
 pub mod builder;
