@@ -165,6 +165,6 @@ low`. Do not promote uncertain patterns to established knowledge.
 
 ## See Also
 
-- `.ctx/memory-bank/patterns.md` — main pattern repository
+- `.ctx/godmode/memory-bank/patterns.md` — main pattern repository
 - `skills/introspection/SKILL.md` — plugin and skill consistency auditing
 - `agents/pattern-learner-agent.md` — agent definition

@@ -350,6 +350,86 @@
       "name": "rustqual-workspace",
       "trigger": "rustqual for Rust workspaces with multiple crates",
       "phase": "VERIFY"
+    },
+    {
+      "name": "crs-discover",
+      "trigger": "Discover unhandled commands from session history",
+      "phase": "ACT"
+    },
+    {
+      "name": "crs-install",
+      "trigger": "Install validated coursers rules into live config",
+      "phase": "SHIP"
+    },
+    {
+      "name": "crs-propose-rules",
+      "trigger": "Draft coursers rule candidates from discovered commands",
+      "phase": "ACT"
+    },
+    {
+      "name": "crs-validate",
+      "trigger": "Validate proposed coursers rules before install",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "devloop-session-primer",
+      "trigger": "Start or resume a devloop session with quick orientation",
+      "phase": "ORIENT"
+    },
+    {
+      "name": "dialectic",
+      "trigger": "Adversarial reasoning for contentious decisions",
+      "phase": "PLAN"
+    },
+    {
+      "name": "doc-review",
+      "trigger": "Review docs for accuracy, completeness, and clarity",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "doc-sync",
+      "trigger": "Detect documentation drift versus code",
+      "phase": "VERIFY"
+    },
+    {
+      "name": "doc-writer",
+      "trigger": "Write new documentation grounded in source code",
+      "phase": "PLAN"
+    },
+    {
+      "name": "doob-db-inspector",
+      "trigger": "Audit doob database health and data quality",
+      "phase": "ACT"
+    },
+    {
+      "name": "doob-release-manager",
+      "trigger": "Manage doob release pipeline and verification",
+      "phase": "SHIP"
+    },
+    {
+      "name": "handoff-hardened",
+      "trigger": "Resumable, self-verifying end-of-day handoff",
+      "phase": "SHIP"
+    },
+    {
+      "name": "open-knowledge-write-skill",
+      "trigger": "Create or improve a reusable SKILL.md",
+      "phase": "PLAN"
+    },
+    {
+      "name": "rust-release-orchestrator",
+      "trigger": "Publish Rust workspace crates to crates.io",
+      "phase": "SHIP"
+    },
+    {
+      "name": "think-consistency",
+      "trigger": "Run multi-path self-consistency reasoning for high-stakes decisions",
+      "phase": "PLAN"
+    },
+    {
+      "name": "using-doob",
+      "trigger": "Use doob CLI/TUI and HANDOFF sync workflows",
+      "phase": "ORIENT"
     }
   ]
 }

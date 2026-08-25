@@ -25,13 +25,13 @@ You diagnose and resolve secrets and environment issues across all projects. You
 
 - **Claude's shell context cannot resolve `op://` URIs** — always use `op read` or `op run` explicitly
 - `op run` does NOT override vars already set in the shell — use `env -u VAR` to clear before running
-- Global env chain: `~/dev/.envrc` → `source_up` → `op run --env-file ~/.secrets`
+- Global env chain: `~/dev/.envrc` → `source_up` → `op inject ~/.secrets` + `dotenv` export
 - Personal 1P account: `--account=my.1password.com`; Work: `--account=toptal.1password.com`
 - SSH "too many auth failures" = 1P agent offering all stored keys; fix with `-o IdentitiesOnly=yes -o IdentityAgent=none`
 
 ## Diagnostic Approach
 
-1. Identify which layer is broken (direnv / source_up / op signin / op run / var conflict)
+1. Identify which layer is broken (direnv / source_up / op signin / op inject / var conflict)
 2. Run the minimal diagnostic command to confirm the layer
 3. Provide the exact fix command
 4. Verify it resolved the issue

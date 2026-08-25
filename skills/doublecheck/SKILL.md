@@ -72,12 +72,43 @@ Record initial confidence as input to Layer 2. Do not surface these ratings as f
 
 ## Layer 2: Source Verification
 
-Search for external evidence for each extracted claim. The goal is to give the user URLs they
-can visit themselves — not your summary of what those URLs say.
+Find primary-source evidence for each extracted claim. The goal is to give the user
+references they can check themselves — URLs for external claims, `file:line` for local
+ones — not your summary of what those references say.
+
+### Ground Claims Before Searching
+
+Route each claim to the right evidence source first. Web search is for claims about the
+world; claims about a local codebase, config, or document have a primary source sitting
+on disk, and searching the web for them wastes the attempt budget and proves nothing.
+
+For **repo-grounded claims** (what a function returns, what a file contains, how many of
+something exist, what a commit introduced):
+
+1. Verify with `rg`/`Read`/`git` directly and cite `file:line` (or a commit hash) as the
+   source. `file:line` is the URL of a codebase claim.
+2. **Enumerable claims — counts and lists — must be recounted with a command, never rated
+   from recollection.** "There are 8 tools" / "only one test calls X" are one `rg -c` away
+   from certainty; a mismatch is a DISPUTED finding even when the surrounding argument
+   survives it. Stated-from-memory counts are the codebase analogue of the unsourced
+   statistic.
+3. **Verbatim quotes** from code or docs: confirm with an exact-string search (`rg -F`).
+   A paraphrase presented as a quote is a wrong-association finding.
+4. **History claims** ("landed without X", "caught in review", "shipped in a release"):
+   verify with `git log -S` / `git blame`, and rate only the hop you actually traced —
+   "present in a commit" is not "present on main" is not "present in a tagged release".
+   If the claim asserts the stronger hop and you only verified the weaker one, say so.
+5. **Design/hypothetical claims** (properties of proposed, unwritten code) are
+   unfalsifiable against the repo — label them as design reasoning, then verify the
+   preconditions that _are_ checkable (e.g., "this holds because `T` has no interior
+   mutability" — that part greps).
+
+Claims that mix both groundings (a codebase fact justified by an external concept) get
+both treatments.
 
 ### Search Strategy
 
-For each claim:
+For each **externally grounded** claim (repo-grounded claims were handled above):
 
 1. Formulate a search query targeting the primary source — exact case name, specific statistic
    and topic, key entities and relationship.
@@ -168,6 +199,8 @@ Escalate these prominently — do not bury them in the table:
 - A statistic with no identifiable source
 - A legal or regulatory claim contradicting what authoritative sources say
 - A claim stated with high confidence that is actually disputed or uncertain
+- An enumerable claim (count, list, "there is exactly one…") that was stated from memory
+  and contradicted by a recount
 
 ---
 
@@ -202,7 +235,8 @@ Always append to the report:
 > Web search may not reach paywalled or very recent sources. The adversarial layer uses the
 > same underlying model that may have produced the original output — it catches many issues
 > but not all. VERIFIED means a supporting source was found, not that the claim is definitely
-> correct. PLAUSIBLE claims may still be wrong.
+> correct. PLAUSIBLE claims may still be wrong. Repo-grounded `file:line` references are
+> valid as of the verification run and may drift with subsequent edits.
 
 ---
 
@@ -234,6 +268,17 @@ jurisdictional claim. Search legal databases when available.
 - Verify CVE numbers, vulnerability descriptions, and affected versions
 - Check API specs and configuration instructions against current documentation
 - Flag version-specific information that may be outdated
+
+### Codebase and Repo-Grounded Content
+
+The lowest-friction verification domain — the primary source is on disk — and therefore the
+least excusable place for an unverified claim to survive. Elevated-risk shapes: counts of
+anything ("N tools", "N call sites"), "the only place that…" claims, quoted snippets and
+comments, signatures described from memory after a refactor, and history/provenance claims
+("this landed ungated", "review caught it"). All of these are answerable in seconds with
+`rg`, `Read`, or `git log -S`; per the grounding rules in Layer 2, recount and re-quote
+rather than recall, and cite `file:line`. Remember the paths you verified are a snapshot —
+note the branch/commit if the tree is in flux.
 
 ---
 

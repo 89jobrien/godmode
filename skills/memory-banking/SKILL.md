@@ -42,9 +42,38 @@ context injection, and a post-commit reminder, respectively). It still reads a l
 `.ctx/memory-banking/` directory as a fallback when the new path is absent, so older
 projects on that layout keep working.
 
+There is exactly one memory-bank location per repo: `.ctx/godmode/memory-bank/`. Never
+leave a second, parallel memory-bank directory sitting alongside it.
+
 ## Generation procedure
 
 When creating or fully regenerating the memory bank:
+
+0. **Check for an existing memory bank BEFORE creating anything new.** A repo may already
+   have one under a different/older layout — check, in order: `.ctx/godmode/memory-bank/`
+   (canonical), `.ctx/memory-bank/` (older layout, no `-ing`), `.ctx/memory-banking/`
+   (legacy fallback name referenced above). If any of these exist:
+   - If `.ctx/godmode/memory-bank/` already exists, treat this as an incremental update
+     (step 3's "Edit individual files" path), not a fresh generation.
+   - If only an older-layout directory exists, read every file in it first. Files with
+     real content (not just an unfilled `# Heading` + `<!-- TODO -->` stub) must be
+     carried forward — copy them into `.ctx/godmode/memory-bank/` (verbatim if they're
+     outside this skill's core 6-file set, e.g. `mistakes.md`/`patterns.md`/
+     `health-history.jsonl` written by `mistake-tracker`/`pattern-learner`/`health-score`;
+     merged into the corresponding core file if they overlap with `project-brief.md` /
+     `product-context.md` / `tech-context.md` / `system-patterns.md` /
+     `active-context.md` / `progress.md`). Unfilled template stubs can be safely
+     regenerated fresh rather than copied.
+   - Once content is fully carried forward, delete the old-layout directory — don't leave
+     it sitting alongside the canonical one. This is a local, reversible file deletion
+     (memory-bank dirs are gitignored under most repos' `.ctx/*` convention), but confirm
+     with the user first if the directory contains anything you're not fully certain has
+     been captured elsewhere.
+   - Skipping this check silently duplicates work and leaves two divergent sources of
+     truth for the same repo — this has actually happened (crux, 2026-08-22: a fresh
+     `.ctx/godmode/memory-bank/` was generated without checking for the pre-existing
+     `.ctx/memory-bank/`, which held real `mistakes.md`/`patterns.md` history that had
+     to be manually reconciled afterward).
 
 1. **Read sources** — scan these files (skip missing ones silently):
    - `README.md`, `CLAUDE.md`, `.claude.local.md`

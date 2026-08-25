@@ -62,6 +62,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-skill-trace.nu",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -161,6 +171,16 @@
           {
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-skill-trace.nu",
             "timeout": 10
           }
         ]

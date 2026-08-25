@@ -123,6 +123,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:rustqual`                        | Rust code quality analysis via rustqual CLI                  |
 | `godmode:rustqual-workspace`              | rustqual guidance for multi-crate Rust workspaces            |
 | `godmode:session-wrap-commit-push`        | End-of-session commit and push closeout                      |
+| `godmode:handoff-hardened`                | Resumable, self-verifying multi-repo end-of-day handoff      |
 | `godmode:token-cost-optimizer`            | Analyze or reduce Claude/agent token costs                   |
 | `godmode:using-crux`                      | Navigate, build, or extend the crux codebase                 |
 | `godmode:whatidid`                        | Generate daily activity report from session data             |

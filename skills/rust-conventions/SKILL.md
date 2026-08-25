@@ -238,3 +238,7 @@ Before submitting any Rust code:
 - `skills/agent-governance/SKILL.md` — Rust implementations of governance patterns
 - `skills/systematic-debugging/SKILL.md` — debugging approach for Rust-specific issues
 - `skills/verification-before-completion/SKILL.md` — CI gate checklist
+- `skills/rust-api-guidelines/SKILL.md` — the full official Rust API Guidelines by C-code, with
+  rationale and examples for each rule this document summarizes
+- `skills/rust-checklist/SKILL.md` — fast pass/fail checklist audit of a crate's public API
+  surface against the official guidelines; use before a release or PR review

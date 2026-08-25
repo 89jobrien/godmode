@@ -37,8 +37,8 @@
 
 **Evidence**:
 
-- Source: [URL] — [one-line summary of what the source says]
-- Contradicting source (if any): [URL] — [one-line summary]
+- Source: [URL, or `file:line` / commit hash for repo-grounded claims] — [one-line summary of what the source says]
+- Contradicting source (if any): [URL or `file:line`] — [one-line summary]
 
 **Notes**: <!-- anything the user should know about this claim -->
 
@@ -79,6 +79,7 @@
 - [ ] Visit source links for any VERIFIED claim critical to your decision
 - [ ] Treat PLAUSIBLE claims as unconfirmed until you check a primary source
 - [ ] Check UNVERIFIED claims manually — absence of a web result is not absence of error
+- [ ] Re-run repo-grounded checks if the tree has changed since the verification run
 
 ---
 

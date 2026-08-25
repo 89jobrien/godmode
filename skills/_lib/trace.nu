@@ -53,7 +53,8 @@ def append-event [record: record] {
     let root = (repo-root)
     if ($root == null) { return }
     try { mkdir $"($root)/.ctx/godmode/traces" }
-    try { $record | to json --raw | $"($in)\n" | save --append (trace-file) }
+    let stamped = ({ cwd: $root } | merge $record)
+    try { $stamped | to json --raw | $"($in)\n" | save --append (trace-file) }
 }
 
 # ---------------------------------------------------------------------------

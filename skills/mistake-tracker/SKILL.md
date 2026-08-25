@@ -10,7 +10,7 @@ next: []
 
 # Mistake Tracker
 
-A persistent ledger at `.ctx/memory-bank/mistakes.md` that catalogs recurring error
+A persistent ledger at `.ctx/godmode/memory-bank/mistakes.md` that catalogs recurring error
 patterns, failure modes, and process mistakes. The ledger is grounded in actual session
 traces and git history — not assumptions.
 
@@ -113,7 +113,7 @@ Prevention: Add integration test for empty graph; add guard in start() function
 
 ## Ledger Format
 
-The file `.ctx/memory-bank/mistakes.md` uses Markdown with frontmatter:
+The file `.ctx/godmode/memory-bank/mistakes.md` uses Markdown with frontmatter:
 
 ```yaml
 ---
@@ -223,7 +223,7 @@ When reporting findings to the user, use:
 ### Reverts (1 pattern)
 - task start breaks on empty graph (1 occurrence)
 
-**Next Steps**: Review `.ctx/memory-bank/mistakes.md` for prevention strategies and
+**Next Steps**: Review `.ctx/godmode/memory-bank/mistakes.md` for prevention strategies and
 see which can be implemented before the next release.
 ```
 

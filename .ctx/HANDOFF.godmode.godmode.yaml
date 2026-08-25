@@ -1,24 +1,36 @@
 project: godmode
 id: godmode
-updated: 2026-08-16
+updated: 2026-08-25
 items:
 - id: uncommitted-work
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (20 files)
+  title: Uncommitted changes (32 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    CLAUDE.md
-    skills/task-management/helpers/session-workflow.md
+    agents/envoy.md
+    agents/opencode-projects.yaml
+    crates/godmode-core/src/agent.rs
+    hooks/hooks.json
+    skills/_lib/trace.nu
+    skills/doublecheck/SKILL.md
+    skills/doublecheck/references/verification-report-template.md
+    skills/memory-banking/SKILL.md
+    skills/mistake-tracker/SKILL.md
+    skills/pattern-learner/SKILL.md
+    skills/rust-conventions/SKILL.md
     skills/using-godmode/SKILL.md
     .codex-plugin/
     .ctx/HANDOFF.tools.yaml
     .plugin-eval/
     AGENTS.md
     crates/godmode-cli/src/commands/
+    hooks/scripts/post-skill-trace.nu
+    hooks/scripts/pre-skill-trace.nu
     skills/depgraph/
+    skills/handoff-hardened/
     skills/joe:inject
     skills/joe:persona
     skills/joe:portfolio
@@ -31,15 +43,27 @@ items:
     toolkit.nu
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - CLAUDE.md
-  - skills/task-management/helpers/session-workflow.md
+  - agents/envoy.md
+  - agents/opencode-projects.yaml
+  - crates/godmode-core/src/agent.rs
+  - hooks/hooks.json
+  - skills/_lib/trace.nu
+  - skills/doublecheck/SKILL.md
+  - skills/doublecheck/references/verification-report-template.md
+  - skills/memory-banking/SKILL.md
+  - skills/mistake-tracker/SKILL.md
+  - skills/pattern-learner/SKILL.md
+  - skills/rust-conventions/SKILL.md
   - skills/using-godmode/SKILL.md
   - .codex-plugin/
   - .ctx/HANDOFF.tools.yaml
   - .plugin-eval/
   - AGENTS.md
   - crates/godmode-cli/src/commands/
+  - hooks/scripts/post-skill-trace.nu
+  - hooks/scripts/pre-skill-trace.nu
   - skills/depgraph/
+  - skills/handoff-hardened/
   - skills/joe:inject
   - skills/joe:persona
   - skills/joe:portfolio
@@ -51,6 +75,19 @@ items:
   - skills/using-doob/
   - toolkit.nu
 log:
+- date: '20260825.043132'
+  summary: done=12 running=0 pending=0 blocked=0
+  commits:
+  - e52d151274081153431716e0da6a416af3288c6f
+  - fd7befac001b57c954e80f65283b3ba5b014ab22
+  - d076f96975c55ad2b79dfd170e075cc7637f9f57
+  - fcfa5c534348cbb43bac811ff46b7b3ed2aae221
+  - bfc958b8c317f37ead6e38811902c197fe83b41c
+  - 5059d2003399321d044a9b7fa95841ff6cb31b4c
+  - e4dac8e7c64e6be1967f477c8b996eb533a938b9
+  - 097618030001830810e00299d233e002ddae6543
+  - a6897bc53c13cd725efdec9bbda8ae02d564f2b5
+  - 23cd41c4d98b6825c2d486126bc17ea6c7722bcd
 - date: '20260816'
   summary: |-
     Surfaced coursers failure-learning data in handoff and context (godmode-core).
@@ -59,9 +96,6 @@ log:
   commits:
   - bfc958b
   - 5059d20
-  build_state: clean
-  test_state: all passed (369)
-  branch: fix/coursers-followups-2026-08-03
 - date: '20260816.231505'
   summary: done=12 running=0 pending=0 blocked=0
   commits:
