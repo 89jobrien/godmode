@@ -364,6 +364,8 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 [[package]]
 name = "crux-domain"
 version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b285accf5bc9ec0a4cf30a3f432b1b4c3a5f29846afa003823c52564508197d5"
 dependencies = [
  "serde",
  "serde_json",
@@ -373,6 +375,8 @@ dependencies = [
 [[package]]
 name = "crux-runtime"
 version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77ce98f774d98b9e5eeeaf599bb44253cdd72ee2c91207ea2aae3a97fd18c9e0"
 dependencies = [
  "chrono",
  "crux-domain",
@@ -389,6 +393,8 @@ dependencies = [
 [[package]]
 name = "crux-types"
 version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3378e66a8773445681e2d303a0180e5154afae3fdbbd0df165e32020375cf5d8"
 dependencies = [
  "chrono",
  "miette",

@@ -12,7 +12,9 @@ let on_disk = (
     | where type == dir
     | get name
     | each { path basename }
-    | where { |n| ($n == "_lib") | not $in }
+    | where { |n|
+        $n != "_lib" and (($skills_dir | path join $n "SKILL.md") | path exists)
+    }
 )
 
 let missing = ($on_disk | where { |n| ($indexed | any { |i| $i == $n }) | not $in })
@@ -21,7 +23,7 @@ if ($missing | is-empty) {
     print "skill-index.json is up to date"
     exit 0
 } else {
-    print $"ERROR: ($missing | length) skill(s) missing from skill-index.json:"
+    print $"ERROR: ($missing | length) skills missing from skill-index.json:"
     $missing | each { |n| print $"  - ($n)" }
     exit 1
 }
