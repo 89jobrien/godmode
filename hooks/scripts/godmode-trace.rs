@@ -28,9 +28,15 @@ const MINS_PER_HOUR: u64 = 60;
 const SECS_PER_HOUR: u64 = SECS_PER_MIN * MINS_PER_HOUR;
 const HOURS_PER_DAY: u64 = 24;
 const SECS_PER_DAY: u64 = SECS_PER_HOUR * HOURS_PER_DAY;
+const EPOCH_YEAR: u64 = 1970;
+const DAYS_PER_YEAR: u64 = 365;
+const DAYS_PER_LEAP_YEAR: u64 = 366;
+const FIRST_MONTH: u64 = 1;
+const FIRST_DAY: u64 = 1;
 
 const DAYS_IN_MONTH: [u64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const LEAP_MONTH_DAYS: u64 = 29;
+const FEBRUARY_INDEX: usize = 1;
 const LEAP_CYCLE_4: u64 = 4;
 const LEAP_CYCLE_100: u64 = 100;
 const LEAP_CYCLE_400: u64 = 400;
@@ -48,8 +54,6 @@ fn epoch_ms() -> u128 {
         .as_millis()
 }
 
-// TODO(rustqual,#94): extract named constants for time arithmetic magic numbers.
-// magic_numbers: 3600 (SECS_PER_HOUR), 60 (SECS_PER_MIN / MINS_PER_HOUR), 86400 (SECS_PER_DAY).
 fn iso_now() -> String {
     // RFC3339-ish via SystemTime — no chrono dep needed for hook use
     let secs = SystemTime::now()
@@ -65,15 +69,16 @@ fn iso_now() -> String {
     format!("{y:04}-{mo:02}-{d:02}T{h:02}:{m:02}:{s:02}Z")
 }
 
-// TODO(rustqual,#95): extract named constants for calendar arithmetic magic numbers in days_to_ymd().
-// magic_numbers: 365 (DAYS_PER_YEAR), 366 (DAYS_PER_LEAP_YEAR), 4/100/400 (leap-year divisors),
-// month-length values (28, 29, 30, 31). Consider a const DAYS_IN_MONTH: [u64; 12] lookup.
 fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
-    let mut y = 1970u64;
+    let mut y = EPOCH_YEAR;
     let is_leap =
         |y: u64| (y % LEAP_CYCLE_4 == 0 && y % LEAP_CYCLE_100 != 0) || y % LEAP_CYCLE_400 == 0;
     loop {
-        let dy = if is_leap(y) { 366 } else { 365 };
+        let dy = if is_leap(y) {
+            DAYS_PER_LEAP_YEAR
+        } else {
+            DAYS_PER_YEAR
+        };
         if days < dy {
             break;
         }
@@ -83,10 +88,10 @@ fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
     let leap = is_leap(y);
     let mut leap_month = DAYS_IN_MONTH;
     if leap {
-        leap_month[1] = LEAP_MONTH_DAYS;
+        leap_month[FEBRUARY_INDEX] = LEAP_MONTH_DAYS;
     }
     let month_days: &[u64] = if leap { &leap_month } else { &DAYS_IN_MONTH };
-    let mut mo = 1u64;
+    let mut mo = FIRST_MONTH;
     for &md in month_days {
         if days < md {
             break;
@@ -94,7 +99,27 @@ fn days_to_ymd(mut days: u64) -> (u64, u64, u64) {
         days -= md;
         mo += 1;
     }
-    (y, mo, days + 1)
+    (y, mo, days + FIRST_DAY)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn epoch_day_is_1970_01_01() {
+        assert_eq!(days_to_ymd(0), (1970, 1, 1));
+    }
+
+    #[test]
+    fn leap_day_is_preserved() {
+        assert_eq!(days_to_ymd(11_016), (2000, 2, 29));
+    }
+
+    #[test]
+    fn non_leap_century_rolls_into_march() {
+        assert_eq!(days_to_ymd(47_541), (2100, 3, 1));
+    }
 }
 
 fn git_short_sha(git_root: &PathBuf) -> String {

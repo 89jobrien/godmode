@@ -1,7 +1,13 @@
+//! Persistent insight capture and date-based Markdown report generation.
+//!
+//! Insights are appended as JSON Lines under `.ctx/godmode/traces` and can be
+//! filtered by UTC date before being rendered into the report directory.
+
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+/// Calendar date type used to select daily insight reports.
 pub use chrono::NaiveDate;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -12,12 +18,17 @@ use crate::report_index::{JsonFileIndex, ReportIndexPort};
 // Types
 // ---------------------------------------------------------------------------
 
+/// A timestamped observation captured during a godmode session.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Insight {
+    /// Short heading used to identify the observation.
     pub title: String,
+    /// Full explanatory content of the observation.
     pub body: String,
+    /// Optional labels used to classify the observation.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
+    /// UTC time at which the observation was captured.
     pub ts: DateTime<Utc>,
 }
 
@@ -59,8 +70,7 @@ pub fn new_insight(title: String, body: String, tags: Vec<String>) -> Insight {
     }
 }
 
-/// Append a single insight to `.ctx/insights.jsonl`. Non-fatal on I/O errors
-/// when called from hooks; callers that need error reporting should use `?`.
+/// Append a single insight to `.ctx/godmode/traces/insights.jsonl`.
 pub fn append(root: &Path, insight: &Insight) -> Result<()> {
     let path = insights_path(root);
     if let Some(parent) = path.parent() {
@@ -74,7 +84,7 @@ pub fn append(root: &Path, insight: &Insight) -> Result<()> {
     Ok(())
 }
 
-/// Read all insights from `.ctx/insights.jsonl`.
+/// Read all insights from `.ctx/godmode/traces/insights.jsonl`.
 /// Returns an empty vec if the file does not exist.
 pub fn list(root: &Path) -> Result<Vec<Insight>> {
     let path = insights_path(root);
@@ -105,8 +115,10 @@ pub fn list_for_date(root: &Path, date: NaiveDate) -> Result<Vec<Insight>> {
         .collect())
 }
 
-/// Render insights to the `.ctx/insights-YYYY-MM-DD.md` markdown format.
-/// Overwrites the file for the given date.
+/// Render insights to `.ctx/godmode/reports/insights/insights-YYYY-MM-DD.md`.
+///
+/// Overwrites the report for the given date and updates the report index on a
+/// best-effort basis.
 pub fn render_markdown(root: &Path, date: NaiveDate) -> Result<PathBuf> {
     let insights = list_for_date(root, date)?;
     let path = insights_md_path(root, &date);

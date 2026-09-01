@@ -1,3 +1,5 @@
+//! Session context assembly for hooks, subagents, and machine-readable output.
+
 use anyhow::Result;
 use serde::Serialize;
 use std::path::Path;
@@ -11,28 +13,43 @@ use crate::model::Status;
 /// Full session context for hooks and subagents.
 #[derive(Debug, Serialize)]
 pub struct SessionContext {
+    /// Absolute or caller-provided path to the repository root.
     pub git_root: String,
+    /// Detected package or directory name for the project.
     pub project: String,
+    /// Tasks currently in the running state.
     pub running: Vec<TaskSummary>,
+    /// Number of tasks currently pending.
     pub pending_count: usize,
+    /// Tasks currently blocked and their recorded reasons.
     pub blocked: Vec<BlockedSummary>,
+    /// Recent commits rendered in one-line form.
     pub recent_commits: Vec<String>,
+    /// Number of tasks in the active graph's critical path.
     pub critical_path_depth: usize,
+    /// Recent command failures reported by the coursers integration.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub coursers_failures: Vec<coursers::FailingSummary>,
 }
 
+/// Compact representation of a running task.
 #[derive(Debug, Serialize)]
 pub struct TaskSummary {
+    /// Stable task identifier.
     pub id: String,
+    /// Human-readable task title.
     pub title: String,
+    /// Optional crate targeted by the task.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub crate_name: Option<String>,
 }
 
+/// Compact representation of a blocked task.
 #[derive(Debug, Serialize)]
 pub struct BlockedSummary {
+    /// Stable task identifier.
     pub id: String,
+    /// Recorded explanation for why the task is blocked.
     pub reason: String,
 }
 

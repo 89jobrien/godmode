@@ -13,8 +13,11 @@ use crate::policy;
 /// Decision returned by the governance check.
 #[derive(Debug)]
 pub struct GovernanceDecision {
+    /// Whether policy permits the requested agent dispatch.
     pub approved: bool,
+    /// Human-readable explanation for the decision.
     pub reason: String,
+    /// Policy constraints that the approved agent should observe.
     pub reminders: Vec<String>,
 }
 

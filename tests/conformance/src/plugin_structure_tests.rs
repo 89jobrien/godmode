@@ -55,6 +55,7 @@ fn extract_fm_name(content: &str) -> Option<String> {
 
 // ── Check 1: every skill dir has a SKILL.md ──────────────────────────────
 
+/// Verifies that every skill directory contains a `SKILL.md` manifest.
 pub struct EverySkillHasSkillMd;
 impl ConformanceTest for EverySkillHasSkillMd {
     fn name(&self) -> &str {
@@ -81,6 +82,7 @@ impl ConformanceTest for EverySkillHasSkillMd {
 
 // ── Check 2: frontmatter name field is present ────────────────────────────
 
+/// Verifies that every skill manifest declares a frontmatter name.
 pub struct SkillMdHasFrontmatterName;
 impl ConformanceTest for SkillMdHasFrontmatterName {
     fn name(&self) -> &str {
@@ -115,6 +117,7 @@ impl ConformanceTest for SkillMdHasFrontmatterName {
 
 // ── Check 3: skill names appear in skill-index.md and using-godmode ───────
 
+/// Verifies that skill names appear in the index and discovery skill.
 pub struct SkillNamesInIndex;
 impl ConformanceTest for SkillNamesInIndex {
     fn name(&self) -> &str {
@@ -178,6 +181,7 @@ impl ConformanceTest for SkillNamesInIndex {
 
 // ── Check 4: no orphan index entries ─────────────────────────────────────
 
+/// Verifies that every indexed skill has a corresponding skill directory.
 pub struct NoOrphanIndexEntries;
 impl ConformanceTest for NoOrphanIndexEntries {
     fn name(&self) -> &str {
@@ -227,6 +231,7 @@ impl ConformanceTest for NoOrphanIndexEntries {
 
 // ── Check 5 & 6: references/ and helpers/ links resolve ──────────────────
 
+/// Verifies that skill links into `references/` resolve to existing files.
 pub struct ReferencesLinksResolve;
 impl ConformanceTest for ReferencesLinksResolve {
     fn name(&self) -> &str {
@@ -245,6 +250,7 @@ impl ConformanceTest for ReferencesLinksResolve {
     }
 }
 
+/// Verifies that skill links into `helpers/` resolve to existing files.
 pub struct HelpersLinksResolve;
 impl ConformanceTest for HelpersLinksResolve {
     fn name(&self) -> &str {
@@ -294,6 +300,7 @@ fn check_link_pattern(root: &Path, pattern: &str, ctx: &mut TestContext) {
 
 // ── Check 7: plugin.json allowed fields only ─────────────────────────────
 
+/// Verifies that plugin manifests contain only supported fields.
 pub struct PluginJsonAllowedFields;
 impl ConformanceTest for PluginJsonAllowedFields {
     fn name(&self) -> &str {
@@ -307,33 +314,164 @@ impl ConformanceTest for PluginJsonAllowedFields {
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let root = repo_root();
-        let path = root.join(".claude-plugin").join("plugin.json");
-        if !path.exists() {
-            ctx.fail("[plugin.json] file not found at .claude-plugin/plugin.json");
-            return ctx.result();
+        check_plugin_manifest(
+            &root.join(".claude-plugin").join("plugin.json"),
+            ".claude-plugin/plugin.json",
+            ctx,
+        );
+        check_plugin_manifest(
+            &root.join(".codex-plugin").join("plugin.json"),
+            ".codex-plugin/plugin.json",
+            ctx,
+        );
+        ctx.result()
+    }
+}
+
+fn check_plugin_manifest(path: &Path, label: &str, ctx: &mut TestContext) {
+    if !path.exists() {
+        ctx.fail(&format!("[plugin.json] file not found at {label}"));
+        return;
+    }
+    let raw = std::fs::read_to_string(path).unwrap_or_default();
+    let val: serde_json::Value = match serde_json::from_str(&raw) {
+        Ok(v) => v,
+        Err(e) => {
+            ctx.fail(&format!("[{label}] parse error: {e}"));
+            return;
         }
-        let raw = std::fs::read_to_string(&path).unwrap_or_default();
-        let val: serde_json::Value = match serde_json::from_str(&raw) {
-            Ok(v) => v,
-            Err(e) => {
-                ctx.fail(&format!("parse error: {}", e));
-                return ctx.result();
+    };
+    let allowed = ["name", "version", "author", "description"];
+    if let Some(obj) = val.as_object() {
+        for key in obj.keys() {
+            if !allowed.contains(&key.as_str()) {
+                ctx.fail(&format!("[{label}] disallowed field: {key}"));
             }
-        };
-        let allowed = ["name", "version", "author", "description"];
-        if let Some(obj) = val.as_object() {
-            for key in obj.keys() {
-                if !allowed.contains(&key.as_str()) {
-                    ctx.fail(&format!("[plugin.json] disallowed field: {}", key));
-                }
+        }
+    }
+}
+
+/// Verifies that hook registration includes required hooks and omits redundant hooks.
+pub struct HookRegistrationIsFocused;
+impl ConformanceTest for HookRegistrationIsFocused {
+    fn name(&self) -> &str {
+        "hook_registration_is_focused"
+    }
+    fn crate_name(&self) -> &str {
+        "plugin_structure"
+    }
+    fn category(&self) -> TestCategory {
+        TestCategory::Unit
+    }
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let path = repo_root().join("hooks/hooks.json");
+        let raw = std::fs::read_to_string(path).unwrap_or_default();
+        let parsed: serde_json::Value = serde_json::from_str(&raw).unwrap_or_default();
+        let required = [
+            (
+                "SessionStart",
+                "*",
+                "rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/session-start.rs",
+            ),
+            (
+                "PreToolUse",
+                "Agent",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-agent-task-context.nu",
+            ),
+            ("PreToolUse", "Agent", "godmode hook run agent-governance"),
+            (
+                "PreToolUse",
+                "Bash",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-commit-gate.nu",
+            ),
+            (
+                "PreToolUse",
+                "Skill",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-skill-trace.nu",
+            ),
+            (
+                "PostToolUse",
+                "Write",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu",
+            ),
+            (
+                "PostToolUse",
+                "Write",
+                "rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-write-plan-ingest.rs",
+            ),
+            (
+                "PostToolUse",
+                "Skill",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-skill-trace.nu",
+            ),
+            (
+                "PostToolUseFailure",
+                "Skill",
+                "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-skill-trace.nu",
+            ),
+            ("Stop", "*", "godmode hook run stop-guard"),
+        ];
+        let redundant = [
+            "task-management",
+            "pre-bash-nag.nu",
+            "hook run moa",
+            "hook run brainstorm",
+            "hook run parallel-agents",
+            "task-done-sync.nu",
+            "hook run auto-block",
+            "hook run ci-fix",
+            "hook run code-review",
+            "hook run wave-integration",
+            "memory-bank-update-remind.nu",
+            "hook run introspection",
+        ];
+
+        for (event, matcher, command) in required {
+            if !hook_registration_exists(&parsed, event, matcher, command) {
+                ctx.fail(&format!(
+                    "[hooks.json] required registration missing: {event}/{matcher}/{command}"
+                ));
+            }
+        }
+        for command in redundant {
+            if raw.contains(command) {
+                ctx.fail(&format!(
+                    "[hooks.json] redundant hook registered: {command}"
+                ));
             }
         }
         ctx.result()
     }
 }
 
+fn hook_registration_exists(
+    parsed: &serde_json::Value,
+    event: &str,
+    matcher: &str,
+    expected_command: &str,
+) -> bool {
+    parsed
+        .pointer(&format!("/hooks/{event}"))
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|groups| {
+            groups.iter().any(|group| {
+                group.get("matcher").and_then(serde_json::Value::as_str) == Some(matcher)
+                    && group
+                        .get("hooks")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|hooks| {
+                            hooks.iter().any(|hook| {
+                                hook.get("command").and_then(serde_json::Value::as_str)
+                                    == Some(expected_command)
+                            })
+                        })
+            })
+        })
+}
+
 // ── Check 8: CLI subcommand conformance ──────────────────────────────────
 
+/// Verifies that documented `godmode` commands use canonical CLI subcommands.
 pub struct CliSubcommandConformance;
 impl ConformanceTest for CliSubcommandConformance {
     fn name(&self) -> &str {
@@ -454,6 +592,7 @@ impl ConformanceTest for CliSubcommandConformance {
 
 // ── Checks 9–12: cross-skill consistency ─────────────────────────────────
 
+/// Verifies that skills documenting merges require non-fast-forward merges.
 pub struct MergeStrategyNoFf;
 impl ConformanceTest for MergeStrategyNoFf {
     fn name(&self) -> &str {
@@ -486,6 +625,7 @@ impl ConformanceTest for MergeStrategyNoFf {
     }
 }
 
+/// Verifies that documented concurrency limits use the canonical cap of five.
 pub struct ConcurrencyCapFive;
 impl ConformanceTest for ConcurrencyCapFive {
     fn name(&self) -> &str {
@@ -532,6 +672,7 @@ impl ConformanceTest for ConcurrencyCapFive {
     }
 }
 
+/// Verifies that documented blocked-task thresholds use three failed attempts.
 pub struct BlockedThreshold;
 impl ConformanceTest for BlockedThreshold {
     fn name(&self) -> &str {
@@ -575,6 +716,7 @@ impl ConformanceTest for BlockedThreshold {
     }
 }
 
+/// Verifies that skills documenting commits also require a branch guard.
 pub struct BranchGuard;
 impl ConformanceTest for BranchGuard {
     fn name(&self) -> &str {
@@ -612,6 +754,7 @@ impl ConformanceTest for BranchGuard {
 
 // ── Check 14: _lib/ references in SKILL.md resolve ───────────────────────
 
+/// Verifies that skill references to shared `_lib` scripts resolve.
 pub struct LibReferencesResolve;
 impl ConformanceTest for LibReferencesResolve {
     fn name(&self) -> &str {
@@ -839,6 +982,7 @@ fn find_digit_word_pairs<'a>(text: &'a str, word: &str) -> Vec<(&'a str, &'a str
     results
 }
 
+/// Returns all plugin-structure conformance test markers.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(EverySkillHasSkillMd),
@@ -848,6 +992,7 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(ReferencesLinksResolve),
         Box::new(HelpersLinksResolve),
         Box::new(PluginJsonAllowedFields),
+        Box::new(HookRegistrationIsFocused),
         Box::new(CliSubcommandConformance),
         Box::new(MergeStrategyNoFf),
         Box::new(ConcurrencyCapFive),

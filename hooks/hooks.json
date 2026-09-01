@@ -8,11 +8,6 @@
             "type": "command",
             "command": "rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/session-start.rs",
             "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run task-management",
-            "timeout": 10
           }
         ]
       }
@@ -38,28 +33,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-bash-nag.nu",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-commit-gate.nu",
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run moa",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "godmode hook run brainstorm",
-            "timeout": 10
           }
         ]
       },
@@ -81,41 +56,6 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PLUGIN_ROOT/hooks/scripts/check-blocked.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run parallel-agents",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/task-done-sync.nu",
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run auto-block",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run ci-fix",
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run code-review",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run wave-integration",
             "timeout": 10
           }
         ]
@@ -186,6 +126,18 @@
         ]
       }
     ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-skill-trace.nu",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "*",
@@ -194,16 +146,6 @@
             "type": "command",
             "command": "godmode hook run stop-guard",
             "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-update-remind.nu",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "godmode hook run introspection",
-            "timeout": 20
           }
         ]
       }

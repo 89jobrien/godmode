@@ -1,0 +1,79 @@
+{
+  "skill_name": "rust-release-orchestrator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to release the kan workspace to crates.io. It has three crates: kan-core, kan-adapters (depends on kan-core), and kan-cli (depends on both). Walk me through a dry run first, then the real release.",
+      "expected_output": "Runs the orchestrate.py script in --dry-run mode on /Users/joe/dev/kan, shows the publish order (kan-core → kan-adapters → kan-cli), runs quality gates, then confirms with user before offering the real run command.",
+      "assertions": [
+        {
+          "text": "Script invoked with --dry-run flag before any real publish",
+          "type": "presence",
+          "target": "dry-run"
+        },
+        {
+          "text": "Publish order is kan-core before kan-adapters before kan-cli",
+          "type": "ordering"
+        },
+        {
+          "text": "User asked to confirm before real publish is initiated",
+          "type": "confirmation_step"
+        },
+        {
+          "text": "Real run command is shown after dry-run completes",
+          "type": "presence",
+          "target": "python.*orchestrate.*--workspace"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My kan workspace release got interrupted after kan-core published but before kan-adapters. How do I resume without re-publishing kan-core?",
+      "expected_output": "Instructs user to re-run with --resume flag; explains .release-state.json tracks published crates; kan-core will be skipped (skipped status), kan-adapters and kan-cli will proceed.",
+      "assertions": [
+        {
+          "text": "Mentions --resume flag",
+          "type": "presence",
+          "target": "--resume"
+        },
+        {
+          "text": "Explains .release-state.json or state file concept",
+          "type": "presence",
+          "target": "release-state"
+        },
+        {
+          "text": "Confirms kan-core will be skipped, not re-published",
+          "type": "presence",
+          "target": "skip"
+        },
+        {
+          "text": "Provides the exact resume command",
+          "type": "presence",
+          "target": "orchestrate.py.*--resume"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The clippy gate keeps failing on kan-adapters even after auto-fix. I've manually fixed it now. How do I continue the release without running the full gate suite again?",
+      "expected_output": "Explains --skip-gates flag; may also mention --resume if a partial run was already in progress; provides the exact command to continue from where they left off.",
+      "assertions": [
+        {
+          "text": "Mentions --skip-gates flag",
+          "type": "presence",
+          "target": "--skip-gates"
+        },
+        {
+          "text": "Provides a complete command the user can run immediately",
+          "type": "presence",
+          "target": "orchestrate.py"
+        },
+        {
+          "text": "Does not suggest re-running fmt or clippy manually",
+          "type": "absence",
+          "target": "cargo clippy --fix"
+        }
+      ]
+    }
+  ]
+}

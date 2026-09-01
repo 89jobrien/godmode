@@ -2,28 +2,43 @@
 
 use anyhow::{Context, Result};
 
+/// Broad category assigned to a failed GitHub Actions log.
 #[derive(Debug, serde::Serialize, PartialEq)]
 pub enum CiFailureClass {
+    /// Rust compilation failed.
     CompileError,
+    /// A test failed or panicked.
     TestFailure,
+    /// Clippy emitted a warning promoted to an error.
     ClippyWarning,
+    /// A rustfmt formatting check failed.
     FmtCheck,
+    /// A repository pre-commit or content-checking hook failed.
     PreCommitHook,
+    /// The CI runner or its toolchain is misconfigured.
     RunnerEnvironment,
+    /// A content detector appears to have reported a false positive.
     FalsePositiveDetection,
+    /// Dependency resolution or lockfile validation failed.
     DependencyIssue,
+    /// The log did not match a known failure category.
     Unknown,
 }
 
+/// Classification and remediation details for a failed GitHub Actions run.
 #[derive(Debug, serde::Serialize)]
 pub struct CiTriageResult {
+    /// GitHub Actions database identifier for the run.
     pub run_id: String,
+    /// Failure category inferred from the run log.
     pub class: CiFailureClass,
+    /// Suggested first remediation step for the failure category.
     pub fix_hint: String,
     /// First 20 lines of failure log.
     pub raw_snippet: String,
 }
 
+/// Classify a GitHub Actions failure log using known diagnostic markers.
 pub fn classify_log(log: &str) -> CiFailureClass {
     if log.contains("error[E") {
         return CiFailureClass::CompileError;
@@ -55,6 +70,7 @@ pub fn classify_log(log: &str) -> CiFailureClass {
     CiFailureClass::Unknown
 }
 
+/// Return a concise remediation hint for a CI failure category.
 pub fn fix_hint(class: &CiFailureClass) -> &'static str {
     match class {
         CiFailureClass::CompileError => "Fix source error, run: cargo check --workspace",
@@ -77,6 +93,9 @@ pub fn fix_hint(class: &CiFailureClass) -> &'static str {
     }
 }
 
+/// Fetch and classify a failed GitHub Actions run.
+///
+/// When `run_id` is absent, the most recent failed run is selected.
 pub fn ci_triage(run_id: Option<&str>) -> Result<CiTriageResult> {
     let id = match run_id {
         Some(id) => id.to_string(),

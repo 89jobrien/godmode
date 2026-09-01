@@ -29,6 +29,7 @@ fn make_step(name: &str) -> Step {
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
+/// Verifies that a newly started Crux step has successful initial state.
 pub struct CruxStepStartedIsOk;
 impl ConformanceTest for CruxStepStartedIsOk {
     fn name(&self) -> &str {
@@ -49,6 +50,7 @@ impl ConformanceTest for CruxStepStartedIsOk {
     }
 }
 
+/// Verifies that a pending Crux step is represented as skipped.
 pub struct CruxStepPendingIsSkipped;
 impl ConformanceTest for CruxStepPendingIsSkipped {
     fn name(&self) -> &str {
@@ -69,6 +71,7 @@ impl ConformanceTest for CruxStepPendingIsSkipped {
     }
 }
 
+/// Verifies that completed Crux steps retain commit and note output.
 pub struct CruxStepCompletedHasOutput;
 impl ConformanceTest for CruxStepCompletedHasOutput {
     fn name(&self) -> &str {
@@ -90,6 +93,7 @@ impl ConformanceTest for CruxStepCompletedHasOutput {
     }
 }
 
+/// Verifies that blocked Crux steps carry an error status and reason.
 pub struct CruxStepBlockedIsErr;
 impl ConformanceTest for CruxStepBlockedIsErr {
     fn name(&self) -> &str {
@@ -109,6 +113,7 @@ impl ConformanceTest for CruxStepBlockedIsErr {
     }
 }
 
+/// Verifies that Crux step variants survive JSON serialization round trips.
 pub struct CruxStepsSerializeRoundtrip;
 impl ConformanceTest for CruxStepsSerializeRoundtrip {
     fn name(&self) -> &str {
@@ -141,6 +146,7 @@ impl ConformanceTest for CruxStepsSerializeRoundtrip {
     }
 }
 
+/// Verifies the repository-relative path used for Crux session records.
 pub struct CruxSessionsDirPath;
 impl ConformanceTest for CruxSessionsDirPath {
     fn name(&self) -> &str {
@@ -163,6 +169,7 @@ impl ConformanceTest for CruxSessionsDirPath {
     }
 }
 
+/// Verifies that a successful session persists and reloads its recorded steps.
 pub struct CruxSessionRoundtrip;
 impl ConformanceTest for CruxSessionRoundtrip {
     fn name(&self) -> &str {
@@ -190,6 +197,7 @@ impl ConformanceTest for CruxSessionRoundtrip {
     }
 }
 
+/// Verifies that a failed session persists an error-valued Crux result.
 pub struct CruxSessionFail;
 impl ConformanceTest for CruxSessionFail {
     fn name(&self) -> &str {
@@ -215,6 +223,7 @@ impl ConformanceTest for CruxSessionFail {
     }
 }
 
+/// Returns all Crux integration conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(CruxStepStartedIsOk),

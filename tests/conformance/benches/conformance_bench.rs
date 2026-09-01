@@ -2,6 +2,9 @@
 //!
 //! Run: cargo bench -p godmode-conformance
 
+// Criterion generates an internal public harness function without rustdoc.
+#![allow(missing_docs)]
+
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use godmode_core::{
     dispatch, graph,

@@ -7,6 +7,7 @@ use crate::harness::{
     ConformanceTest, TestCategory, TestContext, TestResult, fixtures::FixtureLoader,
 };
 
+/// Verifies runnable task resolution against the graph fixture.
 pub struct FixtureGraphRunnable;
 impl ConformanceTest for FixtureGraphRunnable {
     fn name(&self) -> &str {
@@ -54,6 +55,7 @@ impl ConformanceTest for FixtureGraphRunnable {
     }
 }
 
+/// Verifies parsed plan fields and dependencies against the plan fixture.
 pub struct FixturePlanParse;
 impl ConformanceTest for FixturePlanParse {
     fn name(&self) -> &str {
@@ -115,6 +117,7 @@ impl ConformanceTest for FixturePlanParse {
     }
 }
 
+/// Returns all fixture-driven conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![Box::new(FixtureGraphRunnable), Box::new(FixturePlanParse)]
 }

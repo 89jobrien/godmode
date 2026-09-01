@@ -4,6 +4,8 @@
 //! external-tool integrations. `godmode-cli` is intentionally thin and delegates
 //! nearly all behavior to modules exported here.
 
+#![deny(missing_docs)]
+
 pub mod agent;
 pub mod agent_index;
 pub mod builder;

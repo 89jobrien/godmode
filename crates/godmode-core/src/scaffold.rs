@@ -7,15 +7,22 @@ use std::fmt;
 /// The seven testing dimensions (minus "model check" which has no scaffold template).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Dimension {
+    /// Focused tests of one function or module in isolation.
     Unit,
+    /// Generated-input tests of invariants.
     Property,
+    /// Coverage-guided tests over arbitrary input bytes.
     Fuzz,
+    /// Shared contract tests for multiple implementations.
     Conformance,
+    /// Tests spanning real component boundaries.
     Integration,
+    /// Tests that reproduce a previously observed defect.
     Regression,
 }
 
 impl Dimension {
+    /// All dimensions supported by scaffold generation.
     pub const ALL: &[Dimension] = &[
         Dimension::Unit,
         Dimension::Property,

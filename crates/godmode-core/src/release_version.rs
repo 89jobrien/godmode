@@ -77,6 +77,7 @@ pub(crate) fn bump_patch(version: &str) -> Result<String> {
 
 // ── Cross-validation ────────────────────────────────────────────────
 
+/// Extract the version declared in a manifest's `[workspace.package]` table.
 pub fn extract_cargo_workspace_version(content: &str) -> Option<String> {
     let mut in_workspace_package = false;
     for line in content.lines() {
@@ -94,6 +95,7 @@ pub fn extract_cargo_workspace_version(content: &str) -> Option<String> {
     None
 }
 
+/// Return the most recent Git tag version, with an optional `v` prefix removed.
 pub fn latest_tag_version(root: &Path) -> Option<String> {
     let out = Command::new("git")
         .args([

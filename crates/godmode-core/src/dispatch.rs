@@ -16,7 +16,9 @@ use crate::wave::{BlockOutcome, ConcurrencyTracker, SlotHealth, WaveConfig, on_b
 /// A task reference with id and title for orca-strait agent consumption.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct TaskRef {
+    /// Stable task identifier.
     pub id: String,
+    /// Human-readable task title.
     pub title: String,
 }
 
@@ -214,6 +216,7 @@ pub fn critical_path(graph: &TaskGraph) -> Vec<TaskRef> {
 /// Outcome for a single chain execution in `dispatch_with_config`.
 #[derive(Debug, PartialEq, Eq)]
 pub enum ChainOutcome {
+    /// The chain executed successfully.
     Completed,
     /// Slot unavailable — concurrency limit hit; chain was not executed.
     Skipped,

@@ -26,17 +26,24 @@ pub struct HandonOutput {
 /// Active pipeline summary for handon/handoff output.
 #[derive(Debug, Serialize)]
 pub struct PipelineOut {
+    /// Name of the active pipeline.
     pub name: String,
+    /// Skill associated with the pipeline's current step.
     pub current_skill: String,
+    /// Number of pipeline steps already completed.
     pub steps_done: usize,
+    /// Total number of steps in the pipeline.
     pub steps_total: usize,
 }
 
 /// Output from `godmode handoff`.
 #[derive(Debug, Serialize)]
 pub struct HandoffOutput {
+    /// Preformatted human-readable handoff report.
     pub human: String,
+    /// Summary of the local task graph at handoff time.
     pub graph: GraphOut,
+    /// Output from `hj handoff`, when the integration is available.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hj: Option<String>,
     /// Untracked or modified files in the working tree.
@@ -44,12 +51,18 @@ pub struct HandoffOutput {
     pub dirty_files: Vec<String>,
 }
 
+/// Serializable task graph summary used by session-boundary commands.
 #[derive(Debug, Serialize)]
 pub struct GraphOut {
+    /// Number of completed tasks.
     pub done: usize,
+    /// Number of tasks currently running.
     pub running: usize,
+    /// Number of tasks waiting to run.
     pub pending: usize,
+    /// Number of blocked tasks.
     pub blocked: usize,
+    /// Display labels for tasks currently running.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub running_tasks: Vec<String>,
 }

@@ -1,3 +1,8 @@
+//! Hook configuration migrations executed through Nushell.
+//!
+//! Migration scripts run in lexical order, and each result is retained so one failure does not
+//! prevent later migrations from running.
+
 use std::path::Path;
 use std::process::Command;
 
@@ -6,8 +11,11 @@ use anyhow::{Context, Result};
 /// Result of running a single migration script.
 #[derive(Debug)]
 pub struct MigrationResult {
+    /// Filename of the migration script.
     pub name: String,
+    /// Whether the script exited successfully.
     pub ok: bool,
+    /// Combined standard output and standard error from the script.
     pub output: String,
 }
 

@@ -13,18 +13,28 @@ use crate::model::{Status, Task};
 /// A single handoff item, matching the minibox/atelier HANDOFF schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffItem {
+    /// Stable task or synthetic item identifier.
     pub id: String,
+    /// Corresponding doob todo identifier, when linked.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub doob_uuid: Option<String>,
+    /// Machine-readable slug derived from the item title.
     pub name: String,
+    /// Handoff priority label such as `P1`.
     pub priority: String,
+    /// Handoff lifecycle status.
     pub status: String,
+    /// Human-readable item title.
     pub title: String,
+    /// Detailed item state, notes, or blocker reason.
     pub description: String,
+    /// Files associated with the item.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub files: Vec<String>,
+    /// Date on which the item was completed, when applicable.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed: Option<NaiveDate>,
+    /// Additional dated notes or blocker metadata.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub extra: Vec<HandoffExtra>,
 }
@@ -81,10 +91,13 @@ impl HandoffItem {
 /// Extra metadata on a handoff item (notes, blockers, etc).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffExtra {
+    /// Date associated with the metadata entry.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub date: Option<String>,
+    /// Metadata category, serialized as `type`.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub kind: Option<String>,
+    /// Free-form metadata note.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }
@@ -92,10 +105,14 @@ pub struct HandoffExtra {
 /// A single log entry in the HANDOFF file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffLog {
+    /// Timestamp identifying when the log entry was written.
     pub date: String,
+    /// Session summary captured in the entry.
     pub summary: String,
+    /// Commit identifiers associated with the session.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub commits: Vec<String>,
+    /// Optional session sequence number.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<u32>,
 }
@@ -103,11 +120,16 @@ pub struct HandoffLog {
 /// The full HANDOFF YAML document.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HandoffFile {
+    /// Project name represented by the handoff document.
     pub project: String,
+    /// Stable identifier for the handoff document.
     pub id: String,
+    /// Date on which the document was last updated.
     pub updated: NaiveDate,
+    /// Current outstanding handoff items.
     #[serde(default)]
     pub items: Vec<HandoffItem>,
+    /// Session history in reverse chronological order.
     #[serde(default)]
     pub log: Vec<HandoffLog>,
 }

@@ -5,6 +5,7 @@ use godmode_core::model::{Task, TaskGraph};
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
+/// Verifies that independent tasks remain available for parallel dispatch.
 pub struct DispatchIndependentTasksParallel;
 impl ConformanceTest for DispatchIndependentTasksParallel {
     fn name(&self) -> &str {
@@ -29,6 +30,7 @@ impl ConformanceTest for DispatchIndependentTasksParallel {
     }
 }
 
+/// Verifies that dependent tasks are dispatched in one ordered chain.
 pub struct DispatchChainedTasksOneChain;
 impl ConformanceTest for DispatchChainedTasksOneChain {
     fn name(&self) -> &str {
@@ -61,6 +63,7 @@ impl ConformanceTest for DispatchChainedTasksOneChain {
     }
 }
 
+/// Verifies that dispatch does not exceed the requested chain limit.
 pub struct DispatchRespectsMaxChains;
 impl ConformanceTest for DispatchRespectsMaxChains {
     fn name(&self) -> &str {
@@ -88,6 +91,7 @@ impl ConformanceTest for DispatchRespectsMaxChains {
     }
 }
 
+/// Verifies that dispatching an empty graph produces no chains.
 pub struct DispatchEmptyGraphEmptyChains;
 impl ConformanceTest for DispatchEmptyGraphEmptyChains {
     fn name(&self) -> &str {
@@ -107,6 +111,7 @@ impl ConformanceTest for DispatchEmptyGraphEmptyChains {
     }
 }
 
+/// Returns all dispatch conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(DispatchIndependentTasksParallel),

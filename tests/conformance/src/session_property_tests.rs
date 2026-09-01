@@ -1,7 +1,11 @@
-//! Property-based tests for `Session` state machine invariants.
+//! Property-based conformance tests for the [`Session`] state machine.
 //!
-//! These test that arbitrary sequences of valid transitions always produce
-//! consistent state. Runs as standard `#[test]` functions via proptest.
+//! Random action sequences exercise valid and invalid task transitions while
+//! checking graph summaries, completion metadata, and task-status consistency.
+//! Focused properties also cover complete start-to-finish and block-to-unblock
+//! workflows with external integrations disabled.
+//!
+//! [`Session`]: godmode_core::session::Session
 
 #[cfg(test)]
 mod session_properties {
@@ -117,6 +121,7 @@ mod session_properties {
     }
 
     proptest! {
+        /// Arbitrary session actions preserve graph and task-state invariants.
         #[test]
         fn session_random_actions_maintain_invariants(
             n in 1usize..6,

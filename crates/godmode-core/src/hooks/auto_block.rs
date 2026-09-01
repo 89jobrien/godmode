@@ -12,7 +12,12 @@ pub enum AutoBlockResult {
     /// No action needed.
     NoOp,
     /// A task was blocked.
-    Blocked { task_id: String, reason: String },
+    Blocked {
+        /// Identifier of the task selected for blocking.
+        task_id: String,
+        /// Failure summary recorded as the block reason.
+        reason: String,
+    },
 }
 
 /// Check whether a test command failed and auto-block the appropriate task.

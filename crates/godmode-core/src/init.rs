@@ -9,21 +9,32 @@ use crate::doctor::{DoctorReport, EnvironmentProbe};
 
 /// Port: filesystem operations needed by init.
 pub trait InitFs {
+    /// Returns whether `path` exists as a directory.
     fn dir_exists(&self, path: &Path) -> bool;
+    /// Creates `path` and any missing parent directories.
     fn create_dir_all(&self, path: &Path) -> Result<()>;
+    /// Writes UTF-8 `contents` to `path`, replacing any existing file.
     fn write_file(&self, path: &Path, contents: &str) -> Result<()>;
+    /// Reads the UTF-8 contents of `path`.
     fn read_to_string(&self, path: &Path) -> Result<String>;
+    /// Returns whether `path` exists as a file.
     fn file_exists(&self, path: &Path) -> bool;
 }
 
 /// What init created.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct InitReport {
+    /// Whether this run created the global configuration directory.
     pub global_created: bool,
+    /// Path to the global configuration directory.
     pub global_path: PathBuf,
+    /// Whether this run created the project's godmode context directory.
     pub project_created: bool,
+    /// Path to the project context directory, when a Cargo project was found.
     pub project_path: Option<PathBuf>,
+    /// Whether this run added `.ctx/` to the project `.gitignore`.
     pub gitignore_updated: bool,
+    /// Environment diagnostic results collected after initialization.
     pub doctor: DoctorReport,
 }
 

@@ -10,12 +10,14 @@ use crate::policy::{
     AllowedToolsMode, GovernanceLevel, GovernancePolicy, PolicyIndex, ResolvedPolicy,
 };
 
+/// Return the repository-local governance policy directory.
 pub(crate) fn policies_dir(root: &Path) -> PathBuf {
     root.join("skills")
         .join("agent-governance")
         .join("policies")
 }
 
+/// Read and deserialize one governance policy YAML file.
 pub(crate) fn load_policy(path: &Path) -> Result<GovernancePolicy> {
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("reading policy {}", path.display()))?;

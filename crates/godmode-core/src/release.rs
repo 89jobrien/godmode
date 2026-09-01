@@ -8,8 +8,10 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 
 #[path = "release_tag.rs"]
+/// Git tag creation and release push operations.
 pub mod release_tag;
 #[path = "release_version.rs"]
+/// Version parsing and version-file update operations.
 pub mod release_version;
 
 pub use release_tag::{push, tag};
@@ -19,11 +21,16 @@ use release_version::{bump_patch, load_config, read_version_field, write_version
 
 // ── Public types ────────────────────────────────────────────────────
 
+/// Versions and tag produced by a release bump.
 #[derive(Debug, serde::Serialize)]
 pub struct ReleaseInfo {
+    /// Version present before the bump.
     pub old_version: String,
+    /// Version written by the bump.
     pub new_version: String,
+    /// Git tag corresponding to the new version.
     pub tag: String,
+    /// Whether the release has been pushed to a remote.
     pub pushed: bool,
 }
 
@@ -79,8 +86,11 @@ pub fn bump(root: &Path, explicit: Option<&str>) -> Result<ReleaseInfo> {
 /// One versioned section in CHANGELOG.md.
 #[derive(Debug)]
 pub struct ChangelogEntry {
+    /// Version represented by this changelog section.
     pub version: String,
+    /// Calendar date assigned to this section.
     pub date: String,
+    /// Changelog items grouped by conventional-commit category.
     pub sections: BTreeMap<String, Vec<String>>,
 }
 

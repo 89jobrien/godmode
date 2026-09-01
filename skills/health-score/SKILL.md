@@ -40,9 +40,6 @@ comprehensive testing. Decreases may indicate cleanup or removed features.
 execution) and count warning lines. Use `--message-format json` and count
 lines containing `"level":"warning"`. Count only warnings, not notes or errors.
 
-<!-- TODO: bare `grep` above is an anti-pattern for agent use. When collecting in an
-     agent context, use the Grep tool instead of piping through grep | wc -l. -->
-
 **Interpretation**: Zero is ideal. Each warning represents a potential code quality
 issue. Trend: increases indicate code quality degradation; decreases indicate
 refactoring or fixes.

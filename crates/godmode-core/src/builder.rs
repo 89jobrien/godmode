@@ -165,6 +165,7 @@ pub fn validate(graph: &TaskGraph) -> Vec<String> {
 
 // ── interactive implementation ─────────────────────────────────────────────
 
+/// Run interactive graph construction using caller-provided input and output streams.
 pub(crate) fn build_interactive_io<R, W>(
     root: &Path,
     reader: &mut R,

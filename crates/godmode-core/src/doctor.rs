@@ -3,8 +3,11 @@
 /// Result of a single doctor check.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct CheckResult {
+    /// Stable name identifying the check.
     pub name: String,
+    /// Whether the check succeeded.
     pub passed: bool,
+    /// Human-readable result detail.
     pub detail: String,
 }
 
@@ -21,7 +24,9 @@ impl CheckResult {
 /// Full doctor report.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct DoctorReport {
+    /// Results of each environment check in execution order.
     pub checks: Vec<CheckResult>,
+    /// Whether every check in the report passed.
     pub all_passed: bool,
 }
 
@@ -29,7 +34,7 @@ pub struct DoctorReport {
 pub trait EnvironmentProbe {
     /// Check whether a tool is available on PATH.
     fn has_tool(&self, name: &str) -> bool;
-    /// Check 1Password auth status. Returns Ok(()) if authed.
+    /// Return whether 1Password authentication is active.
     fn op_authed(&self) -> bool;
     /// List stale git worktrees. Returns list of stale paths (empty = clean).
     fn stale_worktrees(&self) -> Vec<String>;

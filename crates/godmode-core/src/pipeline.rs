@@ -1,3 +1,9 @@
+//! Pipeline definitions, persisted execution state, and deterministic runners.
+//!
+//! Pipelines sequence named skills, track progress in
+//! `.ctx/godmode/pipeline.yaml`, and can execute runnable task commands for each
+//! step.
+
 use anyhow::{Context, Result, bail};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -13,7 +19,9 @@ use crate::integrations::rx;
 /// A single step in a pipeline definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineStep {
+    /// Name of the skill invoked by this step.
     pub skill: String,
+    /// Whether callers may skip this step without invalidating the pipeline.
     #[serde(default)]
     pub optional: bool,
     /// `per-task` repeats the skill for each runnable task in the graph.
@@ -28,15 +36,20 @@ pub struct PipelineStep {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum LoopMode {
+    /// Repeat the step once for each runnable task until no tasks remain.
     PerTask,
 }
 
 /// A named pipeline definition loaded from `pipelines/<name>.yaml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pipeline {
+    /// Unique name used to load and resume the pipeline.
     pub name: String,
+    /// Human-readable explanation of the pipeline's purpose.
     pub description: String,
+    /// Ordered steps in the pipeline.
     pub steps: Vec<PipelineStep>,
+    /// Skill names from which a pipeline run may begin.
     #[serde(default)]
     pub entry_points: Vec<String>,
 }
@@ -45,13 +58,18 @@ pub struct Pipeline {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum StepStatus {
+    /// The step has not started.
     Pending,
+    /// The step is currently executing.
     Running,
+    /// The step completed successfully.
     Done,
+    /// The step was intentionally bypassed.
     Skipped,
 }
 
 impl StepStatus {
+    /// Return the lowercase serialized name of this status.
     pub fn as_str(&self) -> &'static str {
         match self {
             StepStatus::Pending => "pending",
@@ -71,8 +89,11 @@ impl std::fmt::Display for StepStatus {
 /// A completed or in-progress step in the pipeline history.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepRecord {
+    /// Name of the skill associated with the step.
     pub skill: String,
+    /// Recorded outcome of the step.
     pub status: StepStatus,
+    /// Time at which the step was completed or skipped.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_at: Option<DateTime<Utc>>,
 }
@@ -80,9 +101,13 @@ pub struct StepRecord {
 /// Persisted pipeline execution state at `.ctx/godmode/pipeline.yaml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineState {
+    /// Name of the active pipeline.
     pub active: String,
+    /// Zero-based index of the next step to execute.
     pub current_step: usize,
+    /// Time at which this pipeline run began.
     pub started_at: DateTime<Utc>,
+    /// Completed and skipped step records in execution order.
     #[serde(default)]
     pub history: Vec<StepRecord>,
 }
@@ -276,9 +301,13 @@ pub fn progress(state: &PipelineState, pipeline: &Pipeline) -> (usize, usize) {
 /// Result of executing one pipeline step's tasks.
 #[derive(Debug, Clone, Serialize)]
 pub struct StepResult {
+    /// Skill executed for this step.
     pub skill: String,
+    /// Number of task commands invoked.
     pub tasks_run: usize,
+    /// Number of task commands that returned failure statuses.
     pub tasks_failed: usize,
+    /// Whether execution was skipped because no runnable task had a command.
     pub skipped: bool,
 }
 
@@ -296,8 +325,11 @@ impl StepResult {
 /// Result of a full pipeline run.
 #[derive(Debug, Clone, Serialize)]
 pub struct RunResult {
+    /// Results collected for each visited pipeline step.
     pub steps: Vec<StepResult>,
+    /// Whether the pipeline reached the end of its step list.
     pub completed: bool,
+    /// Skill at which execution stopped after a task failure.
     pub stopped_at: Option<String>,
 }
 

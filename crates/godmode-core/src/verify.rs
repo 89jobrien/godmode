@@ -1,12 +1,18 @@
+//! Composable verification gates for tests, linting, formatting, and repository checks.
+
 use std::path::Path;
 use std::process::Command;
 
 use anyhow::Result;
 
+/// Result of executing one verification step.
 #[derive(Debug, serde::Serialize)]
 pub struct StepResult {
+    /// Human-readable step name.
     pub name: String,
+    /// Whether the underlying check passed.
     pub ok: bool,
+    /// Combined standard output and standard error from the check.
     pub output: String,
 }
 
@@ -38,10 +44,15 @@ pub trait VerifyStep {
 // Built-in steps
 // ---------------------------------------------------------------------------
 
+/// Verification step that runs the workspace or crate nextest suite.
 pub struct NextestStep;
+/// Verification step that runs Clippy with warnings denied.
 pub struct ClippyStep;
+/// Verification step that checks Rust formatting.
 pub struct FmtStep;
+/// Verification step that confirms recent commit history is available.
 pub struct CommitsStep;
+/// Verification step that runs local globstar checks when configured.
 pub struct GlobstarStep;
 
 impl VerifyStep for NextestStep {
@@ -170,6 +181,7 @@ impl VerifyStep for GlobstarStep {
     }
 }
 
+/// Verification step that validates coursers configuration when available.
 pub struct CrsValidateStep;
 
 impl VerifyStep for CrsValidateStep {
@@ -205,9 +217,12 @@ impl VerifyStep for CrsValidateStep {
 // Report
 // ---------------------------------------------------------------------------
 
+/// Aggregate result of running a sequence of verification steps.
 #[derive(Debug, serde::Serialize)]
 pub struct VerifyReport {
+    /// Results in execution order.
     pub steps: Vec<StepResult>,
+    /// Whether every step passed.
     pub passed: bool,
 }
 

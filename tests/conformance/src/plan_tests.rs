@@ -5,6 +5,7 @@ use godmode_core::plan;
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
+/// Verifies that task headings produce tasks with the expected IDs and titles.
 pub struct PlanParsesTaskHeadings;
 impl ConformanceTest for PlanParsesTaskHeadings {
     fn name(&self) -> &str {
@@ -33,6 +34,7 @@ impl ConformanceTest for PlanParsesTaskHeadings {
     }
 }
 
+/// Verifies that parsed plan tasks receive sequential dependencies.
 pub struct PlanSequentialDeps;
 impl ConformanceTest for PlanSequentialDeps {
     fn name(&self) -> &str {
@@ -61,6 +63,7 @@ impl ConformanceTest for PlanSequentialDeps {
     }
 }
 
+/// Verifies that parsed plan tasks begin in the pending state.
 pub struct PlanAllPendingStatus;
 impl ConformanceTest for PlanAllPendingStatus {
     fn name(&self) -> &str {
@@ -93,6 +96,7 @@ impl ConformanceTest for PlanAllPendingStatus {
     }
 }
 
+/// Verifies that an empty plan produces no tasks.
 pub struct PlanEmptyInputEmptyOutput;
 impl ConformanceTest for PlanEmptyInputEmptyOutput {
     fn name(&self) -> &str {
@@ -117,6 +121,7 @@ impl ConformanceTest for PlanEmptyInputEmptyOutput {
     }
 }
 
+/// Verifies that non-task headings and prose do not produce tasks.
 pub struct PlanIgnoresNonHeadings;
 impl ConformanceTest for PlanIgnoresNonHeadings {
     fn name(&self) -> &str {
@@ -143,6 +148,7 @@ impl ConformanceTest for PlanIgnoresNonHeadings {
     }
 }
 
+/// Returns all plan parser conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(PlanParsesTaskHeadings),

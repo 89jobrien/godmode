@@ -18,6 +18,7 @@ fn graph_with_chain() -> TaskGraph {
 // Runnable resolution
 // ---------------------------------------------------------------------------
 
+/// Verifies that only dependency-free root tasks are initially runnable.
 pub struct RunnableRootOnly;
 impl ConformanceTest for RunnableRootOnly {
     fn name(&self) -> &str {
@@ -44,6 +45,7 @@ impl ConformanceTest for RunnableRootOnly {
     }
 }
 
+/// Verifies that completing a dependency unlocks its dependent task.
 pub struct RunnableUnlocksAfterDep;
 impl ConformanceTest for RunnableUnlocksAfterDep {
     fn name(&self) -> &str {
@@ -72,6 +74,7 @@ impl ConformanceTest for RunnableUnlocksAfterDep {
 // State transitions
 // ---------------------------------------------------------------------------
 
+/// Verifies that tasks with unmet dependencies cannot be started.
 pub struct StartFailsUnmetDeps;
 impl ConformanceTest for StartFailsUnmetDeps {
     fn name(&self) -> &str {
@@ -93,6 +96,7 @@ impl ConformanceTest for StartFailsUnmetDeps {
     }
 }
 
+/// Verifies that only running tasks can transition to completed.
 pub struct CompleteRequiresRunning;
 impl ConformanceTest for CompleteRequiresRunning {
     fn name(&self) -> &str {
@@ -114,6 +118,7 @@ impl ConformanceTest for CompleteRequiresRunning {
     }
 }
 
+/// Verifies that blocking a task records its status and explanatory notes.
 pub struct BlockSetsStatusAndNotes;
 impl ConformanceTest for BlockSetsStatusAndNotes {
     fn name(&self) -> &str {
@@ -135,6 +140,7 @@ impl ConformanceTest for BlockSetsStatusAndNotes {
     }
 }
 
+/// Verifies that bulk unblocking resets blocked tasks without changing done tasks.
 pub struct UnblockAllResetsBlocked;
 impl ConformanceTest for UnblockAllResetsBlocked {
     fn name(&self) -> &str {
@@ -167,6 +173,7 @@ impl ConformanceTest for UnblockAllResetsBlocked {
 // Cycle detection
 // ---------------------------------------------------------------------------
 
+/// Verifies that adding a self-referential task reports a dependency cycle.
 pub struct CycleDetectedSelfLoop;
 impl ConformanceTest for CycleDetectedSelfLoop {
     fn name(&self) -> &str {
@@ -190,6 +197,7 @@ impl ConformanceTest for CycleDetectedSelfLoop {
     }
 }
 
+/// Verifies that transitive dependency cycles are rejected.
 pub struct CycleDetectedTransitive;
 impl ConformanceTest for CycleDetectedTransitive {
     fn name(&self) -> &str {
@@ -216,6 +224,7 @@ impl ConformanceTest for CycleDetectedTransitive {
     }
 }
 
+/// Verifies that branching dependencies in an acyclic graph are accepted.
 pub struct DiamondDagNoCycle;
 impl ConformanceTest for DiamondDagNoCycle {
     fn name(&self) -> &str {
@@ -245,6 +254,7 @@ impl ConformanceTest for DiamondDagNoCycle {
 // ID generation
 // ---------------------------------------------------------------------------
 
+/// Verifies that task ID generation selects the next available sequential ID.
 pub struct NextTaskIdSequential;
 impl ConformanceTest for NextTaskIdSequential {
     fn name(&self) -> &str {
@@ -271,6 +281,7 @@ impl ConformanceTest for NextTaskIdSequential {
 // Clear / remove
 // ---------------------------------------------------------------------------
 
+/// Verifies that done-only clearing preserves unfinished tasks.
 pub struct ClearDoneOnly;
 impl ConformanceTest for ClearDoneOnly {
     fn name(&self) -> &str {

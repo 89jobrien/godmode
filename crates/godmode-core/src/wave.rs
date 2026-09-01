@@ -1,26 +1,39 @@
+//! Persistent wave state and in-process controls for parallel agent dispatch.
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result};
 
+/// Lifecycle status of one agent slot in a wave.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum SlotStatus {
+    /// Agent has not yet settled.
     Pending,
+    /// Agent completed its assigned work.
     Done,
+    /// Agent cannot currently proceed.
     Blocked,
 }
 
+/// Persistent state for one agent participating in a wave.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct AgentSlot {
+    /// Current lifecycle status.
     pub status: SlotStatus,
+    /// Branch assigned to the agent.
     pub branch: String,
+    /// Commits produced by the agent.
     pub commits: Vec<String>,
 }
 
+/// Persistent state for one parallel execution wave.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct WaveState {
+    /// Wave sequence number.
     pub wave: u32,
+    /// Agent slots keyed by agent name.
     pub agents: BTreeMap<String, AgentSlot>,
 }
 
@@ -28,6 +41,7 @@ fn state_path(root: &Path) -> std::path::PathBuf {
     root.join(".ctx").join("godmode").join("wave-status.json")
 }
 
+/// Initialize and persist a wave with pending agent slots.
 pub fn init(root: &Path, wave_n: u32, agents: &[&str]) -> Result<WaveState> {
     std::fs::create_dir_all(root.join(".ctx").join("godmode"))
         .context("failed to create .ctx/godmode directory")?;
@@ -51,6 +65,7 @@ pub fn init(root: &Path, wave_n: u32, agents: &[&str]) -> Result<WaveState> {
     Ok(state)
 }
 
+/// Load wave state from the project context directory.
 pub fn load(root: &Path) -> Result<WaveState> {
     let path = state_path(root);
     let content = std::fs::read_to_string(&path)
@@ -58,12 +73,14 @@ pub fn load(root: &Path) -> Result<WaveState> {
     serde_json::from_str(&content).context("failed to deserialise wave state")
 }
 
+/// Persist wave state to the project context directory.
 pub fn save(root: &Path, state: &WaveState) -> Result<()> {
     let path = state_path(root);
     let json = serde_json::to_string_pretty(state).context("failed to serialise wave state")?;
     std::fs::write(&path, json).with_context(|| format!("failed to write {}", path.display()))
 }
 
+/// Mark an agent slot done and record its commits.
 pub fn mark_done(root: &Path, agent: &str, commits: Vec<String>) -> Result<()> {
     let mut state = load(root)?;
     let slot = state
@@ -75,6 +92,7 @@ pub fn mark_done(root: &Path, agent: &str, commits: Vec<String>) -> Result<()> {
     save(root, &state)
 }
 
+/// Mark an agent slot blocked.
 pub fn mark_blocked(root: &Path, agent: &str) -> Result<()> {
     let mut state = load(root)?;
     let slot = state
@@ -138,6 +156,7 @@ pub struct ConcurrencyTracker {
 }
 
 impl ConcurrencyTracker {
+    /// Create a tracker that permits at most `max` active slots.
     pub fn new(max: usize) -> Self {
         Self { max, active: 0 }
     }
@@ -158,11 +177,13 @@ impl ConcurrencyTracker {
     }
 
     // qual:test_helper
+    /// Return the number of currently acquired slots.
     pub fn active(&self) -> usize {
         self.active
     }
 
     // qual:test_helper
+    /// Return the number of slots that remain available.
     pub fn available(&self) -> usize {
         self.max.saturating_sub(self.active)
     }
@@ -193,7 +214,9 @@ impl Default for SlotHealth {
 /// Outcome of a `health_check_slot` call.
 #[derive(Debug, PartialEq, Eq)]
 pub enum HealthOutcome {
+    /// The health probe succeeded.
     Ok,
+    /// The health probe failed.
     Degraded,
 }
 
@@ -216,7 +239,10 @@ where
 #[derive(Debug, PartialEq, Eq)]
 pub enum BlockOutcome {
     /// Retry scheduled (retries < max_retries).
-    Retry { attempt: usize },
+    Retry {
+        /// One-based retry attempt number.
+        attempt: usize,
+    },
     /// Max retries exhausted — give up.
     Exhausted,
 }

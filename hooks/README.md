@@ -17,17 +17,18 @@ Any other name passed to `godmode hook run` exits 1 with an "Unknown hook" error
 
 ## hooks.json Events
 
-| Event        | Matcher | Hooks                                                                          |
-| ------------ | ------- | ------------------------------------------------------------------------------ |
-| SessionStart | \*      | `session-start.rs`, `godmode hook run task-management`                         |
-| PreToolUse   | Agent   | `pre-agent-task-context.nu`, `godmode hook run agent-governance`               |
-| PreToolUse   | Bash    | `pre-bash-nag.nu`, `pre-commit-gate.nu`, `godmode hook run moa`                |
-| PreToolUse   | Write   | `godmode hook run brainstorm`                                                  |
-| PostToolUse  | Agent   | `check-blocked.sh`, `godmode hook run parallel-agents`                         |
-| PostToolUse  | Bash    | `task-done-sync.nu`, `auto-block`, `ci-fix`, `code-review`, `wave-integration` |
-| PostToolUse  | Write   | JSON/TOML/YAML/Nu validators, `post-write-plan-ingest.rs`                      |
-| PostToolUse  | Edit    | JSON/TOML/YAML/Nu validators                                                   |
-| Stop         | \*      | `godmode hook run stop-guard`, `memory-bank-update-remind.nu`                  |
+| Event              | Matcher | Hooks                                                     |
+| ------------------ | ------- | --------------------------------------------------------- |
+| SessionStart       | \*      | `session-start.rs`                                        |
+| PreToolUse         | Agent   | `pre-agent-task-context.nu`, `agent-governance`           |
+| PreToolUse         | Bash    | `pre-commit-gate.nu`                                      |
+| PreToolUse         | Skill   | `pre-skill-trace.nu`                                      |
+| PostToolUse        | Agent   | `check-blocked.sh`                                        |
+| PostToolUse        | Write   | JSON/TOML/YAML/Nu validators, `post-write-plan-ingest.rs` |
+| PostToolUse        | Edit    | JSON/TOML/YAML/Nu validators                              |
+| PostToolUse        | Skill   | `post-skill-trace.nu`                                     |
+| PostToolUseFailure | Skill   | `post-skill-trace.nu`                                     |
+| Stop               | \*      | `godmode hook run stop-guard`                             |
 
 ## scripts/
 

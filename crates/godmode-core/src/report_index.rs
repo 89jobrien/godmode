@@ -22,19 +22,28 @@ use serde::{Deserialize, Serialize};
 // Domain types
 // ---------------------------------------------------------------------------
 
+/// Serialized index of generated reports grouped by category.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReportIndex {
+    /// Index schema version.
     pub version: u32,
+    /// Date on which the index was last generated.
     pub generated: String,
+    /// Report categories keyed by category name.
     pub categories: BTreeMap<String, ReportCategory>,
 }
 
+/// Metadata and file listings for one report category.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReportCategory {
+    /// Relative directory containing the category's reports.
     pub path: String,
+    /// Human-readable purpose of the category.
     pub description: String,
+    /// Top-level report files in the category.
     pub files: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    /// Nested report item paths in the category.
     pub items: Vec<String>,
 }
 
@@ -42,6 +51,7 @@ pub struct ReportCategory {
 // Port (trait)
 // ---------------------------------------------------------------------------
 
+/// Storage interface for loading and updating a report index.
 pub trait ReportIndexPort {
     /// Add a file entry under a category. Creates the category if absent.
     fn add_entry(&self, category: &str, filename: &str) -> Result<()>;
@@ -66,6 +76,7 @@ pub struct JsonFileIndex {
 }
 
 impl JsonFileIndex {
+    /// Create an index adapter rooted at a project's report directory.
     pub fn new(project_root: &Path) -> Self {
         Self {
             reports_dir: project_root.join(".ctx").join("godmode").join("reports"),

@@ -1,3 +1,8 @@
+//! Discovery, filtering, and index generation for installed agents.
+//!
+//! Agent metadata is collected from generated Markdown frontmatter and
+//! authoritative YAML configurations before being deduplicated by name.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -10,13 +15,20 @@ use crate::agent;
 // Data types
 // ---------------------------------------------------------------------------
 
+/// Metadata for one agent discovered in the repository.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentEntry {
+    /// Logical agent name used for lookup and deduplication.
     pub name: String,
+    /// Human-readable summary of the agent's purpose.
     pub description: String,
+    /// Display color declared by the agent.
     pub color: String,
+    /// Skills loaded by the agent.
     pub skills: Vec<String>,
+    /// Tools available to the agent.
     pub tools: Vec<String>,
+    /// Source file from which the entry was loaded.
     pub path: PathBuf,
 }
 
@@ -56,32 +68,27 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
     }
 
     // Also load from agents/cfg/*.cfg.yaml (authoritative source)
-    let cfg_names = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
+    let cfg_names = agent::list_cfg_agents(&agents_dir)?;
     for name in cfg_names {
-        // Skip if we already have this agent from a flat .md
-        if entries.iter().any(|e| {
-            e.path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .map(|s| s == name)
-                .unwrap_or(false)
-        }) {
-            continue;
-        }
         let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
-        if let Ok(def) = agent::load(&cfg_path) {
-            entries.push(AgentEntry {
-                name: def.name,
-                description: def.description,
-                color: def.color,
-                skills: def.skills,
-                tools: def.tools,
-                path: cfg_path,
-            });
-        }
+        let def = agent::load(&cfg_path)?;
+        entries.push(AgentEntry {
+            name: def.name,
+            description: def.description,
+            color: def.color,
+            skills: def.skills,
+            tools: def.tools,
+            path: cfg_path,
+        });
     }
 
-    entries.sort_by(|a, b| a.name.cmp(&b.name));
+    entries.sort_by(|a, b| {
+        a.name
+            .cmp(&b.name)
+            .then_with(|| source_priority(b).cmp(&source_priority(a)))
+            .then_with(|| a.path.cmp(&b.path))
+    });
+    entries.dedup_by(|a, b| a.name == b.name);
     Ok(entries)
 }
 
@@ -99,7 +106,17 @@ pub fn filter_agents(agents: Vec<AgentEntry>, keyword: &str) -> Vec<AgentEntry> 
 /// Write `<root>/agents/INDEX.md` from the given agent list.
 pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
     let index_path = root.join("agents/INDEX.md");
+    fs::write(&index_path, render_agent_index(agents))?;
+    Ok(())
+}
 
+/// Return whether `agents/INDEX.md` matches the current agent list.
+pub fn agent_index_is_current(root: &Path, agents: &[AgentEntry]) -> Result<bool> {
+    let index_path = root.join("agents/INDEX.md");
+    Ok(fs::read_to_string(index_path).is_ok_and(|content| content == render_agent_index(agents)))
+}
+
+fn render_agent_index(agents: &[AgentEntry]) -> String {
     let mut lines = vec![
         "# Agent Index".to_string(),
         String::new(),
@@ -108,7 +125,7 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
     ];
 
     for a in agents {
-        let desc = first_line(&a.description);
+        let desc = flatten_description(&a.description);
         let skills = a.skills.join(", ");
         lines.push(format!(
             "| {} | {} | {} | {} |",
@@ -117,13 +134,28 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
     }
 
     lines.push(String::new());
-    fs::write(&index_path, lines.join("\n"))?;
-    Ok(())
+    lines.join("\n")
 }
 
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+fn source_priority(entry: &AgentEntry) -> u8 {
+    let file_name = entry
+        .path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default();
+
+    if file_name.ends_with(".cfg.yaml") {
+        2
+    } else if file_name.contains("__") {
+        0
+    } else {
+        1
+    }
+}
 
 /// Parse YAML frontmatter from a markdown file and return an AgentEntry.
 fn parse_agent(content: &str, path: PathBuf) -> Option<AgentEntry> {
@@ -216,13 +248,14 @@ fn parse_tools_field(val: Option<&serde_yaml::Value>) -> Vec<String> {
     }
 }
 
-/// Return first non-empty line from a possibly multi-line string.
-fn first_line(s: &str) -> String {
+/// Collapse a possibly multi-line description into one Markdown table cell.
+fn flatten_description(s: &str) -> String {
     s.lines()
         .map(|l| l.trim())
-        .find(|l| !l.is_empty())
-        .unwrap_or("")
-        .to_string()
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
+        .replace('|', "/")
 }
 
 // ---------------------------------------------------------------------------
@@ -263,6 +296,72 @@ mod tests {
     }
 
     #[test]
+    fn list_agents_deduplicates_aliases_by_logical_name() {
+        let tmp = tempfile::tempdir().unwrap();
+        make_agent(
+            &tmp,
+            "qual__health-agent.md",
+            "---\nname: godmode:health-agent\ndescription: Alias description\ncolor: red\n\
+             skills: alias\ntools: [Read]\n---\n",
+        );
+        make_agent(
+            &tmp,
+            "health-agent.md",
+            "---\nname: godmode:health-agent\ndescription: Canonical description\ncolor: green\n\
+             skills: canonical\ntools: [Read]\n---\n",
+        );
+
+        let agents = list_agents(tmp.path()).unwrap();
+
+        assert_eq!(agents.len(), 1);
+        assert_eq!(agents[0].description, "Canonical description");
+        assert_eq!(
+            agents[0].path.file_name().and_then(|name| name.to_str()),
+            Some("health-agent.md")
+        );
+    }
+
+    #[test]
+    fn list_agents_prefers_authoritative_cfg_entry() {
+        let tmp = tempfile::tempdir().unwrap();
+        make_agent(
+            &tmp,
+            "health-agent.md",
+            "---\nname: godmode:health-agent\ndescription: Generated description\ncolor: green\n\
+             skills: generated\ntools: [Read]\n---\n",
+        );
+        let cfg_dir = tmp.path().join("agents/cfg");
+        fs::create_dir_all(&cfg_dir).unwrap();
+        fs::write(
+            cfg_dir.join("health-agent.cfg.yaml"),
+            "name: godmode:health-agent\ndescription: Authoritative description\ncolor: blue\n\
+             skills: [authoritative]\ntools: [Read]\n",
+        )
+        .unwrap();
+
+        let agents = list_agents(tmp.path()).unwrap();
+
+        assert_eq!(agents.len(), 1);
+        assert_eq!(agents[0].description, "Authoritative description");
+        assert_eq!(
+            agents[0].path.file_name().and_then(|name| name.to_str()),
+            Some("health-agent.cfg.yaml")
+        );
+    }
+
+    #[test]
+    fn list_agents_reports_invalid_authoritative_cfg() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cfg_dir = tmp.path().join("agents/cfg");
+        fs::create_dir_all(&cfg_dir).unwrap();
+        fs::write(cfg_dir.join("broken.cfg.yaml"), "name: [invalid").unwrap();
+
+        let error = list_agents(tmp.path()).unwrap_err();
+
+        assert!(error.to_string().contains("parsing agent YAML"));
+    }
+
+    #[test]
     fn filter_agents_is_case_insensitive() {
         let tmp = tempfile::tempdir().unwrap();
         make_agent(
@@ -298,9 +397,29 @@ mod tests {
         generate_agent_index(tmp.path(), &agents).unwrap();
         let content = fs::read_to_string(tmp.path().join("agents/INDEX.md")).unwrap();
         assert!(content.contains("| godmode:test-agent |"));
-        assert!(content.contains("A test agent"));
+        assert!(content.contains("A test agent with multiple lines"));
         assert!(content.contains("test-skill"));
         assert!(content.contains("purple"));
+    }
+
+    #[test]
+    fn agent_index_is_current_detects_stale_content() {
+        let tmp = tempfile::tempdir().unwrap();
+        fs::create_dir_all(tmp.path().join("agents")).unwrap();
+        let agents = vec![AgentEntry {
+            name: "godmode:test-agent".to_string(),
+            description: "A test agent".to_string(),
+            color: "purple".to_string(),
+            skills: vec![],
+            tools: vec![],
+            path: tmp.path().join("agents/test-agent.md"),
+        }];
+
+        fs::write(tmp.path().join("agents/INDEX.md"), "stale").unwrap();
+        assert!(!agent_index_is_current(tmp.path(), &agents).unwrap());
+
+        generate_agent_index(tmp.path(), &agents).unwrap();
+        assert!(agent_index_is_current(tmp.path(), &agents).unwrap());
     }
 
     #[test]

@@ -1,34 +1,100 @@
 project: godmode
 id: godmode
-updated: 2026-08-25
+updated: 2026-09-01
 items:
 - id: uncommitted-work
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (32 files)
+  title: Uncommitted changes (98 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    agents/envoy.md
-    agents/opencode-projects.yaml
+    agents/INDEX.md
+    crates/godmode-cli/src/main.rs
     crates/godmode-core/src/agent.rs
+    crates/godmode-core/src/agent_index.rs
+    crates/godmode-core/src/builder.rs
+    crates/godmode-core/src/cache.rs
+    crates/godmode-core/src/context.rs
+    crates/godmode-core/src/dispatch.rs
+    crates/godmode-core/src/doctor.rs
+    crates/godmode-core/src/graph.rs
+    crates/godmode-core/src/hooks/agent_governance.rs
+    crates/godmode-core/src/hooks/auto_block.rs
+    crates/godmode-core/src/hooks/hook_context.rs
+    crates/godmode-core/src/hooks/pre_commit.rs
+    crates/godmode-core/src/hooks/quality_gate.rs
+    crates/godmode-core/src/hooks/stop_guard.rs
+    crates/godmode-core/src/init.rs
+    crates/godmode-core/src/insights.rs
+    crates/godmode-core/src/integrations/coursers.rs
+    crates/godmode-core/src/integrations/gh/ci.rs
+    crates/godmode-core/src/integrations/gh/issues.rs
+    crates/godmode-core/src/integrations/handoff_yaml.rs
+    crates/godmode-core/src/integrations/hook_migrate.rs
+    crates/godmode-core/src/integrations/mod.rs
+    crates/godmode-core/src/integrations/output.rs
+    crates/godmode-core/src/lib.rs
+    crates/godmode-core/src/model.rs
+    crates/godmode-core/src/pipeline.rs
+    crates/godmode-core/src/policy.rs
+    crates/godmode-core/src/policy_engine.rs
+    crates/godmode-core/src/policy_loader.rs
+    crates/godmode-core/src/registry.rs
+    crates/godmode-core/src/release.rs
+    crates/godmode-core/src/release_version.rs
+    crates/godmode-core/src/report_index.rs
+    crates/godmode-core/src/review.rs
+    crates/godmode-core/src/sarif.rs
+    crates/godmode-core/src/sarif_builder.rs
+    crates/godmode-core/src/sarif_types.rs
+    crates/godmode-core/src/scaffold.rs
+    crates/godmode-core/src/session.rs
+    crates/godmode-core/src/skill.rs
+    crates/godmode-core/src/template_loader.rs
+    crates/godmode-core/src/templates.rs
+    crates/godmode-core/src/verify.rs
+    crates/godmode-core/src/wave.rs
+    crates/godmode-core/src/workflow.rs
+    crates/godmode-core/src/worktree.rs
+    hooks/README.md
     hooks/hooks.json
-    skills/_lib/trace.nu
-    skills/doublecheck/SKILL.md
-    skills/doublecheck/references/verification-report-template.md
-    skills/memory-banking/SKILL.md
-    skills/mistake-tracker/SKILL.md
-    skills/pattern-learner/SKILL.md
-    skills/rust-conventions/SKILL.md
-    skills/using-godmode/SKILL.md
+    hooks/scripts/godmode-trace.rs
+    scripts/gen-index.nu
+    skills/doc-review/SKILL.md
+    skills/health-score/SKILL.md
+    tests/conformance/benches/conformance_bench.rs
+    tests/conformance/src/bin/run_conformance.rs
+    tests/conformance/src/crux_tests.rs
+    tests/conformance/src/dispatch_tests.rs
+    tests/conformance/src/fixture_tests.rs
+    tests/conformance/src/graph_tests.rs
+    tests/conformance/src/harness/comparison.rs
+    tests/conformance/src/harness/context.rs
+    tests/conformance/src/harness/fixtures.rs
+    tests/conformance/src/harness/logging.rs
+    tests/conformance/src/harness/runner.rs
+    tests/conformance/src/harness/traits.rs
+    tests/conformance/src/lib.rs
+    tests/conformance/src/pipeline_property_tests.rs
+    tests/conformance/src/plan_tests.rs
+    tests/conformance/src/plugin_structure_tests.rs
+    tests/conformance/src/property_tests.rs
+    tests/conformance/src/session_property_tests.rs
+    tests/conformance/src/wave_property_tests.rs
+    tests/conformance/src/wave_tests.rs
+    xtask/src/main.rs
     .codex-plugin/
     .ctx/HANDOFF.tools.yaml
     .plugin-eval/
     AGENTS.md
     crates/godmode-cli/src/commands/
+    crates/godmode-cli/tests/agent_index.rs
+    docs/plans/2026-08-26-daily-orchestration-health-remediation.md
     hooks/scripts/post-skill-trace.nu
     hooks/scripts/pre-skill-trace.nu
+    skills/INDEX.md
     skills/depgraph/
     skills/handoff-hardened/
     skills/joe:inject
@@ -43,25 +109,91 @@ items:
     toolkit.nu
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - agents/envoy.md
-  - agents/opencode-projects.yaml
+  - agents/INDEX.md
+  - crates/godmode-cli/src/main.rs
   - crates/godmode-core/src/agent.rs
+  - crates/godmode-core/src/agent_index.rs
+  - crates/godmode-core/src/builder.rs
+  - crates/godmode-core/src/cache.rs
+  - crates/godmode-core/src/context.rs
+  - crates/godmode-core/src/dispatch.rs
+  - crates/godmode-core/src/doctor.rs
+  - crates/godmode-core/src/graph.rs
+  - crates/godmode-core/src/hooks/agent_governance.rs
+  - crates/godmode-core/src/hooks/auto_block.rs
+  - crates/godmode-core/src/hooks/hook_context.rs
+  - crates/godmode-core/src/hooks/pre_commit.rs
+  - crates/godmode-core/src/hooks/quality_gate.rs
+  - crates/godmode-core/src/hooks/stop_guard.rs
+  - crates/godmode-core/src/init.rs
+  - crates/godmode-core/src/insights.rs
+  - crates/godmode-core/src/integrations/coursers.rs
+  - crates/godmode-core/src/integrations/gh/ci.rs
+  - crates/godmode-core/src/integrations/gh/issues.rs
+  - crates/godmode-core/src/integrations/handoff_yaml.rs
+  - crates/godmode-core/src/integrations/hook_migrate.rs
+  - crates/godmode-core/src/integrations/mod.rs
+  - crates/godmode-core/src/integrations/output.rs
+  - crates/godmode-core/src/lib.rs
+  - crates/godmode-core/src/model.rs
+  - crates/godmode-core/src/pipeline.rs
+  - crates/godmode-core/src/policy.rs
+  - crates/godmode-core/src/policy_engine.rs
+  - crates/godmode-core/src/policy_loader.rs
+  - crates/godmode-core/src/registry.rs
+  - crates/godmode-core/src/release.rs
+  - crates/godmode-core/src/release_version.rs
+  - crates/godmode-core/src/report_index.rs
+  - crates/godmode-core/src/review.rs
+  - crates/godmode-core/src/sarif.rs
+  - crates/godmode-core/src/sarif_builder.rs
+  - crates/godmode-core/src/sarif_types.rs
+  - crates/godmode-core/src/scaffold.rs
+  - crates/godmode-core/src/session.rs
+  - crates/godmode-core/src/skill.rs
+  - crates/godmode-core/src/template_loader.rs
+  - crates/godmode-core/src/templates.rs
+  - crates/godmode-core/src/verify.rs
+  - crates/godmode-core/src/wave.rs
+  - crates/godmode-core/src/workflow.rs
+  - crates/godmode-core/src/worktree.rs
+  - hooks/README.md
   - hooks/hooks.json
-  - skills/_lib/trace.nu
-  - skills/doublecheck/SKILL.md
-  - skills/doublecheck/references/verification-report-template.md
-  - skills/memory-banking/SKILL.md
-  - skills/mistake-tracker/SKILL.md
-  - skills/pattern-learner/SKILL.md
-  - skills/rust-conventions/SKILL.md
-  - skills/using-godmode/SKILL.md
+  - hooks/scripts/godmode-trace.rs
+  - scripts/gen-index.nu
+  - skills/doc-review/SKILL.md
+  - skills/health-score/SKILL.md
+  - tests/conformance/benches/conformance_bench.rs
+  - tests/conformance/src/bin/run_conformance.rs
+  - tests/conformance/src/crux_tests.rs
+  - tests/conformance/src/dispatch_tests.rs
+  - tests/conformance/src/fixture_tests.rs
+  - tests/conformance/src/graph_tests.rs
+  - tests/conformance/src/harness/comparison.rs
+  - tests/conformance/src/harness/context.rs
+  - tests/conformance/src/harness/fixtures.rs
+  - tests/conformance/src/harness/logging.rs
+  - tests/conformance/src/harness/runner.rs
+  - tests/conformance/src/harness/traits.rs
+  - tests/conformance/src/lib.rs
+  - tests/conformance/src/pipeline_property_tests.rs
+  - tests/conformance/src/plan_tests.rs
+  - tests/conformance/src/plugin_structure_tests.rs
+  - tests/conformance/src/property_tests.rs
+  - tests/conformance/src/session_property_tests.rs
+  - tests/conformance/src/wave_property_tests.rs
+  - tests/conformance/src/wave_tests.rs
+  - xtask/src/main.rs
   - .codex-plugin/
   - .ctx/HANDOFF.tools.yaml
   - .plugin-eval/
   - AGENTS.md
   - crates/godmode-cli/src/commands/
+  - crates/godmode-cli/tests/agent_index.rs
+  - docs/plans/2026-08-26-daily-orchestration-health-remediation.md
   - hooks/scripts/post-skill-trace.nu
   - hooks/scripts/pre-skill-trace.nu
+  - skills/INDEX.md
   - skills/depgraph/
   - skills/handoff-hardened/
   - skills/joe:inject
@@ -75,6 +207,58 @@ items:
   - skills/using-doob/
   - toolkit.nu
 log:
+- date: '20260901.213713'
+  summary: done=64 running=0 pending=0 blocked=0
+  commits:
+  - e4751a3bdb4cc0318cc405e547cdad2471f582b7
+  - c96b059072e896f4b37ac6e18844a703c8d7d1a2
+  - 7561596c6f9194f0fd9e394d987961d6ec6ab6ab
+  - b8e7b43d251f4674425af6378ecfdd0fe62877c6
+  - e52d151274081153431716e0da6a416af3288c6f
+  - fd7befac001b57c954e80f65283b3ba5b014ab22
+  - d076f96975c55ad2b79dfd170e075cc7637f9f57
+  - fcfa5c534348cbb43bac811ff46b7b3ed2aae221
+  - bfc958b8c317f37ead6e38811902c197fe83b41c
+  - 5059d2003399321d044a9b7fa95841ff6cb31b4c
+- date: '20260826.175836'
+  summary: done=64 running=0 pending=0 blocked=0
+  commits:
+  - e4751a3bdb4cc0318cc405e547cdad2471f582b7
+  - c96b059072e896f4b37ac6e18844a703c8d7d1a2
+  - 7561596c6f9194f0fd9e394d987961d6ec6ab6ab
+  - b8e7b43d251f4674425af6378ecfdd0fe62877c6
+  - e52d151274081153431716e0da6a416af3288c6f
+  - fd7befac001b57c954e80f65283b3ba5b014ab22
+  - d076f96975c55ad2b79dfd170e075cc7637f9f57
+  - fcfa5c534348cbb43bac811ff46b7b3ed2aae221
+  - bfc958b8c317f37ead6e38811902c197fe83b41c
+  - 5059d2003399321d044a9b7fa95841ff6cb31b4c
+- date: '20260825.174351'
+  summary: done=24 running=1 pending=0 blocked=0
+  commits:
+  - e4751a3bdb4cc0318cc405e547cdad2471f582b7
+  - c96b059072e896f4b37ac6e18844a703c8d7d1a2
+  - 7561596c6f9194f0fd9e394d987961d6ec6ab6ab
+  - b8e7b43d251f4674425af6378ecfdd0fe62877c6
+  - e52d151274081153431716e0da6a416af3288c6f
+  - fd7befac001b57c954e80f65283b3ba5b014ab22
+  - d076f96975c55ad2b79dfd170e075cc7637f9f57
+  - fcfa5c534348cbb43bac811ff46b7b3ed2aae221
+  - bfc958b8c317f37ead6e38811902c197fe83b41c
+  - 5059d2003399321d044a9b7fa95841ff6cb31b4c
+- date: '20260825.172947'
+  summary: done=24 running=0 pending=0 blocked=0
+  commits:
+  - e4751a3bdb4cc0318cc405e547cdad2471f582b7
+  - c96b059072e896f4b37ac6e18844a703c8d7d1a2
+  - 7561596c6f9194f0fd9e394d987961d6ec6ab6ab
+  - b8e7b43d251f4674425af6378ecfdd0fe62877c6
+  - e52d151274081153431716e0da6a416af3288c6f
+  - fd7befac001b57c954e80f65283b3ba5b014ab22
+  - d076f96975c55ad2b79dfd170e075cc7637f9f57
+  - fcfa5c534348cbb43bac811ff46b7b3ed2aae221
+  - bfc958b8c317f37ead6e38811902c197fe83b41c
+  - 5059d2003399321d044a9b7fa95841ff6cb31b4c
 - date: '20260825.043132'
   summary: done=12 running=0 pending=0 blocked=0
   commits:

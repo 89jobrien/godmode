@@ -6,12 +6,21 @@ use std::fmt::Debug;
 /// Result of a comparison.
 #[derive(Debug, Clone, PartialEq)]
 pub enum CompareResult {
+    /// The compared values are exactly equal.
     Equal,
-    ApproximatelyEqual { delta: f64, epsilon: f64 },
+    /// The numeric values differ by no more than the permitted tolerance.
+    ApproximatelyEqual {
+        /// Absolute difference between the values.
+        delta: f64,
+        /// Maximum permitted absolute difference.
+        epsilon: f64,
+    },
+    /// The values differ, with details describing the mismatch.
     Different(Diff),
 }
 
 impl CompareResult {
+    /// Returns whether the comparison represents a mismatch.
     pub fn is_fail(&self) -> bool {
         matches!(self, CompareResult::Different(_))
     }
@@ -20,12 +29,16 @@ impl CompareResult {
 /// Detailed diff between expected and actual.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Diff {
+    /// Expected value rendered for diagnostics.
     pub expected: String,
+    /// Actual value rendered for diagnostics.
     pub actual: String,
+    /// Line-oriented unified diff between the rendered values.
     pub unified_diff: String,
 }
 
 impl Diff {
+    /// Renders a human-readable description of the mismatch.
     pub fn describe(&self) -> String {
         if self.unified_diff.is_empty() {
             format!("expected {:?}, got {:?}", self.expected, self.actual)
@@ -39,10 +52,12 @@ impl Diff {
 pub struct OutputComparator;
 
 impl OutputComparator {
+    /// Creates a stateless output comparator.
     pub fn new() -> Self {
         Self
     }
 
+    /// Compares values using equality and their debug representations.
     pub fn compare_debug<T: PartialEq + Debug>(&self, expected: &T, actual: &T) -> CompareResult {
         if expected == actual {
             CompareResult::Equal
@@ -57,6 +72,7 @@ impl OutputComparator {
         }
     }
 
+    /// Compares strings and produces a line-oriented diff on mismatch.
     pub fn compare_str(&self, expected: &str, actual: &str) -> CompareResult {
         if expected == actual {
             CompareResult::Equal
@@ -69,6 +85,7 @@ impl OutputComparator {
         }
     }
 
+    /// Compares floating-point values using an absolute epsilon tolerance.
     pub fn compare_f64(&self, expected: f64, actual: f64, epsilon: f64) -> CompareResult {
         let delta = (expected - actual).abs();
         if delta <= epsilon {

@@ -66,17 +66,26 @@ pub fn check_tool(
     }
 }
 
+/// Serializable record of one governance policy decision.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GovernanceEvent {
+    /// Event timestamp.
     pub ts: String,
+    /// Event type identifier.
     pub event: String,
+    /// Recorded policy action.
     pub action: String,
+    /// Identifier of the agent that requested the tool call.
     pub agent_id: String,
+    /// Name of the requested tool.
     pub tool_name: String,
+    /// Human-readable reason for the decision.
     pub reason: String,
     #[serde(default)]
+    /// Blocked pattern that matched, when applicable.
     pub pattern: String,
     #[serde(default)]
+    /// Session identifier associated with the decision.
     pub session_id: String,
 }
 

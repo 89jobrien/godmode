@@ -1,7 +1,3 @@
-// TODO(rustqual,#93): split templates.rs (324 lines) by SRP — three distinct responsibilities:
-//   1. template_loader.rs — path resolution (local/global), YAML deserialization
-//   2. template_render.rs — {{var}} substitution, variable validation
-//   3. templates.rs       — apply_to_graph() orchestration and public Template types
 //! Task template loading, variable substitution, and graph application.
 //!
 //! Templates live in `<repo-root>/templates/<name>.yaml` (local) or
@@ -38,36 +34,49 @@ use crate::graph;
 use crate::model::{Task, TaskGraph};
 
 #[path = "template_loader.rs"]
+/// Template discovery and file loading.
 pub mod template_loader;
 #[path = "template_render.rs"]
+/// Template variable parsing and substitution.
 pub mod template_render;
 
 pub use template_loader::{find, list};
 
 // ── Raw deserialization types ───────────────────────────────────────
 
+/// Raw variable declaration read from template YAML.
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawVarDef {
+    /// Variable name used in placeholders.
     pub name: String,
     #[serde(default)]
+    /// Whether callers must supply the variable when no default exists.
     pub required: bool,
     #[serde(default)]
+    /// Optional fallback value.
     pub default: Option<String>,
 }
 
+/// Raw template metadata read before substitution.
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawMeta {
+    /// Template name.
     pub name: String,
     #[serde(default)]
+    /// Human-readable template description.
     pub description: String,
     #[serde(default)]
+    /// Variables accepted by the template.
     pub vars: Vec<RawVarDef>,
 }
 
+/// Raw deserialized template document.
 #[derive(Debug, Deserialize)]
 pub(crate) struct RawTemplate {
+    /// Template metadata.
     pub meta: RawMeta,
     #[serde(default)]
+    /// Tasks declared by the template.
     pub tasks: Vec<Task>,
 }
 
@@ -76,21 +85,27 @@ pub(crate) struct RawTemplate {
 /// Resolved template metadata.
 #[derive(Debug, Clone)]
 pub struct TemplateMeta {
+    /// Template name.
     pub name: String,
+    /// Human-readable template description.
     pub description: String,
 }
 
 /// A fully resolved template — all vars substituted, ready to apply.
 #[derive(Debug)]
 pub struct Template {
+    /// Resolved template metadata.
     pub meta: TemplateMeta,
+    /// Resolved tasks ready for graph insertion.
     pub tasks: Vec<Task>,
 }
 
 /// Source of a discovered template.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TemplateSource {
+    /// Template found under the current repository.
     Local,
+    /// Template found under the user's global configuration.
     Global,
 }
 
@@ -105,12 +120,16 @@ impl std::fmt::Display for TemplateSource {
 
 /// A discovered template entry (not yet loaded).
 pub struct TemplateEntry {
+    /// Metadata parsed from the template file.
     pub meta: TemplateMeta,
+    /// Filesystem path to the template file.
     pub path: PathBuf,
+    /// Search location where the template was found.
     pub source: TemplateSource,
 }
 
 impl TemplateEntry {
+    /// Construct a discovered template entry.
     pub(crate) fn new(meta: TemplateMeta, path: PathBuf, source: TemplateSource) -> Self {
         Self { meta, path, source }
     }
@@ -119,6 +138,7 @@ impl TemplateEntry {
 /// Errors emitted while resolving and loading task templates.
 #[derive(Debug, Diagnostic, Error)]
 pub enum TemplateError {
+    /// No local or global template matched the requested name.
     #[error("template '{name}' not found")]
     #[diagnostic(
         code(godmode::template::not_found),
@@ -126,75 +146,107 @@ pub enum TemplateError {
             "Create templates/{name}.yaml, templates/{name}.template.yaml, or the matching file under $HOME/.config/godmode/templates/."
         )
     )]
-    NotFound { name: String },
+    NotFound {
+        /// Requested template name.
+        name: String,
+    },
 
+    /// The template file could not be read.
     #[error("failed to read template {}", path.display())]
     #[diagnostic(code(godmode::template::read_failed))]
     Read {
+        /// Template path that could not be read.
         path: PathBuf,
         #[source]
+        /// Underlying filesystem error.
         source: io::Error,
     },
 
+    /// A template directory could not be read.
     #[error("failed to read template directory {}", path.display())]
     #[diagnostic(code(godmode::template::read_dir_failed))]
     ReadDir {
+        /// Template directory that could not be read.
         path: PathBuf,
         #[source]
+        /// Underlying filesystem error.
         source: io::Error,
     },
 
+    /// Initial template metadata could not be parsed.
     #[error("failed to parse template metadata from {}", path.display())]
     #[diagnostic(
         code(godmode::template::parse_metadata_failed),
         help("Expected a template with a top-level meta block and optional tasks list.")
     )]
     ParseMetadata {
+        /// Template path being parsed.
         path: PathBuf,
         #[source_code]
+        /// Named source text used for diagnostic rendering.
         src: Arc<NamedSource<String>>,
         #[label("YAML parser stopped here")]
+        /// Source span associated with the YAML error, when available.
         span: Option<SourceSpan>,
         #[source]
+        /// Underlying YAML parser error.
         source: Box<serde_yaml::Error>,
     },
 
+    /// The template became invalid YAML after variable substitution.
     #[error("failed to parse substituted template from {}", path.display())]
     #[diagnostic(
         code(godmode::template::parse_substituted_failed),
         help("Check substituted variable values for YAML-sensitive characters.")
     )]
     ParseSubstituted {
+        /// Template path being parsed.
         path: PathBuf,
         #[source_code]
+        /// Substituted source text used for diagnostic rendering.
         src: Arc<NamedSource<String>>,
         #[label("YAML parser stopped here after variable substitution")]
+        /// Source span associated with the YAML error, when available.
         span: Option<SourceSpan>,
         #[source]
+        /// Underlying YAML parser error.
         source: Box<serde_yaml::Error>,
     },
 
+    /// A required variable had no supplied or default value.
     #[error("template '{template}' requires var '{var}'")]
     #[diagnostic(
         code(godmode::template::missing_var),
         help("Pass --var {var}=<value> when applying this template.")
     )]
-    MissingVar { template: String, var: String },
+    MissingVar {
+        /// Name of the template requiring the variable.
+        template: String,
+        /// Missing variable name.
+        var: String,
+    },
 
+    /// A command-line variable did not use `key=value` syntax.
     #[error("invalid --var '{value}': expected key=value")]
     #[diagnostic(
         code(godmode::template::invalid_var),
         help("Use --var name=value. Omit spaces around '='.")
     )]
-    InvalidVar { value: String },
+    InvalidVar {
+        /// Invalid variable argument.
+        value: String,
+    },
 }
 
+/// Result type returned by template loading and rendering operations.
 pub(crate) type TemplateResult<T> = std::result::Result<T, TemplateError>;
 
 /// Internal parse phase marker.
 #[derive(Clone, Copy)]
 pub(crate) enum ParsePhase {
+    /// Parsing before variable substitution.
     Metadata,
+    /// Parsing after variable substitution.
     Substituted,
 }
 

@@ -1,3 +1,5 @@
+//! Persistent registry of installed godmode skills and agents.
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -6,22 +8,29 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum EntryKind {
+    /// An installed skill directory.
     Skill,
+    /// An installed agent definition.
     Agent,
 }
 
 /// Single installed skill/agent entry persisted in `registry.json`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryEntry {
+    /// Unique registry name for the artifact.
     pub name: String,
+    /// Kind of artifact represented by this entry.
     pub kind: EntryKind,
+    /// Filesystem path to the installed artifact.
     pub path: PathBuf,
+    /// Installed artifact version.
     pub version: String,
 }
 
 /// Global registry of installed skills and agents.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Registry {
+    /// Installed artifacts in insertion order.
     pub entries: Vec<RegistryEntry>,
 }
 

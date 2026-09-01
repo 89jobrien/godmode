@@ -5,20 +5,34 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 use thiserror::Error;
 
+/// Result type returned by fixture loading operations.
 pub type FixtureResult<T> = Result<T, FixtureError>;
 
+/// Errors that can occur while locating or parsing a fixture.
 #[derive(Debug, Error)]
 pub enum FixtureError {
+    /// The requested fixture path does not exist.
     #[error("fixture file not found: {path}")]
-    NotFound { path: PathBuf },
+    NotFound {
+        /// Path at which the fixture was expected.
+        path: PathBuf,
+    },
+    /// The fixture file could not be read or parsed as JSON.
     #[error("fixture parse error in {path}: {reason}")]
-    ParseError { path: PathBuf, reason: String },
+    ParseError {
+        /// Path of the fixture that could not be parsed.
+        path: PathBuf,
+        /// Underlying read or JSON parsing error.
+        reason: String,
+    },
 }
 
 /// A loaded fixture.
 #[derive(Debug, Clone)]
 pub struct TestFixture {
+    /// Filesystem path from which the fixture was loaded.
     pub path: PathBuf,
+    /// Parsed JSON fixture contents.
     pub data: Value,
 }
 
@@ -49,6 +63,7 @@ pub struct FixtureLoader {
 }
 
 impl FixtureLoader {
+    /// Creates a loader for the manifest's `fixtures/expected` directory.
     pub fn new() -> Self {
         // Resolve relative to CARGO_MANIFEST_DIR at runtime if possible,
         // otherwise fall back to cwd-relative path.
@@ -60,6 +75,7 @@ impl FixtureLoader {
         }
     }
 
+    /// Creates a loader that reads fixtures from a specific directory.
     pub fn with_dir(dir: impl Into<PathBuf>) -> Self {
         Self {
             fixtures_dir: dir.into(),

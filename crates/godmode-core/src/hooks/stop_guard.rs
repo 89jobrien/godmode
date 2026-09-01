@@ -12,9 +12,15 @@ pub enum StopDecision {
     /// Session may end.
     Allow,
     /// Session blocked — running tasks exist.
-    BlockedRunning(Vec<String>),
+    BlockedRunning(
+        /// Identifiers of tasks that are still running.
+        Vec<String>,
+    ),
     /// Session blocked — blocked tasks need resolution.
-    BlockedTasks(Vec<(String, String)>),
+    BlockedTasks(
+        /// Task identifiers paired with their block reasons.
+        Vec<(String, String)>,
+    ),
 }
 
 /// Check whether the session is safe to end.

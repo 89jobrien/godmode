@@ -1,4 +1,10 @@
+//! Command-line interface for the godmode development workflow.
+//!
+//! The binary parses user input and delegates task, session, policy, release,
+//! and integration behavior to `godmode-core`.
+
 #![allow(clippy::items_after_test_module)]
+#![deny(missing_docs)]
 
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
@@ -224,8 +230,12 @@ enum AgentAction {
         #[arg(long)]
         filter: Option<String>,
     },
-    /// Regenerate agents/INDEX.md.
-    Index,
+    /// Regenerate agents/INDEX.md or check whether it is current.
+    Index {
+        /// Exit non-zero instead of writing when the index is stale.
+        #[arg(long)]
+        check: bool,
+    },
     /// Ingest a plan file and emit an orca-strait dispatch payload.
     Dispatch {
         /// Path to the plan markdown file.
@@ -269,6 +279,12 @@ enum AgentAction {
 enum SkillAction {
     /// List all registered skills.
     List,
+    /// Regenerate skills/INDEX.md or check whether it is current.
+    Index {
+        /// Exit non-zero instead of writing when the index is stale.
+        #[arg(long)]
+        check: bool,
+    },
     /// Install a skill from a local directory path.
     Install {
         /// Absolute path to the skill directory.
@@ -545,7 +561,7 @@ enum PlanAction {
 enum WorkflowAction {
     /// Execute a workflow DAG for an agent.
     Run {
-        /// Agent name (used to locate the workflow in agents/<agent>.yaml).
+        /// Agent name used to locate `agents/<agent>.yaml`.
         agent: String,
         /// Workflow name (must match a workflows[] entry in the agent YAML).
         workflow: String,
@@ -556,7 +572,7 @@ enum WorkflowAction {
         #[arg(long)]
         agent: Option<String>,
     },
-    /// Show current state of a named workflow from .ctx/workflow-<name>.json.
+    /// Show current state from `.ctx/workflow-<name>.json`.
     Status {
         /// Workflow name.
         name: String,
@@ -644,7 +660,7 @@ enum PipelineAction {
 enum PolicyCmdAction {
     /// Resolve the effective policy for an agent.
     Resolve {
-        /// Agent name (matches agents/cfg/<name>.cfg.yaml).
+        /// Agent name matching `agents/cfg/<name>.cfg.yaml`.
         agent: String,
         /// Governance level override (open/standard/strict/locked).
         #[arg(long)]
@@ -817,1548 +833,1595 @@ fn install_miette_theme() {
     let _ = miette::set_hook(Box::new(move |_| Box::new(handler.clone().build())));
 }
 
-// TODO(rustqual,#86): split run() into per-subcommand handlers in a commands/ module.
-// cognitive_complexity=697, cyclomatic_complexity=258, long_function≈1500 lines, nesting_depth=6.
-// Each subcommand (task, plan, dispatch, wave, worktree, …) should become its own
-// `commands/<name>.rs` file with a single `pub fn handle(args, root) -> Result<()>` entry point.
 fn run() -> Result<()> {
     let cli = Cli::parse();
     let json = cli.json;
     let sarif = cli.sarif;
 
     let root = detect::root_or_cwd()?;
+    command_dispatch::dispatch(root, json, sarif, cli.cmd)
+}
 
-    match cli.cmd {
-        Cmd::Handon { compact } => {
-            let out = integrations::handon(&root)?;
-            if json {
-                println!("{}", serde_json::to_string_pretty(&out)?);
-            } else if compact {
-                let g = &out.graph;
-                println!(
-                    "godmode: {}D {}R {}P {}B",
-                    g.done, g.running, g.pending, g.blocked
-                );
-            } else {
-                print!("{}", out.human);
-            }
-            Ok(())
-        }
+mod command_dispatch {
+    use super::*;
 
-        Cmd::Handoff => {
-            let out = integrations::handoff(&root)?;
-            if json {
-                println!("{}", serde_json::to_string_pretty(&out)?);
-            } else {
-                print!("{}", out.human);
-            }
-            Ok(())
-        }
-
-        Cmd::Session { action } => match action {
-            SessionAction::Prune {
-                older_than,
-                dry_run,
-            } => {
-                use godmode_core::integrations::crux;
-                use godmode_core::session::prune_sessions_older_than;
-                let sessions_dir = crux::sessions_dir(&root);
-                let pruned = prune_sessions_older_than(&sessions_dir, older_than, dry_run)?;
+    // qual:allow reason: "exhaustive CLI integration root covered by command tests"
+    pub(super) fn dispatch(
+        root: std::path::PathBuf,
+        json: bool,
+        sarif: bool,
+        cmd: Cmd,
+    ) -> Result<()> {
+        match cmd {
+            Cmd::Handon { compact } => {
+                let out = integrations::handon(&root)?;
                 if json {
-                    let paths: Vec<String> =
-                        pruned.iter().map(|p| p.display().to_string()).collect();
-                    println!("{}", serde_json::to_string_pretty(&paths)?);
-                } else if pruned.is_empty() {
-                    println!("No session files to prune.");
-                } else if dry_run {
-                    println!("{} file(s) would be deleted.", pruned.len());
+                    println!("{}", serde_json::to_string_pretty(&out)?);
+                } else if compact {
+                    let g = &out.graph;
+                    println!(
+                        "godmode: {}D {}R {}P {}B",
+                        g.done, g.running, g.pending, g.blocked
+                    );
                 } else {
-                    println!("Pruned {} session file(s).", pruned.len());
+                    print!("{}", out.human);
                 }
                 Ok(())
             }
-        },
 
-        Cmd::Task { action } => {
-            commands::run_task_action(&root, json, action)?;
-            Ok(())
-        }
-
-        Cmd::Plan { action } => match action {
-            PlanAction::Ingest { path } => {
-                let markdown = std::fs::read_to_string(&path)?;
-                let tasks = plan::parse(&markdown)?;
-                let count = tasks.len();
-                let mut session = Session::open(&root)?;
-                for task in tasks {
-                    if let Err(e) = session.add_task(task)
-                        && !e.to_string().contains("already exists")
-                    {
-                        return Err(e);
-                    }
-                }
-                session.save()?;
+            Cmd::Handoff => {
+                let out = integrations::handoff(&root)?;
                 if json {
-                    println!("{}", serde_json::json!({"ok": true, "ingested": count}));
+                    println!("{}", serde_json::to_string_pretty(&out)?);
                 } else {
-                    println!("Ingested {} tasks from {}.", count, path);
+                    print!("{}", out.human);
                 }
                 Ok(())
             }
-        },
 
-        Cmd::Context => {
-            let ctx = context::build(&root)?;
-            if json {
-                println!("{}", serde_json::to_string_pretty(&ctx)?);
-            } else {
-                println!("project: {}", ctx.project);
-                if ctx.running.is_empty() {
-                    println!("running: (none)");
-                } else {
-                    for t in &ctx.running {
-                        let crate_info = t
-                            .crate_name
-                            .as_deref()
-                            .map(|c| format!(" [{}]", c))
-                            .unwrap_or_default();
-                        println!("running: {} — {}{}", t.id, t.title, crate_info);
+            Cmd::Session { action } => match action {
+                SessionAction::Prune {
+                    older_than,
+                    dry_run,
+                } => {
+                    use godmode_core::integrations::crux;
+                    use godmode_core::session::prune_sessions_older_than;
+                    let sessions_dir = crux::sessions_dir(&root);
+                    let pruned = prune_sessions_older_than(&sessions_dir, older_than, dry_run)?;
+                    if json {
+                        let paths: Vec<String> =
+                            pruned.iter().map(|p| p.display().to_string()).collect();
+                        println!("{}", serde_json::to_string_pretty(&paths)?);
+                    } else if pruned.is_empty() {
+                        println!("No session files to prune.");
+                    } else if dry_run {
+                        println!("{} file(s) would be deleted.", pruned.len());
+                    } else {
+                        println!("Pruned {} session file(s).", pruned.len());
                     }
+                    Ok(())
                 }
-                println!("pending: {}", ctx.pending_count);
-                if !ctx.blocked.is_empty() {
-                    for b in &ctx.blocked {
-                        println!("blocked: {} — {}", b.id, b.reason);
-                    }
-                }
-                println!("critical path: {} tasks deep", ctx.critical_path_depth);
-                if !ctx.recent_commits.is_empty() {
-                    println!("recent:");
-                    for c in &ctx.recent_commits {
-                        println!("  {c}");
-                    }
-                }
+            },
+
+            Cmd::Task { action } => {
+                commands::run_task_action(&root, json, action)?;
+                Ok(())
             }
-            Ok(())
-        }
 
-        Cmd::Status { compact } => {
-            let g = graph::load(&root)?;
-            let summary = g.summary();
-            let next = graph::runnable(&g);
-            let critical = dispatch::critical_path(&g);
-            let blocked_tasks: Vec<&model::Task> = g
-                .tasks
-                .iter()
-                .filter(|t| t.status == model::Status::Blocked)
-                .collect();
-            if json {
-                let blocked_detail: Vec<serde_json::Value> = blocked_tasks
+            Cmd::Plan { action } => match action {
+                PlanAction::Ingest { path } => {
+                    let markdown = std::fs::read_to_string(&path)?;
+                    let tasks = plan::parse(&markdown)?;
+                    let count = tasks.len();
+                    let mut session = Session::open(&root)?;
+                    for task in tasks {
+                        if let Err(e) = session.add_task(task)
+                            && !e.to_string().contains("already exists")
+                        {
+                            return Err(e);
+                        }
+                    }
+                    session.save()?;
+                    if json {
+                        println!("{}", serde_json::json!({"ok": true, "ingested": count}));
+                    } else {
+                        println!("Ingested {} tasks from {}.", count, path);
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Context => {
+                let ctx = context::build(&root)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&ctx)?);
+                } else {
+                    println!("project: {}", ctx.project);
+                    if ctx.running.is_empty() {
+                        println!("running: (none)");
+                    } else {
+                        for t in &ctx.running {
+                            let crate_info = t
+                                .crate_name
+                                .as_deref()
+                                .map(|c| format!(" [{}]", c))
+                                .unwrap_or_default();
+                            println!("running: {} — {}{}", t.id, t.title, crate_info);
+                        }
+                    }
+                    println!("pending: {}", ctx.pending_count);
+                    if !ctx.blocked.is_empty() {
+                        for b in &ctx.blocked {
+                            println!("blocked: {} — {}", b.id, b.reason);
+                        }
+                    }
+                    println!("critical path: {} tasks deep", ctx.critical_path_depth);
+                    if !ctx.recent_commits.is_empty() {
+                        println!("recent:");
+                        for c in &ctx.recent_commits {
+                            println!("  {c}");
+                        }
+                    }
+                }
+                Ok(())
+            }
+
+            Cmd::Status { compact } => {
+                let g = graph::load(&root)?;
+                let summary = g.summary();
+                let next = graph::runnable(&g);
+                let critical = dispatch::critical_path(&g);
+                let blocked_tasks: Vec<&model::Task> = g
+                    .tasks
                     .iter()
-                    .map(|t| {
-                        serde_json::json!({
-                            "id": t.id,
-                            "title": t.title,
-                            "reason": t.notes,
-                        })
-                    })
+                    .filter(|t| t.status == model::Status::Blocked)
                     .collect();
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&serde_json::json!({
-                        "done": summary.done,
-                        "running": summary.running,
-                        "pending": summary.pending,
-                        "blocked": summary.blocked,
-                        "blocked_detail": blocked_detail,
-                        "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
-                        "critical_depth": critical.len(),
-                    }))?
-                );
-            } else if compact {
-                println!(
-                    "{} done  {} running  {} pending  {} blocked",
-                    summary.done, summary.running, summary.pending, summary.blocked
-                );
-                println!("  critical: {} tasks deep", critical.len());
-                for t in &next {
-                    let crate_tag = t
-                        .crate_name
-                        .as_deref()
-                        .map(|c| format!(" ({})", c))
-                        .unwrap_or_default();
-                    println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
-                }
-            } else {
-                println!("=== godmode status ===");
-                println!("  done     {}", summary.done);
-                println!("  running  {}", summary.running);
-                println!("  pending  {}", summary.pending);
-                if blocked_tasks.is_empty() {
-                    println!("  blocked  {}", summary.blocked);
-                } else {
-                    let blocked_inline: Vec<String> = blocked_tasks
+                if json {
+                    let blocked_detail: Vec<serde_json::Value> = blocked_tasks
                         .iter()
                         .map(|t| {
-                            if t.notes.is_empty() {
-                                format!("{}: (no reason)", t.id)
-                            } else {
-                                format!("{}: {}", t.id, t.notes)
-                            }
+                            serde_json::json!({
+                                "id": t.id,
+                                "title": t.title,
+                                "reason": t.notes,
+                            })
                         })
                         .collect();
                     println!(
-                        "  blocked  {}  [{}]",
-                        summary.blocked,
-                        blocked_inline.join(", ")
-                    );
-                }
-                println!();
-                if !critical.is_empty() {
-                    let path_str: Vec<&str> = critical.iter().map(|t| t.id.as_str()).collect();
-                    println!(
-                        "  critical path ({} tasks): {}",
-                        critical.len(),
-                        path_str.join(" -> ")
-                    );
-                }
-                for t in &next {
-                    let crate_tag = t
-                        .crate_name
-                        .as_deref()
-                        .map(|c| format!(" ({})", c))
-                        .unwrap_or_default();
-                    println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
-                }
-            }
-            Ok(())
-        }
-
-        Cmd::Hook { action } => {
-            commands::run_hook_action(&root, json, action)?;
-            Ok(())
-        }
-
-        Cmd::Dispatch {
-            max,
-            critical_path: cp,
-        } => {
-            let g = graph::load(&root)?;
-            if cp {
-                let path = dispatch::critical_path(&g);
-                if path.is_empty() {
-                    exit_empty(json);
-                }
-                if json {
-                    println!(
                         "{}",
                         serde_json::to_string_pretty(&serde_json::json!({
-                            "critical_path": path,
-                            "depth": path.len(),
+                            "done": summary.done,
+                            "running": summary.running,
+                            "pending": summary.pending,
+                            "blocked": summary.blocked,
+                            "blocked_detail": blocked_detail,
+                            "next": next.iter().map(|t| &t.id).collect::<Vec<_>>(),
+                            "critical_depth": critical.len(),
                         }))?
                     );
-                } else {
-                    println!("=== critical path ({} tasks) ===", path.len());
-                    for t in &path {
-                        println!("[{}] {}", t.id, t.title);
+                } else if compact {
+                    println!(
+                        "{} done  {} running  {} pending  {} blocked",
+                        summary.done, summary.running, summary.pending, summary.blocked
+                    );
+                    println!("  critical: {} tasks deep", critical.len());
+                    for t in &next {
+                        let crate_tag = t
+                            .crate_name
+                            .as_deref()
+                            .map(|c| format!(" ({})", c))
+                            .unwrap_or_default();
+                        println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
                     }
-                }
-            } else {
-                let chains = dispatch::independent_chains(&g, max);
-                if chains.is_empty() {
-                    exit_empty(json);
-                }
-                println!("{}", serde_json::to_string_pretty(&chains)?);
-            }
-            Ok(())
-        }
-
-        Cmd::Agent { action } => match action {
-            AgentAction::List { filter } => {
-                let mut agents = agent_index::list_agents(&root)?;
-                if let Some(kw) = &filter {
-                    agents = agent_index::filter_agents(agents, kw);
-                }
-                // Always regenerate INDEX.md
-                agent_index::generate_agent_index(&root, &agents)?;
-                if agents.is_empty() {
-                    if json {
-                        println!("[]");
+                } else {
+                    println!("=== godmode status ===");
+                    println!("  done     {}", summary.done);
+                    println!("  running  {}", summary.running);
+                    println!("  pending  {}", summary.pending);
+                    if blocked_tasks.is_empty() {
+                        println!("  blocked  {}", summary.blocked);
                     } else {
-                        println!("No agents found.");
-                    }
-                    return Ok(());
-                }
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&agents)?);
-                } else {
-                    println!("{:<36} {:<10} SKILLS", "NAME", "COLOR");
-                    for a in &agents {
-                        println!("{:<36} {:<10} {}", a.name, a.color, a.skills.join(", "));
-                    }
-                }
-                Ok(())
-            }
-
-            AgentAction::Index => {
-                let agents = agent_index::list_agents(&root)?;
-                agent_index::generate_agent_index(&root, &agents)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "entries": agents.len()})
-                    );
-                } else {
-                    println!("Generated agents/INDEX.md with {} entries.", agents.len());
-                }
-                Ok(())
-            }
-
-            AgentAction::Generate { name, all } => {
-                let agents_dir = root.join("agents");
-                if !agents_dir.exists() {
-                    anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
-                }
-
-                let cfg_dir = agents_dir.join("cfg");
-                let names: Vec<String> = if all {
-                    // Collect from cfg/ first, then fall back to flat YAML
-                    let mut from_cfg = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
-                    // Also pick up flat agents/*.yaml that don't have a cfg/ counterpart
-                    for entry in std::fs::read_dir(&agents_dir)?
-                        .filter_map(|e| e.ok())
-                        .map(|e| e.path())
-                        .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
-                    {
-                        if let Some(stem) = entry
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .filter(|s| !from_cfg.contains(&s.to_string()))
-                        {
-                            from_cfg.push(stem.to_string());
-                        }
-                    }
-                    from_cfg
-                } else {
-                    let n = name
-                        .as_deref()
-                        .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
-                    vec![n.to_string()]
-                };
-
-                let mut generated = 0usize;
-                for n in &names {
-                    let cfg_path = cfg_dir.join(format!("{n}.cfg.yaml"));
-                    if cfg_path.exists() {
-                        // New path: cfg + prompt -> .md
-                        let (md, out) = agent::generate_from_cfg(&agents_dir, n)?;
-                        std::fs::write(&out, &md)?;
-                        generated += 1;
-                        if !json {
-                            println!("Generated {} (from cfg)", out.display());
-                        }
-                    } else {
-                        // Legacy path: flat .yaml -> .md
-                        let yp = agents_dir.join(format!("{n}.yaml"));
-                        let def = agent::load(&yp)?;
-                        let md = agent::generate_md(&def);
-                        let out = yp.with_extension("md");
-                        std::fs::write(&out, &md)?;
-                        generated += 1;
-                        if !json {
-                            println!("Generated {}", out.display());
-                        }
-                    }
-                }
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "generated": generated})
-                    );
-                }
-                Ok(())
-            }
-
-            AgentAction::InstallOpenCode {
-                catalog,
-                output_dir,
-                dry_run,
-            } => {
-                let catalog = agent::load_opencode_catalog(catalog.as_deref())?;
-                let output_dir = if let Some(path) = output_dir {
-                    path
-                } else {
-                    let home = std::env::var_os("HOME")
-                        .ok_or_else(|| anyhow::anyhow!("HOME is not set"))?;
-                    std::path::PathBuf::from(home)
-                        .join(".config")
-                        .join("opencode")
-                        .join("agents")
-                };
-                let paths = agent::install_opencode_agents(&catalog, &output_dir, dry_run)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&serde_json::json!({
-                            "ok": true,
-                            "dry_run": dry_run,
-                            "agents": paths,
-                        }))?
-                    );
-                } else {
-                    let verb = if dry_run {
-                        "Would install"
-                    } else {
-                        "Installed"
-                    };
-                    println!("{verb} {} OpenCode agents:", paths.len());
-                    for path in paths {
-                        println!("  {}", path.display());
-                    }
-                }
-                Ok(())
-            }
-
-            AgentAction::Migrate { name, all } => {
-                let agents_dir = root.join("agents");
-                if !agents_dir.exists() {
-                    anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
-                }
-                let md_files: Vec<std::path::PathBuf> = if all {
-                    std::fs::read_dir(&agents_dir)?
-                        .filter_map(|e| e.ok())
-                        .map(|e| e.path())
-                        .filter(|p| {
-                            p.extension().and_then(|x| x.to_str()) == Some("md")
-                                && p.file_name()
-                                    .and_then(|n| n.to_str())
-                                    .map(|n| n != "INDEX.md")
-                                    .unwrap_or(false)
-                        })
-                        .collect()
-                } else {
-                    let n = name
-                        .as_deref()
-                        .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
-                    vec![agents_dir.join(format!("{}.md", n))]
-                };
-                let mut migrated = 0usize;
-                let mut errors = 0usize;
-                for mp in &md_files {
-                    match agent::migrate_md_to_yaml(mp, &agents_dir) {
-                        Ok(out) => {
-                            migrated += 1;
-                            if !json {
-                                println!("Migrated {} -> {}", mp.display(), out.display());
-                            }
-                        }
-                        Err(e) => {
-                            errors += 1;
-                            if !json {
-                                eprintln!("SKIP {}: {}", mp.display(), e);
-                            }
-                        }
-                    }
-                }
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "migrated": migrated, "errors": errors})
-                    );
-                }
-                Ok(())
-            }
-
-            AgentAction::Dispatch { path, max } => {
-                let markdown = std::fs::read_to_string(&path)?;
-                let tasks = plan::parse(&markdown)?;
-                if tasks.is_empty() {
-                    anyhow::bail!("no tasks found in {}", path);
-                }
-                let mut session = Session::open(&root)?;
-                let mut ingested = 0usize;
-                for task in tasks {
-                    match session.add_task(task) {
-                        Ok(()) => ingested += 1,
-                        Err(e) if e.to_string().contains("already exists") => {}
-                        Err(e) => return Err(e),
-                    }
-                }
-                session.save()?;
-                let chains = dispatch::independent_chains(session.graph(), max);
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&serde_json::json!({
-                            "plan": path,
-                            "ingested": ingested,
-                            "chains": chains,
-                        }))?
-                    );
-                } else {
-                    println!("=== godmode agent dispatch ===");
-                    println!("Plan:    {}", path);
-                    println!("Chains:  {}", chains.len());
-                    println!();
-                    println!("{}", serde_json::to_string_pretty(&chains)?);
-                    println!();
-                    println!(
-                        "Paste the chains array into orca-strait or feed to godmode-crate-agent."
-                    );
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Verify { crate_name } => {
-            let config = godmode_core::config::Config::load(&root);
-            let report =
-                godmode_core::verify::run_with_config(&root, crate_name.as_deref(), &config)?;
-            if sarif {
-                let mut log = godmode_core::sarif::from_verify(&report);
-                // Merge rich clippy SARIF (with file locations) as a second run
-                let clippy_log = godmode_core::sarif::clippy_sarif(&root, crate_name.as_deref())?;
-                log.runs.extend(clippy_log.runs);
-                // Merge globstar SARIF if available
-                if let Some(gs_log) = godmode_core::sarif::globstar_sarif(&root) {
-                    log.runs.extend(gs_log.runs);
-                }
-                println!("{}", serde_json::to_string_pretty(&log)?);
-            } else if json {
-                println!("{}", serde_json::to_string_pretty(&report)?);
-            } else {
-                let icon = |ok: bool| if ok { "✓" } else { "✗" };
-                for step in &report.steps {
-                    println!("{:<9}{}", step.name, icon(step.ok));
-                }
-                if !report.passed {
-                    for step in &report.steps {
-                        if !step.ok && !step.output.is_empty() {
-                            eprintln!("{}", step.output);
-                        }
-                    }
-                }
-            }
-            if !report.passed {
-                std::process::exit(1);
-            }
-            Ok(())
-        }
-
-        Cmd::Wave { action } => match action {
-            WaveAction::Init { wave, agents } => {
-                let agent_refs: Vec<&str> = agents.iter().map(|s| s.as_str()).collect();
-                let state = godmode_core::wave::init(&root, wave, &agent_refs)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&state)?);
-                } else {
-                    println!(
-                        "Wave {} initialised: {} agent(s).",
-                        wave,
-                        state.agents.len()
-                    );
-                    for (name, slot) in &state.agents {
-                        println!("  {} — {:?}", name, slot.status);
-                    }
-                }
-                Ok(())
-            }
-            WaveAction::Status => {
-                let state = godmode_core::wave::load(&root)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&state)?);
-                } else {
-                    println!("Wave {}:", state.wave);
-                    for (name, slot) in &state.agents {
+                        let blocked_inline: Vec<String> = blocked_tasks
+                            .iter()
+                            .map(|t| {
+                                if t.notes.is_empty() {
+                                    format!("{}: (no reason)", t.id)
+                                } else {
+                                    format!("{}: {}", t.id, t.notes)
+                                }
+                            })
+                            .collect();
                         println!(
-                            "  {:20} {:?}  commits: {}",
-                            name,
-                            slot.status,
-                            slot.commits.join(", ")
+                            "  blocked  {}  [{}]",
+                            summary.blocked,
+                            blocked_inline.join(", ")
                         );
                     }
-                }
-                Ok(())
-            }
-            WaveAction::Done { agent, commits } => {
-                godmode_core::wave::mark_done(&root, &agent, commits)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "agent": agent, "status": "done"})
-                    );
-                } else {
-                    println!("Agent '{}' marked done.", agent);
-                }
-                Ok(())
-            }
-            WaveAction::Block { agent } => {
-                godmode_core::wave::mark_blocked(&root, &agent)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "agent": agent, "status": "blocked"})
-                    );
-                } else {
-                    println!("Agent '{}' marked blocked.", agent);
-                }
-                Ok(())
-            }
-            WaveAction::Check => {
-                let state = godmode_core::wave::load(&root)?;
-                let settled = godmode_core::wave::check(&state);
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"settled": settled, "all_done": godmode_core::wave::all_done(&state)})
-                    );
-                } else if settled {
-                    println!(
-                        "Wave settled. all_done={}",
-                        godmode_core::wave::all_done(&state)
-                    );
-                } else {
-                    let pending: Vec<_> = state
-                        .agents
-                        .iter()
-                        .filter(|(_, s)| s.status == godmode_core::wave::SlotStatus::Pending)
-                        .map(|(n, _)| n.as_str())
-                        .collect();
-                    println!("Wave not settled. Pending: {}", pending.join(", "));
-                }
-                if !settled {
-                    std::process::exit(1);
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Worktree { action } => match action {
-            WorktreeAction::Add { branch, issue } => {
-                let info = godmode_core::worktree::add(&root, &branch, issue)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "branch": info.branch, "path": info.path.display().to_string()})
-                    );
-                } else {
-                    println!(
-                        "Worktree created: {} → {}",
-                        info.branch,
-                        info.path.display()
-                    );
-                }
-                Ok(())
-            }
-            WorktreeAction::Remove { branch } => {
-                godmode_core::worktree::remove(&root, &branch)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "branch": branch, "removed": true})
-                    );
-                } else {
-                    println!("Worktree removed: {}", branch);
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Ci { action } => match action {
-            CiAction::Triage { run_id } => {
-                let result = godmode_core::integrations::gh::ci_triage(run_id.as_deref())?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&result)?);
-                } else {
-                    println!("Run:   {}", result.run_id);
-                    println!("Class: {:?}", result.class);
-                    println!("Fix:   {}", result.fix_hint);
-                    if !result.raw_snippet.is_empty() {
-                        println!("\n--- log snippet ---\n{}", result.raw_snippet);
-                    }
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Issue { action } => match action {
-            IssueAction::List { repo, label } => {
-                let tasks =
-                    godmode_core::integrations::gh::pull_issues(repo.as_deref(), label.as_deref())?;
-                if tasks.is_empty() {
-                    if json {
-                        println!("[]");
-                    } else {
-                        println!("No open issues.");
-                    }
-                    return Ok(());
-                }
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&tasks)?);
-                } else {
-                    for t in &tasks {
-                        println!("[{}] {}", t.id, t.title);
-                    }
-                }
-                Ok(())
-            }
-            IssueAction::Close {
-                number,
-                repo,
-                commit,
-            } => {
-                godmode_core::integrations::gh::issue_close(number, repo.as_deref(), &commit)?;
-                if json {
-                    println!("{}", serde_json::json!({"ok": true, "number": number}));
-                } else {
-                    println!("Issue #{} closed (commit {}).", number, commit);
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Graph { action } => match action {
-            GraphAction::Build { input, vars } => {
-                let summary = match input {
-                    Some(path) => {
-                        let p = std::path::PathBuf::from(&path);
-                        builder::build_from_file(&root, &p, &vars)?
-                    }
-                    None => builder::build_interactive(&root)?,
-                };
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&summary)?);
-                } else {
-                    println!(
-                        "Added {} task(s), {} dep(s) wired.",
-                        summary.added, summary.wired
-                    );
-                    if !summary.findings.is_empty() {
-                        for f in &summary.findings {
-                            eprintln!("! {}", f);
-                        }
-                    }
-                    if summary.next.is_empty() {
-                        std::process::exit(1);
-                    }
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Skill { action } => match action {
-            SkillAction::List => {
-                let skills_dir = root.join("skills");
-                let skills = skill::list_local(&skills_dir)?;
-                if skills.is_empty() {
-                    if json {
-                        println!("[]");
-                    } else {
-                        println!("No skills found.");
-                    }
-                    return Ok(());
-                }
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&skills)?);
-                } else {
-                    println!("{:<30} PATH", "NAME");
-                    for s in &skills {
-                        println!("{:<30} {}", s.name, s.path.display());
-                    }
-                }
-                Ok(())
-            }
-            SkillAction::Install { path } => {
-                let p = std::path::PathBuf::from(&path);
-                if !p.join("SKILL.md").exists() {
-                    anyhow::bail!("no SKILL.md found in {}", p.display());
-                }
-                let name = p
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .ok_or_else(|| anyhow::anyhow!("invalid path: {}", p.display()))?
-                    .to_string();
-                let mut reg = registry::Registry::load_global()?;
-                let entry = registry::RegistryEntry {
-                    name: name.clone(),
-                    kind: registry::EntryKind::Skill,
-                    path: p.canonicalize().unwrap_or(p),
-                    version: "1.0.0".to_string(),
-                };
-                let is_new = reg.install(entry);
-                reg.save_global()?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "name": name, "new": is_new})
-                    );
-                } else if is_new {
-                    println!("Installed skill '{}'.", name);
-                } else {
-                    println!("Skill '{}' already registered.", name);
-                }
-                Ok(())
-            }
-            SkillAction::Uninstall { name } => {
-                let mut reg = registry::Registry::load_global()?;
-                let removed = reg.uninstall(&name);
-                reg.save_global()?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "name": name, "removed": removed})
-                    );
-                } else if removed {
-                    println!("Uninstalled skill '{}'.", name);
-                } else {
-                    println!("Skill '{}' was not in the registry.", name);
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Review { action } => {
-            let report = match action {
-                ReviewAction::Self_ => review::run_all(&root)?,
-                ReviewAction::Skills => review::check_skills(&root)?,
-                ReviewAction::Agents => review::check_agents(&root)?,
-            };
-            if sarif {
-                let log = godmode_core::sarif::from_review(&report);
-                println!("{}", serde_json::to_string_pretty(&log)?);
-            } else if json {
-                println!("{}", serde_json::to_string_pretty(&report)?);
-            } else if report.passed {
-                println!("{} checks passed.", report.checks);
-            } else {
-                for f in &report.findings {
-                    println!("{}", f.message);
-                }
-                println!(
-                    "\n{} checks failed out of {} total.",
-                    report.findings.len(),
-                    report.checks
-                );
-            }
-            if !report.passed {
-                std::process::exit(1);
-            }
-            Ok(())
-        }
-
-        Cmd::Release { action } => match action {
-            ReleaseAction::Current => {
-                let v = release::current_version(&root)?;
-                if json {
-                    println!("{}", serde_json::json!({"version": v}));
-                } else {
-                    println!("{}", v);
-                }
-                Ok(())
-            }
-            ReleaseAction::Bump { version } => {
-                let info = release::bump(&root, version.as_deref())?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&info)?);
-                } else {
-                    println!("{} → {}", info.old_version, info.new_version);
-                }
-                Ok(())
-            }
-            ReleaseAction::Tag => {
-                let tag = release::tag(&root)?;
-                if json {
-                    println!("{}", serde_json::json!({"tag": tag}));
-                } else {
-                    println!("Tagged {}", tag);
-                }
-                Ok(())
-            }
-            ReleaseAction::Push => {
-                release::push(&root)?;
-                if json {
-                    println!("{}", serde_json::json!({"ok": true}));
-                } else {
-                    println!("Pushed branch and tag.");
-                }
-                Ok(())
-            }
-            ReleaseAction::Changelog => {
-                let entry = release::generate_changelog(&root)?;
-                release::write_changelog(&root, &entry)?;
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::json!({"ok": true, "version": entry.version, "date": entry.date})
-                    );
-                } else {
-                    println!("Updated CHANGELOG.md for version {}.", entry.version);
-                }
-                Ok(())
-            }
-
-            ReleaseAction::Validate => {
-                let warnings = release::validate_versions(&root)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&warnings)?);
-                } else if warnings.is_empty() {
-                    println!("All versions consistent.");
-                } else {
-                    println!("Version drift detected:");
-                    for w in &warnings {
-                        println!("  - {w}");
-                    }
-                    std::process::exit(1);
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Workflow { action } => match action {
-            WorkflowAction::Run {
-                agent: agent_name,
-                workflow: wf_name,
-            } => {
-                let agents_dir = root.join("agents");
-                let agent_path = agents_dir.join(format!("{}.yaml", agent_name));
-                let agent_def = agent::load(&agent_path)?;
-                let wf_ref = agent_def
-                    .workflows
-                    .iter()
-                    .find(|w| w.name == wf_name)
-                    .ok_or_else(|| {
-                        anyhow::anyhow!(
-                            "workflow '{}' not found in agent '{}'",
-                            wf_name,
-                            agent_name
-                        )
-                    })?;
-                let wf_path = root.join(&wf_ref.path);
-                let wf_def = workflow::load(&wf_path)?;
-                let final_state = workflow::run(&wf_def, &root)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&final_state)?);
-                } else {
-                    for s in &final_state.steps {
-                        let state_str = format!("{:?}", s.state);
-                        let code = s
-                            .exit_code
-                            .map(|c| format!(" (exit {})", c))
-                            .unwrap_or_default();
-                        println!("[{:8}] {}{}", state_str, s.id, code);
-                    }
-                }
-                Ok(())
-            }
-
-            WorkflowAction::List {
-                agent: agent_filter,
-            } => {
-                let agents_dir = root.join("agents");
-                let mut entries: Vec<serde_json::Value> = vec![];
-                if agents_dir.exists() {
-                    let yaml_files: Vec<std::path::PathBuf> = std::fs::read_dir(&agents_dir)?
-                        .filter_map(|e| e.ok())
-                        .map(|e| e.path())
-                        .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
-                        .collect();
-                    for yf in yaml_files {
-                        let Ok(a) = agent::load(&yf) else { continue };
-                        if agent_filter.as_deref().is_some_and(|f| a.name != f) {
-                            continue;
-                        }
-                        for wf in &a.workflows {
-                            entries.push(serde_json::json!({
-                                "agent": a.name,
-                                "workflow": wf.name,
-                                "path": wf.path,
-                                "slash_command": wf.slash_command,
-                            }));
-                        }
-                    }
-                }
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&entries)?);
-                } else if entries.is_empty() {
-                    println!("No workflows found.");
-                } else {
-                    println!("{:<30} {:<30} PATH", "AGENT", "WORKFLOW");
-                    for e in &entries {
+                    println!();
+                    if !critical.is_empty() {
+                        let path_str: Vec<&str> = critical.iter().map(|t| t.id.as_str()).collect();
                         println!(
-                            "{:<30} {:<30} {}",
-                            e["agent"].as_str().unwrap_or(""),
-                            e["workflow"].as_str().unwrap_or(""),
-                            e["path"].as_str().unwrap_or(""),
+                            "  critical path ({} tasks): {}",
+                            critical.len(),
+                            path_str.join(" -> ")
                         );
                     }
-                }
-                Ok(())
-            }
-
-            WorkflowAction::Status { name } => {
-                let state_path = root
-                    .join(".ctx")
-                    .join("godmode")
-                    .join(format!("workflow-{}.json", name));
-                if !state_path.exists() {
-                    if json {
-                        println!("null");
-                    } else {
-                        println!("No state file found for workflow '{}'.", name);
-                    }
-                    return Ok(());
-                }
-                let raw = std::fs::read_to_string(&state_path)?;
-                let state: workflow::WorkflowState = serde_json::from_str(&raw)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&state)?);
-                } else {
-                    println!("Workflow: {}", state.workflow);
-                    for s in &state.steps {
-                        let state_str = format!("{:?}", s.state);
-                        let code = s
-                            .exit_code
-                            .map(|c| format!(" (exit {})", c))
+                    for t in &next {
+                        let crate_tag = t
+                            .crate_name
+                            .as_deref()
+                            .map(|c| format!(" ({})", c))
                             .unwrap_or_default();
-                        println!("[{:8}] {}{}", state_str, s.id, code);
+                        println!("  next: [{}] {}{}", t.id, t.title, crate_tag);
                     }
                 }
                 Ok(())
             }
-        },
 
-        Cmd::VisualizeGraph { format, out } => {
-            let g = graph::load(&root)?;
-            let dot = graph::to_dot(&g);
-            let content = match format.as_str() {
-                "dot" => dot,
-                "svg" => {
-                    // Try piping DOT through `dot -Tsvg`; degrade gracefully if missing.
-                    match std::process::Command::new("dot")
-                        .args(["-Tsvg"])
-                        .stdin(std::process::Stdio::piped())
-                        .stdout(std::process::Stdio::piped())
-                        .stderr(std::process::Stdio::inherit())
-                        .spawn()
-                    {
-                        Ok(mut child) => {
-                            use std::io::Write;
-                            if let Some(stdin) = child.stdin.take() {
-                                let mut stdin = stdin;
-                                let _ = stdin.write_all(dot.as_bytes());
-                            }
-                            let output = child.wait_with_output()?;
-                            if !output.status.success() {
-                                anyhow::bail!("graphviz dot exited with {}", output.status);
-                            }
-                            String::from_utf8_lossy(&output.stdout).into_owned()
-                        }
-                        Err(_) => {
-                            eprintln!(
-                                "warning: graphviz `dot` not found — falling back to DOT format"
-                            );
-                            dot
-                        }
-                    }
-                }
-                other => anyhow::bail!("unsupported format '{other}'; expected dot or svg"),
-            };
-            if let Some(path) = out {
-                std::fs::write(&path, &content)?;
-                if !json {
-                    println!("wrote {path}");
-                } else {
-                    println!("{}", serde_json::json!({"path": path}));
-                }
-            } else {
-                print!("{content}");
-            }
-            Ok(())
-        }
-        Cmd::MemoryBanking { action } => {
-            match action {
-                MemoryBankingAction::Inject => memory_banking::inject(&root, json)?,
-                MemoryBankingAction::Remind => memory_banking::remind(&root, json)?,
-                MemoryBankingAction::Init => memory_banking::init(&root)?,
-                MemoryBankingAction::Status => memory_banking::status(&root, json)?,
-            }
-            Ok(())
-        }
-
-        Cmd::Insight { action } => {
-            fn parse_date_or_today(d: &Option<String>) -> Result<insights::NaiveDate> {
-                match d {
-                    Some(s) => Ok(insights::NaiveDate::parse_from_str(s, "%Y-%m-%d")?),
-                    None => Ok(insights::today()),
-                }
+            Cmd::Hook { action } => {
+                commands::run_hook_action(&root, json, action)?;
+                Ok(())
             }
 
-            match action {
-                InsightAction::Add { title, body, tags } => {
-                    let insight = insights::new_insight(title, body, tags);
-                    insights::append(&root, &insight)?;
-                    if json {
-                        println!("{}", serde_json::to_string(&insight)?);
-                    } else {
-                        println!("Recorded: {}", insight.title);
+            Cmd::Dispatch {
+                max,
+                critical_path: cp,
+            } => {
+                let g = graph::load(&root)?;
+                if cp {
+                    let path = dispatch::critical_path(&g);
+                    if path.is_empty() {
+                        exit_empty(json);
                     }
-                }
-                InsightAction::List { date } => {
-                    let d = parse_date_or_today(&date)?;
-                    let items = insights::list_for_date(&root, d)?;
-                    if json {
-                        println!("{}", serde_json::to_string_pretty(&items)?);
-                    } else if items.is_empty() {
-                        println!("No insights for {d}.");
-                        std::process::exit(2);
-                    } else {
-                        for i in &items {
-                            let tags = if i.tags.is_empty() {
-                                String::new()
-                            } else {
-                                format!(" [{}]", i.tags.join(", "))
-                            };
-                            println!("- {}{}", i.title, tags);
-                        }
-                    }
-                }
-                InsightAction::Render { date } => {
-                    let d = parse_date_or_today(&date)?;
-                    let path = insights::render_markdown(&root, d)?;
                     if json {
                         println!(
                             "{}",
-                            serde_json::json!({ "path": path.display().to_string() })
+                            serde_json::to_string_pretty(&serde_json::json!({
+                                "critical_path": path,
+                                "depth": path.len(),
+                            }))?
                         );
                     } else {
-                        println!("Wrote {}", path.display());
+                        println!("=== critical path ({} tasks) ===", path.len());
+                        for t in &path {
+                            println!("[{}] {}", t.id, t.title);
+                        }
                     }
-                }
-            }
-            Ok(())
-        }
-
-        Cmd::Pipeline { action } => match action {
-            PipelineAction::List => {
-                let pipelines = pipeline::load_pipelines(&root)?;
-                if pipelines.is_empty() {
-                    if json {
-                        println!("[]");
-                    } else {
-                        println!("No pipelines found.");
-                    }
-                    return Ok(());
-                }
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&pipelines)?);
                 } else {
-                    for p in &pipelines {
-                        println!("{} — {}", p.name, p.description);
+                    let chains = dispatch::independent_chains(&g, max);
+                    if chains.is_empty() {
+                        exit_empty(json);
                     }
+                    println!("{}", serde_json::to_string_pretty(&chains)?);
                 }
                 Ok(())
             }
 
-            PipelineAction::Show { name } => {
-                let p = pipeline::load_pipeline(&root, &name)?;
-                let state = pipeline::load_state(&root)?;
-                let active_idx = state
-                    .as_ref()
-                    .filter(|s| s.active == name)
-                    .map(|s| s.current_step);
-                if json {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&serde_json::json!({
-                            "pipeline": p,
-                            "current_step": active_idx,
-                        }))?
-                    );
-                } else {
-                    println!("Pipeline: {} — {}", p.name, p.description);
-                    for (i, step) in p.steps.iter().enumerate() {
-                        let marker = if active_idx == Some(i) { ">>" } else { "  " };
-                        println!("{} [{}] {}", marker, i + 1, step.skill);
+            Cmd::Agent { action } => match action {
+                AgentAction::List { filter } => {
+                    let all_agents = agent_index::list_agents(&root)?;
+                    agent_index::generate_agent_index(&root, &all_agents)?;
+                    let mut agents = all_agents;
+                    if let Some(kw) = &filter {
+                        agents = agent_index::filter_agents(agents, kw);
                     }
-                }
-                Ok(())
-            }
-
-            PipelineAction::Start { name, from } => {
-                let p = pipeline::load_pipeline(&root, &name)?;
-                let state = pipeline::start(&p, from.as_deref())?;
-                let first = pipeline::current_step(&state, &p)
-                    .map(|s| s.skill.as_str())
-                    .unwrap_or("(none)");
-                pipeline::save_state(&root, &state)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&state)?);
-                } else {
-                    println!("Pipeline '{}' started at step: {}", name, first);
-                }
-                Ok(())
-            }
-
-            PipelineAction::Next => advance_pipeline(&root, json, pipeline::advance),
-
-            PipelineAction::Skip => advance_pipeline(&root, json, pipeline::skip),
-
-            PipelineAction::Stop => {
-                pipeline::clear_state(&root)?;
-                if json {
-                    println!("{}", serde_json::json!({"ok": true}));
-                } else {
-                    println!("Pipeline stopped.");
-                }
-                Ok(())
-            }
-
-            PipelineAction::Run {
-                name,
-                from: _from,
-                fail_fast,
-            } => {
-                let result = pipeline::run_tasks(&root, &name, fail_fast)?;
-                if json {
-                    println!("{}", serde_json::to_string_pretty(&result)?);
-                } else {
-                    for sr in &result.steps {
-                        if sr.skipped {
-                            println!("  [skip] {}", sr.skill);
+                    if agents.is_empty() {
+                        if json {
+                            println!("[]");
                         } else {
+                            println!("No agents found.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&agents)?);
+                    } else {
+                        println!("{:<36} {:<10} SKILLS", "NAME", "COLOR");
+                        for a in &agents {
+                            println!("{:<36} {:<10} {}", a.name, a.color, a.skills.join(", "));
+                        }
+                    }
+                    Ok(())
+                }
+
+                AgentAction::Index { check } => {
+                    let agents = agent_index::list_agents(&root)?;
+                    if check && !agent_index::agent_index_is_current(&root, &agents)? {
+                        anyhow::bail!("agents/INDEX.md is stale");
+                    }
+                    if !check {
+                        agent_index::generate_agent_index(&root, &agents)?;
+                    }
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "entries": agents.len(), "check": check})
+                        );
+                    } else if check {
+                        println!("agents/INDEX.md is current.");
+                    } else {
+                        println!("Generated agents/INDEX.md with {} entries.", agents.len());
+                    }
+                    Ok(())
+                }
+
+                AgentAction::Generate { name, all } => {
+                    let agents_dir = root.join("agents");
+                    if !agents_dir.exists() {
+                        anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
+                    }
+
+                    let cfg_dir = agents_dir.join("cfg");
+                    let names: Vec<String> = if all {
+                        // Collect from cfg/ first, then fall back to flat YAML
+                        let mut from_cfg = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
+                        // Also pick up flat agents/*.yaml that don't have a cfg/ counterpart
+                        for entry in std::fs::read_dir(&agents_dir)?
+                            .filter_map(|e| e.ok())
+                            .map(|e| e.path())
+                            .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
+                        {
+                            if let Some(stem) = entry
+                                .file_stem()
+                                .and_then(|s| s.to_str())
+                                .filter(|s| !from_cfg.contains(&s.to_string()))
+                            {
+                                from_cfg.push(stem.to_string());
+                            }
+                        }
+                        from_cfg
+                    } else {
+                        let n = name
+                            .as_deref()
+                            .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
+                        vec![n.to_string()]
+                    };
+
+                    let mut generated = 0usize;
+                    for n in &names {
+                        let cfg_path = cfg_dir.join(format!("{n}.cfg.yaml"));
+                        if cfg_path.exists() {
+                            // New path: cfg + prompt -> .md
+                            let (md, out) = agent::generate_from_cfg(&agents_dir, n)?;
+                            std::fs::write(&out, &md)?;
+                            generated += 1;
+                            if !json {
+                                println!("Generated {} (from cfg)", out.display());
+                            }
+                        } else {
+                            // Legacy path: flat .yaml -> .md
+                            let yp = agents_dir.join(format!("{n}.yaml"));
+                            let def = agent::load(&yp)?;
+                            let md = agent::generate_md(&def);
+                            let out = yp.with_extension("md");
+                            std::fs::write(&out, &md)?;
+                            generated += 1;
+                            if !json {
+                                println!("Generated {}", out.display());
+                            }
+                        }
+                    }
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "generated": generated})
+                        );
+                    }
+                    Ok(())
+                }
+
+                AgentAction::InstallOpenCode {
+                    catalog,
+                    output_dir,
+                    dry_run,
+                } => {
+                    let catalog = agent::load_opencode_catalog(catalog.as_deref())?;
+                    let output_dir = if let Some(path) = output_dir {
+                        path
+                    } else {
+                        let home = std::env::var_os("HOME")
+                            .ok_or_else(|| anyhow::anyhow!("HOME is not set"))?;
+                        std::path::PathBuf::from(home)
+                            .join(".config")
+                            .join("opencode")
+                            .join("agents")
+                    };
+                    let paths = agent::install_opencode_agents(&catalog, &output_dir, dry_run)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&serde_json::json!({
+                                "ok": true,
+                                "dry_run": dry_run,
+                                "agents": paths,
+                            }))?
+                        );
+                    } else {
+                        let verb = if dry_run {
+                            "Would install"
+                        } else {
+                            "Installed"
+                        };
+                        println!("{verb} {} OpenCode agents:", paths.len());
+                        for path in paths {
+                            println!("  {}", path.display());
+                        }
+                    }
+                    Ok(())
+                }
+
+                AgentAction::Migrate { name, all } => {
+                    let agents_dir = root.join("agents");
+                    if !agents_dir.exists() {
+                        anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
+                    }
+                    let md_files: Vec<std::path::PathBuf> = if all {
+                        std::fs::read_dir(&agents_dir)?
+                            .filter_map(|e| e.ok())
+                            .map(|e| e.path())
+                            .filter(|p| {
+                                p.extension().and_then(|x| x.to_str()) == Some("md")
+                                    && p.file_name()
+                                        .and_then(|n| n.to_str())
+                                        .map(|n| n != "INDEX.md")
+                                        .unwrap_or(false)
+                            })
+                            .collect()
+                    } else {
+                        let n = name
+                            .as_deref()
+                            .ok_or_else(|| anyhow::anyhow!("provide a name or --all"))?;
+                        vec![agents_dir.join(format!("{}.md", n))]
+                    };
+                    let mut migrated = 0usize;
+                    let mut errors = 0usize;
+                    for mp in &md_files {
+                        match agent::migrate_md_to_yaml(mp, &agents_dir) {
+                            Ok(out) => {
+                                migrated += 1;
+                                if !json {
+                                    println!("Migrated {} -> {}", mp.display(), out.display());
+                                }
+                            }
+                            Err(e) => {
+                                errors += 1;
+                                if !json {
+                                    eprintln!("SKIP {}: {}", mp.display(), e);
+                                }
+                            }
+                        }
+                    }
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "migrated": migrated, "errors": errors})
+                        );
+                    }
+                    Ok(())
+                }
+
+                AgentAction::Dispatch { path, max } => {
+                    let markdown = std::fs::read_to_string(&path)?;
+                    let tasks = plan::parse(&markdown)?;
+                    if tasks.is_empty() {
+                        anyhow::bail!("no tasks found in {}", path);
+                    }
+                    let mut session = Session::open(&root)?;
+                    let mut ingested = 0usize;
+                    for task in tasks {
+                        match session.add_task(task) {
+                            Ok(()) => ingested += 1,
+                            Err(e) if e.to_string().contains("already exists") => {}
+                            Err(e) => return Err(e),
+                        }
+                    }
+                    session.save()?;
+                    let chains = dispatch::independent_chains(session.graph(), max);
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&serde_json::json!({
+                                "plan": path,
+                                "ingested": ingested,
+                                "chains": chains,
+                            }))?
+                        );
+                    } else {
+                        println!("=== godmode agent dispatch ===");
+                        println!("Plan:    {}", path);
+                        println!("Chains:  {}", chains.len());
+                        println!();
+                        println!("{}", serde_json::to_string_pretty(&chains)?);
+                        println!();
+                        println!(
+                            "Paste the chains array into orca-strait or feed to godmode-crate-agent."
+                        );
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Verify { crate_name } => {
+                let config = godmode_core::config::Config::load(&root);
+                let report =
+                    godmode_core::verify::run_with_config(&root, crate_name.as_deref(), &config)?;
+                if sarif {
+                    let mut log = godmode_core::sarif::from_verify(&report);
+                    // Merge rich clippy SARIF (with file locations) as a second run
+                    let clippy_log =
+                        godmode_core::sarif::clippy_sarif(&root, crate_name.as_deref())?;
+                    log.runs.extend(clippy_log.runs);
+                    // Merge globstar SARIF if available
+                    if let Some(gs_log) = godmode_core::sarif::globstar_sarif(&root) {
+                        log.runs.extend(gs_log.runs);
+                    }
+                    println!("{}", serde_json::to_string_pretty(&log)?);
+                } else if json {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                } else {
+                    let icon = |ok: bool| if ok { "✓" } else { "✗" };
+                    for step in &report.steps {
+                        println!("{:<9}{}", step.name, icon(step.ok));
+                    }
+                    if !report.passed {
+                        for step in &report.steps {
+                            if !step.ok && !step.output.is_empty() {
+                                eprintln!("{}", step.output);
+                            }
+                        }
+                    }
+                }
+                if !report.passed {
+                    std::process::exit(1);
+                }
+                Ok(())
+            }
+
+            Cmd::Wave { action } => match action {
+                WaveAction::Init { wave, agents } => {
+                    let agent_refs: Vec<&str> = agents.iter().map(|s| s.as_str()).collect();
+                    let state = godmode_core::wave::init(&root, wave, &agent_refs)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&state)?);
+                    } else {
+                        println!(
+                            "Wave {} initialised: {} agent(s).",
+                            wave,
+                            state.agents.len()
+                        );
+                        for (name, slot) in &state.agents {
+                            println!("  {} — {:?}", name, slot.status);
+                        }
+                    }
+                    Ok(())
+                }
+                WaveAction::Status => {
+                    let state = godmode_core::wave::load(&root)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&state)?);
+                    } else {
+                        println!("Wave {}:", state.wave);
+                        for (name, slot) in &state.agents {
                             println!(
-                                "  [{}] {} — {} task(s), {} failed",
-                                if sr.tasks_failed > 0 { "FAIL" } else { "ok" },
-                                sr.skill,
-                                sr.tasks_run,
-                                sr.tasks_failed,
+                                "  {:20} {:?}  commits: {}",
+                                name,
+                                slot.status,
+                                slot.commits.join(", ")
                             );
                         }
                     }
-                    if result.completed {
-                        println!("Pipeline complete.");
-                    } else if let Some(ref skill) = result.stopped_at {
-                        println!("Stopped at: {skill}");
+                    Ok(())
+                }
+                WaveAction::Done { agent, commits } => {
+                    godmode_core::wave::mark_done(&root, &agent, commits)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "agent": agent, "status": "done"})
+                        );
+                    } else {
+                        println!("Agent '{}' marked done.", agent);
+                    }
+                    Ok(())
+                }
+                WaveAction::Block { agent } => {
+                    godmode_core::wave::mark_blocked(&root, &agent)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "agent": agent, "status": "blocked"})
+                        );
+                    } else {
+                        println!("Agent '{}' marked blocked.", agent);
+                    }
+                    Ok(())
+                }
+                WaveAction::Check => {
+                    let state = godmode_core::wave::load(&root)?;
+                    let settled = godmode_core::wave::check(&state);
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"settled": settled, "all_done": godmode_core::wave::all_done(&state)})
+                        );
+                    } else if settled {
+                        println!(
+                            "Wave settled. all_done={}",
+                            godmode_core::wave::all_done(&state)
+                        );
+                    } else {
+                        let pending: Vec<_> = state
+                            .agents
+                            .iter()
+                            .filter(|(_, s)| s.status == godmode_core::wave::SlotStatus::Pending)
+                            .map(|(n, _)| n.as_str())
+                            .collect();
+                        println!("Wave not settled. Pending: {}", pending.join(", "));
+                    }
+                    if !settled {
                         std::process::exit(1);
                     }
+                    Ok(())
                 }
-                Ok(())
-            }
+            },
 
-            PipelineAction::Status => {
-                let state = pipeline::load_state(&root)?;
-                match state {
-                    None => {
-                        if json {
-                            println!("null");
-                        } else {
-                            println!("No active pipeline.");
-                        }
-                    }
-                    Some(s) => {
-                        let p = pipeline::load_pipeline(&root, &s.active)?;
-                        let (done, total) = pipeline::progress(&s, &p);
-                        let current = pipeline::current_step(&s, &p)
-                            .map(|step| step.skill.as_str())
-                            .unwrap_or("(complete)");
-                        if json {
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&serde_json::json!({
-                                    "active": s.active,
-                                    "current_step": current,
-                                    "progress": { "done": done, "total": total },
-                                    "complete": pipeline::is_complete(&s, &p),
-                                }))?
-                            );
-                        } else {
-                            println!("Pipeline: {}", s.active);
-                            println!("Step:     {}", current);
-                            println!("Progress: {}/{}", done, total);
-                        }
-                    }
-                }
-                Ok(())
-            }
-        },
-
-        Cmd::Policy { action } => {
-            match action {
-                PolicyCmdAction::Resolve { agent, level } => {
-                    let level_parsed = level
-                        .as_deref()
-                        .map(|l| l.parse::<policy::GovernanceLevel>())
-                        .transpose()?;
-                    let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
+            Cmd::Worktree { action } => match action {
+                WorktreeAction::Add { branch, issue } => {
+                    let info = godmode_core::worktree::add(&root, &branch, issue)?;
                     if json {
-                        println!("{}", serde_json::to_string_pretty(&resolved)?);
-                    } else {
-                        println!("Agent:    {}", resolved.agent);
-                        println!("Category: {}", resolved.category);
-                        println!("Level:    {}", resolved.level);
-                        println!("Sources:  {}", resolved.sources.join(" + "));
-                        println!();
-                        let p = &resolved.policy;
-                        if p.allowed_tools.is_empty() {
-                            println!("Allowed tools: (all)");
-                        } else {
-                            println!("Allowed tools: {}", p.allowed_tools.join(", "));
-                        }
-                        if !p.blocked_tools.is_empty() {
-                            println!("Blocked tools: {}", p.blocked_tools.join(", "));
-                        }
-                        println!("Max calls/dispatch: {}", p.max_calls_per_dispatch);
-                        if !p.require_human_approval.is_empty() {
-                            println!("Require approval: {}", p.require_human_approval.join(", "));
-                        }
-                        println!();
-                        println!("Subagent constraints:");
-                        println!("  max_concurrent: {}", p.subagent.max_concurrent);
-                        println!("  verify_branch:  {}", p.subagent.must_verify_branch);
-                        println!("  no_main:        {}", p.subagent.no_commit_to_main);
-                        println!("  max_retries:    {}", p.subagent.max_retries_on_failure);
                         println!(
-                            "  require_commit: {}",
-                            p.subagent.require_commit_before_done
+                            "{}",
+                            serde_json::json!({"ok": true, "branch": info.branch, "path": info.path.display().to_string()})
                         );
-                        if !p.subagent.blocked_flags.is_empty() {
-                            println!("  blocked_flags:  {}", p.subagent.blocked_flags.join(", "));
-                        }
+                    } else {
+                        println!(
+                            "Worktree created: {} → {}",
+                            info.branch,
+                            info.path.display()
+                        );
                     }
+                    Ok(())
                 }
-                PolicyCmdAction::Check {
-                    agent,
-                    tool,
-                    input,
-                    level,
-                } => {
-                    let level_parsed = level
-                        .as_deref()
-                        .map(|l| l.parse::<policy::GovernanceLevel>())
-                        .transpose()?;
-                    let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
-                    let result = policy::check_tool(&resolved.policy, &tool, input.as_deref());
+                WorktreeAction::Remove { branch } => {
+                    godmode_core::worktree::remove(&root, &branch)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "branch": branch, "removed": true})
+                        );
+                    } else {
+                        println!("Worktree removed: {}", branch);
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Ci { action } => match action {
+                CiAction::Triage { run_id } => {
+                    let result = godmode_core::integrations::gh::ci_triage(run_id.as_deref())?;
                     if json {
                         println!("{}", serde_json::to_string_pretty(&result)?);
                     } else {
-                        let symbol = match result.action {
-                            policy::PolicyAction::Allow => "ALLOW",
-                            policy::PolicyAction::Deny => "DENY",
-                            policy::PolicyAction::Review => "REVIEW",
-                        };
-                        println!("{symbol}: {}", result.reason);
+                        println!("Run:   {}", result.run_id);
+                        println!("Class: {:?}", result.class);
+                        println!("Fix:   {}", result.fix_hint);
+                        if !result.raw_snippet.is_empty() {
+                            println!("\n--- log snippet ---\n{}", result.raw_snippet);
+                        }
                     }
-                    // Exit 1 on deny for scripting
-                    if result.action == policy::PolicyAction::Deny {
+                    Ok(())
+                }
+            },
+
+            Cmd::Issue { action } => match action {
+                IssueAction::List { repo, label } => {
+                    let tasks = godmode_core::integrations::gh::pull_issues(
+                        repo.as_deref(),
+                        label.as_deref(),
+                    )?;
+                    if tasks.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No open issues.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&tasks)?);
+                    } else {
+                        for t in &tasks {
+                            println!("[{}] {}", t.id, t.title);
+                        }
+                    }
+                    Ok(())
+                }
+                IssueAction::Close {
+                    number,
+                    repo,
+                    commit,
+                } => {
+                    godmode_core::integrations::gh::issue_close(number, repo.as_deref(), &commit)?;
+                    if json {
+                        println!("{}", serde_json::json!({"ok": true, "number": number}));
+                    } else {
+                        println!("Issue #{} closed (commit {}).", number, commit);
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Graph { action } => match action {
+                GraphAction::Build { input, vars } => {
+                    let summary = match input {
+                        Some(path) => {
+                            let p = std::path::PathBuf::from(&path);
+                            builder::build_from_file(&root, &p, &vars)?
+                        }
+                        None => builder::build_interactive(&root)?,
+                    };
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&summary)?);
+                    } else {
+                        println!(
+                            "Added {} task(s), {} dep(s) wired.",
+                            summary.added, summary.wired
+                        );
+                        if !summary.findings.is_empty() {
+                            for f in &summary.findings {
+                                eprintln!("! {}", f);
+                            }
+                        }
+                        if summary.next.is_empty() {
+                            std::process::exit(1);
+                        }
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Skill { action } => match action {
+                SkillAction::List => {
+                    let skills_dir = root.join("skills");
+                    let skills = skill::list_local(&skills_dir)?;
+                    if skills.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No skills found.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&skills)?);
+                    } else {
+                        println!("{:<30} PATH", "NAME");
+                        for s in &skills {
+                            println!("{:<30} {}", s.name, s.path.display());
+                        }
+                    }
+                    Ok(())
+                }
+                SkillAction::Index { check } => {
+                    let skills = skill::list_local(&root.join("skills"))?;
+                    if check && !skill::skill_index_is_current(&root, &skills)? {
+                        anyhow::bail!("skills/INDEX.md is stale");
+                    }
+                    if !check {
+                        skill::generate_skill_index(&root, &skills)?;
+                    }
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "entries": skills.len(), "check": check})
+                        );
+                    } else if check {
+                        println!("skills/INDEX.md is current.");
+                    } else {
+                        println!("Generated skills/INDEX.md with {} entries.", skills.len());
+                    }
+                    Ok(())
+                }
+                SkillAction::Install { path } => {
+                    let p = std::path::PathBuf::from(&path);
+                    if !p.join("SKILL.md").exists() {
+                        anyhow::bail!("no SKILL.md found in {}", p.display());
+                    }
+                    let name = p
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .ok_or_else(|| anyhow::anyhow!("invalid path: {}", p.display()))?
+                        .to_string();
+                    let mut reg = registry::Registry::load_global()?;
+                    let entry = registry::RegistryEntry {
+                        name: name.clone(),
+                        kind: registry::EntryKind::Skill,
+                        path: p.canonicalize().unwrap_or(p),
+                        version: "1.0.0".to_string(),
+                    };
+                    let is_new = reg.install(entry);
+                    reg.save_global()?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "name": name, "new": is_new})
+                        );
+                    } else if is_new {
+                        println!("Installed skill '{}'.", name);
+                    } else {
+                        println!("Skill '{}' already registered.", name);
+                    }
+                    Ok(())
+                }
+                SkillAction::Uninstall { name } => {
+                    let mut reg = registry::Registry::load_global()?;
+                    let removed = reg.uninstall(&name);
+                    reg.save_global()?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "name": name, "removed": removed})
+                        );
+                    } else if removed {
+                        println!("Uninstalled skill '{}'.", name);
+                    } else {
+                        println!("Skill '{}' was not in the registry.", name);
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Review { action } => {
+                let report = match action {
+                    ReviewAction::Self_ => review::run_all(&root)?,
+                    ReviewAction::Skills => review::check_skills(&root)?,
+                    ReviewAction::Agents => review::check_agents(&root)?,
+                };
+                if sarif {
+                    let log = godmode_core::sarif::from_review(&report);
+                    println!("{}", serde_json::to_string_pretty(&log)?);
+                } else if json {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                } else if report.passed {
+                    println!("{} checks passed.", report.checks);
+                } else {
+                    for f in &report.findings {
+                        println!("{}", f.message);
+                    }
+                    println!(
+                        "\n{} checks failed out of {} total.",
+                        report.findings.len(),
+                        report.checks
+                    );
+                }
+                if !report.passed {
+                    std::process::exit(1);
+                }
+                Ok(())
+            }
+
+            Cmd::Release { action } => match action {
+                ReleaseAction::Current => {
+                    let v = release::current_version(&root)?;
+                    if json {
+                        println!("{}", serde_json::json!({"version": v}));
+                    } else {
+                        println!("{}", v);
+                    }
+                    Ok(())
+                }
+                ReleaseAction::Bump { version } => {
+                    let info = release::bump(&root, version.as_deref())?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&info)?);
+                    } else {
+                        println!("{} → {}", info.old_version, info.new_version);
+                    }
+                    Ok(())
+                }
+                ReleaseAction::Tag => {
+                    let tag = release::tag(&root)?;
+                    if json {
+                        println!("{}", serde_json::json!({"tag": tag}));
+                    } else {
+                        println!("Tagged {}", tag);
+                    }
+                    Ok(())
+                }
+                ReleaseAction::Push => {
+                    release::push(&root)?;
+                    if json {
+                        println!("{}", serde_json::json!({"ok": true}));
+                    } else {
+                        println!("Pushed branch and tag.");
+                    }
+                    Ok(())
+                }
+                ReleaseAction::Changelog => {
+                    let entry = release::generate_changelog(&root)?;
+                    release::write_changelog(&root, &entry)?;
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::json!({"ok": true, "version": entry.version, "date": entry.date})
+                        );
+                    } else {
+                        println!("Updated CHANGELOG.md for version {}.", entry.version);
+                    }
+                    Ok(())
+                }
+
+                ReleaseAction::Validate => {
+                    let warnings = release::validate_versions(&root)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&warnings)?);
+                    } else if warnings.is_empty() {
+                        println!("All versions consistent.");
+                    } else {
+                        println!("Version drift detected:");
+                        for w in &warnings {
+                            println!("  - {w}");
+                        }
                         std::process::exit(1);
                     }
+                    Ok(())
                 }
-                PolicyCmdAction::List => {
-                    let index = policy::list_policies(&root)?;
+            },
+
+            Cmd::Workflow { action } => match action {
+                WorkflowAction::Run {
+                    agent: agent_name,
+                    workflow: wf_name,
+                } => {
+                    let agents_dir = root.join("agents");
+                    let agent_path = agents_dir.join(format!("{}.yaml", agent_name));
+                    let agent_def = agent::load(&agent_path)?;
+                    let wf_ref = agent_def
+                        .workflows
+                        .iter()
+                        .find(|w| w.name == wf_name)
+                        .ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "workflow '{}' not found in agent '{}'",
+                                wf_name,
+                                agent_name
+                            )
+                        })?;
+                    let wf_path = root.join(&wf_ref.path);
+                    let wf_def = workflow::load(&wf_path)?;
+                    let final_state = workflow::run(&wf_def, &root)?;
                     if json {
-                        println!("{}", serde_json::to_string_pretty(&index)?);
+                        println!("{}", serde_json::to_string_pretty(&final_state)?);
                     } else {
-                        if let Some(ref d) = index.default {
-                            println!("Default: {} (level: {})", d.name, d.level);
+                        for s in &final_state.steps {
+                            let state_str = format!("{:?}", s.state);
+                            let code = s
+                                .exit_code
+                                .map(|c| format!(" (exit {})", c))
+                                .unwrap_or_default();
+                            println!("[{:8}] {}{}", state_str, s.id, code);
                         }
-                        if !index.categories.is_empty() {
-                            println!();
-                            println!("Categories:");
-                            let mut cats: Vec<_> = index.categories.keys().collect();
-                            cats.sort();
-                            for cat in cats {
-                                let p = &index.categories[cat];
+                    }
+                    Ok(())
+                }
+
+                WorkflowAction::List {
+                    agent: agent_filter,
+                } => {
+                    let agents_dir = root.join("agents");
+                    let mut entries: Vec<serde_json::Value> = vec![];
+                    if agents_dir.exists() {
+                        let yaml_files: Vec<std::path::PathBuf> = std::fs::read_dir(&agents_dir)?
+                            .filter_map(|e| e.ok())
+                            .map(|e| e.path())
+                            .filter(|p| p.extension().and_then(|x| x.to_str()) == Some("yaml"))
+                            .collect();
+                        for yf in yaml_files {
+                            let Ok(a) = agent::load(&yf) else { continue };
+                            if agent_filter.as_deref().is_some_and(|f| a.name != f) {
+                                continue;
+                            }
+                            for wf in &a.workflows {
+                                entries.push(serde_json::json!({
+                                    "agent": a.name,
+                                    "workflow": wf.name,
+                                    "path": wf.path,
+                                    "slash_command": wf.slash_command,
+                                }));
+                            }
+                        }
+                    }
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&entries)?);
+                    } else if entries.is_empty() {
+                        println!("No workflows found.");
+                    } else {
+                        println!("{:<30} {:<30} PATH", "AGENT", "WORKFLOW");
+                        for e in &entries {
+                            println!(
+                                "{:<30} {:<30} {}",
+                                e["agent"].as_str().unwrap_or(""),
+                                e["workflow"].as_str().unwrap_or(""),
+                                e["path"].as_str().unwrap_or(""),
+                            );
+                        }
+                    }
+                    Ok(())
+                }
+
+                WorkflowAction::Status { name } => {
+                    let state_path = root
+                        .join(".ctx")
+                        .join("godmode")
+                        .join(format!("workflow-{}.json", name));
+                    if !state_path.exists() {
+                        if json {
+                            println!("null");
+                        } else {
+                            println!("No state file found for workflow '{}'.", name);
+                        }
+                        return Ok(());
+                    }
+                    let raw = std::fs::read_to_string(&state_path)?;
+                    let state: workflow::WorkflowState = serde_json::from_str(&raw)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&state)?);
+                    } else {
+                        println!("Workflow: {}", state.workflow);
+                        for s in &state.steps {
+                            let state_str = format!("{:?}", s.state);
+                            let code = s
+                                .exit_code
+                                .map(|c| format!(" (exit {})", c))
+                                .unwrap_or_default();
+                            println!("[{:8}] {}{}", state_str, s.id, code);
+                        }
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::VisualizeGraph { format, out } => {
+                let g = graph::load(&root)?;
+                let dot = graph::to_dot(&g);
+                let content = match format.as_str() {
+                    "dot" => dot,
+                    "svg" => {
+                        // Try piping DOT through `dot -Tsvg`; degrade gracefully if missing.
+                        match std::process::Command::new("dot")
+                            .args(["-Tsvg"])
+                            .stdin(std::process::Stdio::piped())
+                            .stdout(std::process::Stdio::piped())
+                            .stderr(std::process::Stdio::inherit())
+                            .spawn()
+                        {
+                            Ok(mut child) => {
+                                use std::io::Write;
+                                if let Some(stdin) = child.stdin.take() {
+                                    let mut stdin = stdin;
+                                    let _ = stdin.write_all(dot.as_bytes());
+                                }
+                                let output = child.wait_with_output()?;
+                                if !output.status.success() {
+                                    anyhow::bail!("graphviz dot exited with {}", output.status);
+                                }
+                                String::from_utf8_lossy(&output.stdout).into_owned()
+                            }
+                            Err(_) => {
+                                eprintln!(
+                                    "warning: graphviz `dot` not found — falling back to DOT format"
+                                );
+                                dot
+                            }
+                        }
+                    }
+                    other => anyhow::bail!("unsupported format '{other}'; expected dot or svg"),
+                };
+                if let Some(path) = out {
+                    std::fs::write(&path, &content)?;
+                    if !json {
+                        println!("wrote {path}");
+                    } else {
+                        println!("{}", serde_json::json!({"path": path}));
+                    }
+                } else {
+                    print!("{content}");
+                }
+                Ok(())
+            }
+            Cmd::MemoryBanking { action } => {
+                match action {
+                    MemoryBankingAction::Inject => memory_banking::inject(&root, json)?,
+                    MemoryBankingAction::Remind => memory_banking::remind(&root, json)?,
+                    MemoryBankingAction::Init => memory_banking::init(&root)?,
+                    MemoryBankingAction::Status => memory_banking::status(&root, json)?,
+                }
+                Ok(())
+            }
+
+            Cmd::Insight { action } => {
+                fn parse_date_or_today(d: &Option<String>) -> Result<insights::NaiveDate> {
+                    match d {
+                        Some(s) => Ok(insights::NaiveDate::parse_from_str(s, "%Y-%m-%d")?),
+                        None => Ok(insights::today()),
+                    }
+                }
+
+                match action {
+                    InsightAction::Add { title, body, tags } => {
+                        let insight = insights::new_insight(title, body, tags);
+                        insights::append(&root, &insight)?;
+                        if json {
+                            println!("{}", serde_json::to_string(&insight)?);
+                        } else {
+                            println!("Recorded: {}", insight.title);
+                        }
+                    }
+                    InsightAction::List { date } => {
+                        let d = parse_date_or_today(&date)?;
+                        let items = insights::list_for_date(&root, d)?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&items)?);
+                        } else if items.is_empty() {
+                            println!("No insights for {d}.");
+                            std::process::exit(2);
+                        } else {
+                            for i in &items {
+                                let tags = if i.tags.is_empty() {
+                                    String::new()
+                                } else {
+                                    format!(" [{}]", i.tags.join(", "))
+                                };
+                                println!("- {}{}", i.title, tags);
+                            }
+                        }
+                    }
+                    InsightAction::Render { date } => {
+                        let d = parse_date_or_today(&date)?;
+                        let path = insights::render_markdown(&root, d)?;
+                        if json {
+                            println!(
+                                "{}",
+                                serde_json::json!({ "path": path.display().to_string() })
+                            );
+                        } else {
+                            println!("Wrote {}", path.display());
+                        }
+                    }
+                }
+                Ok(())
+            }
+
+            Cmd::Pipeline { action } => match action {
+                PipelineAction::List => {
+                    let pipelines = pipeline::load_pipelines(&root)?;
+                    if pipelines.is_empty() {
+                        if json {
+                            println!("[]");
+                        } else {
+                            println!("No pipelines found.");
+                        }
+                        return Ok(());
+                    }
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&pipelines)?);
+                    } else {
+                        for p in &pipelines {
+                            println!("{} — {}", p.name, p.description);
+                        }
+                    }
+                    Ok(())
+                }
+
+                PipelineAction::Show { name } => {
+                    let p = pipeline::load_pipeline(&root, &name)?;
+                    let state = pipeline::load_state(&root)?;
+                    let active_idx = state
+                        .as_ref()
+                        .filter(|s| s.active == name)
+                        .map(|s| s.current_step);
+                    if json {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&serde_json::json!({
+                                "pipeline": p,
+                                "current_step": active_idx,
+                            }))?
+                        );
+                    } else {
+                        println!("Pipeline: {} — {}", p.name, p.description);
+                        for (i, step) in p.steps.iter().enumerate() {
+                            let marker = if active_idx == Some(i) { ">>" } else { "  " };
+                            println!("{} [{}] {}", marker, i + 1, step.skill);
+                        }
+                    }
+                    Ok(())
+                }
+
+                PipelineAction::Start { name, from } => {
+                    let p = pipeline::load_pipeline(&root, &name)?;
+                    let state = pipeline::start(&p, from.as_deref())?;
+                    let first = pipeline::current_step(&state, &p)
+                        .map(|s| s.skill.as_str())
+                        .unwrap_or("(none)");
+                    pipeline::save_state(&root, &state)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&state)?);
+                    } else {
+                        println!("Pipeline '{}' started at step: {}", name, first);
+                    }
+                    Ok(())
+                }
+
+                PipelineAction::Next => advance_pipeline(&root, json, pipeline::advance),
+
+                PipelineAction::Skip => advance_pipeline(&root, json, pipeline::skip),
+
+                PipelineAction::Stop => {
+                    pipeline::clear_state(&root)?;
+                    if json {
+                        println!("{}", serde_json::json!({"ok": true}));
+                    } else {
+                        println!("Pipeline stopped.");
+                    }
+                    Ok(())
+                }
+
+                PipelineAction::Run {
+                    name,
+                    from: _from,
+                    fail_fast,
+                } => {
+                    let result = pipeline::run_tasks(&root, &name, fail_fast)?;
+                    if json {
+                        println!("{}", serde_json::to_string_pretty(&result)?);
+                    } else {
+                        for sr in &result.steps {
+                            if sr.skipped {
+                                println!("  [skip] {}", sr.skill);
+                            } else {
                                 println!(
-                                    "  {cat:<8}  tools: {}  max: {}",
-                                    if p.allowed_tools.is_empty() {
-                                        "(all)".to_string()
-                                    } else {
-                                        p.allowed_tools.join(",")
-                                    },
-                                    p.max_calls_per_dispatch,
+                                    "  [{}] {} — {} task(s), {} failed",
+                                    if sr.tasks_failed > 0 { "FAIL" } else { "ok" },
+                                    sr.skill,
+                                    sr.tasks_run,
+                                    sr.tasks_failed,
                                 );
                             }
                         }
-                        if !index.levels.is_empty() {
+                        if result.completed {
+                            println!("Pipeline complete.");
+                        } else if let Some(ref skill) = result.stopped_at {
+                            println!("Stopped at: {skill}");
+                            std::process::exit(1);
+                        }
+                    }
+                    Ok(())
+                }
+
+                PipelineAction::Status => {
+                    let state = pipeline::load_state(&root)?;
+                    match state {
+                        None => {
+                            if json {
+                                println!("null");
+                            } else {
+                                println!("No active pipeline.");
+                            }
+                        }
+                        Some(s) => {
+                            let p = pipeline::load_pipeline(&root, &s.active)?;
+                            let (done, total) = pipeline::progress(&s, &p);
+                            let current = pipeline::current_step(&s, &p)
+                                .map(|step| step.skill.as_str())
+                                .unwrap_or("(complete)");
+                            if json {
+                                println!(
+                                    "{}",
+                                    serde_json::to_string_pretty(&serde_json::json!({
+                                        "active": s.active,
+                                        "current_step": current,
+                                        "progress": { "done": done, "total": total },
+                                        "complete": pipeline::is_complete(&s, &p),
+                                    }))?
+                                );
+                            } else {
+                                println!("Pipeline: {}", s.active);
+                                println!("Step:     {}", current);
+                                println!("Progress: {}/{}", done, total);
+                            }
+                        }
+                    }
+                    Ok(())
+                }
+            },
+
+            Cmd::Policy { action } => {
+                match action {
+                    PolicyCmdAction::Resolve { agent, level } => {
+                        let level_parsed = level
+                            .as_deref()
+                            .map(|l| l.parse::<policy::GovernanceLevel>())
+                            .transpose()?;
+                        let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&resolved)?);
+                        } else {
+                            println!("Agent:    {}", resolved.agent);
+                            println!("Category: {}", resolved.category);
+                            println!("Level:    {}", resolved.level);
+                            println!("Sources:  {}", resolved.sources.join(" + "));
                             println!();
-                            println!("Levels:");
-                            for level_name in &["open", "standard", "strict", "locked"] {
-                                if let Some(p) = index.levels.get(*level_name) {
+                            let p = &resolved.policy;
+                            if p.allowed_tools.is_empty() {
+                                println!("Allowed tools: (all)");
+                            } else {
+                                println!("Allowed tools: {}", p.allowed_tools.join(", "));
+                            }
+                            if !p.blocked_tools.is_empty() {
+                                println!("Blocked tools: {}", p.blocked_tools.join(", "));
+                            }
+                            println!("Max calls/dispatch: {}", p.max_calls_per_dispatch);
+                            if !p.require_human_approval.is_empty() {
+                                println!(
+                                    "Require approval: {}",
+                                    p.require_human_approval.join(", ")
+                                );
+                            }
+                            println!();
+                            println!("Subagent constraints:");
+                            println!("  max_concurrent: {}", p.subagent.max_concurrent);
+                            println!("  verify_branch:  {}", p.subagent.must_verify_branch);
+                            println!("  no_main:        {}", p.subagent.no_commit_to_main);
+                            println!("  max_retries:    {}", p.subagent.max_retries_on_failure);
+                            println!(
+                                "  require_commit: {}",
+                                p.subagent.require_commit_before_done
+                            );
+                            if !p.subagent.blocked_flags.is_empty() {
+                                println!(
+                                    "  blocked_flags:  {}",
+                                    p.subagent.blocked_flags.join(", ")
+                                );
+                            }
+                        }
+                    }
+                    PolicyCmdAction::Check {
+                        agent,
+                        tool,
+                        input,
+                        level,
+                    } => {
+                        let level_parsed = level
+                            .as_deref()
+                            .map(|l| l.parse::<policy::GovernanceLevel>())
+                            .transpose()?;
+                        let resolved = policy::resolve(&root, &agent, level_parsed.as_ref())?;
+                        let result = policy::check_tool(&resolved.policy, &tool, input.as_deref());
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&result)?);
+                        } else {
+                            let symbol = match result.action {
+                                policy::PolicyAction::Allow => "ALLOW",
+                                policy::PolicyAction::Deny => "DENY",
+                                policy::PolicyAction::Review => "REVIEW",
+                            };
+                            println!("{symbol}: {}", result.reason);
+                        }
+                        // Exit 1 on deny for scripting
+                        if result.action == policy::PolicyAction::Deny {
+                            std::process::exit(1);
+                        }
+                    }
+                    PolicyCmdAction::List => {
+                        let index = policy::list_policies(&root)?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&index)?);
+                        } else {
+                            if let Some(ref d) = index.default {
+                                println!("Default: {} (level: {})", d.name, d.level);
+                            }
+                            if !index.categories.is_empty() {
+                                println!();
+                                println!("Categories:");
+                                let mut cats: Vec<_> = index.categories.keys().collect();
+                                cats.sort();
+                                for cat in cats {
+                                    let p = &index.categories[cat];
                                     println!(
-                                        "  {:<10}  max: {}",
-                                        level_name, p.max_calls_per_dispatch,
+                                        "  {cat:<8}  tools: {}  max: {}",
+                                        if p.allowed_tools.is_empty() {
+                                            "(all)".to_string()
+                                        } else {
+                                            p.allowed_tools.join(",")
+                                        },
+                                        p.max_calls_per_dispatch,
+                                    );
+                                }
+                            }
+                            if !index.levels.is_empty() {
+                                println!();
+                                println!("Levels:");
+                                for level_name in &["open", "standard", "strict", "locked"] {
+                                    if let Some(p) = index.levels.get(*level_name) {
+                                        println!(
+                                            "  {:<10}  max: {}",
+                                            level_name, p.max_calls_per_dispatch,
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    PolicyCmdAction::Audit { date } => {
+                        let date_str = date.unwrap_or_else(|| insights::today().to_string());
+                        let events = policy::read_audit_events(&root, Some(&date_str))?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&events)?);
+                        } else if events.is_empty() {
+                            println!("No governance events for {date_str}.");
+                        } else {
+                            let denied = events.iter().filter(|e| e.action == "denied").count();
+                            let reviews = events
+                                .iter()
+                                .filter(|e| e.action == "review" || e.action == "warn")
+                                .count();
+                            let allowed = events.iter().filter(|e| e.action == "allowed").count();
+                            println!("Governance audit for {date_str}:");
+                            println!(
+                                "  {} events: {} denied, {} review, {} allowed",
+                                events.len(),
+                                denied,
+                                reviews,
+                                allowed,
+                            );
+                            println!();
+                            for ev in &events {
+                                if ev.action == "denied"
+                                    || ev.action == "review"
+                                    || ev.action == "warn"
+                                {
+                                    println!(
+                                        "  [{action}] {agent} -> {tool}: {reason}",
+                                        action = ev.action.to_uppercase(),
+                                        agent = ev.agent_id,
+                                        tool = ev.tool_name,
+                                        reason = ev.reason,
                                     );
                                 }
                             }
                         }
                     }
                 }
-                PolicyCmdAction::Audit { date } => {
-                    let date_str = date.unwrap_or_else(|| insights::today().to_string());
-                    let events = policy::read_audit_events(&root, Some(&date_str))?;
-                    if json {
-                        println!("{}", serde_json::to_string_pretty(&events)?);
-                    } else if events.is_empty() {
-                        println!("No governance events for {date_str}.");
-                    } else {
-                        let denied = events.iter().filter(|e| e.action == "denied").count();
-                        let reviews = events
-                            .iter()
-                            .filter(|e| e.action == "review" || e.action == "warn")
-                            .count();
-                        let allowed = events.iter().filter(|e| e.action == "allowed").count();
-                        println!("Governance audit for {date_str}:");
-                        println!(
-                            "  {} events: {} denied, {} review, {} allowed",
-                            events.len(),
-                            denied,
-                            reviews,
-                            allowed,
-                        );
-                        println!();
-                        for ev in &events {
-                            if ev.action == "denied" || ev.action == "review" || ev.action == "warn"
-                            {
-                                println!(
-                                    "  [{action}] {agent} -> {tool}: {reason}",
-                                    action = ev.action.to_uppercase(),
-                                    agent = ev.agent_id,
-                                    tool = ev.tool_name,
-                                    reason = ev.reason,
-                                );
-                            }
-                        }
-                    }
-                }
+                Ok(())
             }
-            Ok(())
-        }
 
-        Cmd::Pin { path } => {
-            let target = match path {
-                Some(p) => std::path::PathBuf::from(p),
-                None => std::env::current_dir()?,
-            };
-            detect::pin_root(&root, &target)?;
-            let canonical = target.canonicalize()?;
-            if json {
-                println!(
-                    "{}",
-                    serde_json::json!({"pinned_root": canonical.to_string_lossy()})
-                );
-            } else {
-                println!("Pinned to {}", canonical.display());
-            }
-            Ok(())
-        }
-
-        Cmd::Unpin => {
-            let removed = detect::unpin_root(&root)?;
-            if json {
-                println!("{}", serde_json::json!({"unpinned": removed}));
-            } else if removed {
-                println!("Unpinned.");
-            } else {
-                println!("No pin was set.");
-            }
-            Ok(())
-        }
-
-        Cmd::Init => {
-            use godmode_core::doctor::RealProbe;
-            use godmode_core::init::{RealFs, run_init};
-
-            let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-            let global_dir = std::path::PathBuf::from(&home)
-                .join(".config")
-                .join("godmode");
-            let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
-            let report = run_init(&RealFs, &RealProbe, &cwd, &global_dir)?;
-
-            if json {
-                println!("{}", serde_json::to_string_pretty(&report)?);
-            } else {
-                if report.global_created {
-                    println!("Created global config: {}", report.global_path.display());
-                } else {
+            Cmd::Pin { path } => {
+                let target = match path {
+                    Some(p) => std::path::PathBuf::from(p),
+                    None => std::env::current_dir()?,
+                };
+                detect::pin_root(&root, &target)?;
+                let canonical = target.canonicalize()?;
+                if json {
                     println!(
-                        "Global config already exists: {}",
-                        report.global_path.display()
+                        "{}",
+                        serde_json::json!({"pinned_root": canonical.to_string_lossy()})
                     );
-                }
-                if report.project_created {
-                    if let Some(ref p) = report.project_path {
-                        println!("Created project state: {}", p.display());
-                    }
-                } else if report.project_path.is_some() {
-                    println!("Project state already exists.");
                 } else {
-                    println!("No Rust project detected (no Cargo.toml found).");
+                    println!("Pinned to {}", canonical.display());
                 }
-                if report.gitignore_updated {
-                    println!("Added .ctx/ to .gitignore");
-                }
-                println!();
-                println!("Doctor:");
-                for c in &report.doctor.checks {
-                    let icon = if c.passed { "ok" } else { "FAIL" };
-                    println!("  [{icon}] {}: {}", c.name, c.detail);
-                }
+                Ok(())
             }
-            Ok(())
-        }
 
-        Cmd::Doctor => {
-            use godmode_core::doctor::{RealProbe, run_doctor};
-
-            let report = run_doctor(&RealProbe);
-            if json {
-                println!("{}", serde_json::to_string_pretty(&report)?);
-            } else {
-                for c in &report.checks {
-                    let icon = if c.passed { "ok" } else { "FAIL" };
-                    println!("[{icon}] {}: {}", c.name, c.detail);
-                }
-                if report.all_passed {
-                    println!("\nAll checks passed.");
+            Cmd::Unpin => {
+                let removed = detect::unpin_root(&root)?;
+                if json {
+                    println!("{}", serde_json::json!({"unpinned": removed}));
+                } else if removed {
+                    println!("Unpinned.");
                 } else {
-                    println!("\nSome checks failed.");
+                    println!("No pin was set.");
                 }
+                Ok(())
             }
-            Ok(())
-        }
 
-        Cmd::Scaffold {
-            crate_name,
-            dimension,
-        } => {
-            use godmode_core::scaffold::{self, Dimension};
+            Cmd::Init => {
+                use godmode_core::doctor::RealProbe;
+                use godmode_core::init::{RealFs, run_init};
 
-            let dim: Dimension = dimension.parse().map_err(|e: String| anyhow::anyhow!(e))?;
-            let stub = scaffold::generate(&crate_name, dim);
-            println!("{stub}");
-            Ok(())
-        }
+                let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+                let global_dir = std::path::PathBuf::from(&home)
+                    .join(".config")
+                    .join("godmode");
+                let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+                let report = run_init(&RealFs, &RealProbe, &cwd, &global_dir)?;
 
-        Cmd::TestCheck { path } => {
-            use godmode_core::test_check;
-
-            let git_root = detect::root_or_cwd()
-                .unwrap_or_else(|_| std::env::current_dir().unwrap_or_default());
-            match test_check::check_test_coverage(&path, &git_root) {
-                Some(msg) => {
-                    if json {
-                        println!("{}", serde_json::json!({"covered": false, "message": msg}));
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                } else {
+                    if report.global_created {
+                        println!("Created global config: {}", report.global_path.display());
                     } else {
-                        eprintln!("{msg}");
+                        println!(
+                            "Global config already exists: {}",
+                            report.global_path.display()
+                        );
                     }
-                    std::process::exit(2);
+                    if report.project_created {
+                        if let Some(ref p) = report.project_path {
+                            println!("Created project state: {}", p.display());
+                        }
+                    } else if report.project_path.is_some() {
+                        println!("Project state already exists.");
+                    } else {
+                        println!("No Rust project detected (no Cargo.toml found).");
+                    }
+                    if report.gitignore_updated {
+                        println!("Added .ctx/ to .gitignore");
+                    }
+                    println!();
+                    println!("Doctor:");
+                    for c in &report.doctor.checks {
+                        let icon = if c.passed { "ok" } else { "FAIL" };
+                        println!("  [{icon}] {}: {}", c.name, c.detail);
+                    }
                 }
-                None => {
-                    if json {
-                        println!("{}", serde_json::json!({"covered": true}));
+                Ok(())
+            }
+
+            Cmd::Doctor => {
+                use godmode_core::doctor::{RealProbe, run_doctor};
+
+                let report = run_doctor(&RealProbe);
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&report)?);
+                } else {
+                    for c in &report.checks {
+                        let icon = if c.passed { "ok" } else { "FAIL" };
+                        println!("[{icon}] {}: {}", c.name, c.detail);
                     }
-                    Ok(())
+                    if report.all_passed {
+                        println!("\nAll checks passed.");
+                    } else {
+                        println!("\nSome checks failed.");
+                    }
+                }
+                Ok(())
+            }
+
+            Cmd::Scaffold {
+                crate_name,
+                dimension,
+            } => {
+                use godmode_core::scaffold::{self, Dimension};
+
+                let dim: Dimension = dimension.parse().map_err(|e: String| anyhow::anyhow!(e))?;
+                let stub = scaffold::generate(&crate_name, dim);
+                println!("{stub}");
+                Ok(())
+            }
+
+            Cmd::TestCheck { path } => {
+                use godmode_core::test_check;
+
+                let git_root = detect::root_or_cwd()
+                    .unwrap_or_else(|_| std::env::current_dir().unwrap_or_default());
+                match test_check::check_test_coverage(&path, &git_root) {
+                    Some(msg) => {
+                        if json {
+                            println!("{}", serde_json::json!({"covered": false, "message": msg}));
+                        } else {
+                            eprintln!("{msg}");
+                        }
+                        std::process::exit(2);
+                    }
+                    None => {
+                        if json {
+                            println!("{}", serde_json::json!({"covered": true}));
+                        }
+                        Ok(())
+                    }
                 }
             }
         }

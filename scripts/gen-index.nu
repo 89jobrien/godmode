@@ -4,12 +4,10 @@
 # Parses YAML frontmatter (name, description, skills, color) and deduplicates by name,
 # preferring canonical (non-prefixed) filenames over domain-prefixed variants.
 #
-# TODO: expose as `godmode index [agents|skills]` subcommand in the godmode CLI
-#       (godmode-core crate) so it can be invoked as `godmode index` instead of
-#       `nu scripts/gen-index.nu`
-# TODO: add --check flag that exits non-zero if INDEX.md is stale vs current agents/
-#       (useful as a CI gate or pre-push hook)
-# TODO: add --skills variant that generates the same table for skills/ directory
+# The Rust CLI is authoritative for repository indexes:
+#   godmode agent index [--check]
+#   godmode skill index [--check]
+# This legacy script remains for global ~/.claude/agents installations.
 #
 # Usage:
 #   nu /Users/joe/dev/godmode/scripts/gen-index.nu

@@ -3,6 +3,8 @@
 //! Mirrors the charmed_rust conformance pattern: typed `ConformanceTest` trait,
 //! parallel `TestRunner`, JSON / text / GitHub Actions report generation.
 
+#![deny(missing_docs)]
+
 pub mod crux_tests;
 pub mod dispatch_tests;
 pub mod fixture_tests;

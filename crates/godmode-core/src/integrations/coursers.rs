@@ -17,8 +17,11 @@ const WINDOW_SECS: u64 = 3600;
 /// A single failing command, summarized for display.
 #[derive(Debug, Serialize)]
 pub struct FailingSummary {
+    /// Truncated command text recorded by coursers.
     pub command_preview: String,
+    /// Number of failures observed within the lookback window.
     pub count: usize,
+    /// Number of seconds elapsed since the command most recently failed.
     pub last_seen_ago_secs: u64,
 }
 

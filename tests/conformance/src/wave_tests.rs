@@ -4,6 +4,7 @@ use godmode_core::wave;
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
+/// Verifies that wave initialization creates pending slots for each agent.
 pub struct WaveInitCreatesSlots;
 impl ConformanceTest for WaveInitCreatesSlots {
     fn name(&self) -> &str {
@@ -25,6 +26,7 @@ impl ConformanceTest for WaveInitCreatesSlots {
     }
 }
 
+/// Verifies that persisted wave state can be loaded without data loss.
 pub struct WaveRoundtrip;
 impl ConformanceTest for WaveRoundtrip {
     fn name(&self) -> &str {
@@ -46,6 +48,7 @@ impl ConformanceTest for WaveRoundtrip {
     }
 }
 
+/// Verifies that marking a slot done records its status and commits.
 pub struct WaveMarkDone;
 impl ConformanceTest for WaveMarkDone {
     fn name(&self) -> &str {
@@ -69,6 +72,7 @@ impl ConformanceTest for WaveMarkDone {
     }
 }
 
+/// Verifies that an agent slot can be marked blocked.
 pub struct WaveMarkBlocked;
 impl ConformanceTest for WaveMarkBlocked {
     fn name(&self) -> &str {
@@ -90,6 +94,7 @@ impl ConformanceTest for WaveMarkBlocked {
     }
 }
 
+/// Verifies that all-done detection requires every slot to be complete.
 pub struct WaveCheckAllDone;
 impl ConformanceTest for WaveCheckAllDone {
     fn name(&self) -> &str {
@@ -119,6 +124,7 @@ impl ConformanceTest for WaveCheckAllDone {
     }
 }
 
+/// Verifies wave completion checks when a slot is blocked and none are pending.
 pub struct WaveCheckHasBlocked;
 impl ConformanceTest for WaveCheckHasBlocked {
     fn name(&self) -> &str {
@@ -148,6 +154,7 @@ impl ConformanceTest for WaveCheckHasBlocked {
     }
 }
 
+/// Returns all wave state conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(WaveInitCreatesSlots),

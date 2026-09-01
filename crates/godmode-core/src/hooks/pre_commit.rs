@@ -17,7 +17,10 @@ pub enum PreCommitResult {
     /// All checks passed.
     Pass,
     /// Blocked with a reason.
-    Block(String),
+    Block(
+        /// Explanation of the failed pre-commit check.
+        String,
+    ),
 }
 
 /// Run the full pre-commit sequence: task state, plugin stamp, cargo gates.

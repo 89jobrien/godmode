@@ -1,7 +1,9 @@
 //! CLI entry point: run all godmode conformance tests and print a report.
 //!
 //! Usage:
-//!   cargo run -p godmode-conformance --bin run-conformance [-- --json] [-- --filter <name>]
+//! `cargo run -p godmode-conformance --bin run-conformance -- [--json] [--filter <name>]`
+
+#![deny(missing_docs)]
 
 use godmode_conformance::harness::{ReportConfig, ReportGenerator};
 

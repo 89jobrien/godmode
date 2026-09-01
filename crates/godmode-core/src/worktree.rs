@@ -1,3 +1,5 @@
+//! Git worktree creation, safety validation, and cleanup.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -7,8 +9,11 @@ use crate::integrations::subprocess;
 
 /// Result payload returned when a worktree is created.
 pub struct WorktreeInfo {
+    /// Branch checked out in the worktree.
     pub branch: String,
+    /// Filesystem path to the worktree.
     pub path: PathBuf,
+    /// Optional GitHub issue associated with the branch.
     pub issue_number: Option<u64>,
 }
 

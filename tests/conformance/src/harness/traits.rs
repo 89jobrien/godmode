@@ -16,6 +16,7 @@ pub enum TestCategory {
 }
 
 impl TestCategory {
+    /// Returns the stable snake-case label used in reports and filters.
     pub fn as_str(self) -> &'static str {
         match self {
             TestCategory::Unit => "unit",
@@ -29,20 +30,32 @@ impl TestCategory {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum TestResult {
+    /// The conformance check completed successfully.
     Pass,
-    Fail { reason: String },
-    Skipped { reason: String },
+    /// The conformance check failed.
+    Fail {
+        /// Diagnostic explanation of the failure.
+        reason: String,
+    },
+    /// The conformance check was not executed.
+    Skipped {
+        /// Explanation of why the check was skipped.
+        reason: String,
+    },
 }
 
 impl TestResult {
+    /// Returns whether this result represents a passing test.
     pub fn is_pass(&self) -> bool {
         matches!(self, TestResult::Pass)
     }
 
+    /// Returns whether this result represents a failed test.
     pub fn is_fail(&self) -> bool {
         matches!(self, TestResult::Fail { .. })
     }
 
+    /// Returns whether this result represents a skipped test.
     pub fn is_skipped(&self) -> bool {
         matches!(self, TestResult::Skipped { .. })
     }
@@ -50,11 +63,16 @@ impl TestResult {
 
 /// Trait all conformance tests implement.
 pub trait ConformanceTest: Send + Sync {
+    /// Returns the human-readable test name.
     fn name(&self) -> &str;
+    /// Returns the crate whose behavior the test covers.
     fn crate_name(&self) -> &str;
+    /// Returns the test's conformance category.
     fn category(&self) -> TestCategory;
+    /// Executes the test using the supplied context.
     fn run(&self, ctx: &mut TestContext) -> TestResult;
 
+    /// Returns the crate-qualified stable identifier for the test.
     fn id(&self) -> String {
         format!("{}::{}", self.crate_name(), self.name())
     }

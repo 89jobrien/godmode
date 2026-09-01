@@ -14,8 +14,10 @@ use crate::context::{self, BlockedSummary, SessionContext, TaskSummary};
 /// Parsed hook stdin JSON (tool_input + tool_result fields vary by hook type).
 #[derive(Debug, Clone, Deserialize)]
 pub struct HookInput {
+    /// Tool arguments supplied by the hook event.
     #[serde(default)]
     pub tool_input: Value,
+    /// Tool output supplied by post-execution hook events.
     #[serde(default)]
     pub tool_result: Value,
 }
@@ -23,12 +25,19 @@ pub struct HookInput {
 /// Full context available to every hook.
 #[derive(Debug)]
 pub struct HookContext {
+    /// Parsed input and result values from the hook event.
     pub input: HookInput,
+    /// Root directory of the repository in which the hook is running.
     pub git_root: PathBuf,
+    /// Detected project name.
     pub project: String,
+    /// Tasks currently marked as running.
     pub running: Vec<TaskSummary>,
+    /// Number of tasks currently pending.
     pub pending_count: usize,
+    /// Tasks currently blocked and their summaries.
     pub blocked: Vec<BlockedSummary>,
+    /// Recent commit summaries for the repository.
     pub recent_commits: Vec<String>,
 }
 

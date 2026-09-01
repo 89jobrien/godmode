@@ -1,3 +1,8 @@
+//! Stateful task-graph sessions with persistence and lifecycle tracing.
+//!
+//! A [`Session`] owns a task graph, applies validated transitions, saves state
+//! after mutations, and emits optional Crux trace records and session summaries.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -14,6 +19,7 @@ use crate::templates;
 // Public types
 // ---------------------------------------------------------------------------
 
+/// A repository-scoped task session that owns graph state and integration config.
 pub struct Session {
     root: PathBuf,
     graph: TaskGraph,
@@ -21,19 +27,30 @@ pub struct Session {
 }
 
 #[derive(Debug, Default, Serialize)]
+/// Aggregate task counts and timing information for a session.
 pub struct SessionSummary {
+    /// Number of completed tasks.
     pub done: usize,
+    /// Number of tasks currently running.
     pub running: usize,
+    /// Number of tasks waiting to run.
     pub pending: usize,
+    /// Number of blocked tasks.
     pub blocked: usize,
+    /// Sum of all per-task durations in milliseconds.
     pub total_duration_ms: u64,
+    /// Timing details for each task in the graph.
     pub tasks: Vec<TaskTiming>,
 }
 
 #[derive(Debug, Serialize)]
+/// Elapsed-time information for one task.
 pub struct TaskTiming {
+    /// Stable task identifier.
     pub id: String,
+    /// Human-readable task title.
     pub title: String,
+    /// Elapsed task duration in milliseconds.
     pub duration_ms: u64,
 }
 
@@ -57,6 +74,7 @@ impl Session {
         })
     }
 
+    /// Return the session's current task graph.
     pub fn graph(&self) -> &TaskGraph {
         &self.graph
     }

@@ -14,48 +14,72 @@ use crate::integrations::rx::resolve_cmd;
 // Data model
 // ---------------------------------------------------------------------------
 
+/// Deserialized definition of a named causal workflow.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowDef {
+    /// Workflow name used for persistence and display.
     pub name: String,
     #[serde(default)]
+    /// Human-readable workflow description.
     pub description: String,
     #[serde(default)]
+    /// Agent associated with the workflow.
     pub agent: String,
+    /// Ordered set of steps in the workflow DAG.
     pub steps: Vec<WorkflowStep>,
 }
 
+/// One executable step and its dependency and branch edges.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowStep {
+    /// Unique step identifier within the workflow.
     pub id: String,
+    /// Command executed for this step.
     pub run: String,
     #[serde(default)]
+    /// Step IDs that must finish successfully first.
     pub depends_on: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Optional step to retain after successful completion.
     pub on_success: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Optional recovery step to retain after failure.
     pub on_failure: Option<String>,
 }
 
+/// Runtime lifecycle state of a workflow step.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum StepState {
+    /// Step is waiting for its dependencies.
     Pending,
+    /// Step command is currently executing.
     Running,
+    /// Step command completed successfully.
     Done,
+    /// Step command completed unsuccessfully.
     Failed,
+    /// Step was bypassed by a workflow branch.
     Skipped,
 }
 
+/// Persisted execution state for a workflow.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowState {
+    /// Name of the workflow being executed.
     pub workflow: String,
+    /// Runtime status of each workflow step.
     pub steps: Vec<StepStatus>,
 }
 
+/// Runtime status and exit code for one workflow step.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepStatus {
+    /// Workflow step identifier.
     pub id: String,
+    /// Current lifecycle state.
     pub state: StepState,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Process exit code after execution, when available.
     pub exit_code: Option<i32>,
 }
 

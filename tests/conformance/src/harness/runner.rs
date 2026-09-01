@@ -13,31 +13,45 @@ use super::traits::{ConformanceTest, TestCategory, TestResult};
 /// Per-test run result.
 #[derive(Debug, Clone, Serialize)]
 pub struct TestRunResult {
+    /// Crate-qualified stable test identifier.
     pub id: String,
+    /// Human-readable test name.
     pub name: String,
+    /// Crate whose behavior the test covers.
     pub crate_name: String,
+    /// Conformance category assigned to the test.
     pub category: TestCategory,
     #[serde(flatten)]
+    /// Outcome returned by the test implementation.
     pub result: TestResult,
+    /// Test execution duration in milliseconds.
     pub duration_ms: u64,
 }
 
 /// Aggregated summary of a test run.
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct TestSummary {
+    /// Total number of tests executed.
     pub total: usize,
+    /// Number of passing tests.
     pub passed: usize,
+    /// Number of failed tests.
     pub failed: usize,
+    /// Number of skipped tests.
     pub skipped: usize,
+    /// Duration of the complete test run in milliseconds.
     pub duration_ms: u64,
+    /// Individual outcomes in runner result order.
     pub results: Vec<TestRunResult>,
 }
 
 impl TestSummary {
+    /// Returns whether the run completed without failures.
     pub fn is_success(&self) -> bool {
         self.failed == 0
     }
 
+    /// Groups individual results by their crate name.
     pub fn by_crate(&self) -> HashMap<&str, Vec<&TestRunResult>> {
         let mut grouped: HashMap<&str, Vec<&TestRunResult>> = HashMap::new();
         for r in &self.results {
@@ -50,8 +64,11 @@ impl TestSummary {
 /// Configuration for report output.
 #[derive(Debug, Clone, Default)]
 pub struct ReportConfig {
+    /// Whether reports include individual passing and skipped tests.
     pub verbose: bool,
+    /// Whether reports omit all individual test details.
     pub summary_only: bool,
+    /// Whether reports include per-crate, per-test, and total durations.
     pub show_timing: bool,
 }
 
@@ -71,6 +88,7 @@ impl Default for TestRunner {
 }
 
 impl TestRunner {
+    /// Creates an empty runner configured for parallel execution.
     pub fn new() -> Self {
         Self {
             tests: Vec::new(),
@@ -81,10 +99,12 @@ impl TestRunner {
         }
     }
 
+    /// Registers one concrete conformance test.
     pub fn add_test<T: ConformanceTest + 'static>(&mut self, test: T) {
         self.tests.push(Box::new(test));
     }
 
+    /// Registers an iterator of concrete conformance tests.
     pub fn add_tests<I, T>(&mut self, tests: I)
     where
         I: IntoIterator<Item = T>,
@@ -100,30 +120,36 @@ impl TestRunner {
         self.tests.extend(tests);
     }
 
+    /// Restricts execution to tests associated with the named crate.
     pub fn filter_crate(mut self, crate_name: &str) -> Self {
         self.crate_filter = Some(crate_name.to_string());
         self
     }
 
+    /// Restricts execution to tests in the specified category.
     pub fn filter_category(mut self, category: TestCategory) -> Self {
         self.category_filter = Some(category);
         self
     }
 
+    /// Restricts execution to tests whose names contain `pattern`.
     pub fn filter_name(mut self, pattern: &str) -> Self {
         self.name_filter = Some(pattern.to_string());
         self
     }
 
+    /// Enables or disables parallel test execution.
     pub fn parallel(mut self, enabled: bool) -> Self {
         self.parallel = enabled;
         self
     }
 
+    /// Returns the total number of registered tests before filtering.
     pub fn test_count(&self) -> usize {
         self.tests.len()
     }
 
+    /// Returns the number of registered tests that match all filters.
     pub fn filtered_count(&self) -> usize {
         self.tests
             .iter()
@@ -183,6 +209,7 @@ impl TestRunner {
         s
     }
 
+    /// Executes all matching tests and aggregates their outcomes.
     pub fn run(&self) -> TestSummary {
         let start = Instant::now();
         let filtered: Vec<_> = self
@@ -208,6 +235,7 @@ impl TestRunner {
 pub struct ReportGenerator;
 
 impl ReportGenerator {
+    /// Writes a human-readable report according to `config`.
     pub fn text<W: Write>(
         writer: &mut W,
         summary: &TestSummary,
@@ -279,6 +307,7 @@ impl ReportGenerator {
         Ok(())
     }
 
+    /// Writes a versioned JSON report containing the summary and results.
     pub fn json<W: Write>(writer: &mut W, summary: &TestSummary) -> std::io::Result<()> {
         let report = serde_json::json!({
             "report_version": "1.0",
@@ -296,6 +325,7 @@ impl ReportGenerator {
         writeln!(writer, "{}", serde_json::to_string_pretty(&report).unwrap())
     }
 
+    /// Writes GitHub Actions workflow commands for failures and the final status.
     pub fn github_actions<W: Write>(writer: &mut W, summary: &TestSummary) -> std::io::Result<()> {
         for r in &summary.results {
             if let TestResult::Fail { reason } = &r.result {

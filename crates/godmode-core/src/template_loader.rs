@@ -28,6 +28,7 @@ pub fn global_dir() -> Option<PathBuf> {
     })
 }
 
+/// Return supported filenames for a template name.
 pub(crate) fn candidate_filenames(name: &str) -> [String; 2] {
     [format!("{name}.yaml"), format!("{name}.template.yaml")]
 }
@@ -103,6 +104,7 @@ pub(crate) fn load_meta(path: &Path) -> TemplateResult<TemplateMeta> {
     })
 }
 
+/// Read a template directory and map filesystem failures to template errors.
 pub(crate) fn read_dir(path: &Path) -> TemplateResult<std::fs::ReadDir> {
     std::fs::read_dir(path).map_err(|source| TemplateError::ReadDir {
         path: path.to_path_buf(),
@@ -110,6 +112,7 @@ pub(crate) fn read_dir(path: &Path) -> TemplateResult<std::fs::ReadDir> {
     })
 }
 
+/// Read a template file and map filesystem failures to template errors.
 pub(crate) fn read_template(path: &Path) -> TemplateResult<String> {
     std::fs::read_to_string(path).map_err(|source| TemplateError::Read {
         path: path.to_path_buf(),
@@ -117,6 +120,7 @@ pub(crate) fn read_template(path: &Path) -> TemplateResult<String> {
     })
 }
 
+/// Build a source-aware template parse error for the given phase.
 pub(crate) fn parse_error(
     path: &Path,
     raw: &str,

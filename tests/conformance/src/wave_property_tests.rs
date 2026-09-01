@@ -1,4 +1,9 @@
-//! Property-based tests for `wave` slot state machine and concurrency tracker.
+//! Property-based conformance tests for wave coordination.
+//!
+//! Generated wave states verify the relationship between settled and completed
+//! agent slots. Additional properties cover wave initialization, concurrency
+//! capacity accounting, saturating release behavior, and the configured retry
+//! limit for blocked slots.
 
 #[cfg(test)]
 mod wave_properties {

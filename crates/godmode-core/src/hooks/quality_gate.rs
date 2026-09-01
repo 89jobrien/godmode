@@ -11,8 +11,11 @@ use anyhow::{Result, bail};
 /// Result of running a single gate step.
 #[derive(Debug)]
 pub struct GateStep {
+    /// Display name of the quality check.
     pub name: &'static str,
+    /// Whether the quality check completed successfully.
     pub passed: bool,
+    /// Combined output produced by the quality check.
     pub output: String,
 }
 

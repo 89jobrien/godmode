@@ -1,7 +1,11 @@
-//! Property-based conformance tests using proptest.
+//! Property-based conformance tests for task graphs and plan parsing.
 //!
-//! These run as standard `#[test]` functions (proptest integrates with cargo test).
-//! They verify invariants that must hold for all valid inputs.
+//! The graph properties cover generated task identifiers, reversible graph
+//! mutations, cycle rejection, and dependency-aware task selection. The plan
+//! properties cover task extraction and the sequential dependency chain created
+//! from numbered plan headings.
+//!
+//! Proptest exposes these cases as standard `#[test]` functions.
 
 #[cfg(test)]
 mod graph_properties {

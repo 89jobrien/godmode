@@ -1,3 +1,8 @@
+//! Core task-graph data types and their serialized representation.
+//!
+//! Tasks, statuses, priorities, and graph summaries in this module form the
+//! persistent model stored in `.ctx/godmode/tasks.yaml`.
+
 #![allow(clippy::items_after_test_module)]
 
 use chrono::{DateTime, NaiveDate, Utc};
@@ -7,9 +12,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Priority {
+    /// Schedule the task ahead of normal- and low-priority work.
     High,
+    /// Use the default scheduling priority.
     #[default]
     Normal,
+    /// Schedule the task after higher-priority work.
     Low,
 }
 
@@ -47,13 +55,18 @@ impl std::fmt::Display for Priority {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Status {
+    /// The task is waiting to be started.
     Pending,
+    /// The task is currently being worked on.
     Running,
+    /// The task completed successfully.
     Done,
+    /// The task cannot proceed until its blocking condition is resolved.
     Blocked,
 }
 
 impl Status {
+    /// Return the lowercase serialized name of this status.
     pub fn as_str(&self) -> &'static str {
         match self {
             Status::Pending => "pending",
@@ -73,11 +86,16 @@ impl std::fmt::Display for Status {
 /// A single task in the execution graph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
+    /// Stable identifier used by dependencies and task commands.
     pub id: String,
+    /// Human-readable description of the work.
     pub title: String,
+    /// Current execution state.
     pub status: Status,
+    /// Task IDs that must be done before this task can run.
     #[serde(default)]
     pub depends_on: Vec<String>,
+    /// Free-form task notes, including blocking reasons.
     #[serde(default)]
     pub notes: String,
     /// Crate targeted by this task, if applicable.
@@ -86,6 +104,7 @@ pub struct Task {
     /// Commit SHA recorded on completion.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commit: Option<String>,
+    /// Calendar date on which the task completed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed: Option<NaiveDate>,
     /// Shell command to run for this task. Prefix with `rx:` to invoke via rx registry.
@@ -106,6 +125,7 @@ pub struct Task {
 }
 
 impl Task {
+    /// Create a pending task with no dependencies or optional metadata.
     pub fn new(id: impl Into<String>, title: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -128,6 +148,7 @@ impl Task {
 /// The full task graph stored in `.ctx/godmode/tasks.yaml`.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaskGraph {
+    /// Tasks contained in the graph.
     pub tasks: Vec<Task>,
     /// Cached set of task IDs with `Status::Done`. Invalidated on any state transition.
     #[serde(skip)]
@@ -180,9 +201,13 @@ impl TaskGraph {
 /// Summary counts for display.
 #[derive(Debug, Default)]
 pub struct GraphSummary {
+    /// Number of completed tasks.
     pub done: usize,
+    /// Number of tasks currently running.
     pub running: usize,
+    /// Number of tasks waiting to run.
     pub pending: usize,
+    /// Number of blocked tasks.
     pub blocked: usize,
 }
 
@@ -305,6 +330,7 @@ mod tests {
 }
 
 impl TaskGraph {
+    /// Count tasks by execution status.
     pub fn summary(&self) -> GraphSummary {
         let mut s = GraphSummary::default();
         for t in &self.tasks {

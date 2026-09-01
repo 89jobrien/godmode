@@ -1,11 +1,10 @@
-//! Property-based tests for the pipeline state machine.
+//! Property-based conformance tests for the pipeline state machine.
 //!
-//! Verifies invariants that must hold for all valid inputs:
-//! - advance/skip always increment current_step by exactly 1
-//! - history length always equals total transitions
-//! - is_complete iff current_step >= steps.len()
-//! - start(from: entry_point) produces valid current_step
-//! - serialize -> deserialize round-trip preserves all fields
+//! Generated pipeline definitions and transition sequences verify that advancing
+//! or skipping a step updates progress and history consistently, completion is
+//! reported exactly at the end of a pipeline, and entry-point selection begins at
+//! the expected step. YAML round-trip properties also protect the persisted
+//! pipeline definition and state formats.
 
 #[cfg(test)]
 mod pipeline_properties {

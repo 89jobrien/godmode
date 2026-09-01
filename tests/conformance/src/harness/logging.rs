@@ -23,6 +23,7 @@ enum LogLevel {
 }
 
 impl TestLogger {
+    /// Creates an empty logger with no test name or indentation.
     pub fn new() -> Self {
         Self {
             entries: Vec::new(),
@@ -31,14 +32,17 @@ impl TestLogger {
         }
     }
 
+    /// Sets the test name associated with subsequent diagnostics.
     pub fn set_test_name(&mut self, name: &str) {
         self.test_name = name.to_string();
     }
 
+    /// Removes the test name associated with the logger.
     pub fn clear_test_name(&mut self) {
         self.test_name.clear();
     }
 
+    /// Records an informational message at the current indentation level.
     pub fn info(&mut self, msg: &str) {
         self.entries.push(LogEntry {
             level: LogLevel::Info,
@@ -47,6 +51,7 @@ impl TestLogger {
         });
     }
 
+    /// Records an error message at the current indentation level.
     pub fn error(&mut self, msg: &str) {
         self.entries.push(LogEntry {
             level: LogLevel::Error,
@@ -55,26 +60,32 @@ impl TestLogger {
         });
     }
 
+    /// Records a named input value using its debug representation.
     pub fn log_input<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("input  {}: {:?}", name, value));
     }
 
+    /// Records a named expected value using its debug representation.
     pub fn log_expected<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("expect {}: {:?}", name, value));
     }
 
+    /// Records a named actual value using its debug representation.
     pub fn log_actual<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("actual {}: {:?}", name, value));
     }
 
+    /// Increases indentation for subsequently recorded messages.
     pub fn indent(&mut self) {
         self.indent += 2;
     }
 
+    /// Decreases indentation without allowing it to underflow.
     pub fn dedent(&mut self) {
         self.indent = self.indent.saturating_sub(2);
     }
 
+    /// Records a named section and executes its body at increased indentation.
     pub fn section<F>(&mut self, name: &str, f: F)
     where
         F: FnOnce(&mut Self),

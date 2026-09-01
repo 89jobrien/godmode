@@ -1,3 +1,8 @@
+//! Persistence and state transitions for task graphs.
+//!
+//! This module resolves the graph file, loads and saves YAML state, validates
+//! dependency transitions, and renders graph views for external consumers.
+
 use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};

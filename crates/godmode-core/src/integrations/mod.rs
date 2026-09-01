@@ -1,3 +1,8 @@
+//! Adapters for external developer tools and session-boundary output.
+//!
+//! Integrations isolate subprocess and file-format concerns from the core task graph and
+//! degrade gracefully when optional tools are unavailable.
+
 pub mod coursers;
 pub mod crux;
 pub mod doob;

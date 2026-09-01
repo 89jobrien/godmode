@@ -340,6 +340,7 @@ pub fn globstar_sarif_from_text(text: &str, root: &std::path::Path) -> SarifLog 
 
 // ── Internal helpers ────────────────────────────────────────────────
 
+/// Truncate a string to at most `max` bytes without splitting a UTF-8 character.
 pub(crate) fn truncate(s: &str, max: usize) -> &str {
     if s.len() <= max {
         s
@@ -352,6 +353,7 @@ pub(crate) fn truncate(s: &str, max: usize) -> &str {
     }
 }
 
+/// Map a skill identifier to its conventional source location.
 pub(crate) fn location_from_skill(skill: &str) -> Vec<Location> {
     if skill.is_empty() || skill == "plugin.json" || skill == "index" {
         return vec![];
@@ -371,6 +373,7 @@ pub(crate) fn location_from_skill(skill: &str) -> Vec<Location> {
     }]
 }
 
+/// Remove ANSI SGR escape sequences from text.
 pub(crate) fn strip_ansi(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars();
@@ -388,6 +391,7 @@ pub(crate) fn strip_ansi(s: &str) -> String {
     out
 }
 
+/// Extract a globstar diagnostic from a log line.
 pub(crate) fn extract_globstar_diagnostic(line: &str) -> Option<(String, u32, u32, String)> {
     let trimmed = line.trim();
     if trimmed.is_empty() {
@@ -398,6 +402,7 @@ pub(crate) fn extract_globstar_diagnostic(line: &str) -> Option<(String, u32, u3
     parse_file_line_col_message(rest)
 }
 
+/// Parse a `file:line:column:message` diagnostic string.
 pub(crate) fn parse_file_line_col_message(s: &str) -> Option<(String, u32, u32, String)> {
     let bytes = s.as_bytes();
     let len = bytes.len();

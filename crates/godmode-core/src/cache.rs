@@ -1,3 +1,5 @@
+//! Fast, serialized task-status summaries for prompt and shell integrations.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -8,11 +10,17 @@ use crate::model::TaskGraph;
 /// Designed for fast reads by starship prompt modules.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StatusCache {
+    /// Time at which the cache snapshot was created.
     pub updated_at: DateTime<Utc>,
+    /// Number of pending tasks.
     pub pending: usize,
+    /// Number of running tasks.
     pub running: usize,
+    /// Number of blocked tasks.
     pub blocked: usize,
+    /// Number of completed tasks.
     pub done: usize,
+    /// Project name associated with the task graph.
     pub project: String,
 }
 

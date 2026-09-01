@@ -1,3 +1,9 @@
+//! Workspace maintenance commands used by local development and CI.
+//!
+//! Run `cargo xtask help` to list the available quality gates and utilities.
+
+#![deny(missing_docs)]
+
 use std::process::{Command, ExitCode};
 
 use anyhow::{Context, Result, bail};

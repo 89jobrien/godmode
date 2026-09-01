@@ -74,6 +74,7 @@ pub fn pull_issues(repo: Option<&str>, label: Option<&str>) -> Result<Vec<Task>>
     Ok(issues_to_tasks(&value, label))
 }
 
+/// Close an issue through `gh` and add a comment identifying the implementing commit.
 pub fn issue_close(number: u64, repo: Option<&str>, commit_sha: &str) -> Result<()> {
     let number_str = number.to_string();
     let comment = format!("Implemented in {}.", commit_sha);

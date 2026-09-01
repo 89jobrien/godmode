@@ -1,3 +1,8 @@
+//! Agent definitions, catalog loading, migration, and generated agent documents.
+//!
+//! This module manages both Claude-compatible agent definitions and the OpenCode
+//! workspace router catalog.
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -5,56 +10,82 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
+/// Attribution and classification metadata attached to an agent definition.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentMetadata {
+    /// Name of the agent definition's author.
     #[serde(default)]
     pub author: String,
+    /// Searchable labels associated with the agent.
     #[serde(default)]
     pub tags: Vec<String>,
 }
 
+/// Hook invoked for a matching agent lifecycle event.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentHook {
+    /// Lifecycle event that triggers the hook.
     pub event: String,
+    /// Pattern used to decide whether the hook applies.
     pub matcher: String,
+    /// Script executed when the hook matches.
     pub script: String,
 }
 
+/// Complete declarative configuration for a generated agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentDef {
+    /// Stable agent name exposed to users and tooling.
     pub name: String,
+    /// Version of the agent definition.
     #[serde(default = "default_version")]
     pub version: String,
+    /// Human-readable summary of the agent's purpose.
     #[serde(default)]
     pub description: String,
+    /// Phrases or conditions that should activate the agent.
     #[serde(default)]
     pub triggers: Vec<String>,
+    /// Model identifier or inheritance directive used by the agent.
     #[serde(default)]
     pub model: String,
+    /// Display color used by compatible agent clients.
     #[serde(default)]
     pub color: String,
+    /// Tools made available to the agent.
     #[serde(default)]
     pub tools: Vec<String>,
+    /// Skills preloaded for the agent.
     #[serde(default)]
     pub skills: Vec<String>,
+    /// Template name used to construct the agent prompt.
     #[serde(default)]
     pub template: String,
+    /// Category used to group and name generated agent files.
     #[serde(default)]
     pub category: String,
+    /// Optional inline prompt body.
     #[serde(default)]
     pub prompt: Option<String>,
+    /// Lifecycle hooks registered for the agent.
     #[serde(default)]
     pub hooks: Vec<AgentHook>,
+    /// Attribution and classification metadata.
     #[serde(default)]
     pub metadata: AgentMetadata,
+    /// Workflows exposed through this agent.
     #[serde(default)]
     pub workflows: Vec<WorkflowRef>,
 }
 
+/// Reference to a workflow exposed by an agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowRef {
+    /// Workflow name shown to users.
     pub name: String,
+    /// Path to the workflow definition.
     pub path: String,
+    /// Optional slash command that invokes the workflow.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub slash_command: Option<String>,
 }
@@ -260,7 +291,9 @@ fn quote_list(items: &[String]) -> String {
 /// Declarative source for one OpenCode router and its project specialists.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct OpenCodeAgentCatalog {
+    /// Primary router responsible for delegating workspace requests.
     pub router: OpenCodeRouterDef,
+    /// Project-specific subagents available to the router.
     #[serde(default)]
     pub projects: Vec<OpenCodeProjectAgentDef>,
 }
@@ -268,17 +301,24 @@ pub struct OpenCodeAgentCatalog {
 /// OpenCode primary-agent metadata.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct OpenCodeRouterDef {
+    /// File-safe name of the primary router agent.
     pub name: String,
+    /// Human-readable summary rendered into agent frontmatter.
     pub description: String,
 }
 
 /// OpenCode subagent metadata for one workspace project.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct OpenCodeProjectAgentDef {
+    /// File-safe name of the project specialist.
     pub name: String,
+    /// Human-readable summary of the specialist's scope.
     pub description: String,
+    /// Registry identifier for the governed project tools.
     pub project: String,
+    /// Project path relative to the workspace root.
     pub repo_path: String,
+    /// Whether the specialist is visible in OpenCode's agent picker.
     #[serde(default)]
     pub visible: bool,
 }
