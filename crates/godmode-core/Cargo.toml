@@ -29,7 +29,7 @@ slashcrux = { workspace = true }
 crux-runtime = { workspace = true }
 regex = { workspace = true }
 toml = "1.1"
-which = "7"
+which = "8"
 tracing = { workspace = true }
 tokio = { workspace = true }
 proptest = { version = "1", optional = true }
