@@ -1057,6 +1057,99 @@ impl ConformanceTest for RegisteredNuHooksParse {
     }
 }
 
+/// Verifies that governance helpers emit one parseable JSON decision on every policy branch.
+pub struct GovernanceHelpersEmitJson;
+
+impl ConformanceTest for GovernanceHelpersEmitJson {
+    fn name(&self) -> &str {
+        "governance_helpers_emit_json"
+    }
+
+    fn crate_name(&self) -> &str {
+        "plugin_structure"
+    }
+
+    fn category(&self) -> TestCategory {
+        TestCategory::Integration
+    }
+
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let root = repo_root();
+        let check_tool = root.join("skills/agent-governance/helpers/check-tool.nu");
+        let cases: &[(&[&str], &str)] = &[
+            (&["health-score-agent", "Read"], "allow"),
+            (&["health-score-agent", "Edit"], "deny"),
+            (&["health-score-agent", "Agent"], "deny"),
+            (&["unknown-agent", "git stash drop"], "review"),
+            (
+                &[
+                    "health-score-agent",
+                    "Bash",
+                    "--input",
+                    "git reset --hard HEAD~1",
+                ],
+                "deny",
+            ),
+        ];
+        for (args, expected_action) in cases {
+            let output = std::process::Command::new("nu")
+                .arg(&check_tool)
+                .args(*args)
+                .current_dir(&root)
+                .output();
+            let Ok(output) = output else {
+                ctx.fail("[check-tool.nu] could not execute Nushell");
+                continue;
+            };
+            if !output.status.success() {
+                ctx.fail(&format!(
+                    "[check-tool.nu] {:?} exited unsuccessfully: {}",
+                    args,
+                    String::from_utf8_lossy(&output.stderr).trim()
+                ));
+                continue;
+            }
+            match serde_json::from_slice::<serde_json::Value>(&output.stdout) {
+                Ok(value) => {
+                    let action = value.get("action").and_then(serde_json::Value::as_str);
+                    if action != Some(*expected_action) {
+                        ctx.fail(&format!(
+                            "[check-tool.nu] {:?} returned action {:?}, expected {}",
+                            args, action, expected_action
+                        ));
+                    }
+                }
+                Err(error) => ctx.fail(&format!(
+                    "[check-tool.nu] {:?} returned invalid JSON: {error}",
+                    args
+                )),
+            }
+        }
+
+        let resolve_policy = root.join("skills/agent-governance/helpers/resolve-policy.nu");
+        match std::process::Command::new("nu")
+            .arg(resolve_policy)
+            .args(["health-score-agent", "--json"])
+            .current_dir(root)
+            .output()
+        {
+            Ok(output)
+                if output.status.success()
+                    && serde_json::from_slice::<serde_json::Value>(&output.stdout).is_ok() => {}
+            Ok(output) => ctx.fail(&format!(
+                "[resolve-policy.nu] did not return valid JSON: {}{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            )),
+            Err(error) => ctx.fail(&format!(
+                "[resolve-policy.nu] could not execute Nushell: {error}"
+            )),
+        }
+
+        ctx.result()
+    }
+}
+
 /// Returns all plugin-structure conformance test markers.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
@@ -1075,6 +1168,7 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(BranchGuard),
         Box::new(LibReferencesResolve),
         Box::new(RegisteredNuHooksParse),
+        Box::new(GovernanceHelpersEmitJson),
     ]
 }
 
@@ -1093,5 +1187,15 @@ mod tests {
         let result = test.run(&mut ctx);
 
         assert!(result.is_pass(), "result: {result:?}");
+    }
+
+    #[test]
+    fn governance_helpers_emit_json_for_early_exits() {
+        assert!(
+            all()
+                .iter()
+                .any(|test| test.name() == "governance_helpers_emit_json"),
+            "governance helper output must be part of plugin conformance"
+        );
     }
 }
