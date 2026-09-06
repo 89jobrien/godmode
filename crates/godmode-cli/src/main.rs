@@ -7,9 +7,9 @@
 #![deny(missing_docs)]
 
 use anyhow::Result;
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use godmode_core::{
-    agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
+    agent, agent_index, builder, command, context, detect, dispatch, graph, insights, integrations,
     memory_banking, model, pipeline, plan, policy, registry, release, review, session::Session,
     skill, templates, workflow,
 };
@@ -63,6 +63,12 @@ enum Cmd {
     Plan {
         #[command(subcommand)]
         action: PlanAction,
+    },
+
+    /// Multi-target slash-command generation and installation.
+    Command {
+        #[command(subcommand)]
+        action: CommandAction,
     },
 
     /// Show independent chains ready for parallel agent dispatch (JSON).
@@ -557,6 +563,56 @@ enum PlanAction {
     },
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CommandTargetArg {
+    /// Claude Code Markdown commands.
+    Claude,
+    /// OpenCode Markdown commands.
+    #[value(name = "opencode")]
+    OpenCode,
+}
+
+impl From<CommandTargetArg> for command::CommandTarget {
+    fn from(value: CommandTargetArg) -> Self {
+        match value {
+            CommandTargetArg::Claude => Self::Claude,
+            CommandTargetArg::OpenCode => Self::OpenCode,
+        }
+    }
+}
+
+#[derive(Subcommand)]
+enum CommandAction {
+    /// Render commands for a selected client.
+    Generate {
+        /// Output format to render.
+        #[arg(long, value_enum)]
+        target: CommandTargetArg,
+        /// Canonical YAML source directory.
+        #[arg(long)]
+        source_dir: Option<std::path::PathBuf>,
+        /// Render destination. Required for OpenCode generation.
+        #[arg(long)]
+        output_dir: Option<std::path::PathBuf>,
+        /// Fail if generated output is stale instead of writing it.
+        #[arg(long)]
+        check: bool,
+    },
+    /// Install all canonical commands into OpenCode.
+    #[command(name = "install-opencode")]
+    InstallOpenCode {
+        /// Canonical YAML source directory.
+        #[arg(long)]
+        source_dir: Option<std::path::PathBuf>,
+        /// OpenCode command directory. Defaults to $HOME/.config/opencode/commands.
+        #[arg(long)]
+        output_dir: Option<std::path::PathBuf>,
+        /// Print destination paths without writing files.
+        #[arg(long)]
+        dry_run: bool,
+    },
+}
+
 #[derive(Subcommand)]
 enum WorkflowAction {
     /// Execute a workflow DAG for an agent.
@@ -930,6 +986,97 @@ mod command_dispatch {
                     Ok(())
                 }
             },
+
+            Cmd::Command { action } => {
+                let (source_dir, target, output_dir, check, dry_run) = match action {
+                    CommandAction::Generate {
+                        target,
+                        source_dir,
+                        output_dir,
+                        check,
+                    } => {
+                        let output = match (target, output_dir) {
+                            (CommandTargetArg::Claude, Some(path)) => path,
+                            (CommandTargetArg::Claude, None) => root.join("commands"),
+                            (CommandTargetArg::OpenCode, Some(path)) => path,
+                            (CommandTargetArg::OpenCode, None) => {
+                                return Err(anyhow::anyhow!(
+                                    "--output-dir is required for OpenCode generation; use command install-opencode for the default global destination"
+                                ));
+                            }
+                        };
+                        (
+                            source_dir.unwrap_or_else(|| root.join("command-support/gm")),
+                            command::CommandTarget::from(target),
+                            output,
+                            check,
+                            false,
+                        )
+                    }
+                    CommandAction::InstallOpenCode {
+                        source_dir,
+                        output_dir,
+                        dry_run,
+                    } => {
+                        let output = if let Some(path) = output_dir {
+                            path
+                        } else {
+                            let home = std::env::var_os("HOME")
+                                .ok_or_else(|| anyhow::anyhow!("HOME is not set"))?;
+                            std::path::PathBuf::from(home).join(".config/opencode/commands")
+                        };
+                        (
+                            source_dir.unwrap_or_else(|| root.join("command-support/gm")),
+                            command::CommandTarget::OpenCode,
+                            output,
+                            false,
+                            dry_run,
+                        )
+                    }
+                };
+                let definitions = command::load_command_definitions(&source_dir)?;
+                let rendered =
+                    command::render_commands(&definitions, target, &source_dir.join("templates"))?;
+                let paths = if check {
+                    command::check_rendered_commands(&rendered, &output_dir)?;
+                    rendered
+                        .iter()
+                        .map(|item| output_dir.join(&item.file_name))
+                        .collect::<Vec<_>>()
+                } else {
+                    command::write_rendered_commands(&rendered, &output_dir, dry_run)?
+                };
+                if json {
+                    let target_name = match target {
+                        command::CommandTarget::Claude => "claude",
+                        command::CommandTarget::OpenCode => "opencode",
+                    };
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({
+                            "ok": true,
+                            "target": target_name,
+                            "output_dir": output_dir,
+                            "check": check,
+                            "dry_run": dry_run,
+                            "commands": paths,
+                        }))?
+                    );
+                } else {
+                    let verb = if check {
+                        "Checked"
+                    } else if dry_run {
+                        "Would write"
+                    } else {
+                        "Wrote"
+                    };
+                    println!("{verb} {} commands:", paths.len());
+                    for path in paths {
+                        println!("  {}", path.display());
+                    }
+                }
+                Ok(())
+            }
 
             Cmd::Context => {
                 let ctx = context::build(&root)?;
