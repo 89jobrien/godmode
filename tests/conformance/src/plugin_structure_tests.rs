@@ -1232,4 +1232,18 @@ mod tests {
             assert_eq!(manifest["version"], "0.7.0", "manifest: {path}");
         }
     }
+
+    #[test]
+    fn repository_files_satisfy_dual_license_contract() {
+        let root = repo_root();
+        let cargo = std::fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        assert!(cargo.contains("license = \"MIT OR Apache-2.0\""));
+
+        let mit = std::fs::read_to_string(root.join("LICENSE")).unwrap();
+        assert!(mit.contains("MIT License"));
+        let apache = std::fs::read_to_string(root.join("LICENSE-APACHE")).unwrap();
+        assert!(apache.contains("Apache License"));
+        assert!(apache.contains("Version 2.0, January 2004"));
+        assert!(apache.contains("END OF TERMS AND CONDITIONS"));
+    }
 }
