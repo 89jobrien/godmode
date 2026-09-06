@@ -1260,4 +1260,11 @@ mod tests {
         assert!(core.contains("TODO(#"));
         assert!(cli.contains("TODO(#"));
     }
+
+    #[test]
+    fn conformance_benchmarks_use_criterion_08() {
+        let manifest =
+            std::fs::read_to_string(repo_root().join("tests/conformance/Cargo.toml")).unwrap();
+        assert!(manifest.contains("criterion = { version = \"0.8\""));
+    }
 }
