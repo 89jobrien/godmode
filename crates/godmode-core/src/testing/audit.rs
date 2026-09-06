@@ -41,6 +41,7 @@ pub struct DepAudit {
 }
 
 impl DepAudit {
+    /// Creates an empty dependency audit for the given Cargo manifest.
     pub fn new(path: impl Into<std::path::PathBuf>) -> Self {
         Self {
             cargo_toml_path: path.into(),
@@ -116,6 +117,7 @@ pub struct SnapshotAudit {
 }
 
 impl SnapshotAudit {
+    /// Creates an empty audit backed by the given snapshot path.
     pub fn new(path: impl Into<std::path::PathBuf>) -> Self {
         Self {
             snapshot_path: path.into(),
@@ -131,6 +133,7 @@ impl SnapshotAudit {
         self
     }
 
+    /// Records one deterministic key/value observation.
     pub fn record(&mut self, key: impl Into<String>, value: impl Into<String>) {
         self.entries.insert(key.into(), value.into());
     }

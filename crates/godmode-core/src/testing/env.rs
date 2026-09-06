@@ -33,6 +33,7 @@ pub struct TestContext {
 }
 
 impl TestContext {
+    /// Returns a builder for an isolated test environment context.
     pub fn builder() -> TestContextBuilder {
         TestContextBuilder::default()
     }

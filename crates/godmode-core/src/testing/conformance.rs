@@ -56,7 +56,9 @@ pub trait ConformanceCase<Port: ?Sized> {
 /// Outcome of a single conformance case run.
 #[derive(Debug)]
 pub struct CaseResult {
+    /// Stable name of the executed conformance case.
     pub name: String,
+    /// Success or diagnostic failure returned by the case.
     pub outcome: Result<(), String>,
 }
 
@@ -66,6 +68,7 @@ pub struct ConformanceSuite<Port: ?Sized> {
 }
 
 impl<Port: ?Sized> ConformanceSuite<Port> {
+    /// Creates an empty conformance suite.
     pub fn new() -> Self {
         Self { cases: Vec::new() }
     }
