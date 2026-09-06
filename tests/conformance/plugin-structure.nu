@@ -367,8 +367,37 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
-    # Check 13: _lib/*.nu files parse without error (nu --parse)
+    # Check 13: registered Nushell hooks and _lib/*.nu files parse without error
     # -----------------------------------------------------------------------
+    let hooks_file = ($repo_root | path join "hooks" "hooks.json")
+    if ($hooks_file | path exists) {
+        let hook_groups = (
+            open $hooks_file
+            | get hooks
+            | transpose event groups
+            | get groups
+            | flatten
+            | get hooks
+            | flatten
+        )
+        let nu_prefix = 'nu $CLAUDE_PLUGIN_ROOT/'
+        let nu_hooks = (
+            $hook_groups
+            | get command
+            | where { |command| $command | str starts-with $nu_prefix }
+            | each { |command| $repo_root | path join ($command | str replace $nu_prefix "") }
+            | uniq
+        )
+        for hook_file in $nu_hooks {
+            $checks = $checks + 1
+            let result = (do { nu --ide-check 100 $hook_file } | complete)
+            if $result.exit_code != 0 {
+                let hook_name = ($hook_file | path basename)
+                $failures = ($failures | append $"[hooks/($hook_name)] parse error: ($result.stderr | lines | first | default 'unknown parse error' | str trim)")
+            }
+        }
+    }
+
     let lib_dir = ($repo_root | path join "skills" "_lib")
     if ($lib_dir | path exists) {
         let lib_files = (glob ($lib_dir | path join "*.nu"))

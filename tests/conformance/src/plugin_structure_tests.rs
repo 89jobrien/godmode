@@ -982,6 +982,81 @@ fn find_digit_word_pairs<'a>(text: &'a str, word: &str) -> Vec<(&'a str, &'a str
     results
 }
 
+/// Verifies that every registered Nushell hook parses successfully.
+pub struct RegisteredNuHooksParse;
+
+impl ConformanceTest for RegisteredNuHooksParse {
+    fn name(&self) -> &str {
+        "registered_nu_hooks_parse"
+    }
+
+    fn crate_name(&self) -> &str {
+        "plugin_structure"
+    }
+
+    fn category(&self) -> TestCategory {
+        TestCategory::Integration
+    }
+
+    fn run(&self, ctx: &mut TestContext) -> TestResult {
+        let root = repo_root();
+        let hooks_path = root.join("hooks/hooks.json");
+        let raw = match std::fs::read_to_string(&hooks_path) {
+            Ok(raw) => raw,
+            Err(error) => {
+                ctx.fail(&format!("[hooks.json] cannot read registrations: {error}"));
+                return ctx.result();
+            }
+        };
+        let parsed: serde_json::Value = match serde_json::from_str(&raw) {
+            Ok(parsed) => parsed,
+            Err(error) => {
+                ctx.fail(&format!("[hooks.json] invalid JSON: {error}"));
+                return ctx.result();
+            }
+        };
+        let Some(events) = parsed.get("hooks").and_then(serde_json::Value::as_object) else {
+            ctx.fail("[hooks.json] missing hooks object");
+            return ctx.result();
+        };
+        let mut scripts = std::collections::BTreeSet::new();
+        for groups in events.values().filter_map(serde_json::Value::as_array) {
+            for hooks in groups
+                .iter()
+                .filter_map(|group| group.get("hooks").and_then(serde_json::Value::as_array))
+            {
+                for command in hooks
+                    .iter()
+                    .filter_map(|hook| hook.get("command").and_then(serde_json::Value::as_str))
+                {
+                    if let Some(script) = command.strip_prefix("nu $CLAUDE_PLUGIN_ROOT/") {
+                        scripts.insert(root.join(script));
+                    }
+                }
+            }
+        }
+        for script in scripts {
+            let output = std::process::Command::new("nu")
+                .args(["--ide-check", "100"])
+                .arg(&script)
+                .output();
+            match output {
+                Ok(output) if output.status.success() => {}
+                Ok(output) => ctx.fail(&format!(
+                    "[{}] Nushell parse failed: {}",
+                    script.display(),
+                    String::from_utf8_lossy(&output.stderr).trim()
+                )),
+                Err(error) => ctx.fail(&format!(
+                    "[{}] could not run Nushell parser: {error}",
+                    script.display()
+                )),
+            }
+        }
+        ctx.result()
+    }
+}
+
 /// Returns all plugin-structure conformance test markers.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
@@ -999,5 +1074,24 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(BlockedThreshold),
         Box::new(BranchGuard),
         Box::new(LibReferencesResolve),
+        Box::new(RegisteredNuHooksParse),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn all_registered_nu_hooks_parse() {
+        let test = all()
+            .into_iter()
+            .find(|test| test.name() == "registered_nu_hooks_parse")
+            .expect("registered Nushell hooks must be part of plugin conformance");
+        let mut ctx = TestContext::new().with_test_name(test.name());
+
+        let result = test.run(&mut ctx);
+
+        assert!(result.is_pass(), "result: {result:?}");
+    }
 }
