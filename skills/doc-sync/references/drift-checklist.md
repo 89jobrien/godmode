@@ -10,7 +10,7 @@
 ## Crate / Module Surface
 
 - [ ] `ls crates/` → compare against crate list in README or CLAUDE.md
-- [ ] `grep -r '^pub mod' src/lib.rs` → compare against module table
+- [ ] `rg '^pub mod' src/lib.rs` → compare against module table
 - [ ] New crates not in docs → **Suggestion**
 - [ ] Docs mention removed crates → **Blocking**
 
@@ -29,7 +29,7 @@
 
 ## File Paths
 
-- [ ] Extract all literal paths from docs (grep for `/`, `./`, `~/`)
+- [ ] Extract all literal paths from docs with the Grep tool (search for `/`, `./`, `~/`)
 - [ ] For each path: verify it exists on disk
 - [ ] Missing paths → **Blocking**
 

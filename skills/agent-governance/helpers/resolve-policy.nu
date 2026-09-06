@@ -88,6 +88,8 @@ def main [
         }
     }
 
+    trace-end $_tid
+
     if $json {
         $result | to json
     } else {
@@ -120,7 +122,6 @@ def main [
         }
     }
 
-    trace-end $_tid
 }
 
 # Compose multiple policies with most-restrictive-wins semantics.

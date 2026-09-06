@@ -8,7 +8,7 @@ Before looking at code, check these (most bugs are here):
 echo $RUST_LOG
 echo $RUST_BACKTRACE
 op account list          # 1Password auth
-env | grep -i api_key    # missing secrets
+env | rg -i api_key      # missing secrets
 ```
 
 ## Compiler Output

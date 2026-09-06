@@ -83,7 +83,8 @@ One sentence. What does this implement and why.
    cargo clippy -p <crate> -- -D warnings   → zero warnings
    ```
 
-4. Commit: `git commit -m "feat(<crate>): <summary>"`
+4. Run `git branch --show-current`; stop if it prints `main`.
+5. Commit: `git commit -m "feat(<crate>): <summary>"`
 
 ### Task 2: <name>
 

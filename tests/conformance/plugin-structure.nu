@@ -34,7 +34,7 @@ def main [] {
     let repo_root = (git rev-parse --show-toplevel | str trim)
     let skills_dir = ($repo_root | path join "skills")
     let plugin_json = ($repo_root | path join ".claude-plugin" "plugin.json")
-    let skill_index = ($repo_root | path join "skills" "using-godmode" "references" "skill-index.md")
+    let skill_index = ($repo_root | path join "skills" "using-godmode" "references" "skill-index.json")
     let using_godmode_skill = ($repo_root | path join "skills" "using-godmode" "SKILL.md")
 
     mut failures: list<string> = []
@@ -71,10 +71,10 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
-    # Check 3: skill name matches skill-index.md AND using-godmode/SKILL.md
+    # Check 3: skill name matches skill-index.json AND using-godmode/SKILL.md
     # using-godmode is excluded: it hosts the index and is not listed in it
     # -----------------------------------------------------------------------
-    let index_content = (open --raw $skill_index)
+    let index_content = (open $skill_index)
     let using_content = (open --raw $using_godmode_skill)
 
     for skill_path in $skill_dirs {
@@ -88,8 +88,8 @@ def main [] {
         let skill_full_name = (extract_fm_name $content)
         if ($skill_full_name | is-empty) { continue }
 
-        if not ($index_content | str contains $skill_full_name) {
-            $failures = ($failures | append $"[($skill_name)] name '($skill_full_name)' not found in skill-index.md")
+        if not ($skill_name in $index_content.skills.name) {
+            $failures = ($failures | append $"[($skill_name)] name '($skill_full_name)' not found in skill-index.json")
         }
         if not ($using_content | str contains $skill_full_name) {
             $failures = ($failures | append $"[($skill_name)] name '($skill_full_name)' not found in using-godmode/SKILL.md Available Skills table")
@@ -97,23 +97,14 @@ def main [] {
     }
 
     # -----------------------------------------------------------------------
-    # Check 4: No orphan index entries — every entry in skill-index.md has a dir
+    # Check 4: No orphan index entries — every entry in skill-index.json has a dir
     # -----------------------------------------------------------------------
-    let index_names = (
-        $index_content
-        | lines
-        | where { |l| $l =~ '`godmode:[^`]+`' }
-        | each { |l|
-            $l | parse --regex '`(godmode:[^`]+)`' | get capture0? | default []
-        }
-        | flatten
-        | uniq
-    )
+    let index_names = ($index_content.skills.name | uniq)
     let dir_names = ($skill_dirs | each { |p| $p | path basename })
 
     for entry in $index_names {
         $checks = $checks + 1
-        let short = ($entry | str replace "godmode:" "")
+        let short = $entry
         if not ($dir_names | any { |d| $d == $short }) {
             $failures = ($failures | append $"[index] orphan entry '($entry)' — no matching skills/($short)/ dir")
         }
@@ -130,8 +121,10 @@ def main [] {
         let refs = (
             $content
             | lines
-            | each { |l| $l | parse --regex '`(references/[^`]+)`' | get capture0? | default [] }
+            | where { |l| not ($l | str contains 'example path') }
+            | each { |l| $l | parse --regex '`(references/[^\s`]+)' | get capture0? | default [] }
             | flatten
+            | where { |r| not (($r | str contains "<") or ($r | str contains "*")) }
         )
         for ref in $refs {
             $checks = $checks + 1
@@ -153,8 +146,9 @@ def main [] {
         let refs = (
             $content
             | lines
-            | each { |l| $l | parse --regex '`(helpers/[^`]+)`' | get capture0? | default [] }
+            | each { |l| $l | parse --regex '`(helpers/[^\s`]+)' | get capture0? | default [] }
             | flatten
+            | where { |r| not (($r | str contains "<") or ($r | str contains "*")) }
         )
         for ref in $refs {
             $checks = $checks + 1
@@ -202,6 +196,13 @@ def main [] {
         "handon"
         "handoff"
         "status"
+        "context"
+        "visualize-graph"
+        "pin"
+        "unpin"
+        "init"
+        "doctor"
+        "memory-banking"
         "task list"
         "task next"
         "task add"
@@ -220,6 +221,15 @@ def main [] {
         "plan ingest"
         "dispatch"
         "agent"
+        "hook"
+        "skill"
+        "pipeline"
+        "policy"
+        "insight"
+        "session"
+        "workflow"
+        "scaffold"
+        "test-check"
         "verify"
         "wave init"
         "wave status"
@@ -239,6 +249,8 @@ def main [] {
         "release bump"
         "release tag"
         "release push"
+        "release changelog"
+        "release validate"
     ]
 
     for skill_path in $skill_dirs {

@@ -17,7 +17,7 @@ def main [
 ] {
     let git_root = (do { git rev-parse --show-toplevel } | complete)
     if $git_root.exit_code != 0 {
-        { action: "allow", reason: "not in git repo — no policy enforcement" } | to json
+        { action: "allow", reason: "not in git repo — no policy enforcement" } | to json | print
         exit 0
     }
     let root = $git_root.stdout | str trim
@@ -31,7 +31,7 @@ def main [
 
     if $resolve_result.exit_code != 0 {
         # Fail closed — if we can't resolve policy, deny
-        { action: "deny", reason: "policy resolution failed — fail closed" } | to json
+        { action: "deny", reason: "policy resolution failed — fail closed" } | to json | print
         exit 0
     }
 
@@ -43,7 +43,7 @@ def main [
         {
             action: "deny"
             reason: $"tool '($tool_name)' is in blocked_tools for ($agent_name)"
-        } | to json
+        } | to json | print
         exit 0
     }
 
@@ -53,7 +53,7 @@ def main [
         {
             action: "deny"
             reason: $"tool '($tool_name)' not in allowed_tools for ($agent_name)"
-        } | to json
+        } | to json | print
         exit 0
     }
 
@@ -63,7 +63,7 @@ def main [
         {
             action: "review"
             reason: $"tool '($tool_name)' requires human approval for ($agent_name)"
-        } | to json
+        } | to json | print
         exit 0
     }
 
@@ -71,12 +71,11 @@ def main [
     if ($input != "") {
         let patterns = $policy | get blocked_patterns? | default []
         for pattern in $patterns {
-            let match_result = do { echo $input | grep -qP $pattern } | complete
-            if $match_result.exit_code == 0 {
+            if $input =~ $pattern {
                 {
                     action: "deny"
                     reason: $"content matches blocked pattern: ($pattern)"
-                } | to json
+                } | to json | print
                 exit 0
             }
         }

@@ -119,6 +119,6 @@ The agent never creates a PR without explicit user approval of the draft.
 
 ## See also
 
-- `gm-code-review-agent` — run a code review BEFORE running this agent
-- `gm-changelog-agent` — generates changelog from commit history
+- `godmode:code-review` — run a code review BEFORE running this agent
+- `godmode:changelog` — generates changelog from commit history
 - GitHub CLI: `gh pr create --help`

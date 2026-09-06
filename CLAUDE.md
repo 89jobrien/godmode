@@ -285,14 +285,14 @@ cause validation failure on `claude plugin install`.
 
 ## CI
 
-Watch the latest run on main:
+List the latest runs on the current branch without opening a TTY watcher:
 
 ```nu
-gh run watch (gh run list --branch (git branch --show-current) --limit 1 --json databaseId | from json | get 0.databaseId)
+gh run list --branch (git branch --show-current) --limit 3
 ```
 
 ```bash
-gh run watch $(gh run list --branch $(git branch --show-current) --limit 1 --json databaseId --jq '.[0].databaseId')
+gh run list --branch $(git branch --show-current) --limit 3
 ```
 
 ## Git Operations

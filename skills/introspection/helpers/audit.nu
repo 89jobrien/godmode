@@ -6,17 +6,8 @@ def main [] {
     let root = (git rev-parse --show-toplevel | str trim)
     let skills_dir = $"($root)/skills"
 
-    # Exclude non-skill container dirs: shared lib dirs, scratch worktree
-    # dirs (name ends in "-workspace"), and namespace containers that hold
-    # nested skill subdirectories (each with their own SKILL.md) rather than
-    # being a skill themselves.
-    let skill_dirs = (ls $skills_dir | where type == "dir" | get name
-        | where { |d|
-            let name = ($d | path basename)
-            let has_own_skill_md = ($"($d)/SKILL.md" | path exists)
-            let has_nested_skill_md = ((glob $"($d)/*/SKILL.md") | length) > 0
-            ($name != "_lib") and ($name != "lib") and (not ($name | str ends-with "-workspace")) and (not ((not $has_own_skill_md) and $has_nested_skill_md))
-        })
+    # Derive inventory from every SKILL.md so nested and *-workspace skills are included.
+    let skill_dirs = (glob $"($skills_dir)/**/SKILL.md" | each { |p| $p | path dirname })
 
     # Check skill-index coverage via using-godmode/SKILL.md
     let index_path = $"($skills_dir)/using-godmode/SKILL.md"
@@ -69,7 +60,7 @@ def main [] {
             if ($parsed | length) > 0 {
                 let fname = ($parsed | first | get f)
                 # Skip template placeholders like <topic>.md or *.md
-                if ($fname | str contains "<") or ($fname | str contains "*") {
+                if ($fname | str contains "<") or ($fname | str contains "*") or ($ref_line | str contains "example path") {
                     continue
                 }
                 if not ($"($skill_dir)/references/($fname)" | path exists) {
