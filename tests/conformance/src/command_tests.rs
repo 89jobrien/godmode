@@ -46,12 +46,14 @@ fn command_projections_match_all_canonical_sources() {
     command::check_rendered_commands(&claude, &root.join("commands")).unwrap();
 
     let prettierignore = std::fs::read_to_string(root.join(".prettierignore")).unwrap();
-    assert!(
-        prettierignore
-            .lines()
-            .any(|line| line.trim() == "commands/*.md"),
-        "generated command projections must be excluded from Markdown formatting"
-    );
+    for generated_pattern in ["commands/*.md", "agents/*.md", "skills/INDEX.md"] {
+        assert!(
+            prettierignore
+                .lines()
+                .any(|line| line.trim() == generated_pattern),
+            "generated projections must be excluded from Markdown formatting: {generated_pattern}"
+        );
+    }
 
     let gitignore = std::fs::read_to_string(root.join(".gitignore")).unwrap();
     assert!(!gitignore.lines().any(|line| line == "commands/gm-*.md"));
