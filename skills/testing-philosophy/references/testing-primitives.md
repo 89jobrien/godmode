@@ -86,6 +86,15 @@ use godmode_core::testing::seed::deterministic_seed;
 let seed = deterministic_seed("my_test_name"); // stable u64
 ```
 
+## binary_path
+
+Resolve a Cargo-built integration-test binary from `CARGO_BIN_EXE_<name>`:
+
+```rust
+use godmode_core::testing::binary::binary_path;
+let godmode = binary_path("godmode")?;
+```
+
 ## Patterns (not in crate, adopt manually)
 
 - **AST guardrails**: Parse source with `syn`, assert structural invariants
