@@ -1209,4 +1209,27 @@ mod tests {
         assert_eq!(workflow.matches("cargo nextest run").count(), 0);
         assert_eq!(workflow.matches("cargo clippy").count(), 0);
     }
+
+    #[test]
+    fn version_bump_updates_both_plugin_manifests() {
+        let root = repo_root();
+        let config: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(".version-bump.json")).unwrap(),
+        )
+        .unwrap();
+        let paths: Vec<&str> = config["files"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|entry| entry["path"].as_str())
+            .collect();
+
+        assert!(paths.contains(&".claude-plugin/plugin.json"));
+        assert!(paths.contains(&".codex-plugin/plugin.json"));
+        for path in paths {
+            let manifest: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(root.join(path)).unwrap()).unwrap();
+            assert_eq!(manifest["version"], "0.7.0", "manifest: {path}");
+        }
+    }
 }

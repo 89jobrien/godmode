@@ -3,6 +3,10 @@
     {
       "path": ".claude-plugin/plugin.json",
       "field": "version"
+    },
+    {
+      "path": ".codex-plugin/plugin.json",
+      "field": "version"
     }
   ],
   "audit": {
