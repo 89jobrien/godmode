@@ -100,8 +100,6 @@ fn run_rust_script(script: &PathBuf, args: &[&str]) -> Result<String> {
 }
 
 fn helpers_dir() -> Result<PathBuf> {
-    // Resolve relative to this script's canonical location
     let home = std::env::var("HOME").context("HOME not set")?;
-    Ok(PathBuf::from(home)
-        .join("dev/minibox/.claude/skills/whatidid/helpers"))
+    Ok(PathBuf::from(home).join(".agents/skills/whatidid/helpers"))
 }

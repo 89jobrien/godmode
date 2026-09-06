@@ -81,12 +81,18 @@ fn parse_frontmatter(src: &str) -> Result<Vec<(String, String)>, String> {
         };
 
         fields.push((key.to_string(), value));
-        if value.is_empty() {
-            // Keep behaviour consistent with the existing field-empty validation.
-            continue;
-        }
     }
     Err("unclosed frontmatter: missing closing ---".into())
+}
+
+fn is_kebab_segment(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        && !segment.starts_with('-')
+        && !segment.ends_with('-')
+        && !segment.contains("--")
 }
 
 fn validate(path: &str) -> Validation {
@@ -128,22 +134,20 @@ fn validate(path: &str) -> Validation {
         }
     }
 
-    let name = map.get("name").copied().unwrap_or("");
+    let name = map
+        .get("name")
+        .copied()
+        .unwrap_or("")
+        .trim_matches(|c| c == '"' || c == '\'');
     if name.is_empty() {
         v.push("missing required field 'name'");
     } else {
         if name.len() > 64 {
             v.push(format!("name is too long ({}) chars, max 64", name.len()));
         }
-        if !name
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-            || name.starts_with('-')
-            || name.ends_with('-')
-            || name.contains("--")
-        {
-            v.push("name must be kebab-case: lowercase letters, digits, and single hyphens only"
-                .to_string());
+        let segments: Vec<_> = name.split(':').collect();
+        if segments.len() > 2 || !segments.iter().all(|segment| is_kebab_segment(segment)) {
+            v.push("name must be kebab-case, optionally with one kebab-case namespace".to_string());
         }
     }
 

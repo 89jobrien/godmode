@@ -8,8 +8,10 @@ steps:
     label: design
   - skill: writing-plans
     label: plan
-  - skill: task-management
+  - skill: ingest
     label: ingest
+  - skill: task-management
+    label: manage
   - skill: task-driven-development
     label: execute
     loop: per-task
@@ -28,4 +30,5 @@ steps:
   - skill: pattern-learner
   - skill: mistake-tracker
   - skill: memory-banking
-entry_points: [brainstorm, design, task-management, task-driven-development]
+entry_points:
+  [brainstorm, design, ingest, task-management, task-driven-development]

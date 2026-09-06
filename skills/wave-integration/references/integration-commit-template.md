@@ -10,7 +10,7 @@ Branches:
 - feat/branch-b (def5678)
 - feat/branch-c (ghi9012)
 
-Tests: cargo test --workspace — 488 passed, 0 failed
+Tests: cargo nextest run --workspace — 488 passed, 0 failed
 
 Conflicts resolved: 2 files
 - crates/foo/src/lib.rs: kept rename from main, added new variant from feat/branch-a
@@ -28,7 +28,7 @@ Branches:
 - feat/branch-a (abc1234)
 - feat/branch-b (def5678)
 
-Tests: cargo test --workspace — 488 passed, 0 failed
+Tests: cargo nextest run --workspace — 488 passed, 0 failed
 ```
 
 ## Partial integration (some branches failed)
@@ -45,7 +45,7 @@ Not integrated (require manual resolution):
   cannot be composed automatically
 - feat/branch-d: tests failed after rebase (test_exec_timeout — asserts old MockRuntime API)
 
-Tests: cargo test --workspace — 488 passed, 0 failed (on integrated set)
+Tests: cargo nextest run --workspace — 488 passed, 0 failed (on integrated set)
 
 Conflicts resolved: 1 file
 - Cargo.toml: took higher tokio version (1.45.0) from feat/branch-b

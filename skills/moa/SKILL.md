@@ -65,7 +65,7 @@ nu skills/moa/helpers/synthesize.nu $prompt
 
 ## Output
 
-Proposals written to `.ctx/_WORKING_DIR/moa-proposal-<n>.txt`. Synthesizer output printed to
+Proposals written to `.ctx/godmode/_WORKING_DIR/moa-proposal-<n>.txt`. Synthesizer output printed to
 stdout. Files are gitignored and cleaned on the next `godmode handon`.
 
 ## Requirements

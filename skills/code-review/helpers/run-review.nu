@@ -2,8 +2,8 @@
 # run-review.nu — run the code-review gate and print a structured report scaffold.
 # Usage: nu skills/code-review/helpers/run-review.nu [--crate <name>]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [--crate: string = ""] {
     if not ($crate | is-empty) {

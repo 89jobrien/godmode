@@ -3,7 +3,7 @@
 # Usage: wave-integrate [--branches "feat/a feat/b feat/c"] [--base main] [--dry-run]
 #
 # Reads branches from --branches (space-separated) or from stdin (one per line).
-# Rebases each onto --base, runs cargo test --workspace, then merges to base.
+# Rebases each onto --base, runs cargo nextest run --workspace, then merges to base.
 # Writes conflict-resolution-log.md to repo root on completion.
 
 set -euo pipefail
@@ -76,6 +76,24 @@ echo "Branches: $(
     IFS=', '
     echo "${BRANCH_LIST[*]}"
 )"
+
+# A dry run must not stash, checkout, pull, fetch, rebase, test, merge, or write files.
+if [[ $DRY_RUN -eq 1 ]]; then
+    step "Validating dry-run inputs"
+    if ! git rev-parse --verify --quiet "$BASE^{commit}" >/dev/null; then
+        fail "Base branch does not resolve to a commit: ${BASE}"
+        exit 1
+    fi
+    for BRANCH in "${BRANCH_LIST[@]}"; do
+        if ! git rev-parse --verify --quiet "$BRANCH^{commit}" >/dev/null; then
+            fail "Branch does not resolve to a commit: ${BRANCH}"
+            exit 1
+        fi
+        warn "[dry-run] Would rebase ${BRANCH} onto ${BASE}, run tests, then merge"
+    done
+    ok "Dry run complete; repository state was not changed"
+    exit 0
+fi
 
 # ── stash any dirty worktree ─────────────────────────────────────────────────
 STASHED=0
@@ -157,27 +175,22 @@ for BRANCH in "${BRANCH_LIST[@]}"; do
     # Capture SHA
     SHA="$(git rev-parse --short HEAD)"
 
-    if [[ $DRY_RUN -eq 0 ]]; then
-        # Merge to base
-        step "Merging ${BRANCH} into ${BASE}"
-        git checkout "$BASE"
-        if ! git merge --no-ff "$BRANCH" -m "integrate: merge ${BRANCH}"; then
-            fail "Merge failed for ${BRANCH}"
-            FAILED+=("$BRANCH")
-            continue
-        fi
-        ok "Merged ${BRANCH} -> ${BASE} at ${SHA}"
-    else
-        warn "[dry-run] Would merge ${BRANCH} at ${SHA} into ${BASE}"
-        git checkout "$BASE" 2>/dev/null || true
+    # Merge to base
+    step "Merging ${BRANCH} into ${BASE}"
+    git checkout "$BASE"
+    if ! git merge --no-ff "$BRANCH" -m "integrate: merge ${BRANCH}"; then
+        fail "Merge failed for ${BRANCH}"
+        FAILED+=("$BRANCH")
+        continue
     fi
+    ok "Merged ${BRANCH} -> ${BASE} at ${SHA}"
 
     INTEGRATED+=("$BRANCH")
     INTEGRATED_SHAS["$BRANCH"]="$SHA"
 done
 
 # ── final test run on base ────────────────────────────────────────────────────
-if [[ $DRY_RUN -eq 0 && ${#INTEGRATED[@]} -gt 0 ]]; then
+if [[ ${#INTEGRATED[@]} -gt 0 ]]; then
     step "Final test run on ${BASE}"
     if ! cargo nextest run --workspace; then
         fail "Final tests failed on integration branch — do not proceed"
@@ -190,10 +203,13 @@ fi
 LOG_PATH="${REPO_ROOT}/conflict-resolution-log.md"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M')"
 
-BRANCH_SUMMARY=""
-for b in "${INTEGRATED[@]}"; do
-    BRANCH_SUMMARY+="- ${b} (${INTEGRATED_SHAS[$b]:-unknown})"$'\n'
-done
+BRANCH_SUMMARY="none"
+if [[ ${#INTEGRATED[@]} -gt 0 ]]; then
+    BRANCH_SUMMARY=""
+    for b in "${INTEGRATED[@]}"; do
+        BRANCH_SUMMARY+="- ${b} (${INTEGRATED_SHAS[$b]:-unknown})"$'\n'
+    done
+fi
 
 FAILED_SUMMARY="none"
 if [[ ${#FAILED[@]} -gt 0 ]]; then

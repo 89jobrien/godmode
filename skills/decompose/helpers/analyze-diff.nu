@@ -112,7 +112,7 @@ def group_by_crate [files: list<string>, crate_map: record] {
 
 # ── Concern classification (path patterns) ──────────────────────────────────
 
-def classify_concern [file: string] -> string {
+def classify_concern [file: string]: nothing -> string {
     match true {
         ($file =~ 'Cargo\.toml$' or $file =~ 'Cargo\.lock$')                  => "deps"
         ($file =~ '^\.github/')                                                  => "ci"
@@ -250,7 +250,7 @@ def propose_splits [
     $splits
 }
 
-def find_coupling_ids [files: list<string>, coupling: list, existing_splits: list] -> list {
+def find_coupling_ids [files: list<string>, coupling: list, existing_splits: list]: nothing -> list {
     mut coupled = []
 
     for warning in $coupling {

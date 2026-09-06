@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
-# wave-init.nu — initialise .ctx/wave-status.json for a parallel dispatch wave.
+# wave-init.nu — initialise .ctx/godmode/wave-status.json for a parallel dispatch wave.
 # Usage: nu skills/parallel-agents/helpers/wave-init.nu <crate-or-domain>...
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [...slots: string] {
     if ($slots | is-empty) {
@@ -13,7 +13,7 @@ def main [...slots: string] {
 
     let tid = (trace-start "parallel-agents" "wave-init.nu" ...$slots)
     let root = (repo-root)
-    let ctx_dir = $"($root)/.ctx"
+    let ctx_dir = $"($root)/.ctx/godmode"
     mkdir $ctx_dir
 
     let agents = ($slots | reduce --fold {} { |slot, acc|

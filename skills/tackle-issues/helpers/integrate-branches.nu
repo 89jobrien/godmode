@@ -2,8 +2,8 @@
 # integrate-branches.nu — sequentially merge issue branches into main and clean up.
 # Usage: nu skills/tackle-issues/helpers/integrate-branches.nu <issue-number>...
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [...issues: string] {
     if ($issues | is-empty) {

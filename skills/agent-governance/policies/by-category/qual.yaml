@@ -13,7 +13,7 @@ allowed_tools:
   - Write # for reports and checklists
   - Glob
   - Grep
-  - Bash # for cargo clippy, cargo test, cargo fmt --check
+  - Bash # for cargo clippy, cargo nextest run, cargo fmt --check
 
 blocked_tools:
   - Edit # qual agents report, not fix

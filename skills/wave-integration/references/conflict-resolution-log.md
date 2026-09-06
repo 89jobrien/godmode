@@ -30,4 +30,4 @@
 
 - `feat/d`: `crates/baz/src/lib.rs` test `test_timeout_behavior` failed after rebase onto main.
   Root cause: `feat/d` assumed `MockRuntime::new()` returns `Ok(Self)` but main changed it to
-  infallible. Fixed by unwrapping in test; re-ran `cargo test --workspace` — passes.
+  infallible. Fixed by unwrapping in test; re-ran `cargo nextest run --workspace` — passes.

@@ -2,8 +2,8 @@
 # synthesize.nu — read proposals and run synthesizer via aichat (openai)
 # Usage: nu synthesize.nu <original-prompt> [--model <model>]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [
     original_prompt: string
@@ -11,7 +11,7 @@ def main [
 ] {
     let root = (repo-root)
     let tid = (trace-start "moa" "synthesize.nu" $"model=($model)")
-    let workdir = $"($root)/.ctx/_WORKING_DIR"
+    let workdir = $"($root)/.ctx/godmode/_WORKING_DIR"
 
     let proposals = (
         ls $workdir

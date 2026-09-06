@@ -184,7 +184,7 @@ unless you fully understand the invariants.
 
 - Write unit tests in `#[cfg(test)]` modules in the same file as the code under test.
 - Write integration tests in `tests/` with descriptive file names.
-- Use `cargo nextest run` (preferred over `cargo test`) for test filtering and parallelism.
+- Use `cargo nextest run` for test filtering and parallelism.
 - Test edge cases explicitly — not just the happy path.
 - Examples in doc comments must compile and use `?`, not `unwrap()`.
 
@@ -238,7 +238,7 @@ Before submitting any Rust code:
 - `skills/agent-governance/SKILL.md` — Rust implementations of governance patterns
 - `skills/systematic-debugging/SKILL.md` — debugging approach for Rust-specific issues
 - `skills/verification-before-completion/SKILL.md` — CI gate checklist
-- `skills/rust-api-guidelines/SKILL.md` — the full official Rust API Guidelines by C-code, with
-  rationale and examples for each rule this document summarizes
-- `skills/rust-checklist/SKILL.md` — fast pass/fail checklist audit of a crate's public API
-  surface against the official guidelines; use before a release or PR review
+- `rust-api-guidelines` skill — the full official Rust API Guidelines by C-code, with rationale
+  and examples for each rule this document summarizes
+- `rust-checklist` skill — fast pass/fail checklist audit of a crate's public API surface against
+  the official guidelines; use before a release or PR review

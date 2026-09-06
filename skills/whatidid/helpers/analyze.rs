@@ -5,7 +5,7 @@
 //!
 //! Reads JSON produced by harvest.rs, builds a transcript, and calls
 //! claude-haiku-4-5 to produce a structured digest (goals, tasks, hours).
-//! Caches the result to ~/.claude/skills/whatidid/cache/YYYY-MM-DD.json.
+//! Caches the result to ~/.cache/whatidid/YYYY-MM-DD.json.
 //! Emits the digest JSON to stdout.
 //!
 //! Requires: ANTHROPIC_API_KEY in environment (or via op run).
@@ -18,7 +18,7 @@
 //!
 //! SECURITY: Without WHATIDID_CACHE_KEY, cached API responses containing
 //! activity data (session transcripts, goals, tasks) are stored as plaintext
-//! JSON in ~/.claude/skills/whatidid/cache/. Set WHATIDID_CACHE_KEY to a
+//! JSON in ~/.cache/whatidid/. Set WHATIDID_CACHE_KEY to a
 //! random string (e.g. `openssl rand -hex 32`) to encrypt at rest.
 //!
 //! ```cargo
@@ -44,7 +44,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest as Sha2Digest, Sha256};
 use std::{fs, path::PathBuf};
-
 
 // ── Digest types (mirrors analysis.txt OUTPUT SCHEMA) ───────────────────────
 
@@ -105,11 +104,10 @@ fn main() -> Result<()> {
             .context("read stdin")?;
         buf
     } else {
-        fs::read_to_string(&sessions_path)
-            .with_context(|| format!("read {sessions_path}"))?
+        fs::read_to_string(&sessions_path).with_context(|| format!("read {sessions_path}"))?
     };
-    let sessions: Vec<Value> = serde_json::from_str(&sessions_raw)
-        .context("parse sessions JSON")?;
+    let sessions: Vec<Value> =
+        serde_json::from_str(&sessions_raw).context("parse sessions JSON")?;
 
     if sessions.is_empty() {
         bail!("no sessions found for {date_str}");
@@ -215,8 +213,7 @@ fn is_encrypted(data: &[u8]) -> bool {
 /// Read cache file. Returns Some(content) on success, None if unreadable.
 /// Handles encrypted and plaintext files, with migration warnings.
 fn read_cache(path: &PathBuf, key: &Option<[u8; 32]>) -> Result<Option<String>> {
-    let raw = fs::read(path)
-        .with_context(|| format!("read cache {}", path.display()))?;
+    let raw = fs::read(path).with_context(|| format!("read cache {}", path.display()))?;
 
     if is_encrypted(&raw) {
         match key {
@@ -262,8 +259,7 @@ fn write_cache(path: &PathBuf, content: &str, key: &Option<[u8; 32]>) -> Result<
                 "warning: WHATIDID_CACHE_KEY not set; caching plaintext. \
                  Set WHATIDID_CACHE_KEY to encrypt cached API responses at rest."
             );
-            fs::write(path, content)
-                .with_context(|| format!("write cache {}", path.display()))?;
+            fs::write(path, content).with_context(|| format!("write cache {}", path.display()))?;
         }
     }
     Ok(())
@@ -295,10 +291,7 @@ fn build_transcript(sessions: &[Value]) -> String {
                     parts.push(format!("[{role}] {text}"));
                 }
                 if let Some(tools) = msg["tool_requests"].as_array() {
-                    let names: Vec<&str> = tools
-                        .iter()
-                        .filter_map(|t| t.as_str())
-                        .collect();
+                    let names: Vec<&str> = tools.iter().filter_map(|t| t.as_str()).collect();
                     if !names.is_empty() {
                         parts.push(format!("  tools: {}", names.join(", ")));
                     }
@@ -320,15 +313,13 @@ fn load_analysis_prompt() -> Result<String> {
 }
 
 fn cache_path(date: &str) -> Result<PathBuf> {
-    let skill_dir = skill_dir()?;
-    Ok(skill_dir.join(format!("cache/{date}.json")))
+    let home = std::env::var("HOME").context("HOME not set")?;
+    Ok(PathBuf::from(home).join(format!(".cache/whatidid/{date}.json")))
 }
 
 fn skill_dir() -> Result<PathBuf> {
-    // Resolve from this script's location at runtime
     let home = std::env::var("HOME").context("HOME not set")?;
-    Ok(PathBuf::from(home)
-        .join("dev/minibox/.claude/skills/whatidid"))
+    Ok(PathBuf::from(home).join(".agents/skills/whatidid"))
 }
 
 #[cfg(test)]
@@ -368,26 +359,26 @@ mod tests {
     #[test]
     fn test_cache_path_format() {
         let path = cache_path("2026-05-20").expect("cache_path should succeed");
-        assert!(path.to_string_lossy().contains("cache/2026-05-20.json"));
+        assert!(path
+            .to_string_lossy()
+            .contains(".cache/whatidid/2026-05-20.json"));
     }
 
     #[test]
     fn test_encrypt_decrypt_roundtrip() {
         let key = [0xABu8; 32];
         let plaintext = r#"{"headline":"test"}"#;
-        let encrypted = encrypt_data(plaintext.as_bytes(), &key)
-            .expect("encryption should succeed");
+        let encrypted =
+            encrypt_data(plaintext.as_bytes(), &key).expect("encryption should succeed");
         assert!(is_encrypted(&encrypted));
-        let decrypted = decrypt_data(&encrypted, &key)
-            .expect("decryption should succeed");
+        let decrypted = decrypt_data(&encrypted, &key).expect("decryption should succeed");
         assert_eq!(decrypted, plaintext);
     }
 
     #[test]
     fn test_encrypted_magic_header() {
         let key = [0x42u8; 32];
-        let encrypted = encrypt_data(b"hello", &key)
-            .expect("encryption should succeed");
+        let encrypted = encrypt_data(b"hello", &key).expect("encryption should succeed");
         assert_eq!(&encrypted[..4], b"WDID");
     }
 
@@ -401,8 +392,7 @@ mod tests {
     fn test_wrong_key_fails_decryption() {
         let key1 = [0xAAu8; 32];
         let key2 = [0xBBu8; 32];
-        let encrypted = encrypt_data(b"secret", &key1)
-            .expect("encryption should succeed");
+        let encrypted = encrypt_data(b"secret", &key1).expect("encryption should succeed");
         assert!(decrypt_data(&encrypted, &key2).is_err());
     }
 

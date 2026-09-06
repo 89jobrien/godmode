@@ -161,7 +161,7 @@ Create the directory and file if they do not exist. Append with a newline.
 
 Print the scorecard to stdout. If history exists with previous scores, also print
 the trend summary. Write the complete scorecard (including full history context) to
-`.ctx/_WORKING_DIR/health-score-<YYYY-MM-DD>.md` for agent reference.
+`.ctx/godmode/_WORKING_DIR/health-score-<YYYY-MM-DD>.md` for agent reference.
 
 ## Guardrails
 

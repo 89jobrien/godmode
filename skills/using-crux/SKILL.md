@@ -18,13 +18,13 @@ and failure is a first-class value (`Crux<T>`) that is inspectable,
 serializable, and replayable.
 
 - **Edition**: Rust 2024
-- **MSRV**: 1.88
+- **MSRV**: 1.89
 - **License**: MIT
-- **Repo**: `https://github.com/89jobrien/crux`
+- **Repo**: `<repository-url>`
 
 ## Workspace Layout
 
-All crates live under `crates/`. The workspace version is `0.2.6`.
+All crates live under `crates/`. The workspace version is `0.3.1`.
 
 | Crate          | Role                                                                 |
 | -------------- | -------------------------------------------------------------------- |
@@ -54,8 +54,8 @@ Crates were renamed in May 2026:
 | `cruxx-plugin` | `crux-plugin`  |
 | `cruxx-domain` | `crux-domain`  |
 
-The facade crate package name is `cruxx` (for crates.io), but the lib name
-is `crux`. Use `use crux::prelude::*;` in downstream code.
+The facade crate package and library name are both `crux`. Use
+`use crux::prelude::*;` in downstream code.
 
 `slashcrux` is a separate vocabulary crate (`Priority`, `Urgency`,
 `ExecutionContext`, `StepState`) — it was **not** renamed.
@@ -81,7 +81,7 @@ just build           # cargo build --all-targets
 just check-baml      # Validate BAML version parity
 ```
 
-Always use `cargo nextest run` instead of `cargo test`.
+Always use `cargo nextest run` for tests.
 
 ## Adding Crux as a Dependency
 
@@ -89,21 +89,21 @@ For **external consumers** that only need the wire types (e.g., minibox):
 
 ```toml
 [dependencies]
-crux-types = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
+crux-types = { git = "<repository-url>", rev = "<sha>" }
 ```
 
 For **full runtime access**:
 
 ```toml
 [dependencies]
-cruxx = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
+crux = { git = "<repository-url>", rev = "<sha>" }
 ```
 
 For **plugin protocol** (subprocess plugins):
 
 ```toml
 [dependencies]
-crux-plugin = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
+crux-plugin = { git = "<repository-url>", rev = "<sha>" }
 ```
 
 ## Key Types and Traits
@@ -119,8 +119,7 @@ and SOLID decomposition.
 ## Pipeline Files
 
 Pipeline definitions use the `.crux` file extension (YAML syntax). See the
-`planning-with-crux` skill for pipeline authoring guidance, or
-the `planning-with-crux` skill's references/handler-catalog.md for the full handler reference.
+`planning-with-crux` skill and its bundled handler catalog for pipeline authoring guidance.
 
 ## Testing
 

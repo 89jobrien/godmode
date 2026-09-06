@@ -99,7 +99,7 @@ Capture the issue number from the URL printed by `gh issue create` (last path se
 After each issue is created, add it to the godmode task graph immediately:
 
 ```bash
-godmode task add gh-<N> "<title>"
+godmode task add "<title>" --id gh-<N>
 ```
 
 Use `gh-<N>` as the task ID (e.g. `gh-42`) so it is traceable back to the GitHub issue.
@@ -113,7 +113,7 @@ Use `mcp__claude_ai_Linear__save_issue` with team inferred from repo/project con
 After creating, add to the task graph:
 
 ```bash
-godmode task add <linear-id> "<title>"
+godmode task add "<title>" --id <linear-id>
 ```
 
 Use the Linear issue ID (e.g. `JOB-268`) as the task ID.

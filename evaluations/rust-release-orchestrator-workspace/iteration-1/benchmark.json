@@ -1,0 +1,229 @@
+{
+  "metadata": {
+    "skill_name": "rust-release-orchestrator",
+    "skill_path": "skills/rust-release-orchestrator",
+    "executor_model": "not recorded",
+    "analyzer_model": "not recorded",
+    "timestamp": "2026-07-16T16:44:12Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "release-workflow",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 39.6,
+        "tokens": 27211
+      },
+      "expectations": [
+        {
+          "text": "Script invoked with --dry-run flag before any real publish",
+          "passed": true,
+          "evidence": "Step 1 explicitly shows: rust-script \"$SCRIPT\" --workspace /dev/kan --dry-run"
+        },
+        {
+          "text": "Publish order is kan-core before kan-adapters before kan-cli",
+          "passed": true,
+          "evidence": "Expected publish order stated: kan-core \u2192 kan-adapters \u2192 kan-cli with dependency reasoning"
+        },
+        {
+          "text": "User asked to confirm before real publish is initiated",
+          "passed": true,
+          "evidence": "Step 2 is explicitly a confirmation checklist before Step 3 (real run)"
+        },
+        {
+          "text": "Real run command shown after dry-run",
+          "passed": true,
+          "evidence": "Step 3: rust-script \"$SCRIPT\" --workspace /dev/kan (without --dry-run)"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "release-workflow",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 49.3,
+        "tokens": 26816
+      },
+      "expectations": [
+        {
+          "text": "Script invoked with --dry-run flag before any real publish",
+          "passed": true,
+          "evidence": "Shows cargo publish -p kan-core --dry-run (per-crate, not a unified script)"
+        },
+        {
+          "text": "Publish order is kan-core before kan-adapters before kan-cli",
+          "passed": true,
+          "evidence": "Clearly states dependency chain and publish order throughout"
+        },
+        {
+          "text": "User asked to confirm before real publish is initiated",
+          "passed": false,
+          "evidence": "No explicit confirmation step; proceeds directly from dry-run to real publish with no pause for user review"
+        },
+        {
+          "text": "Real run command shown after dry-run",
+          "passed": true,
+          "evidence": "Step 3 shows cargo publish -p kan-core, kan-adapters, kan-cli in order"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "resume-interrupted",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 20.6,
+        "tokens": 26378
+      },
+      "expectations": [
+        {
+          "text": "Mentions --resume flag",
+          "passed": true,
+          "evidence": "Leads with: rust-script ... orchestrate.rs --workspace . --resume"
+        },
+        {
+          "text": "Explains .release-state.json concept",
+          "passed": true,
+          "evidence": "Explicitly: 'The orchestrator writes .release-state.json in the workspace root as it publishes each crate'"
+        },
+        {
+          "text": "Confirms kan-core will be skipped, not re-published",
+          "passed": true,
+          "evidence": "Step 2: 'Skips any crate already marked as published (including kan-core)'"
+        },
+        {
+          "text": "Provides the exact resume command",
+          "passed": true,
+          "evidence": "rust-script ~/.agents/skills/rust-release-orchestrator/scripts/orchestrate.rs --workspace . --resume"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "resume-interrupted",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 27.7,
+        "tokens": 25316
+      },
+      "expectations": [
+        {
+          "text": "Mentions --resume flag",
+          "passed": false,
+          "evidence": "No mention of --resume; gives manual cargo publish -p kan-adapters commands instead"
+        },
+        {
+          "text": "Explains .release-state.json concept",
+          "passed": false,
+          "evidence": "No state file concept; user must track manually which crates have published"
+        },
+        {
+          "text": "Confirms kan-core will be skipped, not re-published",
+          "passed": true,
+          "evidence": "Correctly warns that cargo publish rejects already-published versions and says do not re-publish"
+        },
+        {
+          "text": "Provides the exact resume command",
+          "passed": false,
+          "evidence": "Provides manual cargo publish -p kan-adapters without an orchestrator resume command"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "skip-gates-after-manual-fix",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 11.9,
+        "tokens": 26138
+      },
+      "expectations": [
+        {
+          "text": "Mentions --skip-gates flag",
+          "passed": true,
+          "evidence": "Command is: rust-script ... orchestrate.rs --workspace . --resume --skip-gates"
+        },
+        {
+          "text": "Provides a complete command the user can run immediately",
+          "passed": true,
+          "evidence": "Single self-contained command with all flags; nothing else needed"
+        },
+        {
+          "text": "Does not redundantly suggest manual cargo clippy",
+          "passed": true,
+          "evidence": "No manual clippy or fmt commands suggested; skill correctly defers to the orchestrator's --skip-gates"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "skip-gates-after-manual-fix",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 22.7,
+        "tokens": 25299
+      },
+      "expectations": [
+        {
+          "text": "Mentions --skip-gates flag",
+          "passed": false,
+          "evidence": "No --skip-gates; suggests running clippy and fmt manually instead of a flag"
+        },
+        {
+          "text": "Provides a complete command the user can run immediately",
+          "passed": false,
+          "evidence": "Requires multiple manual steps: clippy check, fmt check, commit, then separate publish commands \u2014 not a single resume command"
+        },
+        {
+          "text": "Does not redundantly suggest manual cargo clippy",
+          "passed": false,
+          "evidence": "Explicitly suggests RUSTFLAGS='-D warnings' cargo clippy -p kan-adapters and workspace-wide clippy, which the user already ran"
+        }
+      ],
+      "notes": []
+    }
+  ]
+}

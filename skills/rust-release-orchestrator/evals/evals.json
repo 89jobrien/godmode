@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "I want to release the kan workspace to crates.io. It has three crates: kan-core, kan-adapters (depends on kan-core), and kan-cli (depends on both). Walk me through a dry run first, then the real release.",
-      "expected_output": "Runs the orchestrate.py script in --dry-run mode on /Users/joe/dev/kan, shows the publish order (kan-core → kan-adapters → kan-cli), runs quality gates, then confirms with user before offering the real run command.",
+      "expected_output": "Runs the orchestrate.rs script in --dry-run mode on /dev/kan, shows the publish order (kan-core → kan-adapters → kan-cli), runs quality gates, then confirms with user before offering the real run command.",
       "assertions": [
         {
           "text": "Script invoked with --dry-run flag before any real publish",
@@ -22,7 +22,7 @@
         {
           "text": "Real run command is shown after dry-run completes",
           "type": "presence",
-          "target": "python.*orchestrate.*--workspace"
+          "target": "rust-script.*orchestrate.*--workspace"
         }
       ]
     },
@@ -49,7 +49,7 @@
         {
           "text": "Provides the exact resume command",
           "type": "presence",
-          "target": "orchestrate.py.*--resume"
+          "target": "orchestrate.rs.*--resume"
         }
       ]
     },
@@ -66,7 +66,7 @@
         {
           "text": "Provides a complete command the user can run immediately",
           "type": "presence",
-          "target": "orchestrate.py"
+          "target": "orchestrate.rs"
         },
         {
           "text": "Does not suggest re-running fmt or clippy manually",

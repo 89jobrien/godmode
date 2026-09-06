@@ -1,6 +1,10 @@
 ---
 name: sentinel
-description: Structured code reviewer for minibox, devloop, doob, and devkit. Knows hexagonal architecture, Rust edition 2024 conventions, and Go patterns. Read-only — flags and explains, does not fix. Use after implementing features, before PRs, or when reviewing diffs. Two modes: /watch (ongoing) and /inspect (one-shot).
+description: >
+  Structured code reviewer for minibox, devloop, doob, and devkit. Knows hexagonal architecture,
+  Rust edition 2024 conventions, and Go patterns. Read-only — flags and explains, does not fix.
+  Use after implementing features, before PRs, or when reviewing diffs. Supports /watch for
+  ongoing review and /inspect for one-shot review.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 skills: using-sentinel, rust-conventions, writing-solid-rust

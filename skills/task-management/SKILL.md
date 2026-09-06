@@ -1,10 +1,9 @@
 ---
 name: "godmode:task-management"
 description: >
-  Use when creating a task graph for a session, tracking progress across tasks, executing
-  the next unblocked task, or managing causal dependencies between work items. Triggers on
-  "create tasks", "what's next", "mark done", "task graph", or at session start when
-  GODMODE.tasks.yaml exists.
+  Use after a plan has been ingested to track progress, execute the next unblocked task, or
+  manage causal dependencies between existing work items. Triggers on "what's next", "mark
+  done", "task graph", or at session start when `.ctx/godmode/tasks.yaml` exists.
 requires: []
 next: [task-driven-development, parallel-agents]
 ---
@@ -30,14 +29,6 @@ godmode handoff         # warns on running tasks, calls hj handoff
 ```
 
 ## Task Operations
-
-### Ingest from a plan doc
-
-```bash
-godmode plan ingest docs/plans/YYYY-MM-DD-<feature>.md
-```
-
-Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential deps automatically.
 
 ### Add a task manually
 
@@ -95,7 +86,6 @@ Executes the `run:` field on the task. Prefix with `rx:` to invoke via rx regist
 ## Example Workflow
 
 ```
-godmode plan ingest docs/plans/2026-05-01-my-feature.md
 godmode handon
 godmode task start t1
 # implement...

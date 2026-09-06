@@ -2,8 +2,8 @@
 # debug-session.nu — Phase 1 reproduction helper for systematic-debugging.
 # Usage: nu skills/systematic-debugging/helpers/debug-session.nu <crate> [test_name]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [crate: string, test_name: string = ""] {
     let tid = (trace-start "systematic-debugging" "debug-session.nu" $crate $test_name)

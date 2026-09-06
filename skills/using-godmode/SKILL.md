@@ -25,7 +25,7 @@ confirmations ("do it", "act", "go") advance to the next phase.
 Default phase. Read files, run `godmode handon`, summarize state. No modifications.
 </godmode-phase>
 
-<godmode-phase name="PLAN" mode="read-only" response-header="# Phase: PLAN" skills="brainstorm, writing-plans">
+<godmode-phase name="PLAN" mode="read-only" response-header="# Phase: PLAN" skills="brainstorm, writing-plans, ingest">
 Produce a written plan. Still read-only. End with "Type ACT to proceed."
 </godmode-phase>
 
@@ -72,6 +72,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior                   |
 | `godmode:brainstorm`                      | Before any creative or design work                           |
 | `godmode:writing-plans`                   | Multi-step task with a spec or requirements                  |
+| `godmode:ingest`                          | Load a completed plan into the task graph                    |
 | `godmode:verification-before-completion`  | Before claiming work is done                                 |
 | `godmode:task-management`                 | Creating, tracking, or executing a task graph                |
 | `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently               |
@@ -95,7 +96,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:doublecheck`                     | Three-layer verification of factual claims                   |
 | `godmode:mini-context-graph`              | Persistent knowledge base with entity graph                  |
 | `godmode:agent-governance`                | Governance/safety patterns for AI agent systems              |
-| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context                  |
+| `godmode:memory-banking`                  | Generate/maintain .ctx/godmode/memory-bank/ context          |
 | `godmode:changelog`                       | Parse git history into structured changelogs                 |
 | `godmode:cross-issue`                     | Cross-repo issue coordination and linking                    |
 | `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs           |
@@ -110,7 +111,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:release-notes`                   | Write user-facing release notes from git history             |
 | `godmode:workspace-refactor`              | Catalog breaking changes in shared crate APIs                |
 | `godmode:agents-skill-save`               | Create or fix a local skill saved to wrong path              |
-| `godmode:baml-add-types`                  | Add BAML types/functions to cruxx-agentic                    |
+| `godmode:baml-add-types`                  | Add BAML types/functions to crux-baml                        |
 | `godmode:design`                          | Translate brainstorm into architectural spec                 |
 | `godmode:dual-forge-pr-merge`             | PR across GitHub and Gitea mirrors                           |
 | `godmode:gh-bulk-issues`                  | Create 3+ GitHub issues with consistent format               |
@@ -138,7 +139,11 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:async-sync-bridge`               | Mixing Tokio async with sync blocking I/O libraries          |
 | `godmode:baml-iteration`                  | Edit/validate/test loop for devloop \*.baml files            |
 | `godmode:chunked-file-reading`            | Reading large files that exceed context limits               |
+| `godmode:crs-discover`                    | Discover unhandled commands from session history             |
 | `godmode:crs-hook-testing`                | Adding/debugging a crs hook pipeline rule                    |
+| `godmode:crs-install`                     | Install validated course-correct rules                       |
+| `godmode:crs-propose-rules`               | Draft rules from discovered command candidates               |
+| `godmode:crs-validate`                    | Validate proposed rules before installation                  |
 | `godmode:daily-orchestration`             | Daily maintenance across all repos                           |
 | `godmode:devloop-analyze`                 | Running `devloop git analyze` on a repo                      |
 | `godmode:devloop-bench-cycle`             | Full benchmark cycle — criterion, budgets, regressions       |
@@ -177,7 +182,6 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:using-devloop`                   | Development context via devloop's commit/session view        |
 | `godmode:using-doob`                      | Managing todos/handoffs via doob CLI or doobdash             |
 | `godmode:using-forge`                     | Primary dev companion for minibox/devloop/doob/devkit        |
-| `godmode:using-gkg`                       | Structured knowledge graph of a codebase                     |
 | `godmode:using-maestro`                   | Maestro project — K8s, Tilt, GKE, Go+Rust codegen            |
 | `godmode:using-navigator`                 | Mental model briefing when jumping into a repo cold          |
 | `godmode:using-sentinel`                  | Structured code review before a PR                           |
@@ -191,7 +195,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 - **Commit signing**: SSH key via 1Password agent. Unlock 1Password and retry on failure.
 - **Shell**: Nushell (`nu`) primary. No bash-isms (`&&`, `$()`, `export VAR=`) in `.nu` files.
 - **Git in other repos**: `git -C <path>` not `cd <path> && git`.
-- **Rust**: `cargo check` + `cargo clippy` after every change. `cargo nextest` over `cargo test`.
+- **Rust**: `cargo check` + `cargo clippy` after every change. Use `cargo nextest run` for tests.
   Fix all clippy warnings before committing.
 - **Secrets**: Never pass raw `op://` URIs. Use `op read` or `op run`.
 - **Scope**: Touch only files within the explicitly requested scope.
@@ -215,7 +219,7 @@ godmode handoff     # warns on leaked running tasks, writes hj handoff
 Or with reflection:
 
 ```bash
-godmode handoff && godmode:self-reflect   # handoff + structured retrospective
+godmode handoff                          # then invoke godmode:self-reflect
 ```
 
 ## Additional Resources

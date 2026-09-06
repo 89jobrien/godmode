@@ -6,9 +6,16 @@ description: >
   per branch, and producing a clean summary commit with a conflict resolution log.
 requires: []
 next: [code-review]
+argument-hint: "<branch> <branch>... [--base <branch>] [--dry-run]"
 ---
 
 # Wave Integration Orchestrator
+
+## Input
+
+Parse `$ARGUMENTS` as one or more branch names plus optional `--base` and `--dry-run` flags.
+Reject empty input. Pass the resolved branch list and flags to `helpers/wave-integrate.nu`;
+never substitute the sample branch names below for user input.
 
 ## Overview
 
@@ -36,9 +43,12 @@ from each other (resolve those manually before invoking this skill).
 Run the helper:
 
 ```bash
-nu skills/wave-integration/helpers/wave-integrate.nu --branches "feat/a feat/b feat/c" --base main
-nu skills/wave-integration/helpers/wave-integrate.nu --branches "feat/a feat/b" --dry-run   # rebase+test only, no merge
+nu skills/wave-integration/helpers/wave-integrate.nu --branches "<resolved branches>" --base "<resolved base>"
+nu skills/wave-integration/helpers/wave-integrate.nu --branches "<resolved branches>" --dry-run
 ```
+
+Dry-run is inspection-only: it validates local refs and reports the planned operations without
+fetching, checking out, stashing, rebasing, merging, running tests, or writing files.
 
 ---
 
@@ -58,9 +68,11 @@ git checkout <branch>
 cargo check --workspace
 ```
 
-### 2. Rebase each branch onto current main (in dependency order)
+### 2. Update each branch against current main (in dependency order)
 
-Process branches one at a time — never attempt an octopus merge.
+Process branches one at a time — never attempt an octopus merge. Before rebasing, inspect
+`git log --merges <base>..<branch>`. If it returns merge commits, merge the base into the branch
+instead; never rebase a branch containing merge commits.
 
 ```bash
 git checkout main

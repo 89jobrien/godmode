@@ -1,0 +1,33 @@
+{
+  "eval_id": 2,
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions --resume flag",
+      "passed": true,
+      "evidence": "Leads with: rust-script ... orchestrate.rs --workspace . --resume"
+    },
+    {
+      "text": "Explains .release-state.json concept",
+      "passed": true,
+      "evidence": "Explicitly: 'The orchestrator writes .release-state.json in the workspace root as it publishes each crate'"
+    },
+    {
+      "text": "Confirms kan-core will be skipped, not re-published",
+      "passed": true,
+      "evidence": "Step 2: 'Skips any crate already marked as published (including kan-core)'"
+    },
+    {
+      "text": "Provides the exact resume command",
+      "passed": true,
+      "evidence": "rust-script ~/.agents/skills/rust-release-orchestrator/scripts/orchestrate.rs --workspace . --resume"
+    }
+  ],
+  "pass_rate": 1.0,
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  }
+}

@@ -2,7 +2,7 @@
 //! Property tests for the decompose grouping and coverage logic.
 //!
 //! Tests the deterministic parts: concern classification, crate mapping, coverage verification.
-//! Run with: cargo test -p godmode-conformance decompose
+//! Run with: cargo nextest run -p godmode-conformance -E 'test(decompose)'
 //!
 //! ```cargo
 //! [dependencies]
@@ -121,11 +121,12 @@ mod tests {
 
     #[test]
     fn coverage_detects_orphaned_file() {
-        let source = vec!["a.rs".to_string(), "b.rs".to_string(), "missing.rs".to_string()];
-        let splits = vec![
-            vec!["a.rs".to_string()],
-            vec!["b.rs".to_string()],
+        let source = vec![
+            "a.rs".to_string(),
+            "b.rs".to_string(),
+            "missing.rs".to_string(),
         ];
+        let splits = vec![vec!["a.rs".to_string()], vec!["b.rs".to_string()]];
         let result = verify_coverage(&source, &splits);
         assert!(!result.ok);
         assert_eq!(result.orphaned, vec!["missing.rs"]);
@@ -136,7 +137,7 @@ mod tests {
         let source = vec!["a.rs".to_string(), "b.rs".to_string()];
         let splits = vec![
             vec!["a.rs".to_string(), "b.rs".to_string()],
-            vec!["b.rs".to_string()],  // b.rs appears twice
+            vec!["b.rs".to_string()], // b.rs appears twice
         ];
         let result = verify_coverage(&source, &splits);
         assert!(!result.ok);
@@ -186,5 +187,5 @@ proptest! {
 }
 
 fn main() {
-    println!("Run via: cargo test -p godmode-conformance decompose");
+    println!("Run via: cargo nextest run -p godmode-conformance -E 'test(decompose)'");
 }

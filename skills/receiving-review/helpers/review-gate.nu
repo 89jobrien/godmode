@@ -4,10 +4,10 @@
 #   nu skills/receiving-review/helpers/review-gate.nu           # baseline
 #   nu skills/receiving-review/helpers/review-gate.nu --after   # post-fix
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
-def main [--after: bool = false] {
+def main [--after] {
     let label = if $after { "post-fix" } else { "baseline" }
     let tid = (trace-start "receiving-review" "review-gate.nu" $label)
     cargo-gate $tid

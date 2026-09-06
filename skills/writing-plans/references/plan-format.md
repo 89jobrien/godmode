@@ -2,9 +2,9 @@
 
 ## File Naming
 
-`docs/plans/YYYY-MM-DD-<feature-name>.md`
+`.ctx/godmode/plans/YYYY-MM-DD-<feature-name>.md`
 
-Example: `docs/plans/2026-05-01-task-clear-command.md`
+Example: `.ctx/godmode/plans/2026-05-01-task-clear-command.md`
 
 ## Task Heading Format
 
@@ -43,7 +43,7 @@ To make a task independent (no deps), include "independent" in the title:
 ## Ingest Behaviour
 
 - `godmode plan ingest <file>` — idempotent; skips existing task IDs silently
-- `godmode agent <file>` — ingest + dispatch in one step (also idempotent)
+- `godmode agent dispatch <file> [--max N]` — ingest the plan and emit its dispatch payload
 
 ## Quality Rules
 

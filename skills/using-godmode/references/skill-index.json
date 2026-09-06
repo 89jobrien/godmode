@@ -7,6 +7,7 @@
     "PLAN": [
       "brainstorm",
       "writing-plans",
+      "ingest",
       "context-map"
     ],
     "ACT": [
@@ -29,6 +30,11 @@
     {
       "name": "writing-plans",
       "trigger": "Design approved, ready to implement multi-step task",
+      "phase": "PLAN"
+    },
+    {
+      "name": "ingest",
+      "trigger": "Plan written, ready to load tasks; /gm:ingest",
       "phase": "PLAN"
     },
     {
@@ -168,7 +174,7 @@
     },
     {
       "name": "memory-banking",
-      "trigger": "Generate/maintain .ctx/memory-bank/ with source-backed context",
+      "trigger": "Generate/maintain .ctx/godmode/memory-bank/ with source-backed context",
       "phase": "ORIENT"
     },
     {
@@ -243,7 +249,7 @@
     },
     {
       "name": "baml-add-types",
-      "trigger": "Adding BAML types/functions to cruxx-agentic",
+      "trigger": "Adding BAML types/functions to crux-baml",
       "phase": "ACT"
     },
     {

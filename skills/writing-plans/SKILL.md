@@ -5,7 +5,7 @@ description: >
   touching any code. Triggers after brainstorming completes, or when given a feature spec
   to implement.
 requires: [context-map]
-next: [task-management]
+next: [ingest]
 ---
 
 # Writing Plans
@@ -31,7 +31,7 @@ Do not start writing tasks until the map is complete and reviewed.
 
 ## Plan Structure
 
-Save to: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+Save to: `.ctx/godmode/plans/YYYY-MM-DD-<feature-name>.md`
 
 ````markdown
 # Plan: <Feature Name>
@@ -69,7 +69,7 @@ Prefix with `rx:` to invoke a script from the rx registry: `**Run**: rx:my-scrip
 
 Commands containing shell metacharacters (`>`, `|`, `&`, `;`) are automatically run via
 `sh -c`, so redirects and pipes work as expected:
-`**Run**: cargo test 2>&1 | tee /tmp/results.txt`
+`**Run**: cargo nextest run 2>&1 | tee /tmp/results.txt`
 
 1. Write failing test:
    ```rust
@@ -121,8 +121,8 @@ Check these before writing the file:
 
 ## After Writing
 
-Update `.ctx/godmode/tasks.yaml` with a task entry for each plan task.
-See `godmode:task-management` for the schema.
+Invoke `godmode:ingest` with the exact plan path returned by the scaffold helper. The ingest
+skill owns task graph creation and validation; do not edit `.ctx/godmode/tasks.yaml` directly.
 
 ## Additional Resources
 

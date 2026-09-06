@@ -40,7 +40,7 @@ You are implementing tasks for crate: **`<CRATE>`**
 
 ## Wave State Update
 
-On completion, update `.ctx/wave-status.json` for your entry:
+On completion, update `.ctx/godmode/wave-status.json` for your entry:
 
 ```bash
 # Read current state, then write your entry:

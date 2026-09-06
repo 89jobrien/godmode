@@ -2,8 +2,8 @@
 # fetch-failure.nu — fetch the latest failed CI run logs for classification.
 # Usage: nu skills/ci-fix/helpers/fetch-failure.nu [run-id]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [run_id: string = ""] {
     let tid = (trace-start "ci-fix" "fetch-failure.nu" $run_id)

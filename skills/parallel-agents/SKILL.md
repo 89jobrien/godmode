@@ -3,7 +3,7 @@ name: "godmode:parallel-agents"
 description: >
   Use when facing 2 or more independent tasks that have no shared state or sequential
   dependencies between them. Triggers on multiple failing tests from different root causes,
-  independent crate implementations, or independent task chains in GODMODE.tasks.yaml.
+  independent crate implementations, or independent task chains in `.ctx/godmode/tasks.yaml`.
 requires: []
 next: [wave-integration]
 ---
@@ -69,9 +69,9 @@ Report: tasks completed, tasks blocked, commit SHAs.
 
 ### Step 3: Initialize wave state
 
-> Use `godmode wave init --wave N --agents a,b,c`, or write `.ctx/wave-status.json` manually:
+> Use `godmode wave init --wave N --agents a,b,c`, or write `.ctx/godmode/wave-status.json` manually:
 
-Before dispatching, write `.ctx/wave-status.json`:
+Before dispatching, write `.ctx/godmode/wave-status.json`:
 
 ```json
 {
@@ -114,11 +114,11 @@ Instruct each agent to update wave state on finish:
 ### Step 5: Integrate results
 
 > Use `godmode wave check` (exits 1 if any slot is still pending), or read
-> `.ctx/wave-status.json` manually:
+> `.ctx/godmode/wave-status.json` manually:
 
 After all agents report:
 
-1. Read `.ctx/wave-status.json` — verify no agent has `status: "pending"`.
+1. Read `.ctx/godmode/wave-status.json` — verify no agent has `status: "pending"`.
 2. Any agent with empty `commits` list has not finished — do not proceed.
 3. Verify each agent committed (`git log --oneline -5`). Empty log = incomplete.
 4. Run full workspace suite:
@@ -129,7 +129,7 @@ After all agents report:
 5. Merge each branch sequentially with `--no-ff` (never octopus-merge). Integration failures
    (cross-crate) are fixed in the orchestrator session — do not spawn another agent layer.
 6. Update `.ctx/godmode/tasks.yaml`: mark completed tasks `done`, blocked tasks `blocked`.
-7. Archive wave state: `mv .ctx/wave-status.json .ctx/wave-<N>-complete.json`
+7. Archive wave state: `mv .ctx/godmode/wave-status.json .ctx/godmode/wave-<N>-complete.json`
 
 ## Guardrails
 

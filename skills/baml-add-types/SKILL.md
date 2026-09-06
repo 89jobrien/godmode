@@ -1,15 +1,15 @@
 ---
 name: baml-add-types
-description: Use when adding new BAML types/functions to cruxx-agentic.
+description: Use when adding new BAML types/functions to crux-baml.
   Symptoms - need to add structured extraction functions, mirror types
-  to cruxx-types.
+  to Rust handler wrappers.
 ---
 
 # BAML Type Addition
 
 ## When to Use
 
-Adding new BAML functions or classes to `cruxx-agentic/baml_src/`.
+Adding new BAML functions or classes to `crates/crux-baml/baml_src/`.
 
 ## Steps
 
@@ -21,17 +21,17 @@ Adding new BAML functions or classes to `cruxx-agentic/baml_src/`.
 2. Regenerate the BAML client:
 
    ```bash
-   cd crates/cruxx-agentic && mise exec -- baml-cli generate
+   cd crates/crux-baml && mise exec -- baml-cli generate
    ```
 
 3. Verify compilation:
 
    ```bash
-   cargo check -p cruxx-agentic
+   cargo check -p crux-baml
    ```
 
-4. Mirror shared output types to `cruxx-types::extraction`
-   (`crates/cruxx-types/src/extraction.rs`):
+4. Add or update the Rust handler wrapper in `crates/crux-baml/src/` and register it from
+   `crates/crux-baml/src/lib.rs`:
    - Structs with `#[derive(Debug, Clone, Serialize, Deserialize)]`
    - Use `BTreeMap` not `HashMap` for deterministic serialization
    - Use `Option<T>` for BAML `T?` fields
@@ -39,9 +39,10 @@ Adding new BAML functions or classes to `cruxx-agentic/baml_src/`.
    - Use `f64` for BAML `float`
    - Use `i64` for BAML `int`
 
-5. Verify cruxx-types compiles:
+5. Verify the BAML crate compiles and its tests pass:
    ```bash
-   cargo check -p cruxx-types
+   cargo check -p crux-baml
+   cargo nextest run -p crux-baml
    ```
 
 ## Common Failures

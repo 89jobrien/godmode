@@ -2,8 +2,8 @@
 # setup-worktrees.nu — prepare worktrees for parallel issue dispatch.
 # Usage: nu skills/tackle-issues/helpers/setup-worktrees.nu <issue-number>...
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [...issues: string] {
     if ($issues | is-empty) {
@@ -15,7 +15,8 @@ def main [...issues: string] {
     let root = (repo-root)
     let gitignore = $"($root)/.gitignore"
 
-    if not (open $gitignore | str contains ".worktrees/") {
+    let gitignore_content = if ($gitignore | path exists) { open --raw $gitignore } else { "" }
+    if not ($gitignore_content | str contains ".worktrees/") {
         $".worktrees/\n" | save --append $gitignore
     }
 

@@ -19,7 +19,7 @@ if $tasks.exit_code == 0 {
 }
 
 print "\n--- Working dir scratch files ---"
-let scratch = do { ls .ctx/_WORKING_DIR/ } | complete
+let scratch = do { ls .ctx/godmode/_WORKING_DIR/ } | complete
 if $scratch.exit_code == 0 {
     print $scratch.stdout
 } else {

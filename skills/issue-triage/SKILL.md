@@ -95,7 +95,7 @@ When converting triage to godmode tasks:
 ```bash
 # Bug (P1) — no deps
 godmode task add "Fix panic on invalid UTF-8 input" \
-  --id t1 --crate-name parser --priority high
+  --id t1 --crate-name parser
 
 # Related feature — depends on bug fix
 godmode task add "Add YAML support" \
@@ -103,7 +103,7 @@ godmode task add "Add YAML support" \
 
 # Independent chore
 godmode task add "Update README with examples" \
-  --id t3 --priority normal
+  --id t3
 ```
 
 ## Integration with godmode Workflow
@@ -187,7 +187,7 @@ gh issue list --repo <owner/repo> --state open \
 
 # Agent runs:
 for each P1/P2 issue:
-  godmode task add "<title>" --id t<N> --crate-name <crate> --priority high
+  godmode task add "<title>" --id t<N> --crate-name <crate>
 
 # User runs:
 godmode status          # see new tasks

@@ -102,7 +102,7 @@ enum Cmd {
     },
     /// pending -> red (active): write the failing test
     Red { id: String },
-    /// red -> green: runs cargo nextest, advances on success
+    /// red -> green: runs cargo nextest run, advances on success
     Green { id: String },
     /// green -> refactor -> done: runs clippy + fmt + nextest
     Refactor { id: String },
@@ -126,12 +126,10 @@ enum Cmd {
 
 fn load() -> Result<TaskFile> {
     if !Path::new(TASK_FILE).exists() {
-        bail!(
-            "{TASK_FILE} not found — run: task-runner.rs init \"<title>\" --crate <name>"
-        );
+        bail!("{TASK_FILE} not found — run: task-runner.rs init \"<title>\" --crate <name>");
     }
-    let content = std::fs::read_to_string(TASK_FILE)
-        .with_context(|| format!("reading {TASK_FILE}"))?;
+    let content =
+        std::fs::read_to_string(TASK_FILE).with_context(|| format!("reading {TASK_FILE}"))?;
     serde_yaml::from_str(&content).with_context(|| format!("parsing {TASK_FILE}"))
 }
 
@@ -195,7 +193,9 @@ fn cmd_init(title: &str, crate_name: &str) -> Result<()> {
         }],
     };
     save(&scaffold)?;
-    println!("Created {TASK_FILE} — fill in 'test:' and add more tasks, then run: task-runner.rs red t1");
+    println!(
+        "Created {TASK_FILE} — fill in 'test:' and add more tasks, then run: task-runner.rs red t1"
+    );
     Ok(())
 }
 
@@ -242,7 +242,10 @@ fn cmd_green(id: &str) -> Result<()> {
     {
         let task = get_task_mut(&mut data.tasks, id)?;
         if task.phase != Phase::Red {
-            bail!("Task {id} phase is {:?} — must be red before green", task.phase);
+            bail!(
+                "Task {id} phase is {:?} — must be red before green",
+                task.phase
+            );
         }
         let crate_name = task.crate_name.clone();
         println!("[green] running: cargo nextest run -p {crate_name}");
@@ -262,7 +265,10 @@ fn cmd_refactor(id: &str) -> Result<()> {
     {
         let task = get_task_mut(&mut data.tasks, id)?;
         if task.phase != Phase::Green {
-            bail!("Task {id} phase is {:?} — must be green before refactor", task.phase);
+            bail!(
+                "Task {id} phase is {:?} — must be green before refactor",
+                task.phase
+            );
         }
         crate_name = task.crate_name.clone();
         title = task.title.clone();
@@ -328,13 +334,20 @@ fn cmd_next() -> Result<()> {
 
 fn cmd_status() -> Result<()> {
     let data = load()?;
-    println!("{:<6} {:<35} {:<10} {:<10} {}", "ID", "TITLE", "PHASE", "STATUS", "CRATE");
+    println!(
+        "{:<6} {:<35} {:<10} {:<10} {}",
+        "ID", "TITLE", "PHASE", "STATUS", "CRATE"
+    );
     println!("{}", "-".repeat(75));
     for t in &data.tasks {
         println!(
             "{:<6} {:<35} {:<10} {:<10} {}",
             t.id,
-            if t.title.len() > 34 { &t.title[..34] } else { &t.title },
+            if t.title.len() > 34 {
+                &t.title[..34]
+            } else {
+                &t.title
+            },
             format!("{:?}", t.phase).to_lowercase(),
             format!("{:?}", t.status).to_lowercase(),
             t.crate_name
@@ -370,7 +383,13 @@ fn cmd_close_issues() -> Result<()> {
         let num = t.issue.trim_start_matches("gh:");
         println!("Closing gh#{num}: {}", t.title);
         let ok = Command::new("gh")
-            .args(["issue", "close", num, "--comment", &format!("Completed in task {}", t.id)])
+            .args([
+                "issue",
+                "close",
+                num,
+                "--comment",
+                &format!("Completed in task {}", t.id),
+            ])
             .status()
             .map(|s| s.success())
             .unwrap_or(false);

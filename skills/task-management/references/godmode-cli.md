@@ -12,7 +12,7 @@ godmode status                          # fast mid-session check: counts + next 
 
 ```bash
 godmode task list [--json]
-godmode task add <id> "<title>" [--depends-on t1,t2] [--crate-name <crate>]
+godmode task add "<title>" [--id <id>] [--depends-on <id>]... [--crate-name <crate>]
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes "<text>"]
 godmode task block <id> "<reason>"
@@ -30,7 +30,7 @@ godmode task push-done                  # mark completed tasks done in doob
 
 ```bash
 godmode plan ingest <plan.md>           # idempotent — skips existing IDs
-godmode agent <plan.md> [--max 5]       # ingest + dispatch in one step
+godmode agent dispatch <plan.md> [--max 5]  # ingest + dispatch in one step
 ```
 
 ## Dispatch

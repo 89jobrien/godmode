@@ -7,12 +7,19 @@ description: >
   "improve agent from traces", "agent feedback loop", "what should I fix in the agent".
 requires: []
 next: []
+argument-hint: "[--agent <name>] [--since <days>] [--phase <N>] [--dry-run]"
 ---
 
 # Agent Improvement Loop
 
 Connects observed agent behavior back to code changes through a structured seven-phase cycle.
 Human judgment enters at the feedback phase and compounds through every subsequent step.
+
+## Input
+
+Parse `$ARGUMENTS` as the flags documented under Loop invocation. Apply `--agent`, `--since`,
+and `--phase` throughout the relevant phases. When `--dry-run` is present, do not write handoff,
+evaluation, diagnosis, or harness files and do not trigger Codex.
 
 ```
 SDK traces → Human+LLM feedback → Promptfoo evals → HALO diagnosis
@@ -55,7 +62,7 @@ crs stats
 - Failure cases: non-zero exits, rule blocks, unexpected outputs
 - Frequency counts: which behaviors repeat
 
-Save raw evidence to `.ctx/_WORKING_DIR/traces-<date>.json`.
+Save raw evidence to `.ctx/godmode/_WORKING_DIR/traces-<date>.json`.
 
 </phase>
 
@@ -105,7 +112,7 @@ Goal: turn feedback clusters into reproducible test cases that can gate future c
 **For each cluster from Phase 2, generate an eval case:**
 
 ```yaml
-# .ctx/_WORKING_DIR/evals-<date>.yaml
+# .ctx/godmode/_WORKING_DIR/evals-<date>.yaml
 description: "<cluster.id> — <cluster.diagnosis>"
 providers:
   - id: exec
@@ -127,7 +134,7 @@ tests:
 **Run evals:**
 
 ```nu
-promptfoo eval --config .ctx/_WORKING_DIR/evals-<date>.yaml --output .ctx/_WORKING_DIR/eval-results-<date>.json
+promptfoo eval --config .ctx/godmode/_WORKING_DIR/evals-<date>.yaml --output .ctx/godmode/_WORKING_DIR/eval-results-<date>.json
 ```
 
 **If promptfoo is not available**, generate shell-based smoke tests instead:
@@ -225,7 +232,7 @@ execute without further context.
 **Or use `hj` if available:**
 
 ```nu
-hj handoff --title "agent improvement loop: <agent>" --notes "$(cat .ctx/_WORKING_DIR/diagnosis.json)"
+hj handoff --notes (open --raw .ctx/godmode/_WORKING_DIR/diagnosis.json)
 ```
 
 **Output of this phase:**
@@ -256,7 +263,8 @@ let pending = (ls $"($handoff_dir)/($pattern)" | where modified > ((date now) - 
 if ($pending | length) > 0 {
     for $f in $pending {
         # Trigger Codex with the handoff as context
-        codex --context (open $f.name | to json) "Apply the changes in this handoff. Run evals after each change. Commit only if all evals pass."
+        let prompt = $"Apply the changes in this handoff. Run evals after each change. Commit only if all evals pass.\n\n(open --raw $f.name)"
+        $prompt | codex exec -C (git rev-parse --show-toplevel | str trim) -
     }
 }
 ```
@@ -283,7 +291,7 @@ Goal: validate that the changes work, the evals pass, and commit the result.
 
 ```nu
 # 1. Run the evals that were failing in Phase 3
-promptfoo eval --config .ctx/_WORKING_DIR/evals-<date>.yaml
+promptfoo eval --config .ctx/godmode/_WORKING_DIR/evals-<date>.yaml
 
 # 2. Run the full rule health check
 crs validate [--profile <profile>]
@@ -308,7 +316,7 @@ git push
 
 - Move passing evals into the permanent test fixture directory
 - Add them to CI if not already there
-- Archive the handoff as completed (`hj done` or rename to `.completed`)
+- Archive the handoff as completed with `hj close --handoff <path>`
 
 **Loop back:**
 

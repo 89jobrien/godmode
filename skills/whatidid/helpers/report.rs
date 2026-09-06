@@ -244,5 +244,5 @@ fn esc(s: &str) -> String {
 
 fn skill_dir() -> Result<PathBuf> {
     let home = std::env::var("HOME").context("HOME not set")?;
-    Ok(PathBuf::from(home).join("dev/minibox/.claude/skills/whatidid"))
+    Ok(PathBuf::from(home).join(".agents/skills/whatidid"))
 }

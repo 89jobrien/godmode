@@ -35,8 +35,9 @@ or project planning.
 | ------------------------------------------ | ------------------------------------------------------------- |
 | `helpers/whatidid.rs`                      | Entrypoint — orchestrates harvest → analyze → report          |
 | `helpers/harvest.rs`                       | Scans `~/.claude/projects/*/*.jsonl` for today's sessions     |
-| `helpers/analyze.rs`                       | Calls Anthropic API; caches result to `cache/YYYY-MM-DD.json` |
+| `helpers/analyze.rs`                       | Calls Anthropic API; caches under `~/.cache/whatidid/`        |
 | `helpers/report.rs`                        | Renders HTML with KPI cards and goals table; opens in browser |
+| `prompts/analysis.whatidid.txt`            | Anthropic analysis prompt loaded by `helpers/analyze.rs`      |
 | `references/architecture.whatidid.md`      | Data flow, session format, token cost model                   |
 | `references/effort-estimation.whatidid.md` | Effort estimation heuristics                                  |
 
@@ -50,7 +51,7 @@ Use `$ARGUMENTS` if provided (format: `YYYY-MM-DD`). Otherwise default to today.
 
 ### 2. Harvest session data
 
-Run `helpers/harvest.rs [YYYY-MM-DD]` via `rust-script`.
+Run `helpers/harvest.rs` `[YYYY-MM-DD]` via `rust-script`.
 
 Scans all `~/.claude/projects/<project-slug>/*.jsonl` files. Each JSONL line has a
 `timestamp` field (ISO 8601). Events with a matching date prefix are included.
@@ -69,7 +70,7 @@ Output: JSON array of session records with `messages[]`, `tool_calls`, `read_cal
 
 ### 3. Analyze with Anthropic API
 
-Run `helpers/analyze.rs <sessions.json> [YYYY-MM-DD]` via `rust-script`.
+Run `helpers/analyze.rs` `<sessions.json> [YYYY-MM-DD]` via `rust-script`.
 
 Requires `ANTHROPIC_API_KEY` in environment. Inject via:
 
@@ -80,10 +81,10 @@ op run --env-file=$HOME/dev/.env -- rust-script helpers/whatidid.rs
 Builds a transcript from harvested sessions (cwd, branch, SIGNALS block with tool
 counts, then interleaved human/assistant turns). Sends to `claude-haiku-4-5-20251001`.
 
-Model prompt lives in `prompts/analysis.txt`. Returns structured JSON digest:
+Model prompt lives in `prompts/analysis.whatidid.txt`. Returns structured JSON digest:
 `goals[]` each with `tasks[]`, `human_hours`, `domain_skills`, `tech_skills`.
 
-Caches result to `cache/YYYY-MM-DD.json` — re-runs skip the API call.
+Caches results to `~/.cache/whatidid/YYYY-MM-DD.json` — re-runs skip the API call.
 
 ### 4. Compute KPIs
 
@@ -99,7 +100,7 @@ Fallback: $3.00 input / $15.00 output per 1M tokens.
 
 ### 5. Generate HTML report
 
-Run `helpers/report.rs <digest.json> [YYYY-MM-DD]` via `rust-script`.
+Run `helpers/report.rs` `<digest.json> [YYYY-MM-DD]` via `rust-script`.
 
 Layout:
 
@@ -150,6 +151,6 @@ Update `report.py → _MODEL_PRICING` when rates change.
 - **Double-counting sessions** — a single working session may span midnight; use
   `created_at` (session start) not `updated_at` as the date key.
 - **Calling the API without a cached result check** — always check
-  `cache/YYYY-MM-DD.json` before hitting GitHub Models; the API has rate limits.
+  `~/.cache/whatidid/YYYY-MM-DD.json` before calling the analysis API; the API has rate limits.
 - **Hardcoding model names** — use prefix matching in `_MODEL_PRICING` so new model
   variants don't silently fall through to zero cost.

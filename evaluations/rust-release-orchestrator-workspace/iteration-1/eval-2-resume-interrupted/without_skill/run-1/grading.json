@@ -1,0 +1,33 @@
+{
+  "eval_id": 2,
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Mentions --resume flag",
+      "passed": false,
+      "evidence": "No mention of --resume; gives manual cargo publish -p kan-adapters commands instead"
+    },
+    {
+      "text": "Explains .release-state.json concept",
+      "passed": false,
+      "evidence": "No state file concept; user must track manually which crates have published"
+    },
+    {
+      "text": "Confirms kan-core will be skipped, not re-published",
+      "passed": true,
+      "evidence": "Correctly warns that cargo publish rejects already-published versions and says do not re-publish"
+    },
+    {
+      "text": "Provides the exact resume command",
+      "passed": false,
+      "evidence": "Provides manual cargo publish -p kan-adapters without an orchestrator resume command"
+    }
+  ],
+  "pass_rate": 0.25,
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  }
+}

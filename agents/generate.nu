@@ -3,13 +3,13 @@
 # Generate Claude Code agent .md files from cfg YAML + prompt text.
 # Config source: agents/cfg/<stem>.cfg.yaml
 # Prompts: agents/prompts/<stem>.prompt.txt
-# Templates: shared with commands — commands/gm/templates/<domain>.md
+# Templates: shared with commands — command-support/gm/templates/<domain>.md
 # Output: agents/<stem>.md
 
 let agents_dir = ($env.FILE_PWD)
 let cfg_dir = ($agents_dir | path join "cfg")
 let prompts_dir = ($agents_dir | path join "prompts")
-let tmpl_dir = ($agents_dir | path dirname | path join "commands" "gm" "templates")
+let tmpl_dir = ($agents_dir | path dirname | path join "command-support" "gm" "templates")
 
 let yamls = (glob $"($cfg_dir)/*.cfg.yaml")
 let count = ($yamls | length)

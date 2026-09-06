@@ -45,5 +45,5 @@ Empty commit log = subagent did not finish.
 A command that exits 0 is not sufficient evidence. Check:
 
 - Did it actually run the test suite? (0 tests = 0 failures ≠ passing)
-- Did `cargo check` succeed but `cargo test` wasn't run?
+- Did `cargo check` succeed but `cargo nextest run` wasn't run?
 - Is the crate filter correct (`-p <crate>`)?

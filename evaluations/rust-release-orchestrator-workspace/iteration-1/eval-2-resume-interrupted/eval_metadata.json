@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "resume-interrupted",
+  "prompt": "My kan workspace release got interrupted after kan-core published but before kan-adapters. How do I resume without re-publishing kan-core?",
+  "assertions": [
+    {"text": "Mentions --resume flag"},
+    {"text": "Explains .release-state.json concept"},
+    {"text": "Confirms kan-core will be skipped, not re-published"},
+    {"text": "Provides the exact resume command"}
+  ]
+}

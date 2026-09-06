@@ -1,0 +1,21 @@
+generated: 2026-08-17
+since_days: 30
+sessions_scanned: 2
+total_commands: 43
+top_supported:
+  - command: echo "##########
+    count: 6
+    rule: no-bash-use-nu
+    est_savings_tokens: 7005
+  - command: cd /dev/godmode
+    count: 5
+    rule: no-bash-use-nu
+    est_savings_tokens: 2634
+  - command: cd ~/dev/godmode
+    count: 4
+    rule: no-bash-use-nu
+    est_savings_tokens: 1151
+  - command: ls
+    count: 3
+    rule: no-ls-use-glob
+    est_savings_tokens: 321

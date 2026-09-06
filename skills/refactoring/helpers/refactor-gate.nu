@@ -4,10 +4,10 @@
 #   nu skills/refactoring/helpers/refactor-gate.nu          # baseline
 #   nu skills/refactoring/helpers/refactor-gate.nu --after  # post-refactor
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
-def main [--after: bool = false] {
+def main [--after] {
     let label = if $after { "post-refactor" } else { "baseline" }
     let tid = (trace-start "refactoring" "refactor-gate.nu" $label)
     cargo-gate $tid

@@ -77,7 +77,7 @@ def main [
     if $test.exit_code != 0 {
         git checkout $base
         git branch -D $branch
-        error make { msg: $"cargo nextest failed for split ($split_id):\n($test.stderr)" }
+        error make { msg: $"cargo nextest run failed for split ($split_id):\n($test.stderr)" }
     }
 
     # Commit

@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
-# propose.nu — run N OpenAI proposers in parallel, save outputs to .ctx/moa-proposal-<n>.txt
+# propose.nu — run N OpenAI proposers and save outputs under .ctx/godmode/_WORKING_DIR.
 # Usage: nu propose.nu <prompt> [--count <N>]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [
     prompt: string
@@ -12,7 +12,7 @@ def main [
 ] {
     let root = (repo-root)
     let tid = (trace-start "moa" "propose.nu" $"count=($count)" $"model=($model)")
-    let workdir = $"($root)/.ctx/_WORKING_DIR"
+    let workdir = $"($root)/.ctx/godmode/_WORKING_DIR"
     mkdir $workdir
 
     # Clear old proposals

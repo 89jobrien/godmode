@@ -20,7 +20,7 @@
   - Builds a structured transcript from session data (includes code impact, workspace summary)
   - Calls GitHub Models API (gpt-4o-mini) using gh CLI token
   - Returns: goals[] with tasks[], skills, hours, docs_referenced
-  - Caches result to <install-dir>/cache/YYYY-MM-DD.json
+  - Caches result to ~/.cache/whatidid/YYYY-MM-DD.json
            │
            ▼
        report.py

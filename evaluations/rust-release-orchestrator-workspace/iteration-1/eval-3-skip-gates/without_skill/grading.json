@@ -1,0 +1,28 @@
+{
+  "eval_id": 3,
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Mentions --skip-gates flag",
+      "passed": false,
+      "evidence": "No --skip-gates; suggests running clippy and fmt manually instead of a flag"
+    },
+    {
+      "text": "Provides a complete command the user can run immediately",
+      "passed": false,
+      "evidence": "Requires multiple manual steps: clippy check, fmt check, commit, then separate publish commands \u2014 not a single resume command"
+    },
+    {
+      "text": "Does not redundantly suggest manual cargo clippy",
+      "passed": false,
+      "evidence": "Explicitly suggests RUSTFLAGS='-D warnings' cargo clippy -p kan-adapters and workspace-wide clippy, which the user already ran"
+    }
+  ],
+  "pass_rate": 0.0,
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  }
+}

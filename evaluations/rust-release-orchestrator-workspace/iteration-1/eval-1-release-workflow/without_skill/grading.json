@@ -1,0 +1,33 @@
+{
+  "eval_id": 1,
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Script invoked with --dry-run flag before any real publish",
+      "passed": true,
+      "evidence": "Shows cargo publish -p kan-core --dry-run (per-crate, not a unified script)"
+    },
+    {
+      "text": "Publish order is kan-core before kan-adapters before kan-cli",
+      "passed": true,
+      "evidence": "Clearly states dependency chain and publish order throughout"
+    },
+    {
+      "text": "User asked to confirm before real publish is initiated",
+      "passed": false,
+      "evidence": "No explicit confirmation step; proceeds directly from dry-run to real publish with no pause for user review"
+    },
+    {
+      "text": "Real run command shown after dry-run",
+      "passed": true,
+      "evidence": "Step 3 shows cargo publish -p kan-core, kan-adapters, kan-cli in order"
+    }
+  ],
+  "pass_rate": 0.75,
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  }
+}

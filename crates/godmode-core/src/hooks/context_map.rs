@@ -10,7 +10,7 @@ pub fn run(root: &Path, file_path: &str) -> String {
         return String::new();
     }
 
-    let working_dir = root.join(".ctx/_WORKING_DIR");
+    let working_dir = root.join(".ctx/godmode/_WORKING_DIR");
     if !working_dir.exists() {
         return "[godmode:context-map] Editing src/ without a context map — run /godmode:context-map first".to_string();
     }

@@ -1,15 +1,31 @@
 ---
 name: "gm-health-score-agent"
-description: "Codebase health scorecard. Use when asked for 'health check', 'codebase score',
-'project health', or 'how's the codebase'. Runs test count, clippy warnings, TODO
-density, pub API size, dependency count, module size, and doc coverage. Produces a
-scorecard with trends vs last run.
-"
+description: >
+  Codebase health scorecard. Use when asked for "health check", "codebase score",
+  "project health", or "how's the codebase". Runs test count, clippy warnings, TODO
+  density, pub API size, dependency count, module size, and doc coverage. Produces a
+  scorecard with trends vs last run.
 model: inherit
 color: green
-tools: ["Read", "Bash", "Glob", "Grep", "Write"]
+tools:
+  - "Read"
+  - "Bash"
+  - "Glob"
+  - "Grep"
+  - "Write"
 skills: health-score
 ---
+
+## Rules
+
+- Read the full diff before commenting. Never review partial context.
+- Group findings as Blocking / Suggestions / Nitpicks.
+- Apply ALL severity levels in one pass before committing. Do not commit after
+  fixing only blocking issues — one review, one fix commit.
+- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
+  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- Never use `--no-verify` on git commits.
+- Run `git branch --show-current` before any commit. If on main, STOP.
 
 You measure codebase health metrics across seven dimensions: test count, clippy
 warnings, TODO/FIXME density, public API surface, dependency count, average module
@@ -38,11 +54,10 @@ use `cargo test --no-run` and parse the binary count instead.
 ### Step 2: Collect clippy warning count
 
 ```bash
-cargo clippy --workspace 2>&1
+cargo clippy --workspace 2>&1 | grep "warning\[" | wc -l
 ```
 
-Use the Grep tool on the output (or pipe through `grep "warning\["`) to count lines matching
-`warning\[`. Count only warnings, not notes. If clippy output is empty, the count is zero.
+Count only warnings, not notes. If clippy output is empty, the count is zero.
 
 ### Step 3: Collect TODO/FIXME density
 
@@ -131,7 +146,7 @@ Format the scorecard as a markdown table:
 ## Codebase Health Scorecard
 
 Generated: <YYYY-MM-DD HH:MM:SS>
-Workspace: <from .ctx/GODMODE.tasks.yaml or git repo name>
+Workspace: <from .ctx/godmode/tasks.yaml or git repo name>
 
 | Metric             | Current      | Previous     | Trend    |
 | ------------------ | ------------ | ------------ | -------- |
@@ -175,7 +190,7 @@ Create the directory and file if they do not exist. Append with a newline.
 
 Print the scorecard to stdout. If history exists with previous scores, also print
 the trend summary. Write the complete scorecard (including full history context) to
-`.ctx/_WORKING_DIR/health-score-<YYYY-MM-DD>.md` for agent reference.
+`.ctx/godmode/_WORKING_DIR/health-score-<YYYY-MM-DD>.md` for agent reference.
 
 ## Guardrails
 

@@ -253,7 +253,7 @@ steps:
         args: { cmd: "lint" }
       - step: check_tests
         handler: shell::capture
-        args: { cmd: "cargo test" }
+        args: { cmd: "cargo nextest run" }
 ```
 
 ### Gate → Work → Gate

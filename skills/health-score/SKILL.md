@@ -27,7 +27,7 @@ and tracks trends over time by persisting scores to a JSON history file.
 
 **Collection**: Run `cargo nextest list --workspace` (compiles but does not
 execute tests) and count output lines containing `::`. Each line is one test.
-Fallback: `cargo test --no-run` and count binary artifacts.
+For a compile-only fallback, run `cargo nextest run --workspace --no-run`.
 
 **Interpretation**: More tests = better coverage. Trend: increases indicate more
 comprehensive testing. Decreases may indicate cleanup or removed features.
@@ -124,7 +124,7 @@ For each metric, compare current value to the most recent previous value:
 
 ## History Format
 
-File: `.ctx/memory-bank/health-history.jsonl`
+File: `.ctx/godmode/memory-bank/health-history.jsonl`
 
 Each line is a valid JSON object with timestamp and all seven metrics:
 

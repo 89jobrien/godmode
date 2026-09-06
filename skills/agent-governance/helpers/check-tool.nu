@@ -47,22 +47,22 @@ def main [
         exit 0
     }
 
-    # 2. Check allowed_tools (if non-empty, tool must be in list)
-    let allowed = $policy | get allowed_tools? | default []
-    if ($allowed | length) > 0 and not ($tool_name in $allowed) {
-        {
-            action: "deny"
-            reason: $"tool '($tool_name)' not in allowed_tools for ($agent_name)"
-        } | to json | print
-        exit 0
-    }
-
-    # 3. Check require_human_approval
+    # 2. Check require_human_approval
     let approvals = $policy | get require_human_approval? | default []
     if ($tool_name in $approvals) or ("*" in $approvals) {
         {
             action: "review"
             reason: $"tool '($tool_name)' requires human approval for ($agent_name)"
+        } | to json | print
+        exit 0
+    }
+
+    # 3. Check allowed_tools (if non-empty, tool must be in list)
+    let allowed = $policy | get allowed_tools? | default []
+    if ($allowed | length) > 0 and not ($tool_name in $allowed) {
+        {
+            action: "deny"
+            reason: $"tool '($tool_name)' not in allowed_tools for ($agent_name)"
         } | to json | print
         exit 0
     }

@@ -246,7 +246,7 @@ If a godmode task is associated with this branch, mark it done:
 godmode task done <task-id> --commit $(git rev-parse HEAD) --notes "merged <branch> into main"
 ```
 
-If no task ID is known, check `GODMODE.tasks.yaml` for tasks in `running` state that match the
+If no task ID is known, check `.ctx/godmode/tasks.yaml` for tasks in `running` state that match the
 branch name or scope.
 
 ---

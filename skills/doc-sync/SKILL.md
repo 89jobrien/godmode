@@ -36,8 +36,8 @@ is documented (or explicitly marked internal).
 
 ```
 ls crates/                         → compare against documented crate list
-grep -r '^pub mod' src/lib.rs      → compare against module table in CLAUDE.md/README
-grep -r '^pub (fn|struct|enum|trait)' src/ → compare against API reference
+rg '^pub mod' src/lib.rs              → compare against module table in CLAUDE.md/README
+rg '^pub (fn|struct|enum|trait)' src/ → compare against API reference
 ```
 
 ### Skills and agents

@@ -2,15 +2,15 @@
 # wave-check.nu — verify all agents completed and run the post-merge workspace gate.
 # Usage: nu skills/parallel-agents/helpers/wave-check.nu
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [] {
     let root = (repo-root)
-    let state_path = $"($root)/.ctx/wave-status.json"
+    let state_path = $"($root)/.ctx/godmode/wave-status.json"
 
     if not ($state_path | path exists) {
-        print "ERROR: .ctx/wave-status.json not found — run wave-init.nu first"
+        print "ERROR: .ctx/godmode/wave-status.json not found — run wave-init.nu first"
         exit 1
     }
 

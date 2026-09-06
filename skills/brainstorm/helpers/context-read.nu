@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
 # context-read.nu — read the key files for brainstorming context in a Rust crate.
-# Usage: nu skills/brainstorming/helpers/context-read.nu [crate]
+# Usage: nu skills/brainstorm/helpers/context-read.nu [crate]
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [crate: string = ""] {
     let root = (repo-root)

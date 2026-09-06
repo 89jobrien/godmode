@@ -5,6 +5,7 @@ steps:
     optional: true
   - skill: context-map
   - skill: writing-plans
+  - skill: ingest
   - skill: task-management
   - skill: parallel-agents
   - skill: wave-integration

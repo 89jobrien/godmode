@@ -218,7 +218,7 @@ recur.
 
 - **`references/dimension-examples.md`** — concrete Rust examples for each dimension (unit,
   property, fuzz, model check, conformance, integration, regression)
-- **`helpers/test-scaffold.nu <crate> <dimension>`** — generate test module stubs
+- **`helpers/test-scaffold.nu`** `<crate> <dimension>` — generate test module stubs
   (run via `nu helpers/test-scaffold.nu <crate> <dimension>`)
 - To check whether a `.rs` file has associated tests, use Grep tool to search for
   `#\[test\]` or `#\[cfg\(test\)\]` in the file's directory.

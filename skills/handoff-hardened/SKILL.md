@@ -1,13 +1,11 @@
 ---
-name: handoff-hardened
-description: Resumable, self-verifying end-of-day handoff. Enumerates dirty/unpushed repos, dispatches per-repo handoff subagents with a hard timeout and one retry (falling back to a partial-handoff marker instead of dropping the repo), persists a checkpoint so a rerun resumes rather than restarts, then runs a dedicated verification subagent that independently confirms every factual claim (commit counts, test results, versions, task status) against git log / cargo test / gh issue state before gating the memory-bank commit on that verification passing. Use for "harden my eod", "resumable handoff", "verify my handoff claims", or when a prior handoff run stalled or was interrupted.
-allowed_tools:
-  - Bash
-  - Read
-  - Glob
-  - Agent
-  - Write
-max_turns: 40
+name: "godmode:handoff-hardened"
+description: >
+  Resumable, self-verifying end-of-day handoff. Enumerates dirty or unpushed repositories,
+  retries failed handoff agents once, persists checkpoints, and independently verifies factual
+  claims before allowing commits. Use for "harden my eod", "resumable handoff", "verify my
+  handoff claims", or when a prior handoff run stalled or was interrupted.
+allowed-tools: Bash, Read, Glob, Agent, Write
 ---
 
 ## State machine
@@ -65,7 +63,7 @@ Statuses persisted per repo: PENDING, RUNNING, RETRY, PARTIAL, COMPLETE, VERIFIE
 4. **VERIFYING**: dispatch one verification subagent (Agent tool, `general-purpose` or
    `atelier:sentinel`) with the full set of COMPLETE repos' claims plus their paths. Instruct
    it explicitly: "For each factual claim (commit counts, test results, version numbers, task
-   statuses) independently confirm against `git log`, `cargo test` output (rerun if needed),
+   statuses) independently confirm against `git log`, `cargo nextest run` output (rerun if needed),
    and `gh issue` state. Do not trust the claim at face value. For each claim, return
    confirmed or unverifiable-with-reason. Do not delete or omit any claim — flag it inline."
    Parse its structured findings.

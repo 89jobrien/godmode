@@ -1,0 +1,28 @@
+{
+  "eval_id": 3,
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions --skip-gates flag",
+      "passed": true,
+      "evidence": "Command is: rust-script ... orchestrate.rs --workspace . --resume --skip-gates"
+    },
+    {
+      "text": "Provides a complete command the user can run immediately",
+      "passed": true,
+      "evidence": "Single self-contained command with all flags; nothing else needed"
+    },
+    {
+      "text": "Does not redundantly suggest manual cargo clippy",
+      "passed": true,
+      "evidence": "No manual clippy or fmt commands suggested; skill correctly defers to the orchestrator's --skip-gates"
+    }
+  ],
+  "pass_rate": 1.0,
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

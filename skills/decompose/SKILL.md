@@ -62,11 +62,12 @@ Record:
 
 Run the analyzer. This is deterministic — no LLM judgment yet.
 
-```bash
-nu skills/decompose/helpers/analyze-diff.nu \
-  --base main \
-  --branch $(git branch --show-current) \
-  | save --force .ctx/godmode/decomps/$(git branch --show-current | str replace '/' '-')-analysis.json
+```nu
+let branch = (git branch --show-current | str trim)
+let output_dir = ".ctx/godmode/decomps"
+mkdir $output_dir
+let output = ($output_dir | path join $"($branch | str replace -a '/' '-')-analysis.json")
+nu skills/decompose/helpers/analyze-diff.nu --base main --branch $branch | save --force $output
 ```
 
 The analyzer produces a JSON report with:
@@ -167,7 +168,7 @@ Process splits sequentially, not in parallel. A failing split must be resolved b
 
 After all splits pass:
 
-```bash
+```nu
 # Verify no file was dropped — writes result to .ctx/godmode/decomps/
 nu skills/decompose/helpers/analyze-diff.nu --verify-coverage \
   --source <source-branch> \

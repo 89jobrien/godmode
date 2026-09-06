@@ -35,7 +35,7 @@ git diff --stat HEAD~1 HEAD
 Use the Glob tool to list any files in the working scratch dir:
 
 ```
-Glob: pattern=".ctx/_WORKING_DIR/*"
+Glob: pattern=".ctx/godmode/_WORKING_DIR/*"
 ```
 
 Current task graph state — use `godmode task list`:

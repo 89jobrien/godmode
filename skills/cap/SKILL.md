@@ -2,7 +2,7 @@
 name: "godmode:cap"
 description: >
   Commit and push workflow with pre-flight validation and hook recovery. Use when the user
-  says "cap", "commit and push", or "ship it". Runs cargo nextest, fmt, clippy, stages all
+  says "cap", "commit and push", or "ship it". Runs cargo nextest run, fmt, clippy, stages all
   changes, writes a conventional commit, handles pre-commit hook failures, and pushes.
 requires: []
 next: [pr-author]
@@ -20,7 +20,7 @@ Run the full validation gate, commit, and push in one pass.
 
 ```bash
 cargo check --workspace
-cargo nextest run --workspace   # preferred; fallback: cargo test --workspace
+cargo nextest run --workspace
 cargo clippy --workspace -- -D warnings
 cargo fmt --all --check
 ```

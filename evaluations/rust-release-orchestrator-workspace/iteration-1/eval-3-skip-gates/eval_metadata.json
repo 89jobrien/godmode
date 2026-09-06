@@ -1,0 +1,10 @@
+{
+  "eval_id": 3,
+  "eval_name": "skip-gates-after-manual-fix",
+  "prompt": "The clippy gate keeps failing on kan-adapters even after auto-fix. I've manually fixed it now. How do I continue the release without running the full gate suite again?",
+  "assertions": [
+    {"text": "Mentions --skip-gates flag"},
+    {"text": "Provides a complete command the user can run immediately"},
+    {"text": "Does not redundantly suggest manual cargo clippy"}
+  ]
+}

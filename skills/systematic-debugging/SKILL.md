@@ -74,7 +74,7 @@ Surface it to the user rather than continuing to patch.
 
 - `RUST_BACKTRACE=1` or `RUST_BACKTRACE=full` for panics
 - `RUST_LOG=debug` for tracing output
-- `cargo check` before `cargo nextest` — catch compile errors cheaply
+- `cargo check` before `cargo nextest run` — catch compile errors cheaply
 - `cargo clippy -p <crate> -- -D warnings` — warnings often point at the root cause
 - Lifetime and borrow errors: read the full compiler message, not just the first line
 - Async failures: check executor context (tokio runtime not entered, etc.)

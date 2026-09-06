@@ -20,9 +20,9 @@ print "[PASS] cargo clippy"
 
 let test = do { cargo nextest run --workspace } | complete
 if $test.exit_code != 0 {
-    print $"[FAIL] cargo nextest:\n($test.stdout)"
+    print $"[FAIL] cargo nextest run:\n($test.stdout)"
     exit 1
 }
-print "[PASS] cargo nextest"
+print "[PASS] cargo nextest run"
 
 print "[rust-conventions] All checks passed."

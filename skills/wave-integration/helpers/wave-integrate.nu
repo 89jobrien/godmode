@@ -3,8 +3,8 @@
 # Usage: wave-integrate [--branches "feat/a feat/b feat/c"] [--base main] [--dry-run]
 #
 # Reads branches from --branches (space-separated) or from stdin (one per line).
-# Rebases each onto --base, runs cargo test --workspace, then merges to base.
-# Writes conflict-resolution-log.md to cwd on completion.
+# Rebases each onto --base, runs cargo nextest run, then merges to base.
+# Writes .ctx/godmode/conflict-resolution-log.md on real integrations.
 
 def ok   [msg: string] { print $"  (ansi green)✓(ansi reset)  ($msg)" }
 def fail [msg: string] { print $"  (ansi red)✗(ansi reset)  ($msg)" }
@@ -33,6 +33,28 @@ def main [
 
     print $"\nWave integration: ($branch_list | length) branches onto ($base)"
     print $"Branches: ($branch_list | str join ', ')\n"
+
+    if $dry_run {
+        let base_check = (do { git rev-parse --verify $base } | complete)
+        if $base_check.exit_code != 0 {
+            fail $"Base branch ($base) does not exist"
+            exit 1
+        }
+
+        for branch in $branch_list {
+            let branch_check = (do { git rev-parse --verify $branch } | complete)
+            if $branch_check.exit_code != 0 {
+                fail $"Branch ($branch) does not exist"
+                continue
+            }
+            let has_merges = not (do { git log --merges --format=%H $"($base)..($branch)" } | complete | get stdout | str trim | is-empty)
+            let update_kind = if $has_merges { "merge base into branch" } else { "rebase onto base" }
+            warn $"[dry-run] Would ($update_kind), test, then merge ($branch) into ($base)"
+        }
+
+        print "Dry run complete. No fetch, checkout, stash, rebase, merge, test, or file write was performed."
+        return
+    }
 
     # Stash any dirty worktree
     let dirty_unstaged = (do { git diff --quiet } | complete).exit_code != 0
@@ -71,30 +93,36 @@ def main [
         # Fetch latest
         do { git fetch origin $branch } | complete | ignore
 
-        # Rebase onto base
-        step $"Rebasing ($branch) onto ($base)"
-        let rebase_r = (do { git rebase $base } | complete)
+        # Preserve merge history: branches with merge commits must not be rebased.
+        let has_merges = not (do { git log --merges --format=%H $"($base)..($branch)" } | complete | get stdout | str trim | is-empty)
+        let update_kind = if $has_merges { "merge" } else { "rebase" }
+        step $"Updating ($branch) onto ($base) via ($update_kind)"
+        let update_r = if $has_merges {
+            do { git merge --no-edit $base } | complete
+        } else {
+            do { git rebase $base } | complete
+        }
 
-        if $rebase_r.exit_code != 0 {
-            warn "Rebase conflicts detected — inspect and resolve manually"
-            print $rebase_r.stderr
+        if $update_r.exit_code != 0 {
+            warn $"($update_kind) conflicts detected — inspect and resolve manually"
+            print $update_r.stderr
             # Check for conflict markers
             let conflicts = (do { git diff --name-only --diff-filter=U } | complete | get stdout | lines | where { |l| ($l | str trim) != "" })
             if ($conflicts | is-empty) {
-                fail "Rebase failed with no detectable conflict files — aborting rebase"
-                do { git rebase --abort } | complete | ignore
+                fail $"($update_kind) failed with no detectable conflict files — aborting"
+                if $has_merges { do { git merge --abort } | complete | ignore } else { do { git rebase --abort } | complete | ignore }
                 $failed = ($failed | append $branch)
                 continue
             }
             print $"\nConflicted files:"
             for f in $conflicts { print $"  - ($f)" }
-            print "\nResolve conflicts, then run: git add <files> && git rebase --continue"
+            print $"\nResolve conflicts, then continue the ($update_kind) manually."
             print "Then re-run wave-integrate with remaining branches."
-            do { git rebase --abort } | complete | ignore
+            if $has_merges { do { git merge --abort } | complete | ignore } else { do { git rebase --abort } | complete | ignore }
             $failed = ($failed | append $branch)
             continue
         }
-        ok "Rebase clean"
+        ok $"($update_kind) clean"
 
         # Run tests
         step "Running cargo nextest run --workspace"
@@ -112,28 +140,23 @@ def main [
         # Get final SHA
         let sha = (do { git rev-parse --short HEAD } | complete | get stdout | str trim)
 
-        if not $dry_run {
-            # Merge to base
-            step $"Merging ($branch) into ($base)"
-            do { git checkout $base } | complete | ignore
-            let merge_r = (do { git merge --no-ff $branch -m $"integrate: merge ($branch)" } | complete)
-            if $merge_r.exit_code != 0 {
-                fail $"Merge failed for ($branch)"
-                $failed = ($failed | append $branch)
-                continue
-            }
-            ok $"Merged ($branch) -> ($base) at ($sha)"
-        } else {
-            warn $"[dry-run] Would merge ($branch) at ($sha) into ($base)"
-            do { git checkout $base } | complete | ignore
+        # Merge to base
+        step $"Merging ($branch) into ($base)"
+        do { git checkout $base } | complete | ignore
+        let merge_r = (do { git merge --no-ff $branch -m $"integrate: merge ($branch)" } | complete)
+        if $merge_r.exit_code != 0 {
+            fail $"Merge failed for ($branch)"
+            $failed = ($failed | append $branch)
+            continue
         }
+        ok $"Merged ($branch) -> ($base) at ($sha)"
 
         $integrated = ($integrated | append $branch)
         $integrated_shas = ($integrated_shas | insert $branch $sha)
     }
 
     # Final test run on base
-    if not $dry_run and ($integrated | length) > 0 {
+    if ($integrated | length) > 0 {
         step $"Final test run on ($base)"
         let final_r = (do { cargo nextest run --workspace } | complete)
         if $final_r.exit_code != 0 {
@@ -144,12 +167,19 @@ def main [
     }
 
     # Write conflict log template
-    let log_path = $"($repo_root)/conflict-resolution-log.md"
+    let log_dir = $"($repo_root)/.ctx/godmode"
+    mkdir $log_dir
+    let log_path = $"($log_dir)/conflict-resolution-log.md"
     let timestamp = (date now | format date "%Y-%m-%d %H:%M")
-    let branch_summary = ($integrated | each { |b|
-        let sha = ($integrated_shas | get -o $b | default "unknown")
-        $"- ($b) \(($sha)\)"
-    } | str join "\n")
+    let shas = $integrated_shas
+    let branch_summary = if ($integrated | is-empty) {
+        "none"
+    } else {
+        $integrated | each { |b|
+            let sha = ($shas | get -o $b | default "unknown")
+            $"- ($b) \(($sha)\)"
+        } | str join "\n"
+    }
     let failed_summary = if ($failed | is-empty) { "none" } else { $failed | str join ", " }
 
     let log_content = $"# Wave Integration Log — ($timestamp)

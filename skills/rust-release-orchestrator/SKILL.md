@@ -15,7 +15,7 @@ description: >
 
 ## What this skill does
 
-Runs a bundled Python script (`scripts/orchestrate.py`) that:
+Runs a bundled Rust script (`scripts/orchestrate.rs`) that:
 
 1. **Computes publish order** — parses `cargo metadata` and topologically sorts workspace crates so dependencies publish before dependents
 2. **Runs quality gates** — `cargo fmt`, `cargo clippy`, `cargo nextest run`, with auto-fix for fmt/clippy
@@ -30,31 +30,31 @@ Always run **dry-run first**, then real execution. Follow these steps:
 ### Step 1 — Locate the script
 
 ```bash
-SCRIPT=~/.claude/skills/rust-release-orchestrator/scripts/orchestrate.py
+SCRIPT="$HOME/.agents/skills/rust-release-orchestrator/scripts/orchestrate.rs"
 ```
 
 ### Step 2 — Dry run
 
 ```bash
-python "$SCRIPT" --workspace . --dry-run
+rust-script "$SCRIPT" --workspace . --dry-run
 ```
 
-Review the printed publish order and gate results. Point out anything surprising to the user (unexpected crates, wrong order, gate failures that auto-fixed).
+Review the printed publish order and gate results. Point out unexpected crates, wrong ordering, or gate failures; dry runs never auto-fix.
 
 ### Step 3 — Confirm with user
 
-Tell the user what will publish, in what order, and whether any auto-fixes were applied. Ask for explicit confirmation before step 4.
+Tell the user what will publish and in what order, and confirm that the dry run made no fixes or state changes. Ask for explicit confirmation before step 4.
 
 ### Step 4 — Real run
 
 ```bash
-python "$SCRIPT" --workspace .
+rust-script "$SCRIPT" --workspace .
 ```
 
 ### Step 5 — If interrupted, resume
 
 ```bash
-python "$SCRIPT" --workspace . --resume
+rust-script "$SCRIPT" --workspace . --resume
 ```
 
 The state file (`.release-state.json`) records which crates already published. Delete it to start fresh.
@@ -65,12 +65,12 @@ Paste the final report table from the script output. Note any skipped (already-p
 
 ## Flags reference
 
-| Flag                 | Effect                                                  |
-| -------------------- | ------------------------------------------------------- |
-| `--dry-run`          | Skip actual `cargo publish`, run everything else        |
-| `--resume`           | Load `.release-state.json` and skip already-done work   |
-| `--skip-gates`       | Bypass fmt/clippy/test (use after gates already passed) |
-| `--workspace <path>` | Override workspace root (default: `.`)                  |
+| Flag                 | Effect                                                     |
+| -------------------- | ---------------------------------------------------------- |
+| `--dry-run`          | Validate without publishing, auto-fixing, or writing state |
+| `--resume`           | Load `.release-state.json` and skip already-done work      |
+| `--skip-gates`       | Bypass fmt/clippy/test (use after gates already passed)    |
+| `--workspace <path>` | Override workspace root (default: `.`)                     |
 
 ## What auto-fix covers
 

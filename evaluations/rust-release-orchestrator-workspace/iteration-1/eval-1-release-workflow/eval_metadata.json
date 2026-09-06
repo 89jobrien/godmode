@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "release-workflow",
+  "prompt": "I want to release the kan workspace to crates.io. It has three crates: kan-core, kan-adapters (depends on kan-core), and kan-cli (depends on both). Walk me through a dry run first, then the real release.",
+  "assertions": [
+    {"text": "Script invoked with --dry-run flag before any real publish"},
+    {"text": "Publish order is kan-core before kan-adapters before kan-cli"},
+    {"text": "User asked to confirm before real publish is initiated"},
+    {"text": "Real run command shown after dry-run"}
+  ]
+}

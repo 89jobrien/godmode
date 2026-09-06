@@ -37,7 +37,7 @@ struct IntegrationResult<'a> {
 
 fn render_log(result: &IntegrationResult) -> String {
     let branch_summary = if result.integrated.is_empty() {
-        String::new()
+        "none".to_string()
     } else {
         result
             .integrated
@@ -71,7 +71,10 @@ enum BranchOutcome {
     Failed,
 }
 
-fn run_state_machine(branches: &[String], outcomes: &[BranchOutcome]) -> (Vec<String>, Vec<String>) {
+fn run_state_machine(
+    branches: &[String],
+    outcomes: &[BranchOutcome],
+) -> (Vec<String>, Vec<String>) {
     let mut integrated = Vec::new();
     let mut failed = Vec::new();
     for (branch, outcome) in branches.iter().zip(outcomes.iter()) {
@@ -146,7 +149,9 @@ proptest! {
 
     /// Every integrated branch appears exactly once in the log (as a full list item).
     #[test]
-    fn log_contains_each_integrated_branch(branches in prop::collection::vec(branch_name(), 1..=6)) {
+    fn log_contains_each_integrated_branch(mut branches in prop::collection::vec(branch_name(), 1..=6)) {
+        branches.sort();
+        branches.dedup();
         let n = branches.len();
         let all_integrated: Vec<BranchOutcome> = vec![BranchOutcome::Integrated; n];
         let (integrated, failed) = run_state_machine(&branches, &all_integrated);
@@ -156,7 +161,13 @@ proptest! {
             // Count only full list-item occurrences ("- <branch>\n") to avoid substring collisions.
             let pattern = format!("- {b}\n");
             let count = log.matches(pattern.as_str()).count();
-            prop_assert_eq!(count, 1, "branch {b} appears {count} times as list item in log");
+            prop_assert_eq!(
+                count,
+                1,
+                "branch {} appears {} times as list item in log",
+                b,
+                count
+            );
         }
     }
 
@@ -188,7 +199,9 @@ proptest! {
     /// integrated and failed lists are disjoint.
     #[test]
     fn integrated_and_failed_are_disjoint(s in branch_list_string()) {
-        let branches = parse_branches(&s);
+        let mut branches = parse_branches(&s);
+        branches.sort();
+        branches.dedup();
         let n = branches.len();
         // Alternate: even indices integrate, odd indices fail
         let outs: Vec<BranchOutcome> = (0..n)
@@ -205,16 +218,14 @@ fn main() {
     println!("Running wave-integrate property tests...");
     // proptest runs via the proptest! macro above when invoked as a test binary.
     // This main just confirms the script compiles and runs stand-alone.
-    let samples = [
-        "feat/a feat/b feat/c",
-        "  feat/x   feat/y  ",
-        "single",
-    ];
+    let samples = ["feat/a feat/b feat/c", "  feat/x   feat/y  ", "single"];
     for s in samples {
         let parsed = parse_branches(s);
         println!("parse({s:?}) -> {parsed:?}");
     }
-    println!("All parse samples OK. Run with `cargo test` for property tests.");
+    println!(
+        "All parse samples OK. Run with `rust-script --test wave-integrate-proptest.rs` for property tests."
+    );
 }
 
 #[cfg(test)]
@@ -228,12 +239,18 @@ mod unit {
 
     #[test]
     fn parse_multiple() {
-        assert_eq!(parse_branches("feat/a feat/b feat/c"), vec!["feat/a", "feat/b", "feat/c"]);
+        assert_eq!(
+            parse_branches("feat/a feat/b feat/c"),
+            vec!["feat/a", "feat/b", "feat/c"]
+        );
     }
 
     #[test]
     fn parse_extra_spaces() {
-        assert_eq!(parse_branches("  feat/a   feat/b  "), vec!["feat/a", "feat/b"]);
+        assert_eq!(
+            parse_branches("  feat/a   feat/b  "),
+            vec!["feat/a", "feat/b"]
+        );
     }
 
     #[test]
@@ -253,7 +270,11 @@ mod unit {
     #[test]
     fn state_machine_mixed() {
         let branches = vec!["a".to_string(), "b".to_string(), "c".to_string()];
-        let outcomes = vec![BranchOutcome::Integrated, BranchOutcome::Failed, BranchOutcome::Integrated];
+        let outcomes = vec![
+            BranchOutcome::Integrated,
+            BranchOutcome::Failed,
+            BranchOutcome::Integrated,
+        ];
         let (i, f) = run_state_machine(&branches, &outcomes);
         assert_eq!(i, vec!["a", "c"]);
         assert_eq!(f, vec!["b"]);
@@ -261,7 +282,10 @@ mod unit {
 
     #[test]
     fn log_failed_summary_none_when_empty() {
-        let result = IntegrationResult { integrated: &["a".to_string()], failed: &[] };
+        let result = IntegrationResult {
+            integrated: &["a".to_string()],
+            failed: &[],
+        };
         let log = render_log(&result);
         assert!(log.contains("none"));
     }
@@ -270,7 +294,10 @@ mod unit {
     fn log_failed_summary_lists_branches() {
         let integrated = vec![];
         let failed = vec!["a".to_string(), "b".to_string()];
-        let result = IntegrationResult { integrated: &integrated, failed: &failed };
+        let result = IntegrationResult {
+            integrated: &integrated,
+            failed: &failed,
+        };
         let log = render_log(&result);
         assert!(log.contains("a, b"));
     }

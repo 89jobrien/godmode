@@ -2,8 +2,8 @@
 # cap.nu — validate, stage, commit, and push.
 # Usage: nu skills/cap/helpers/cap.nu "<commit message>"
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [msg: string = ""] {
     assert-not-main

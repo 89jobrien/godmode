@@ -19,7 +19,7 @@ Each workflow directory contains:
 
 ## Relationship to Commands and Pipelines
 
-- **Commands** (`commands/gm/`) — Claude follows instructions manually via the Skill tool
+- **Commands** (`commands/`, sourced from `command-support/gm/`) — Claude follows instructions manually via the Skill tool
 - **Pipelines** (`pipelines/`) — declarative step sequences for the pipeline runner
 - **Workflows** (`workflows/`) — multi-agent fan-out scripts run by the Workflow tool
 

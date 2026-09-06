@@ -9,7 +9,7 @@ description: >
   matters.
 requires: []
 next: []
-argument-hint: "[--deep]"
+argument-hint: "[target text or file] [--deep]"
 ---
 
 # Doublecheck
@@ -17,6 +17,12 @@ argument-hint: "[--deep]"
 Run a three-layer verification pipeline on AI-generated output. The goal is not to declare
 what is true — it is to extract every verifiable claim, surface sources the user can check
 independently, and flag hallucination patterns before they propagate.
+
+## Input
+
+Use `$ARGUMENTS` as the material to verify. If it is empty, verify the immediately preceding
+assistant output. Remove `--deep` from the target before analysis and remember whether it was
+present; when present, include the hallucination pattern matrix in Layer 3.
 
 ## When to Run
 

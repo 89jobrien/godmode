@@ -1,9 +1,9 @@
 #!/usr/bin/env nu
-# new-plan.nu — scaffold a new plan file at docs/plans/YYYY-MM-DD-<name>.md
-# Usage: nu skills/writing-plans/helpers/new-plan.nu <feature-name>
+# new-plan.nu — scaffold a plan at .ctx/godmode/plans/YYYY-MM-DD-<name>.md.
+# Usage: nu ($env.HOME | path join ".agents" "skills" "writing-plans" "helpers" "new-plan.nu") <feature-name>
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [feature: string] {
     if ($feature | is-empty) {
@@ -14,8 +14,13 @@ def main [feature: string] {
     let root = (repo-root)
     let tid = (trace-start "writing-plans" "new-plan.nu" $feature)
     let date = (date now | format date "%Y-%m-%d")
-    let slug = ($feature | str replace --all " " "-" | str downcase)
-    let plan_dir = $"($root)/docs/plans"
+    let slug = ($feature | str downcase | str replace --all --regex '[^a-z0-9]+' '-' | str trim --char '-')
+    if ($slug | is-empty) {
+        trace-error $tid 1 "feature name has no usable characters"
+        print "ERROR: feature name has no usable characters"
+        exit 1
+    }
+    let plan_dir = $"($root)/.ctx/godmode/plans"
     mkdir $plan_dir
     let out = $"($plan_dir)/($date)-($slug).md"
 

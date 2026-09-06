@@ -26,7 +26,8 @@ clarity, and navigability. Read-only — report findings; do not rewrite the doc
 
 Every claim in the doc must be verifiable against the code or CLI output.
 
-- Run every command shown — confirm it produces the documented output
+- Run only safe, non-mutating commands. For mutating, destructive, credentialed,
+  or production commands, verify via `--help`, source, tests, or dry-run output
 - Check every file path — confirm it exists
 - Check every flag and option — confirm it appears in `--help`
 - Check every type, function, or module name — confirm it exists in source

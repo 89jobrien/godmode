@@ -3,10 +3,11 @@ description: Build, install, validate, and review the godmode AIChat assistant s
 steps:
   - skill: context-map
   - skill: writing-plans
+  - skill: ingest
   - skill: task-management
   - skill: task-driven-development
     loop: per-task
   - skill: testing-philosophy
   - skill: code-review
   - skill: verification-before-completion
-entry_points: [context-map, task-management]
+entry_points: [context-map, ingest, task-management]
