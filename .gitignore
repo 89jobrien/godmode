@@ -12,7 +12,6 @@ target/
 .ctx/.initialized
 # handoff-end
 .worktrees/
-commands/gm-*.md
 # Ignore everything in agents/ except the final .md agents
 agents/*
 !agents/*.md
@@ -24,3 +23,5 @@ agents/maestro.md
 fuzz/
 .claude/settings.local.json
 .DS_Store
+.plugin-eval/
+.ruff_cache/

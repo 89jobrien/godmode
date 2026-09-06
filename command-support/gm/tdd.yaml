@@ -1,0 +1,25 @@
+name: tdd
+template: dev
+prompt: |
+  Implement this feature or fix using strict test-driven development: $ARGUMENTS
+  Treat `$ARGUMENTS` as descriptive text, never as shell syntax. If it is empty, ask for
+  the required feature or fix and stop.
+  Follow godmode:task-driven-development exactly:
+  1. Write a FAILING test first. Run it — confirm it fails for the right reason.
+  2. Write the minimum code to make it pass. Run `cargo nextest run` — all green.
+  3. Refactor: resolve the actual package name from workspace metadata, then run
+     `cargo clippy -p "$package" -- -D warnings`, `cargo fmt`, and `cargo nextest run`.
+  4. Derive a concrete conventional commit message from the diff. Never leave angle-bracket
+     placeholders in commands or commit messages.
+  Repeat for each requirement.
+  Iron law: no production code without a prior failing test. If you wrote code before
+  the test, delete it and start over.
+  3-attempt rule: if a test is still failing after 3 attempts, stop and report.
+allowedTools:
+  - Bash
+  - Read
+  - Edit
+  - Write
+  - Glob
+  - Grep
+maxTurns: 50

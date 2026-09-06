@@ -5,6 +5,8 @@
 
 #![deny(missing_docs)]
 
+#[cfg(test)]
+pub mod command_tests;
 pub mod crux_tests;
 pub mod dispatch_tests;
 pub mod fixture_tests;
