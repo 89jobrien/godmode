@@ -28,7 +28,7 @@ miette = { workspace = true, features = ["derive"] }
 slashcrux = { workspace = true }
 crux-runtime = { workspace = true }
 regex = { workspace = true }
-toml = "0.8"
+toml = "1.1"
 which = "7"
 tracing = { workspace = true }
 tokio = { workspace = true }
