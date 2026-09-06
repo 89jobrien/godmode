@@ -1,106 +1,21 @@
 project: godmode
 id: godmode
 updated: 2026-09-06
-items:
-- id: t33
-  name: run-the-full-remediation-gate-and-record-the-health-baseline
-  priority: P2
-  status: open
-  title: Run the full remediation gate and record the health baseline
-  description: Task t33 in progress
-- id: uncommitted-work
-  name: uncommitted-work
-  priority: P1
-  status: open
-  title: Uncommitted changes (42 files)
-  description: |-
-    Working tree has uncommitted changes:
-    .ctx/HANDOFF.godmode.godmode.yaml
-    commands/gm-audit.md
-    commands/gm-brainstorm.md
-    commands/gm-ci-fix.md
-    commands/gm-context.md
-    commands/gm-debug-loop.md
-    commands/gm-debug.md
-    commands/gm-deps.md
-    commands/gm-design.md
-    commands/gm-dispatch-all.md
-    commands/gm-doc-enrich.md
-    commands/gm-doc-review.md
-    commands/gm-doc-sync.md
-    commands/gm-doc-writer.md
-    commands/gm-feature.md
-    commands/gm-fresh-branch.md
-    commands/gm-handoff.md
-    commands/gm-handon.md
-    commands/gm-ideate.md
-    commands/gm-implement.md
-    commands/gm-improve-agent.md
-    commands/gm-ingest.md
-    commands/gm-introspect.md
-    commands/gm-issues.md
-    commands/gm-moa-review.md
-    commands/gm-observe.md
-    commands/gm-plan.md
-    commands/gm-polish.md
-    commands/gm-pr.md
-    commands/gm-refactor.md
-    commands/gm-release.md
-    commands/gm-review-code.md
-    commands/gm-review-incoming.md
-    commands/gm-self-heal.md
-    commands/gm-session-end.md
-    commands/gm-ship.md
-    commands/gm-tackle-issues.md
-    commands/gm-tdd.md
-    commands/gm-test-fix-commit.md
-    commands/gm-trace.md
-    crates/godmode-core/src/command.rs
-    tests/conformance/src/command_tests.rs
-  files:
-  - .ctx/HANDOFF.godmode.godmode.yaml
-  - commands/gm-audit.md
-  - commands/gm-brainstorm.md
-  - commands/gm-ci-fix.md
-  - commands/gm-context.md
-  - commands/gm-debug-loop.md
-  - commands/gm-debug.md
-  - commands/gm-deps.md
-  - commands/gm-design.md
-  - commands/gm-dispatch-all.md
-  - commands/gm-doc-enrich.md
-  - commands/gm-doc-review.md
-  - commands/gm-doc-sync.md
-  - commands/gm-doc-writer.md
-  - commands/gm-feature.md
-  - commands/gm-fresh-branch.md
-  - commands/gm-handoff.md
-  - commands/gm-handon.md
-  - commands/gm-ideate.md
-  - commands/gm-implement.md
-  - commands/gm-improve-agent.md
-  - commands/gm-ingest.md
-  - commands/gm-introspect.md
-  - commands/gm-issues.md
-  - commands/gm-moa-review.md
-  - commands/gm-observe.md
-  - commands/gm-plan.md
-  - commands/gm-polish.md
-  - commands/gm-pr.md
-  - commands/gm-refactor.md
-  - commands/gm-release.md
-  - commands/gm-review-code.md
-  - commands/gm-review-incoming.md
-  - commands/gm-self-heal.md
-  - commands/gm-session-end.md
-  - commands/gm-ship.md
-  - commands/gm-tackle-issues.md
-  - commands/gm-tdd.md
-  - commands/gm-test-fix-commit.md
-  - commands/gm-trace.md
-  - crates/godmode-core/src/command.rs
-  - tests/conformance/src/command_tests.rs
+items: []
 log:
+- date: '20260906.140600'
+  summary: done=97 running=0 pending=0 blocked=0
+  commits:
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
+  - 7f45bbfd64f4c93eeed9552c6336fa5fed014a69
 - date: '20260906.135333'
   summary: done=96 running=1 pending=0 blocked=0
   commits:
