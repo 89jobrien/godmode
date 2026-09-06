@@ -1,12 +1,12 @@
 # godmode
 
-Self-contained Rust-native development methodology plugin for Claude Code.
+Self-contained Rust-native development methodology for Claude Code, Codex, and OpenCode.
 
 > Inspired by and built on the ideas in [superpowers](https://github.com/obra/superpowers) by [obra](https://github.com/obra) — the original agentic skills framework for Claude Code. Godmode replaces the superpowers runtime with a Rust-backed CLI and task graph, but the methodology, skill structure, and session ritual are directly descended from that work.
 
 ## Overview
 
-Godmode combines a Claude Code skill set with a CLI-backed task graph. The binary owns all
+Godmode combines agent skill sets with a CLI-backed task graph. The binary owns all
 stateful operations — skills are thin wrappers that call `godmode` and act on the output.
 Tasks persist in `.ctx/godmode/tasks.yaml` (gitignored) across sessions via causal
 `depends_on` chains.
@@ -16,6 +16,9 @@ Tasks persist in `.ctx/godmode/tasks.yaml` (gitignored) across sessions via caus
 ```bash
 cargo build --release -p godmode-cli && cp target/release/godmode ~/.cargo/bin/godmode
 claude plugin install godmode@bazaar
+# OpenCode commands and agents are installed independently:
+godmode command install-opencode --dry-run
+godmode agent install-opencode --dry-run
 ```
 
 ### Pre-commit hook
@@ -44,37 +47,38 @@ cargo gates run.
 
 ## Skills
 
-| Skill                                     | When                                                   |
-| ----------------------------------------- | ------------------------------------------------------ |
-| `godmode:using-godmode`                   | Session orientation, available skills, rules           |
-| `godmode:task-driven-development`         | Implementing any feature or fix (TDD + YAML task list) |
-| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior             |
-| `godmode:brainstorm`                      | Before any creative or design work                     |
-| `godmode:writing-plans`                   | Multi-step task with a spec or requirements            |
-| `godmode:verification-before-completion`  | Before claiming work is done                           |
-| `godmode:task-management`                 | Creating, tracking, executing a task graph             |
-| `godmode:parallel-agents`                 | 2+ independent tasks to run concurrently               |
-| `godmode:code-review`                     | Quality pass before merge                              |
-| `godmode:refactoring`                     | Restructure code without changing behaviour            |
-| `godmode:receiving-review`                | Process incoming review feedback                       |
-| `godmode:cap`                             | Commit and push with validation                        |
-| `godmode:ci-fix`                          | Fix a failing CI pipeline                              |
-| `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees               |
-| `godmode:testing-philosophy`              | Choose the right test type for the situation           |
-| `godmode:introspection`                   | Audit skills and plugin files for consistency          |
-| `godmode:observability-as-infrastructure` | Query and tail the session trace log                   |
-| `godmode:wave-integration`                | Merge parallel agent branches into one commit          |
-| `godmode:moa`                             | Multi-model reasoning via mixture of agents            |
-| `godmode:todo-issue-sync`                 | Audit inline TODOs and sync to GitHub issues           |
-| `godmode:self-reflect`                    | Session retrospective — patterns and surprises         |
-| `godmode:decompose`                       | Break a large diff/PR into smaller independent PRs     |
-| `godmode:merge`                           | Merge branches, resolve conflicts, create PRs          |
-| `godmode:agent-governance`                | Governance and trust controls for AI agent systems     |
-| `godmode:context-map`                     | Map all files relevant to a task before changes        |
-| `godmode:doublecheck`                     | Three-layer verification of AI-generated output        |
-| `godmode:rust-conventions`                | Rust coding conventions and best practices             |
-| `godmode:mini-context-graph`              | Persistent knowledge graph for codebase exploration    |
-| `godmode:memory-banking`                  | Generate and maintain .ctx/memory-bank/ context        |
+| Skill                                     | When                                                    |
+| ----------------------------------------- | ------------------------------------------------------- |
+| `godmode:using-godmode`                   | Session orientation, available skills, rules            |
+| `godmode:task-driven-development`         | Implementing any feature or fix (TDD + YAML task list)  |
+| `godmode:systematic-debugging`            | Any bug, test failure, unexpected behavior              |
+| `godmode:brainstorm`                      | Before any creative or design work                      |
+| `godmode:writing-plans`                   | Multi-step task with a spec or requirements             |
+| `godmode:ingest`                          | Load a completed plan into the task graph               |
+| `godmode:verification-before-completion`  | Before claiming work is done                            |
+| `godmode:task-management`                 | Tracking and executing an existing task graph           |
+| `godmode:parallel-agents`                 | 2+ independent tasks to run concurrently                |
+| `godmode:code-review`                     | Quality pass before merge                               |
+| `godmode:refactoring`                     | Restructure code without changing behaviour             |
+| `godmode:receiving-review`                | Process incoming review feedback                        |
+| `godmode:cap`                             | Commit and push with validation                         |
+| `godmode:ci-fix`                          | Fix a failing CI pipeline                               |
+| `godmode:tackle-issues`                   | Work GitHub issues in parallel worktrees                |
+| `godmode:testing-philosophy`              | Choose the right test type for the situation            |
+| `godmode:introspection`                   | Audit skills and plugin files for consistency           |
+| `godmode:observability-as-infrastructure` | Query and tail the session trace log                    |
+| `godmode:wave-integration`                | Merge parallel agent branches into one commit           |
+| `godmode:moa`                             | Multi-model reasoning via mixture of agents             |
+| `godmode:todo-issue-sync`                 | Audit inline TODOs and sync to GitHub issues            |
+| `godmode:self-reflect`                    | Session retrospective — patterns and surprises          |
+| `godmode:decompose`                       | Break a large diff/PR into smaller independent PRs      |
+| `godmode:merge`                           | Merge branches, resolve conflicts, create PRs           |
+| `godmode:agent-governance`                | Governance and trust controls for AI agent systems      |
+| `godmode:context-map`                     | Map all files relevant to a task before changes         |
+| `godmode:doublecheck`                     | Three-layer verification of AI-generated output         |
+| `godmode:rust-conventions`                | Rust coding conventions and best practices              |
+| `godmode:mini-context-graph`              | Persistent knowledge graph for codebase exploration     |
+| `godmode:memory-banking`                  | Generate and maintain .ctx/godmode/memory-bank/ context |
 
 ## Agents
 
@@ -190,7 +194,7 @@ tasks:
 ## Workflow
 
 ```
-brainstorm → writing-plans → plan ingest → handon
+brainstorm → writing-plans → ingest → task-management
   → task next → task start → [tdd] → task done → task next → ...
   → dispatch (parallel chains) → parallel-agents
   → verification-before-completion → handoff
@@ -198,20 +202,30 @@ brainstorm → writing-plans → plan ingest → handon
 
 ## Commands
 
-Slash commands live in `commands/gm/` and map to skills or multi-skill workflows. Invoked
-from the Claude Code command palette (e.g. `/gm:cap`, `/gm:tdd`, `/gm:feature`).
+Slash commands live in `commands/`; their sources live in `command-support/gm/` and map to skills or multi-skill workflows. The planning sequence is:
+
+```
+/gm:brainstorm → /gm:design → /gm:plan → /gm:ingest → /gm:implement
+```
+
+Render and install commands for both clients from `command-support/gm/*.yaml`:
+
+```bash
+godmode command generate --target claude
+godmode command install-opencode
+```
 
 **Atomic** (single skill): `cap`, `tdd`, `debug`, `refactor`, `review-code`, `ci-fix`,
-`self-heal`, `plan`, `tackle-issues`, `moa-review`, `preflight`, `handon`, `handoff`,
+`self-heal`, `brainstorm`, `design`, `plan`, `ingest`, `implement`, `tackle-issues`,
+`moa-review`, `preflight`, `handon`, `handoff`,
 `fresh-branch`, `introspect`, `dispatch-all`, `auth-fail-fast`, `test-fix-commit`, `trace`
 
 **Workflow** (multi-skill pipelines):
 
 | Command           | Pipeline                                                                    |
 | ----------------- | --------------------------------------------------------------------------- |
-| `brainstorm`      | brainstorm → design                                                         |
 | `ideate`          | repo scan → gap analysis → brainstorm                                       |
-| `feature`         | brainstorm → design → writing-plans → tdd → verify → cap                    |
+| `feature`         | brainstorm → design → writing-plans → ingest → tdd → verify → cap           |
 | `ship`            | verification → changelog → release-notes → cap                              |
 | `release`         | readiness-check → impact → bump → changelog → release-notes → cap           |
 | `audit`           | health-score → dead-code → dep-audit → mistake-tracker → repo-gap-backlog   |
@@ -222,7 +236,7 @@ from the Claude Code command palette (e.g. `/gm:cap`, `/gm:tdd`, `/gm:feature`).
 | `improve-agent`   | self-reflect → pattern-learner → agent-improvement-loop → agents-skill-save |
 | `context`         | context-map → memory-banking → mini-context-graph                           |
 
-See `commands/gm/README.md` for the full reference.
+See `command-support/gm/README.md` for the full reference.
 
 ## Helpers
 

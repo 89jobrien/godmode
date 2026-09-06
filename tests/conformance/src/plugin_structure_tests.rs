@@ -1275,4 +1275,29 @@ mod tests {
             assert!(!deny.contains(unused), "unused allowance: {unused}");
         }
     }
+
+    #[test]
+    fn operator_docs_match_workspace_and_cli_surface() {
+        let root = repo_root();
+        for name in ["README.md", "CLAUDE.md", "AGENTS.md"] {
+            let doc = std::fs::read_to_string(root.join(name)).unwrap();
+            assert!(doc.contains("OpenCode"), "{name} omits OpenCode");
+            assert!(
+                !doc.contains(".Codex-plugin"),
+                "{name} has wrong plugin path case"
+            );
+            assert!(
+                !doc.contains("Two-crate workspace"),
+                "{name} has stale member count"
+            );
+            assert!(
+                !doc.contains("six pipelines"),
+                "{name} has stale pipeline count"
+            );
+            assert!(
+                !doc.contains("`.ctx/memory-bank/`"),
+                "{name} has stale memory path"
+            );
+        }
+    }
 }
