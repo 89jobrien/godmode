@@ -1300,4 +1300,20 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn pipeline_docs_match_loaded_definitions() {
+        let root = repo_root();
+        let pipelines = godmode_core::pipeline::load_pipelines(&root).unwrap();
+        assert_eq!(pipelines.len(), 9);
+        let docs = std::fs::read_to_string(root.join("pipelines/README.md")).unwrap();
+        for pipeline in pipelines {
+            assert!(
+                docs.contains(&pipeline.name),
+                "missing pipeline: {}",
+                pipeline.name
+            );
+        }
+        assert!(docs.contains("parallel_with"));
+    }
 }

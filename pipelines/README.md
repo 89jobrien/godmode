@@ -12,8 +12,11 @@ steps:
   - skill: brainstorm
     optional: true
   - skill: writing-plans
+  - skill: ingest
+  - skill: task-management
   - skill: task-driven-development
     loop: per-task # repeat this step for each task in the graph
+    parallel_with: [code-review]
   - skill: cap
     optional: true
 entry_points: [brainstorm, task-management]
@@ -23,6 +26,8 @@ Fields:
 
 - `optional: true` — step is skipped if the user declines
 - `loop: per-task` — step repeats for each pending task
+- `parallel_with` — companion skills available for concurrent orchestration; the current
+  headless runner records this metadata but does not execute companion skills automatically
 - `entry_points` — skills where the pipeline can start mid-flow
 
 ## Pipelines
@@ -41,6 +46,6 @@ Fields:
 
 ## Relationship to Commands
 
-`/gm:*` workflow commands implement the same sequences inline as Claude instructions.
-Pipelines are the machine-readable equivalent — used by the pipeline runner
+Claude `/gm:*` and OpenCode `/gm-*` workflow commands implement the same sequences.
+Pipelines are the target-neutral machine-readable equivalent, used by the pipeline runner
 (`godmode pipeline next`, `post-pipeline-step.nu`) for automated step advancement.
