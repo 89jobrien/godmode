@@ -20,6 +20,7 @@ miette = { workspace = true, features = ["fancy"] }
 
 [features]
 default = []
+# TODO(#98): Retire this compatibility flag in the next breaking release.
 test-utils = []
 
 [dev-dependencies]

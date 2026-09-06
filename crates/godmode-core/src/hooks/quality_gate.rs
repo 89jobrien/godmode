@@ -9,6 +9,7 @@ use std::process::Command;
 use anyhow::{Result, bail};
 
 /// Result of running a single gate step.
+// TODO(#97): Remove in the next breaking release after downstream compatibility review.
 #[derive(Debug)]
 pub struct GateStep {
     /// Display name of the quality check.

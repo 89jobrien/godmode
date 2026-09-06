@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "file": "crates/godmode-core/src/hooks/quality_gate.rs",
+      "text": "TODO(#97): Remove in the next breaking release after downstream compatibility review.",
+      "issue_number": 99
+    }
+  ]
+}

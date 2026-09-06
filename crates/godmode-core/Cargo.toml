@@ -12,6 +12,7 @@ doctest = false
 
 [features]
 default = []
+# TODO(#98): Retire this compatibility alias in the next breaking release.
 test-utils = ["testing"]
 testing = ["dep:proptest", "dep:tempfile"]
 

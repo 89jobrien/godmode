@@ -1246,4 +1246,18 @@ mod tests {
         assert!(apache.contains("Version 2.0, January 2004"));
         assert!(apache.contains("END OF TERMS AND CONDITIONS"));
     }
+
+    #[test]
+    fn deferred_compatibility_todos_are_issue_linked() {
+        let root = repo_root();
+        let gate =
+            std::fs::read_to_string(root.join("crates/godmode-core/src/hooks/quality_gate.rs"))
+                .unwrap();
+        let core = std::fs::read_to_string(root.join("crates/godmode-core/Cargo.toml")).unwrap();
+        let cli = std::fs::read_to_string(root.join("crates/godmode-cli/Cargo.toml")).unwrap();
+
+        assert!(gate.contains("TODO(#"));
+        assert!(core.contains("TODO(#"));
+        assert!(cli.contains("TODO(#"));
+    }
 }
