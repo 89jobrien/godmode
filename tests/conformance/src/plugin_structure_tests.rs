@@ -1267,4 +1267,12 @@ mod tests {
             std::fs::read_to_string(repo_root().join("tests/conformance/Cargo.toml")).unwrap();
         assert!(manifest.contains("criterion = { version = \"0.8\""));
     }
+
+    #[test]
+    fn deny_policy_has_no_unused_license_allowances() {
+        let deny = std::fs::read_to_string(repo_root().join("deny.toml")).unwrap();
+        for unused in ["BSD-3-Clause", "MPL-2.0", "Unicode-DFS-2016"] {
+            assert!(!deny.contains(unused), "unused allowance: {unused}");
+        }
+    }
 }
