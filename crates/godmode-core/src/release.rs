@@ -226,7 +226,7 @@ pub fn write_changelog(root: &Path, entry: &ChangelogEntry) -> Result<()> {
 
 // ── Version cross-validation ────────────────────────────────────────
 
-/// Cross-check plugin.json version, Cargo.toml workspace version, and latest git tag.
+/// Cross-check both plugin manifests, the Cargo workspace version, and latest git tag.
 pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
     let mut warnings = Vec::new();
 
@@ -241,6 +241,28 @@ pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
     };
 
     let tag_version = latest_tag_version(root);
+
+    for relative in [".claude-plugin/plugin.json", ".codex-plugin/plugin.json"] {
+        let path = root.join(relative);
+        if !path.exists() {
+            warnings.push(format!("missing version manifest: {relative}"));
+            continue;
+        }
+        let content = fs::read_to_string(&path)?;
+        let manifest: serde_json::Value = serde_json::from_str(&content)
+            .with_context(|| format!("invalid JSON in {}", path.display()))?;
+        let version = manifest
+            .get("version")
+            .and_then(serde_json::Value::as_str)
+            .with_context(|| format!("version missing from {}", path.display()))?;
+        if let Some(ref cv) = cargo_version
+            && version != cv
+        {
+            warnings.push(format!(
+                "version mismatch: {relative}={version}, Cargo.toml={cv}"
+            ));
+        }
+    }
 
     if let Some(ref cv) = cargo_version
         && *cv != plugin_version
@@ -284,6 +306,12 @@ mod tests {
         fs::create_dir_all(root.join(".claude-plugin")).unwrap();
         fs::write(
             root.join(".claude-plugin/plugin.json"),
+            format!(r#"{{"name":"godmode","version":"{version}","author":{{"name":"Joe"}},"description":"x"}}"#),
+        )
+        .unwrap();
+        fs::create_dir_all(root.join(".codex-plugin")).unwrap();
+        fs::write(
+            root.join(".codex-plugin/plugin.json"),
             format!(r#"{{"name":"godmode","version":"{version}","author":{{"name":"Joe"}},"description":"x"}}"#),
         )
         .unwrap();
@@ -363,5 +391,30 @@ edition = "2024"
         let tmp = make_fixture("1.0.0");
         let warnings = validate_versions(tmp.path()).unwrap();
         assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn validate_versions_requires_both_plugin_manifests() {
+        let tmp = make_fixture("1.0.0");
+        fs::create_dir_all(tmp.path().join(".codex-plugin")).unwrap();
+        fs::write(
+            tmp.path().join(".codex-plugin/plugin.json"),
+            r#"{"name":"godmode","version":"0.9.0","author":{"name":"Joe"},"description":"x"}"#,
+        )
+        .unwrap();
+        fs::write(
+            tmp.path().join("Cargo.toml"),
+            "[workspace]\n\n[workspace.package]\nversion = \"1.0.0\"\n",
+        )
+        .unwrap();
+
+        let warnings = validate_versions(tmp.path()).unwrap();
+
+        assert!(
+            warnings
+                .iter()
+                .any(|warning| warning.contains(".codex-plugin/plugin.json=0.9.0")),
+            "warnings: {warnings:?}"
+        );
     }
 }
