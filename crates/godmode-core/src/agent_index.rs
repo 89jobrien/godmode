@@ -6,7 +6,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 use crate::agent;
@@ -69,9 +69,18 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
 
     // Also load from agents/cfg/*.cfg.yaml (authoritative source)
     let cfg_names = agent::list_cfg_agents(&agents_dir)?;
+    let mut authoritative_names = std::collections::BTreeMap::new();
     for name in cfg_names {
         let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
         let def = agent::load(&cfg_path)?;
+        if let Some(previous) = authoritative_names.insert(def.name.clone(), cfg_path.clone()) {
+            bail!(
+                "duplicate authoritative agent name '{}' in {} and {}",
+                def.name,
+                previous.display(),
+                cfg_path.display()
+            );
+        }
         entries.push(AgentEntry {
             name: def.name,
             description: def.description,

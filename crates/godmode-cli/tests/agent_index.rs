@@ -57,3 +57,22 @@ fn filtered_agent_list_preserves_complete_index() {
     assert!(actual.contains("| alpha |"));
     assert!(actual.contains("| beta |"));
 }
+
+#[test]
+fn agent_index_check_rejects_duplicate_logical_names() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let cfg = temp.path().join("agents/cfg");
+    std::fs::create_dir_all(&cfg).expect("cfg directory");
+    let definition = "name: gm-duplicate\ndescription: Duplicate logical agent description\nmodel: inherit\ncolor: blue\ntools: [Read]\nskills: []\n";
+    std::fs::write(cfg.join("alpha.cfg.yaml"), definition).expect("alpha cfg");
+    std::fs::write(cfg.join("beta.cfg.yaml"), definition).expect("beta cfg");
+
+    let output = Command::new(godmode_bin())
+        .args(["agent", "index", "--check"])
+        .current_dir(temp.path())
+        .output()
+        .expect("check index");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("duplicate"));
+}

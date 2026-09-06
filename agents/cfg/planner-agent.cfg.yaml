@@ -1,4 +1,4 @@
-name: gm-orchestrator
+name: gm-planner-orchestrator
 version: 1.0.0
 description: |
   Planning and TDD workflow orchestrator. Combines task graph management, implementation

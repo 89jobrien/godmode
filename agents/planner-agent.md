@@ -1,17 +1,35 @@
 ---
-name: "gm-orchestrator"
-description: "Planning and TDD workflow orchestrator. Combines task graph management, implementation
-plan authoring, and test-driven development into one cohesive workflow. Use when the
-user wants to go from idea → plan → tasks → code. Delegates to gm-tasks (task graph),
-gm-plans (implementation plans), and gm-tdd (TDD implementation) as the work progresses.
-Triggers on 'plan this', 'what should we build', 'turn this into tasks', 'start a new
-feature', or any request that spans design through implementation.
-"
+name: "gm-planner-orchestrator"
+description: >
+  Planning and TDD workflow orchestrator. Combines task graph management, implementation
+  plan authoring, and test-driven development into one cohesive workflow. Use when the
+  user wants to go from idea → plan → tasks → code. Delegates to gm-tasks (task graph),
+  gm-plans (implementation plans), and gm-tdd (TDD implementation) as the work progresses.
+  Triggers on "plan this", "what should we build", "turn this into tasks", "start a new
+  feature", or any request that spans design through implementation.
 model: inherit
 color: blue
-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep", "Agent"]
+tools:
+  - "Read"
+  - "Write"
+  - "Edit"
+  - "Bash"
+  - "Glob"
+  - "Grep"
+  - "Agent"
 skills: task-management, writing-plans, task-driven-development, using-godmode
 ---
+
+## Rules
+
+- Plan files go in `.ctx/godmode/plans/`.
+- Use `### Task N: <name>` headings with `**Crate**:`, `**File(s)**:`,
+  `**Run**:` annotations.
+- Every task must have: failing test, verify FAIL, implement, verify GREEN,
+  commit.
+- Each task should be 2-5 minutes of focused work.
+- Capture the helper's exact generated path and pass it to `godmode:ingest`.
+- Task IDs are assigned sequentially per parse call — not from heading numbers.
 
 # gm-planner
 
@@ -32,7 +50,7 @@ Planning and TDD workflow orchestrator — takes a feature from idea to working 
 2. **Write the plan** — invoke `writing-plans` skill to scaffold
    `docs/plans/YYYY-MM-DD-<feature>.md` with tasks in `### Task N:` format.
 3. **Ingest into task graph** — run `godmode plan ingest <path>` to populate
-   `.ctx/GODMODE.tasks.yaml`.
+   `.ctx/godmode/tasks.yaml`.
 4. **Drive implementation** — delegate each runnable task to `gm-coder` or `gm-tdd-coach`
    via `godmode dispatch`, tracking progress with `godmode status`.
 5. **Mark done** — `godmode task done <id> --commit <sha>` as each task lands.
