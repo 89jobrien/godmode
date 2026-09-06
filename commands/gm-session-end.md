@@ -24,7 +24,6 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Close out a coding session: summarise, reflect, capture learnings, update memory, commit.
-
 1. Run godmode:whatidid — summarise what was accomplished this session from git log
    and task state. Output a one-paragraph session summary before continuing.
 2. Run godmode:self-reflect — assess what went well, what went wrong, and what to
@@ -35,4 +34,4 @@ Close out a coding session: summarise, reflect, capture learnings, update memory
    outcomes. Update other memory bank files only if content changed.
 5. Run godmode:session-wrap-commit-push — commit any outstanding clean changes, write
    HANDOFF, and push.
-   Run in order. Memory updates must be grounded in what actually happened this session.
+Run in order. Memory updates must be grounded in what actually happened this session.

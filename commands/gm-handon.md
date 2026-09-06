@@ -17,7 +17,6 @@ allowed-tools:
   events prominently.
 
 Run session-start triage and orient to outstanding work.
-
 1. Run: godmode handon
 2. Run: godmode task next
 3. Check .ctx/godmode/traces/trace.jsonl for any skill.error or agent.blocked events from

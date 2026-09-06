@@ -25,14 +25,13 @@ allowed-tools:
 
 Detect drift between documentation and code. Read-only — report findings, do not fix.
 Follow godmode:doc-sync exactly:
-
 1. Check CLI surface: run --help for each subcommand, compare against documented flags.
 2. Check crate/module surface: compare ls crates/, pub mod, pub fn/struct/enum/trait
    against CLAUDE.md and README tables.
-3. Check skills and agents: compare ls skills/_/SKILL.md and ls agents/_.md against
+3. Check skills and agents: compare ls skills/*/SKILL.md and ls agents/*.md against
    all skill/agent tables in docs.
 4. Check file paths: extract every literal path from all docs, confirm each exists.
 5. Check cross-doc consistency: same feature described in multiple docs must agree.
-   Report findings grouped by severity: Blocking → Suggestion → Nitpick.
-   Suggest minimal fixes for Blocking findings. Do not apply any fixes here.
-   Hand off to godmode:doc-writer for missing docs or godmode:doc-review after fixes.
+Report findings grouped by severity: Blocking → Suggestion → Nitpick.
+Suggest minimal fixes for Blocking findings. Do not apply any fixes here.
+Hand off to godmode:doc-writer for missing docs or godmode:doc-review after fixes.

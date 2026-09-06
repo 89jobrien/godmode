@@ -26,7 +26,6 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Author and open a pull request from the current branch.
-
 1. Run godmode:code-review — review the branch diff for bugs, style, and correctness.
    Fix any blocking findings before continuing.
 2. Run godmode:doublecheck — independent second pass to catch anything missed.
@@ -35,5 +34,5 @@ Author and open a pull request from the current branch.
    and commit history. Produce gh pr create command ready to run.
 4. Open the PR with gh pr create. Report the PR URL.
 5. Run godmode:merge — once CI is green and review is approved, merge the PR.
-   Do not open the PR until code-review and doublecheck both pass clean.
-   Pause after step 3 for user confirmation before opening the PR.
+Do not open the PR until code-review and doublecheck both pass clean.
+Pause after step 3 for user confirmation before opening the PR.

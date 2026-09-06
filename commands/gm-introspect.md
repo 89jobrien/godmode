@@ -22,7 +22,6 @@ allowed-tools:
 
 Audit all godmode skills, agents, and plugin files for internal consistency.
 Follow godmode:introspection exactly:
-
 1. Run `nu ($env.HOME | path join ".agents" "skills" "introspection" "helpers" "audit.nu")` — fix any broken references
    or missing index entries.
 2. Cross-reference every godmode subcommand call against CLAUDE.md CLI reference.

@@ -30,7 +30,6 @@ Arguments: $ARGUMENTS (optional issue numbers; default: all open issues).
 If non-empty, accept only whitespace-separated `N` or `#N` tokens. Reject all input if any
 token is invalid, normalize to integer issue numbers, and pass each number as a separate argument.
 Follow godmode:tackle-issues exactly:
-
 1. Fetch issues: gh issue list --state open --limit 20 --json number,title,body,labels
 2. Classify each as independent or dependent (same crate + overlapping files = dependent).
 3. Present grouping (max 5 slots) and wait for go/no-go before proceeding.
@@ -41,5 +40,5 @@ Follow godmode:tackle-issues exactly:
    `nu ($env.HOME | path join ".agents" "skills" "tackle-issues" "helpers" "integrate-branches.nu")` with each issue
    number as a separate argument. Subagents must not merge or remove worktrees.
 7. Close issues with gh issue close <N> --comment "Implemented in <sha>."
-   Never dispatch two agents to the same crate simultaneously.
-   Never use --no-verify. Cap at 5 concurrent agents.
+Never dispatch two agents to the same crate simultaneously.
+Never use --no-verify. Cap at 5 concurrent agents.

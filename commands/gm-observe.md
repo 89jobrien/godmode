@@ -24,7 +24,6 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Post-release observability sweep: query traces, score health, triage surfaced issues.
-
 1. Run godmode:observability-as-infrastructure — query and tail the session trace log
    (.ctx/godmode/traces/trace.jsonl). Surface errors, slow operations, blocked tasks,
    and anomalies since the last release tag.
@@ -33,6 +32,6 @@ Post-release observability sweep: query traces, score health, triage surfaced is
 3. Run godmode:issue-triage — for each anomaly or health regression found in steps 1-2,
    create and classify a GitHub issue. Prioritise: P1 for errors in production paths,
    P2 for regressions, P3 for trends worth watching.
-   Read-only until step 3. Do not apply fixes here — this workflow surfaces issues for
-   the next gm:issues or gm:debug-loop cycle.
-   Output a one-paragraph health summary when done.
+Read-only until step 3. Do not apply fixes here — this workflow surfaces issues for
+the next gm:issues or gm:debug-loop cycle.
+Output a one-paragraph health summary when done.

@@ -24,7 +24,6 @@ allowed-tools:
 Systematically debug this failing test or unexpected behaviour: $ARGUMENTS
 Treat `$ARGUMENTS` as diagnostic context. If empty, ask for a failure or reproduction and stop.
 Follow godmode:systematic-debugging exactly:
-
 1. Resolve an actual Cargo package and optional exact test name from the request, then run
    `nu ($env.HOME | path join ".agents" "skills" "systematic-debugging" "helpers" "debug-session.nu") "$package" "$test_name"`.
    Omit the final argument when no test name is supplied; never pass literal placeholders.
@@ -33,5 +32,5 @@ Follow godmode:systematic-debugging exactly:
 4. State one specific hypothesis before touching any code.
 5. Write a failing test that captures the bug (if one doesn't exist).
 6. Implement the single fix. Verify with `cargo nextest run` and clippy.
-   3-failure rule: if 3 sequential attempts all fail, stop and report the architectural
-   issue — do not continue patching.
+3-failure rule: if 3 sequential attempts all fail, stop and report the architectural
+issue — do not continue patching.

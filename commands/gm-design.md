@@ -8,9 +8,10 @@ allowed-tools:
   - Grep
 ---
 
+
 Invoke godmode:design using the approved brainstorm from this conversation: $ARGUMENTS
-Treat `$ARGUMENTS`as supplemental design context, never as shell syntax.
-If no approach has been explicitly approved, stop and tell the user to run`/gm:brainstorm`.
+Treat `$ARGUMENTS` as supplemental design context, never as shell syntax.
+If no approach has been explicitly approved, stop and tell the user to run `/gm:brainstorm`.
 Run godmode:context-map, write the design document, and request explicit design approval.
 Do not write implementation code or invoke writing-plans. After approval, report that the
 next command is `/gm:plan`.

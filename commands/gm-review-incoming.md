@@ -26,13 +26,12 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Respond to an incoming PR review: triage comments, apply fixes, verify, and push.
-
 1. Run godmode:receiving-review — read all review comments, categorise as
    blocking / non-blocking / nitpick, and produce a response plan.
    Present the plan and wait for user confirmation before making changes.
 2. Apply all fixes from the response plan. Address every comment category.
 3. Run godmode:verification-before-completion — all gates must be green.
 4. Run godmode:cap — commit fixes and push. Reference the PR in the commit message.
-   Address every review comment — do not silently skip nitpicks.
-   Do not mark comments resolved until the corresponding fix is committed.
-   Report a resolution summary when done: comment → fix applied / declined with reason.
+Address every review comment — do not silently skip nitpicks.
+Do not mark comments resolved until the corresponding fix is committed.
+Report a resolution summary when done: comment → fix applied / declined with reason.

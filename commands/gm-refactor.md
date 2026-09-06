@@ -27,11 +27,10 @@ allowed-tools:
 Refactor this scope without changing observable behaviour: $ARGUMENTS
 Treat `$ARGUMENTS` as descriptive scope. If empty, ask for the scope and stop.
 Follow godmode:refactoring exactly:
-
 1. Run `nu ($env.HOME | path join ".agents" "skills" "refactoring" "helpers" "refactor-gate.nu")` to confirm green baseline.
    If red, stop — fix tests first.
 2. State scope: which file(s), what pattern (extract/rename/move/decouple), and why.
 3. Make one structural change at a time. Run `cargo nextest run` after each — must stay green.
 4. Run `nu ($env.HOME | path join ".agents" "skills" "refactoring" "helpers" "refactor-gate.nu") --after` when done.
 5. Run godmode:code-review on your own diff before committing.
-   Do not combine rename + extract in one step. Do not change behaviour.
+Do not combine rename + extract in one step. Do not change behaviour.

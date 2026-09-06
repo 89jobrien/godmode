@@ -27,7 +27,6 @@ allowed-tools:
 
 Run the full feature lifecycle for this idea: $ARGUMENTS
 Treat `$ARGUMENTS` as descriptive text. If empty, ask for the feature idea and stop.
-
 1. Run godmode:brainstorm — explore context, ask clarifying questions one at a time,
    propose 2-3 named approaches. Wait for explicit user approval before continuing.
 2. Run godmode:design — produce typed API sketch, data flow, and component ownership.
@@ -38,5 +37,5 @@ Treat `$ARGUMENTS` as descriptive text. If empty, ask for the feature idea and s
 5. Run godmode:task-driven-development — execute the plan task by task.
 6. Run godmode:verification-before-completion — all gates green before shipping.
 7. Run godmode:cap — commit and push.
-   Do NOT write any code until the user has approved the design from step 1.
-   Pause for user confirmation before step 4. Report the plan file path after step 3.
+Do NOT write any code until the user has approved the design from step 1.
+Pause for user confirmation before step 4. Report the plan file path after step 3.

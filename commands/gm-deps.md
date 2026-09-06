@@ -26,12 +26,11 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Audit and update workspace dependencies.
-
 1. Run godmode:dep-audit — identify outdated, yanked, or vulnerable dependencies.
    Present findings grouped by severity: Critical (yanked/vuln) → Outdated → Minor.
    Wait for user confirmation on which deps to update.
 2. Run godmode:dep-bump — apply approved updates. Review changelogs for breaking changes
    before each bump. Run `cargo nextest run` after each bump to catch regressions.
 3. Run godmode:cap — commit and push with message: chore(deps): bump <names>.
-   Never bump a dependency without reviewing the changelog first.
-   Abort if any test fails after a bump — report which dep caused the failure.
+Never bump a dependency without reviewing the changelog first.
+Abort if any test fails after a bump — report which dep caused the failure.

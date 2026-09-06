@@ -24,7 +24,6 @@ allowed-tools:
 Systematically debug this failure, verify the fix, and commit: $ARGUMENTS
 Treat `$ARGUMENTS` as diagnostic context, never as shell syntax. If empty, ask for the
 failure output or reproduction and stop.
-
 1. Run godmode:systematic-debugging — read the full error, check recent changes,
    state one hypothesis before touching code, apply the minimal fix.
    3-attempt rule: if 3 sequential fixes all fail, write BLOCKED.md and stop.
@@ -32,5 +31,5 @@ failure output or reproduction and stop.
    cause was addressed, not just the symptom.
 3. Run godmode:verification-before-completion — all gates green before committing.
 4. Run godmode:cap — commit with message describing the root cause and fix.
-   Do not skip doublecheck even if systematic-debugging feels thorough — it catches
-   fixes that address the symptom but leave the root cause intact.
+Do not skip doublecheck even if systematic-debugging feels thorough — it catches
+fixes that address the symptom but leave the root cause intact.

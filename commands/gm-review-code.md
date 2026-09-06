@@ -23,7 +23,6 @@ Run a structured code review on `$ARGUMENTS`; if empty, review the current diff.
 Treat non-empty arguments as descriptive file/scope input and validate each referenced path
 before passing it as a separately quoted path argument.
 Follow godmode:code-review exactly:
-
 1. Run `nu ($env.HOME | path join ".agents" "skills" "code-review" "helpers" "run-review.nu")` (or cargo clippy +
    nextest + fmt manually).
 2. Read the full diff before commenting.

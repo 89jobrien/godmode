@@ -22,7 +22,6 @@ Write a complete implementation plan for this feature or task: $ARGUMENTS
 Treat `$ARGUMENTS` as descriptive text, never as shell syntax. If it is empty, ask for
 the feature or task name and stop.
 Follow godmode:writing-plans exactly:
-
 1. Derive a short filesystem-safe slug from the request. Do not interpolate raw
    `$ARGUMENTS` into a shell command. Run
    `nu ($env.HOME | path join ".agents" "skills" "writing-plans" "helpers" "new-plan.nu") $slug`.

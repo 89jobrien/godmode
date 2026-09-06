@@ -121,7 +121,7 @@ pub fn check_rendered_commands(commands: &[RenderedCommand], output_dir: &Path) 
         let path = output_dir.join(&command.file_name);
         let actual = std::fs::read_to_string(&path)
             .with_context(|| format!("missing generated command {}", path.display()))?;
-        if normalized_markdown(&actual) != normalized_markdown(&command.content) {
+        if actual != command.content {
             bail!("stale generated command {}", path.display());
         }
     }
@@ -139,27 +139,6 @@ pub fn check_rendered_commands(commands: &[RenderedCommand], output_dir: &Path) 
         }
     }
     Ok(())
-}
-
-fn normalized_markdown(content: &str) -> String {
-    let mut normalized = String::new();
-    let mut in_fence = false;
-    for line in content.lines() {
-        if line.trim_start().starts_with("```") {
-            in_fence = !in_fence;
-            normalized.push_str(line.trim_end());
-            normalized.push('\n');
-        } else if in_fence {
-            normalized.push_str(line);
-            normalized.push('\n');
-        } else {
-            for token in line.split_whitespace() {
-                normalized.push_str(token);
-                normalized.push(' ');
-            }
-        }
-    }
-    normalized
 }
 
 fn write_atomic(path: &Path, content: &[u8]) -> Result<()> {
@@ -427,21 +406,5 @@ mod tests {
         check_rendered_commands(&rendered, temp.path()).unwrap();
         std::fs::write(temp.path().join("gm-plan.md"), "stale").unwrap();
         assert!(check_rendered_commands(&rendered, temp.path()).is_err());
-    }
-
-    #[test]
-    fn check_accepts_prose_only_formatting_drift() {
-        let temp = TempDir::new().unwrap();
-        let rendered = vec![RenderedCommand {
-            file_name: "gm-audit.md".into(),
-            content: "---\ndescription: audit\n---\n\nIntro\n1. First\n2. Second\n".into(),
-        }];
-        std::fs::write(
-            temp.path().join("gm-audit.md"),
-            "---\ndescription: audit\n---\n\nIntro\n\n1. First\n2. Second\n",
-        )
-        .unwrap();
-
-        check_rendered_commands(&rendered, temp.path()).unwrap();
     }
 }

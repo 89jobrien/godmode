@@ -6,10 +6,12 @@ allowed-tools:
   - Glob
 ---
 
+
 Invoke godmode:ingest for this optional plan path: $ARGUMENTS
-Treat `$ARGUMENTS`as a literal file path, never as shell syntax.
-If it is empty, select the most recently modified Markdown file under`.ctx/godmode/plans/`.
+Treat `$ARGUMENTS` as a literal file path, never as shell syntax.
+If it is empty, select the most recently modified Markdown file under
+`.ctx/godmode/plans/`.
 Follow the skill exactly: validate the plan headings, capture the graph before and after
 `godmode plan ingest`, and report the exact path, tasks added or skipped, and next runnable
-work. Never clear the graph or edit `.ctx/godmode/tasks.yaml`directly. On success, report
-that the next command is`/gm:implement`.
+work. Never clear the graph or edit `.ctx/godmode/tasks.yaml` directly. On success, report
+that the next command is `/gm:implement`.

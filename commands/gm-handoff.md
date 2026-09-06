@@ -17,7 +17,6 @@ allowed-tools:
   events prominently.
 
 Run session-end validation and write a handoff record.
-
 1. Run: godmode handoff
 2. Run `nu ($env.HOME | path join ".agents" "skills" "observability-as-infrastructure" "helpers" "trace-stats.nu")` to summarise
    skill durations, agent convergence, and decisions made this session.

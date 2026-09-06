@@ -37,20 +37,16 @@ Pass the resolved selection as a separately quoted argument, never as shell text
 Make at most 3 distinct fix attempts across the loop.
 
 ### Gate 1: clippy
-
 Run clippy with the resolved workspace or package selection and `--all-targets -- -D warnings`.
 For each warning/error:
-
 - Identify the exact file and line
 - Apply the minimal fix (do not refactor surrounding code)
 - Re-run clippy immediately after each fix
 - Do not move to gate 2 until clippy is clean
 
 ### Gate 2: tests
-
 Run nextest with the resolved workspace or package selection.
 For each failure:
-
 - Read the full failure output — do NOT dismiss as flakiness
 - Check environment variables, recent changes, and actual error messages
 - Identify root cause before proposing any fix
@@ -58,7 +54,6 @@ For each failure:
 - Do not move to gate 3 until nextest is clean
 
 ### Gate 3: fmt
-
 Run: cargo fmt --all --check
 If it fails: run `cargo fmt --all` to fix, then re-check.
 

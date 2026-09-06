@@ -26,7 +26,6 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Review, maintain, and sync all project documentation in one pass.
-
 1. Run godmode:doc-review — structured review of existing docs for accuracy,
    completeness, clarity, and navigability. Produce a PASS/FAIL verdict with
    Blocking / Suggestion / Nitpick findings.
@@ -36,5 +35,5 @@ Review, maintain, and sync all project documentation in one pass.
 3. Run godmode:doc-sync — verify all file paths, CLI flags, crate names, and
    cross-doc consistency. Confirm no drift remains after doc-maintainer fixes.
 4. Run godmode:cap — commit all documentation changes.
-   Fix Blocking findings from step 1 before proceeding to step 2.
-   Do not rewrite documents wholesale — use targeted edits only.
+Fix Blocking findings from step 1 before proceeding to step 2.
+Do not rewrite documents wholesale — use targeted edits only.

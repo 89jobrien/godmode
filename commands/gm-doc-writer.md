@@ -27,7 +27,6 @@ allowed-tools:
 
 Write new documentation grounded in actual code.
 Follow godmode:doc-writer exactly:
-
 1. Read all relevant source files before writing — Cargo.toml, entry points, public API,
    CLI --help output, git log. Never invent features or behaviour.
 2. Identify the doc type: README, CLAUDE.md, architecture doc, API reference, or skill doc.
@@ -36,4 +35,4 @@ Follow godmode:doc-writer exactly:
 4. Cross-check before finishing: every flag exists in --help, every path exists,
    every crate name matches Cargo.toml. Resolve all [UNVERIFIED] markers.
 5. Hand off to godmode:doc-review when done.
-   Output the doc file path when complete.
+Output the doc file path when complete.

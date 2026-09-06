@@ -29,7 +29,9 @@ Create a fresh branch from origin/main containing only the intended changes.
 
 Arguments: $ARGUMENTS (branch name suffix or description, e.g. "fix/my-fix")
 Require exactly one non-empty branch name. Derive a branch name containing only
-ASCII letters, digits, `.`, `_`, `/`, and `-`; never interpolate raw `$ARGUMENTS`into a shell command. Validate the derived name with`git check-ref-format --branch "$branch_name"`.
+ASCII letters, digits, `.`, `_`, `/`, and `-`; never interpolate raw `$ARGUMENTS`
+into a shell command. Validate the derived name with
+`git check-ref-format --branch "$branch_name"`.
 
 1. Run `git branch --show-current` — note the current branch.
 2. Run `git stash` to save any uncommitted changes.

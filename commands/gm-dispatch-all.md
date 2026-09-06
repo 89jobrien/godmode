@@ -63,7 +63,6 @@ git worktree add ($repo_root | path join ".worktrees" "slot-N") -b "issue/slot-N
 ## Step 4: Dispatch agents
 
 Spawn one `godmode:gm-crate` per slot (background). Each agent prompt must include:
-
 - Worktree absolute path
 - Branch name (verify with git branch --show-current before every commit)
 - Full issue body for each issue in the slot
@@ -76,7 +75,6 @@ Spawn one `godmode:gm-crate` per slot (background). Each agent prompt must inclu
 ## Step 5: Integrate results
 
 After each agent completes:
-
 1. Verify commits exist with
    `git -C ($repo_root | path join ".worktrees" "slot-N") log --oneline -3`.
    If empty → escalate to user, skip this slot.

@@ -26,7 +26,6 @@ allowed-tools:
 Explore and converge on a design for this topic before implementation begins: $ARGUMENTS
 Treat `$ARGUMENTS` as descriptive text. If empty, ask for the topic and stop.
 Follow godmode:brainstorm exactly:
-
 1. Read the relevant CLAUDE.md, Cargo.toml, and any analogous existing code first.
 2. Ask one clarifying question at a time until scope and constraints are clear.
 3. Propose 2-3 named approaches — each with a 2-3 sentence description and the key trade-off.
@@ -34,5 +33,5 @@ Follow godmode:brainstorm exactly:
 5. Once the user approves an approach, summarise: approved approach name, goal statement,
    explicit constraints, and out-of-scope items.
 6. Stop and report that the next command is `/gm:design`. Do not invoke godmode:design here.
-   Do NOT write any code, scaffold any files, or invoke any implementation skill until
-   the user has explicitly approved a design.
+Do NOT write any code, scaffold any files, or invoke any implementation skill until
+the user has explicitly approved a design.

@@ -26,7 +26,6 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Identify recurring agent behaviour patterns and codify improvements into skills or agents.
-
 1. Run godmode:self-reflect — review recent sessions for friction, repeated corrections,
    and process gaps.
 2. Run godmode:pattern-learner — extract recurring patterns from session traces and
@@ -37,5 +36,5 @@ Identify recurring agent behaviour patterns and codify improvements into skills 
 4. Run godmode:agents-skill-save — write approved changes to the relevant skill or agent
    file. Validate frontmatter after each write.
 5. Commit: feat(godmode): improve <skill/agent name> based on session patterns.
-   Every improvement must be grounded in observed behaviour — not hypothetical issues.
-   Do not modify a skill or agent file without showing the proposed diff and getting approval.
+Every improvement must be grounded in observed behaviour — not hypothetical issues.
+Do not modify a skill or agent file without showing the proposed diff and getting approval.

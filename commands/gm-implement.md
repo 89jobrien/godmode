@@ -26,8 +26,9 @@ allowed-tools:
 - Scratch files go in `.ctx/godmode/_WORKING_DIR/`.
 
 Implement the ingested godmode task graph: $ARGUMENTS
-Treat `$ARGUMENTS`as an optional task focus, never as shell syntax.
+Treat `$ARGUMENTS` as an optional task focus, never as shell syntax.
 Invoke godmode:task-management to inspect the graph, then
 godmode:task-driven-development to execute each runnable task in dependency order.
-If the graph is absent or contains no pending work, stop and tell the user to run`/gm:ingest` first. Preserve strict failing-test, minimal-implementation, refactor, and
+If the graph is absent or contains no pending work, stop and tell the user to run
+`/gm:ingest` first. Preserve strict failing-test, minimal-implementation, refactor, and
 verification phases. Never skip blocked dependencies or the three-attempt rule.
