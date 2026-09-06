@@ -42,10 +42,8 @@ fn command_projections_match_all_canonical_sources() {
         assert!(claude.content.contains("allowed-tools:"));
         assert!(opencode.content.contains("subtask: false"));
         assert!(!opencode.content.contains("/gm:"));
-        let tracked = std::fs::read_to_string(root.join("commands").join(&claude.file_name))
-            .unwrap_or_else(|error| panic!("missing {}: {error}", claude.file_name));
-        assert_eq!(tracked, claude.content, "stale {}", claude.file_name);
     }
+    command::check_rendered_commands(&claude, &root.join("commands")).unwrap();
 
     let gitignore = std::fs::read_to_string(root.join(".gitignore")).unwrap();
     assert!(!gitignore.lines().any(|line| line == "commands/gm-*.md"));
