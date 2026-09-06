@@ -39,11 +39,6 @@ impl FakeBinBuilder {
         self
     }
 
-    pub fn stderr(mut self, s: &str) -> Self {
-        self.stderr = s.to_string();
-        self
-    }
-
     pub fn exit_code(mut self, code: i32) -> Self {
         self.exit_code = code;
         self
@@ -101,9 +96,9 @@ impl FakeBin {
         self.dir_path.to_str().expect("utf8 path")
     }
 
-    /// Convenience: build a PATH string with this dir prepended.
+    /// Builds a PATH value with this fake binary directory prepended.
     pub fn path_with(&self) -> String {
         let existing = std::env::var("PATH").unwrap_or_default();
-        format!("{}:{}", self.dir(), existing)
+        format!("{}:{existing}", self.dir())
     }
 }

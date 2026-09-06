@@ -1,6 +1,6 @@
 //! FixtureLoader — load expected outputs from tests/conformance/fixtures/.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde_json::Value;
 use thiserror::Error;
@@ -75,13 +75,6 @@ impl FixtureLoader {
         }
     }
 
-    /// Creates a loader that reads fixtures from a specific directory.
-    pub fn with_dir(dir: impl Into<PathBuf>) -> Self {
-        Self {
-            fixtures_dir: dir.into(),
-        }
-    }
-
     /// Load a fixture by name (filename stem, no extension).
     pub fn load(&self, name: &str) -> FixtureResult<TestFixture> {
         let path = self.fixtures_dir.join(format!("{}.json", name));
@@ -122,13 +115,4 @@ impl Default for FixtureLoader {
     fn default() -> Self {
         Self::new()
     }
-}
-
-/// Convenience: resolve fixture dir from a repo root path.
-pub fn fixture_dir(repo_root: &Path) -> PathBuf {
-    repo_root
-        .join("tests")
-        .join("conformance")
-        .join("fixtures")
-        .join("expected")
 }

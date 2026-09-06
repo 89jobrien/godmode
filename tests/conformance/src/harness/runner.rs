@@ -99,37 +99,9 @@ impl TestRunner {
         }
     }
 
-    /// Registers one concrete conformance test.
-    pub fn add_test<T: ConformanceTest + 'static>(&mut self, test: T) {
-        self.tests.push(Box::new(test));
-    }
-
-    /// Registers an iterator of concrete conformance tests.
-    pub fn add_tests<I, T>(&mut self, tests: I)
-    where
-        I: IntoIterator<Item = T>,
-        T: ConformanceTest + 'static,
-    {
-        for test in tests {
-            self.tests.push(Box::new(test));
-        }
-    }
-
     /// Add pre-boxed tests (from `all()` collectors that return `Vec<Box<dyn ConformanceTest>>`).
     pub fn add_boxed(&mut self, tests: Vec<Box<dyn ConformanceTest>>) {
         self.tests.extend(tests);
-    }
-
-    /// Restricts execution to tests associated with the named crate.
-    pub fn filter_crate(mut self, crate_name: &str) -> Self {
-        self.crate_filter = Some(crate_name.to_string());
-        self
-    }
-
-    /// Restricts execution to tests in the specified category.
-    pub fn filter_category(mut self, category: TestCategory) -> Self {
-        self.category_filter = Some(category);
-        self
     }
 
     /// Restricts execution to tests whose names contain `pattern`.
@@ -142,19 +114,6 @@ impl TestRunner {
     pub fn parallel(mut self, enabled: bool) -> Self {
         self.parallel = enabled;
         self
-    }
-
-    /// Returns the total number of registered tests before filtering.
-    pub fn test_count(&self) -> usize {
-        self.tests.len()
-    }
-
-    /// Returns the number of registered tests that match all filters.
-    pub fn filtered_count(&self) -> usize {
-        self.tests
-            .iter()
-            .filter(|t| self.passes_filters(t.as_ref()))
-            .count()
     }
 
     fn passes_filters(&self, test: &dyn ConformanceTest) -> bool {

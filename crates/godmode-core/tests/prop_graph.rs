@@ -50,22 +50,6 @@ fn arb_flat_graph() -> impl Strategy<Value = TaskGraph> {
     )
 }
 
-/// Build a strictly sequential chain of N pending tasks: t1 → t2 → … → tN.
-#[allow(dead_code)]
-fn arb_chain(max_len: usize) -> impl Strategy<Value = TaskGraph> {
-    (1..=max_len).prop_map(|n| {
-        let mut g = TaskGraph::default();
-        for i in 1..=n {
-            let mut t = Task::new(format!("t{i}"), format!("Task {i}"));
-            if i > 1 {
-                t.depends_on = vec![format!("t{}", i - 1)];
-            }
-            g.tasks.push(t);
-        }
-        g
-    })
-}
-
 /// Build a DAG by adding tasks sequentially, each depending on a random subset
 /// of the tasks already in the graph. Always acyclic by construction.
 fn arb_dag(max_tasks: usize) -> impl Strategy<Value = TaskGraph> {
