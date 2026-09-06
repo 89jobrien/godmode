@@ -50,8 +50,8 @@ referenced file exists. Use Glob to check. Report any missing targets as Blockin
 
 ### 5. Skill index completeness
 
-Read `skills/using-godmode/references/skill-index.md`. Every skill directory with a `SKILL.md`
-must have an entry. Flag any missing entries.
+Read `skills/using-godmode/references/skill-index.json`. Every skill directory with a `SKILL.md`
+must have an entry, and every index entry must resolve to a skill directory. Flag mismatches.
 
 ### 6. Output
 

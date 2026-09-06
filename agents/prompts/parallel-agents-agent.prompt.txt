@@ -53,7 +53,7 @@ After all agents report `status: done`:
 3. Merge each branch sequentially with `--no-ff` — never octopus-merge.
 4. Resolve any conflicts; fix in orchestrator session, do not spawn another agent layer.
 5. Update godmode task graph: `godmode task done <id> --commit <sha>` per completed task.
-6. Archive wave state: `godmode wave done`
+6. Mark each completed slot: `godmode wave done <agent> --commits <sha>`.
 
 ## Guardrails
 

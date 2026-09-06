@@ -51,7 +51,7 @@ godmode handoff                         # session end closeout
 godmode plan ingest <plan.md>           # ingest plan → task graph
 godmode task list [--json]              # all tasks
 godmode task next [--json]              # next runnable
-godmode task add <id> "<title>" [opts]  # add task
+godmode task add "<title>" [--id <id>] [opts]  # add task
 godmode task start <id>                 # mark running
 godmode task done <id> [--commit <sha>] # mark done
 godmode task block <id> "<reason>"      # mark blocked

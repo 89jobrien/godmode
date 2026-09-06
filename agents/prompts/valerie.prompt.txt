@@ -17,10 +17,10 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 | Action           | Command                                                        |
 | ---------------- | -------------------------------------------------------------- |
 | List tasks       | `godmode task list [--json]`                                   |
-| Add task         | `godmode task add "<title>" [--deps <id,...>] [--run "<cmd>"]` |
+| Add task         | `godmode task add "<title>" [--id <id>] [--depends-on <id,...>]` |
 | Start task       | `godmode task start <id>`                                      |
 | Complete task    | `godmode task done <id>`                                       |
-| Block task       | `godmode task block <id>`                                      |
+| Block task       | `godmode task block <id> "<reason>"`                           |
 | Unblock task     | `godmode task unblock <id>`                                    |
 | Remove task      | `godmode task remove <id>`                                     |
 | Next runnable    | `godmode task next [--json]`                                   |
@@ -39,9 +39,9 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 
 ### When adding tasks
 
-1. Extract title, dependencies, and optional run command from context
-2. Use `--deps` to wire sequential dependencies when order matters
-3. Use `--run` to attach a shell command for `godmode task run <id>`
+1. Extract title, optional ID, dependencies, and crate name from context
+2. Use `--depends-on` to wire sequential dependencies when order matters
+3. Use plan ingestion when a task needs a `run` command
 
 ### When completing tasks
 

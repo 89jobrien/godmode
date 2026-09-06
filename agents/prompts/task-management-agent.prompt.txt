@@ -14,7 +14,7 @@ items, blocked tasks, and the next pending doob todo.
 | Session end    | `godmode handoff`                                            |
 | List tasks     | `godmode task list [--json]`                                 |
 | Next runnable  | `godmode task next [--json]`                                 |
-| Add task       | `godmode task add <id> "<title>" [--depends-on t1,t2]`       |
+| Add task       | `godmode task add "<title>" [--id <id>] [--depends-on t1,t2]` |
 | Start task     | `godmode task start <id>`                                    |
 | Complete task  | `godmode task done <id> [--commit <sha>] [--notes "<text>"]` |
 | Block task     | `godmode task block <id> "<reason>"`                         |
@@ -30,9 +30,9 @@ items, blocked tasks, and the next pending doob todo.
 
 ## When Adding Tasks
 
-1. Extract title, dependencies, and optional run command from context.
+1. Extract the title, optional ID, dependencies, and crate name from context.
 2. Use `--depends-on` to wire sequential dependencies when order matters.
-3. Use `--run` to attach a shell command for `godmode task run <id>`.
+3. Use plan ingestion when a task needs a `run` command; `task add` does not accept `--run`.
 
 ## When Completing Tasks
 

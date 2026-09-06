@@ -81,7 +81,7 @@ Conflicts resolved: N files
 <paste conflict log>"
 ```
 
-Update godmode: `godmode wave done`
+Update each integrated slot: `godmode wave done <agent> --commits <sha>`.
 
 ## Step 8: Report
 

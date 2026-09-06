@@ -13,7 +13,7 @@ godmode pipeline list
 Inspect the target pipeline to understand its steps, loops, and optional flags:
 
 ```bash
-godmode pipeline list --name <pipeline>
+godmode pipeline show <pipeline>
 ```
 
 Read the raw YAML for full detail: `cat pipelines/<name>.yaml`
@@ -70,8 +70,8 @@ When the current step has `loop: per-task`, the skill repeats for each task in t
 Drive the loop as follows:
 
 1. Check for runnable tasks: `godmode task next`
-2. If a task is returned — invoke the looping skill for that task, then mark it done:
-   `godmode task done <id>`
+2. If a task is returned, start it with `godmode task start <id>`, invoke the looping skill,
+   then mark it done with `godmode task done <id>`.
 3. Repeat until `godmode task next` returns no tasks.
 4. Advance: `godmode pipeline next`
 
@@ -82,6 +82,7 @@ while true; do
   TASK=$(godmode task next --json)
   [ -z "$TASK" ] && break
   ID=$(echo "$TASK" | jq -r '.id')
+  godmode task start "$ID"
   # invoke skill for this task ...
   godmode task done "$ID"
 done

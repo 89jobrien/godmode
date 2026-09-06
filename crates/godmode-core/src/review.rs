@@ -111,7 +111,9 @@ fn agent_files(root: &Path) -> Result<Vec<PathBuf>> {
     for entry in fs::read_dir(&dir)? {
         let entry = entry?;
         let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) == Some("md") {
+        if path.extension().and_then(|e| e.to_str()) == Some("md")
+            && path.file_name().and_then(|name| name.to_str()) != Some("INDEX.md")
+        {
             out.push(path);
         }
     }
@@ -141,26 +143,31 @@ fn extract_fm_name(content: &str) -> Option<String> {
     None
 }
 
-/// Extract frontmatter field value.
-fn extract_fm_field<'a>(content: &'a str, field: &str) -> Option<&'a str> {
-    let mut in_fm = false;
-    let mut past_first = false;
-    for line in content.lines() {
-        if line == "---" {
-            if !past_first {
-                in_fm = true;
-                past_first = true;
-            } else {
-                break;
-            }
-        } else if in_fm {
-            let prefix = format!("{field}:");
-            if let Some(rest) = line.strip_prefix(&prefix) {
-                return Some(rest.trim());
-            }
-        }
+/// Parse an agent's YAML frontmatter.
+fn parse_frontmatter(content: &str) -> Option<serde_yaml::Mapping> {
+    let body = content.strip_prefix("---\n")?;
+    let end = body.find("\n---")?;
+    serde_yaml::from_str::<serde_yaml::Mapping>(&body[..end]).ok()
+}
+
+/// Extract a frontmatter field as normalized text.
+fn extract_fm_field(content: &str, field: &str) -> Option<String> {
+    let frontmatter = parse_frontmatter(content)?;
+    let value = frontmatter.get(serde_yaml::Value::String(field.to_string()))?;
+    match value {
+        serde_yaml::Value::String(value) => Some(value.clone()),
+        serde_yaml::Value::Sequence(values) => Some(
+            values
+                .iter()
+                .filter_map(serde_yaml::Value::as_str)
+                .collect::<Vec<_>>()
+                .join(", "),
+        ),
+        serde_yaml::Value::Null => Some(String::new()),
+        value => serde_yaml::to_string(value)
+            .ok()
+            .map(|value| value.trim().to_string()),
     }
-    None
 }
 
 // ---------------------------------------------------------------------------
@@ -496,7 +503,7 @@ fn check_agent_frontmatter(root: &Path, path: &Path) -> Result<ReviewReport> {
 
     for field in ["name", "model", "tools"] {
         r.checks += 1;
-        match extract_fm_field(&content, field) {
+        match extract_fm_field(&content, field).as_deref() {
             None => {
                 r.fail(
                     &agent_name,
@@ -517,7 +524,7 @@ fn check_agent_frontmatter(root: &Path, path: &Path) -> Result<ReviewReport> {
 
     // Check: description non-empty and > 20 chars
     r.checks += 1;
-    let desc_raw = extract_fm_field(&content, "description").unwrap_or("");
+    let desc_raw = extract_fm_field(&content, "description").unwrap_or_default();
     let desc_text = desc_raw.trim();
     let effective_desc = if desc_text.is_empty() {
         agent_index::list_agents(root)
@@ -562,7 +569,7 @@ fn check_agent_tools(path: &Path) -> Result<ReviewReport> {
         .to_string();
     let content = fs::read_to_string(path)?;
 
-    let tools_val = extract_fm_field(&content, "tools").unwrap_or("");
+    let tools_val = extract_fm_field(&content, "tools").unwrap_or_default();
     r.checks += 1;
     if tools_val.trim().is_empty() || tools_val.trim() == "[]" {
         r.fail(
@@ -583,9 +590,15 @@ fn check_agent_skill_refs(root: &Path, path: &Path) -> Result<ReviewReport> {
         .unwrap_or_default()
         .to_string_lossy()
         .to_string();
+    let cfg_path = root
+        .join("agents/cfg")
+        .join(format!("{agent_name}.cfg.yaml"));
+    if !cfg_path.exists() {
+        return Ok(r);
+    }
     let content = fs::read_to_string(path)?;
 
-    let skills_val = extract_fm_field(&content, "skills").unwrap_or("");
+    let skills_val = extract_fm_field(&content, "skills").unwrap_or_default();
     if !skills_val.is_empty() {
         for skill in skills_val
             .split(',')
@@ -983,6 +996,42 @@ mod tests {
         let r = check_agents(root).unwrap();
         assert!(!r.passed);
         assert!(r.findings.iter().any(|f| f.check == "missing model"));
+    }
+
+    #[test]
+    fn check_agents_accepts_generated_yaml_frontmatter() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let agents_dir = root.join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        fs::create_dir_all(root.join("skills/using-godmode")).unwrap();
+        fs::write(
+            agents_dir.join("generated-agent.md"),
+            "---\nname: gm-generated\ndescription: >\n  Generated agent description that spans multiple lines.\nmodel: inherit\ntools:\n  - Read\n  - Grep\nskills: using-godmode\n---\n\nBody.\n",
+        )
+        .unwrap();
+        fs::write(agents_dir.join("INDEX.md"), "# Agent Index\n").unwrap();
+
+        let r = check_agents(root).unwrap();
+
+        assert!(r.passed, "findings: {:?}", r.findings);
+    }
+
+    #[test]
+    fn check_agents_allows_external_skills_for_legacy_agents() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let agents_dir = root.join("agents");
+        fs::create_dir_all(&agents_dir).unwrap();
+        fs::write(
+            agents_dir.join("legacy-agent.md"),
+            "---\nname: legacy-agent\ndescription: Legacy agent supplied outside the generated catalog.\nmodel: inherit\ntools: [Read]\nskills: externally-installed-skill\n---\n\nBody.\n",
+        )
+        .unwrap();
+
+        let r = check_agents(root).unwrap();
+
+        assert!(r.passed, "findings: {:?}", r.findings);
     }
 
     #[test]

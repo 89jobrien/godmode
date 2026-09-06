@@ -61,17 +61,18 @@ Count the tasks and confirm the count before proceeding.
 
 ### 3. Add tasks to the graph
 
-For each task, call `godmode task add` in dependency order:
+For each task that cannot be ingested from plan Markdown, call `godmode task add` in dependency
+order. The command does not accept a run field:
 
 ```bash
 # Root task (no deps)
-godmode task add "t1" "<title>" --run "<cmd>"
+godmode task add "<title>" --id t1
 
 # Dependent task
-godmode task add "t2" "<title>" --deps t1 --run "<cmd>"
+godmode task add "<title>" --id t2 --depends-on t1
 ```
 
-Omit `--deps` for root tasks. Omit `--run` if no run command was specified.
+Omit `--depends-on` for root tasks. Use plan ingestion whenever a run command is required.
 
 ### 4. Ingest plan markdown (if applicable)
 
@@ -102,5 +103,5 @@ Tell the user:
 
 - Do not write any implementation code — this agent only manages the task graph.
 - Do not add extra tasks beyond what the design doc specifies.
-- Do not use `--deps ""` — omit the flag entirely for root tasks.
+- Do not use `--depends-on ""` — omit the flag entirely for root tasks.
 - If the design doc has no `## Tasks` section, ask the user to add one before proceeding.
