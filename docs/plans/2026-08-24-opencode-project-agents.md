@@ -1,5 +1,7 @@
 # Plan: OpenCode Project Agents
 
+**Status**: done (`b8e7b43`)
+
 ## Goal
 
 Install a global OpenCode router and repo specialists backed by safe personal-mcp project tools.

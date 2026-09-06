@@ -1,5 +1,7 @@
 # Plan: Consolidate all state paths under `.ctx/godmode/`
 
+**Status**: active — residual legacy paths still require verification
+
 ## Goal
 
 Move all godmode-owned state files from scattered `.ctx/` locations into a

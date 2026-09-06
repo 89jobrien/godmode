@@ -1316,4 +1316,27 @@ mod tests {
         }
         assert!(docs.contains("parallel_with"));
     }
+
+    #[test]
+    fn plan_statuses_match_implementation_evidence() {
+        let root = repo_root().join("docs/plans");
+        for done in [
+            "2026-06-02-skill-pipelines.md",
+            "2026-06-04-deterministic-pipelines.md",
+            "2026-08-24-opencode-project-agents.md",
+        ] {
+            let plan = std::fs::read_to_string(root.join(done)).unwrap();
+            assert!(plan.contains("**Status**: done"), "stale status: {done}");
+        }
+        for active in [
+            "2026-06-04-ctx-godmode-consolidation.md",
+            "2026-08-26-daily-orchestration-health-remediation.md",
+        ] {
+            let plan = std::fs::read_to_string(root.join(active)).unwrap();
+            assert!(
+                plan.contains("**Status**: active"),
+                "missing status: {active}"
+            );
+        }
+    }
 }

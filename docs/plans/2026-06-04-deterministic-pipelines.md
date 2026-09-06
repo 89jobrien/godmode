@@ -1,6 +1,6 @@
 # Deterministic Pipeline Integration
 
-**Status**: approved
+**Status**: done (`75ba035`)
 **Date**: 2026-06-04
 **Depends on**: 2026-06-02-skill-pipelines.md (implemented)
 

@@ -1,6 +1,6 @@
 # Skill Pipelines — Chain Edges and Named Workflows
 
-**Status**: approved
+**Status**: done (`bbedd78`)
 **Date**: 2026-06-02
 
 ## Problem
