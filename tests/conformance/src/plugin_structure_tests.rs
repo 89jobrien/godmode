@@ -1198,4 +1198,15 @@ mod tests {
             "governance helper output must be part of plugin conformance"
         );
     }
+
+    #[test]
+    fn ci_workflow_invokes_authoritative_xtask_gate() {
+        let workflow =
+            std::fs::read_to_string(repo_root().join(".github/workflows/conformance.yml"))
+                .expect("conformance workflow must exist");
+
+        assert!(workflow.contains("cargo xtask ci"));
+        assert_eq!(workflow.matches("cargo nextest run").count(), 0);
+        assert_eq!(workflow.matches("cargo clippy").count(), 0);
+    }
 }

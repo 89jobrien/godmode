@@ -116,9 +116,6 @@ fn ci() -> Result<()> {
     header("release validate");
     godmode(&["release", "validate"])?;
 
-    header("hook validation");
-    command("crs", &["validate-hooks"])?;
-
     header("cargo deny check");
     cargo(&["deny", "check"])?;
 

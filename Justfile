@@ -21,9 +21,8 @@ test:
     cargo nextest run --workspace
 
 # Run CI gates (matches GitHub Actions)
-ci: test
-    cargo clippy --workspace -- -D warnings
-    cargo fmt --all --check
+ci:
+    cargo xtask ci
 
 # Run the check-refs crux pipeline gate (requires the sibling ../crux checkout)
 crux-check-refs:
