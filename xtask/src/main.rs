@@ -76,8 +76,16 @@ fn ci() -> Result<()> {
     header("fmt --check");
     cargo(&["fmt", "--all", "--check"])?;
 
-    header("clippy");
-    cargo(&["clippy", "--workspace", "--", "-D", "warnings"])?;
+    header("clippy --all-targets --all-features");
+    cargo(&[
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings",
+    ])?;
 
     header("nextest");
     cargo(&["nextest", "run", "--workspace"])?;
@@ -92,6 +100,27 @@ fn ci() -> Result<()> {
         "--",
         "--verbose",
     ])?;
+
+    header("Nushell plugin conformance");
+    command("nu", &["tests/conformance/plugin-structure.nu"])?;
+
+    header("skill index --check");
+    godmode(&["skill", "index", "--check"])?;
+
+    header("agent index --check");
+    godmode(&["agent", "index", "--check"])?;
+
+    header("command generate --target claude --check");
+    godmode(&["command", "generate", "--target", "claude", "--check"])?;
+
+    header("release validate");
+    godmode(&["release", "validate"])?;
+
+    header("hook validation");
+    command("crs", &["validate-hooks"])?;
+
+    header("cargo deny check");
+    cargo(&["deny", "check"])?;
 
     eprintln!("\nAll CI checks passed.");
     Ok(())
@@ -136,14 +165,24 @@ fn home_dir() -> Result<std::path::PathBuf> {
 // ── Helpers ────────────────────────────────────────────────────────
 
 fn cargo(args: &[&str]) -> Result<()> {
-    let status = Command::new("cargo")
+    command("cargo", args)
+}
+
+fn godmode(args: &[&str]) -> Result<()> {
+    let mut cargo_args = vec!["run", "-q", "-p", "godmode-cli", "--"];
+    cargo_args.extend_from_slice(args);
+    cargo(&cargo_args)
+}
+
+fn command(program: &str, args: &[&str]) -> Result<()> {
+    let status = Command::new(program)
         .args(args)
         .current_dir(project_root()?)
         .status()
-        .with_context(|| format!("failed to run cargo {}", args.join(" ")))?;
+        .with_context(|| format!("failed to run {program} {}", args.join(" ")))?;
 
     if !status.success() {
-        bail!("cargo {} failed (exit {})", args.join(" "), status);
+        bail!("{program} {} failed (exit {})", args.join(" "), status);
     }
     Ok(())
 }
