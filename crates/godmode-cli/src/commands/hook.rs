@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use godmode_core::hooks;
 use godmode_core::integrations::hook_runner;
 use serde_json::Value;
@@ -23,8 +23,10 @@ fn list_hooks(root: &Path, json: bool) -> Result<()> {
     if !hooks_path.exists() {
         anyhow::bail!("hooks/hooks.json not found at {}", hooks_path.display());
     }
-    let raw = std::fs::read_to_string(&hooks_path)?;
-    let val: Value = serde_json::from_str(&raw)?;
+    let raw = std::fs::read_to_string(&hooks_path)
+        .with_context(|| format!("reading {}", hooks_path.display()))?;
+    let val: Value =
+        serde_json::from_str(&raw).with_context(|| format!("parsing {}", hooks_path.display()))?;
     let entries = hook_runner::list_hooks_from_json(&val);
     if json {
         let arr: Vec<serde_json::Value> = entries
@@ -50,7 +52,7 @@ fn list_hooks(root: &Path, json: bool) -> Result<()> {
 
 /// Render recent hook log entries from `.ctx/godmode/traces/hooks.log`.
 fn log_hooks(root: &Path, json: bool, tail: usize) -> Result<()> {
-    let lines = hook_runner::read_hook_log(root, tail).unwrap_or_default();
+    let lines = hook_runner::read_hook_log(root, tail).context("reading hook log")?;
     if lines.is_empty() {
         if json {
             println!("[]");
@@ -88,6 +90,7 @@ fn log_hooks(root: &Path, json: bool, tail: usize) -> Result<()> {
 
 /// Run a hook script with synthetic stdin and record its output.
 fn test_hook(root: &Path, json: bool, script: &str) -> Result<()> {
+    use std::io::Write as _;
     let script_lower = script.to_lowercase();
     let synthetic_stdin = if script_lower.contains("stop") {
         r#"{"stop_hook_active":false,"transcript_turns":[]}"#
@@ -96,68 +99,81 @@ fn test_hook(root: &Path, json: bool, script: &str) -> Result<()> {
     } else {
         r#"{"tool_input":{"command":"echo test"},"tool_response":{"exit_code":0}}"#
     };
-
-    let tmp = std::env::temp_dir().join("godmode_hook_test_stdin.json");
-    std::fs::write(&tmp, synthetic_stdin)?;
-
-    let output = std::process::Command::new("sh")
-        .arg("-c")
-        .arg(format!("{} < {}", script, tmp.display()))
-        .output();
-
-    match output {
-        Ok(out) => {
-            let exit_code = out.status.code().unwrap_or(-1);
-            let stderr_text = String::from_utf8_lossy(&out.stderr).to_string();
-            let stdout_text = String::from_utf8_lossy(&out.stdout).to_string();
-            let _ = hook_runner::append_hook_event(root, script, "test", exit_code, &stderr_text);
-            if json {
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&serde_json::json!({
-                        "script": script,
-                        "exit_code": exit_code,
-                        "stdout": stdout_text,
-                        "stderr": stderr_text,
-                    }))?
-                );
-            } else {
-                println!("exit: {}", exit_code);
-                if !stdout_text.is_empty() {
-                    println!("stdout:\n{}", stdout_text);
-                }
-                if !stderr_text.is_empty() {
-                    println!("stderr:\n{}", stderr_text);
-                }
-            }
+    let mut child = std::process::Command::new("sh")
+        .arg(script)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .with_context(|| format!("failed to spawn hook script {:?}", script))?;
+    child
+        .stdin
+        .take()
+        .context("hook script stdin unavailable")?
+        .write_all(synthetic_stdin.as_bytes())?;
+    let out = child
+        .wait_with_output()
+        .context("waiting for hook script")?;
+    let exit_code = out.status.code().unwrap_or(-1);
+    let stderr_text = String::from_utf8_lossy(&out.stderr).to_string();
+    let stdout_text = String::from_utf8_lossy(&out.stdout).to_string();
+    let _ = hook_runner::append_hook_event(root, script, "test", exit_code, &stderr_text);
+    if json {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(
+                &serde_json::json!({"script": script, "exit_code": exit_code, "stdout": stdout_text, "stderr": stderr_text})
+            )?
+        );
+    } else {
+        println!("exit: {}", exit_code);
+        if !stdout_text.is_empty() {
+            println!("stdout:\n{}", stdout_text);
         }
-        Err(e) => {
-            anyhow::bail!("failed to run script '{}': {}", script, e);
+        if !stderr_text.is_empty() {
+            eprintln!("stderr:\n{}", stderr_text);
         }
+    }
+    if !out.status.success() {
+        anyhow::bail!(
+            "hook script {:?} exited with {}: {}",
+            script,
+            exit_code,
+            stderr_text.trim()
+        );
     }
     Ok(())
 }
 
 /// Execute shell migrations in `hooks/migrations/`.
 fn migrate_hooks(root: &Path, json: bool) -> Result<()> {
-    let hooks_dir = root.join("hooks");
-    let migrations_dir = hooks_dir.join("migrations");
+    let migrations_dir = root.join("hooks/migrations");
     if !migrations_dir.exists() {
         anyhow::bail!(
             "hooks/migrations/ not found at {}",
             migrations_dir.display()
         );
     }
+    let mut paths = std::fs::read_dir(&migrations_dir)?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    paths.retain(|path| path.extension().and_then(|value| value.to_str()) == Some("sh"));
+    paths.sort();
     let mut migrated = 0usize;
-    for entry in std::fs::read_dir(&migrations_dir)? {
-        let path = entry?.path();
-        if path.extension().and_then(|s| s.to_str()) != Some("sh") {
-            continue;
+    for path in paths {
+        let output = std::process::Command::new("sh")
+            .arg(&path)
+            .output()
+            .with_context(|| format!("spawning migration {}", path.display()))?;
+        if !output.status.success() {
+            anyhow::bail!(
+                "migration {} exited with {}: {}",
+                path.display(),
+                output.status.code().unwrap_or(-1),
+                String::from_utf8_lossy(&output.stderr).trim()
+            );
         }
-        let output = std::process::Command::new("sh").arg(&path).output()?;
-        if output.status.success() {
-            migrated += 1;
-        }
+        migrated += 1;
     }
     if json {
         println!("{}", serde_json::json!({"ok": true, "migrated": migrated}));
@@ -170,7 +186,11 @@ fn migrate_hooks(root: &Path, json: bool) -> Result<()> {
 /// Run a built-in Rust hook by name.
 fn run_builtin_hook(root: &Path, json: bool, name: &str) -> Result<()> {
     let stdin = std::io::read_to_string(std::io::stdin()).unwrap_or_default();
-    let input: Value = serde_json::from_str(&stdin).unwrap_or_default();
+    let input: Value = if stdin.trim().is_empty() {
+        Value::Object(serde_json::Map::new())
+    } else {
+        serde_json::from_str(&stdin).context("parsing hook stdin JSON")?
+    };
     let tool_input = input
         .get("tool_input")
         .cloned()
@@ -218,10 +238,12 @@ fn run_builtin_hook(root: &Path, json: bool, name: &str) -> Result<()> {
                     ref task_id,
                     ref reason,
                 } = result
-                    && let Ok(mut g) = godmode_core::graph::load(root)
-                    && godmode_core::graph::block(&mut g, task_id, reason).is_ok()
                 {
-                    let _ = godmode_core::graph::save(root, &g);
+                    let mut session = godmode_core::session::Session::open(root)
+                        .context("opening session for auto-block")?;
+                    session
+                        .block_task(task_id, reason)
+                        .with_context(|| format!("auto-blocking task {}", task_id))?;
                 }
             }
         }
