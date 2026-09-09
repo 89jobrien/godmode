@@ -42,6 +42,7 @@ pub mod verify;
 pub mod wave;
 pub mod workflow;
 pub mod worktree;
+pub mod write_mode;
 
 #[cfg(feature = "testing")]
 pub mod testing;

@@ -87,6 +87,21 @@ impl TestContext {
         }
     }
 
+    /// Asserts that two floating-point values differ by at most `epsilon`.
+    #[deprecated(note = "use Comparator::compare_f64 directly")]
+    pub fn assert_f64_eq(&mut self, expected: f64, actual: f64, epsilon: f64) -> bool {
+        let result = self.comparator.compare_f64(expected, actual, epsilon);
+        if result.is_fail() {
+            self.has_failures = true;
+            if let super::comparison::CompareResult::Different(ref diff) = result {
+                self.logger.error(&format!("FAIL: {}", diff.describe()));
+            }
+            false
+        } else {
+            true
+        }
+    }
+
     /// Records an explicit test failure with the supplied reason.
     pub fn fail(&mut self, reason: &str) {
         self.has_failures = true;

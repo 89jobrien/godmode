@@ -10,10 +10,15 @@ pub fn run(root: &Path, file_path: &str) -> String {
         return String::new();
     }
 
-    let working_dir = root.join(".ctx/godmode/_WORKING_DIR");
-    if !working_dir.exists() {
+    let working_dir = [
+        root.join(".ctx/godmode/_WORKING_DIR"),
+        root.join(".ctx/_WORKING_DIR"),
+    ]
+    .into_iter()
+    .find(|path| path.exists());
+    let Some(working_dir) = working_dir else {
         return "[godmode:context-map] Editing src/ without a context map — run /godmode:context-map first".to_string();
-    }
+    };
 
     // Check for any context-map file modified in the last 4 hours
     let four_hours_ago = SystemTime::now()
@@ -41,5 +46,27 @@ pub fn run(root: &Path, file_path: &str) -> String {
         String::new()
     } else {
         "[godmode:context-map] Editing src/ without a recent context map — run /godmode:context-map first".to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accepts_recent_legacy_context_map_scratch_file() {
+        let root = tempfile::tempdir().unwrap();
+        let legacy = root.path().join(".ctx/_WORKING_DIR");
+        std::fs::create_dir_all(&legacy).unwrap();
+        std::fs::write(legacy.join("context-map-test.md"), "map").unwrap();
+        assert_eq!(run(root.path(), "/repo/src/lib.rs"), "");
+    }
+    #[test]
+    fn scratch_read_error_degrades_to_warning() {
+        let root = tempfile::tempdir().unwrap();
+        let scratch = root.path().join(".ctx/godmode/_WORKING_DIR");
+        std::fs::create_dir_all(scratch.parent().unwrap()).unwrap();
+        std::fs::write(scratch, "not a directory").unwrap();
+        assert!(run(root.path(), "/repo/src/lib.rs").contains("without a recent context map"));
     }
 }

@@ -103,6 +103,43 @@ fn check_task_state(root: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// Update the legacy Claude plugin manifest with an explicit version.
+///
+/// This is intentionally separate from [`run`] so release-semver parity is not
+/// silently replaced by a commit hash.
+///
+/// # Errors
+///
+/// Returns an error when the manifest cannot be read, parsed, or written.
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -> anyhow::Result<()> {
+/// godmode_core::hooks::pre_commit::stamp_plugin_manifest(
+///     std::path::Path::new("."), "0.7.0",
+/// )?;
+/// # Ok(()) }
+/// ```
+pub fn stamp_plugin_manifest(root: &Path, version: &str) -> Result<()> {
+    let path = root.join(".claude-plugin/plugin.json");
+    if !path.exists() {
+        return Ok(());
+    }
+    let raw = std::fs::read_to_string(&path)?;
+    let mut value: serde_json::Value = serde_json::from_str(&raw)?;
+    value["version"] = serde_json::Value::String(version.to_owned());
+    std::fs::write(
+        path,
+        format!(
+            "{}
+",
+            serde_json::to_string_pretty(&value)?
+        ),
+    )?;
+    Ok(())
+}
+
 /// Format the pre-commit result for output.
 pub fn format_result(result: &PreCommitResult) -> (String, i32) {
     match result {
@@ -177,5 +214,16 @@ mod tests {
         let (msg, code) = format_result(&PreCommitResult::Block("fmt failed".into()));
         assert_eq!(code, 1);
         assert!(msg.contains("fmt failed"));
+    }
+    #[test]
+    fn explicit_legacy_plugin_stamp_updates_manifest_without_staging() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join(".claude-plugin/plugin.json");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, serde_json::json!({"version": "old"}).to_string()).unwrap();
+        stamp_plugin_manifest(dir.path(), "abc123").unwrap();
+        let value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        assert_eq!(value["version"], "abc123");
     }
 }

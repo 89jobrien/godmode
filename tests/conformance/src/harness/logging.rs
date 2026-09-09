@@ -37,6 +37,12 @@ impl TestLogger {
         self.test_name = name.to_string();
     }
 
+    /// Removes the test name associated with the logger.
+    #[deprecated(note = "set the next test name directly")]
+    pub fn clear_test_name(&mut self) {
+        self.test_name.clear();
+    }
+
     /// Records an informational message at the current indentation level.
     pub fn info(&mut self, msg: &str) {
         self.entries.push(LogEntry {

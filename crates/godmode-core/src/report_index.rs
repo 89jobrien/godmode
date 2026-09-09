@@ -26,10 +26,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReportIndex {
     /// Index schema version.
+    #[serde(default)]
     pub version: u32,
     /// Date on which the index was last generated.
+    #[serde(default)]
     pub generated: String,
     /// Report categories keyed by category name.
+    #[serde(default)]
     pub categories: BTreeMap<String, ReportCategory>,
 }
 
@@ -37,10 +40,13 @@ pub struct ReportIndex {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReportCategory {
     /// Relative directory containing the category's reports.
+    #[serde(default)]
     pub path: String,
     /// Human-readable purpose of the category.
+    #[serde(default)]
     pub description: String,
     /// Top-level report files in the category.
+    #[serde(default)]
     pub files: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     /// Nested report item paths in the category.

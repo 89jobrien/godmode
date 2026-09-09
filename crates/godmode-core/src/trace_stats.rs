@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /// Aggregated duration statistics for one skill.
@@ -20,13 +20,64 @@ pub struct SkillDuration {
     pub max_ms: u64,
 }
 
+/// Latest lifecycle state observed for an agent.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum ConvergenceStatus {
+    /// The agent has started and has no terminal event.
+    Running,
+    /// The agent completed its work.
+    Complete,
+    /// The agent stopped because it was blocked.
+    Blocked,
+}
+
+impl ConvergenceStatus {
+    /// Return the stable lowercase wire representation.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Running => "running",
+            Self::Complete => "complete",
+            Self::Blocked => "blocked",
+        }
+    }
+}
+
+impl std::fmt::Display for ConvergenceStatus {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl AsRef<str> for ConvergenceStatus {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl PartialEq<str> for ConvergenceStatus {
+    fn eq(&self, other: &str) -> bool {
+        matches!(
+            (self, other),
+            (Self::Running, "running") | (Self::Complete, "complete") | (Self::Blocked, "blocked")
+        )
+    }
+}
+
+impl PartialEq<&str> for ConvergenceStatus {
+    fn eq(&self, other: &&str) -> bool {
+        self == *other
+    }
+}
+
 /// Latest observed convergence state for one agent.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AgentConvergence {
     /// Agent identifier from the trace event.
     pub agent_id: String,
     /// One of `running`, `complete`, or `blocked`.
-    pub status: String,
+    pub status: ConvergenceStatus,
 }
 
 /// Combined statistics for the observability trace.
@@ -76,6 +127,9 @@ struct TraceLog {
 
 /// Return the last `limit` structured events, optionally scoped to a session.
 pub fn tail(root: &Path, limit: usize, session: Option<&str>) -> Result<Vec<Value>> {
+    if limit == 0 {
+        return Ok(Vec::new());
+    }
     let log = load(root)?;
     let events = filtered_events(&log, session);
     let start = events.len().saturating_sub(limit);
@@ -173,11 +227,12 @@ pub fn stats(root: &Path, session: Option<&str>) -> Result<TraceStats> {
     let agents = agent_order
         .into_iter()
         .map(|agent_id| {
-            let status = agent_states.get(&agent_id).copied().unwrap_or("running");
-            AgentConvergence {
-                agent_id,
-                status: status.to_owned(),
-            }
+            let status = match agent_states.get(&agent_id).copied().unwrap_or("running") {
+                "complete" => ConvergenceStatus::Complete,
+                "blocked" => ConvergenceStatus::Blocked,
+                _ => ConvergenceStatus::Running,
+            };
+            AgentConvergence { agent_id, status }
         })
         .collect();
 
@@ -327,5 +382,43 @@ fn summarize_session(events: &[Value], session_id: &str) -> TraceSessionSummary 
             .iter()
             .filter(|event| event_name(event) == Some("decision"))
             .count(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tail_limit_zero_returns_no_events() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join(".ctx/godmode/traces/trace.jsonl");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, serde_json::json!({"event": "decision"}).to_string()).unwrap();
+        assert!(tail(root.path(), 0, None).unwrap().is_empty());
+    }
+
+    #[test]
+    fn convergence_status_is_typed_and_string_compatible() {
+        assert_eq!(ConvergenceStatus::Running, "running");
+        assert_eq!(
+            serde_json::to_string(&ConvergenceStatus::Complete).unwrap(),
+            "\"complete\""
+        );
+    }
+
+    #[test]
+    fn trace_query_errors_include_the_trace_path() {
+        let root = tempfile::tempdir().unwrap();
+        let path = root.path().join(".ctx/godmode/traces/trace.jsonl");
+        std::fs::create_dir_all(&path).unwrap();
+        for error in [
+            tail(root.path(), 1, None).unwrap_err(),
+            failures(root.path(), None).unwrap_err(),
+            stats(root.path(), None).unwrap_err(),
+            summaries(root.path(), 1, None).unwrap_err(),
+        ] {
+            assert!(error.to_string().contains("trace.jsonl"), "{error}");
+        }
     }
 }

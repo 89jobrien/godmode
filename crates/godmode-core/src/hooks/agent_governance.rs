@@ -44,6 +44,7 @@ impl GovernanceDecision {
 pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
     let decision = check_inner(root, input);
     let agent_name = detect_agent_name_for_trace(root, input);
+    let fields = json!({"agent_id": agent_name, "reason": decision.reason});
     trace_log::append(
         root,
         if decision.approved {
@@ -51,7 +52,16 @@ pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
         } else {
             "agent.denied"
         },
-        json!({"agent_id": agent_name, "reason": decision.reason}),
+        fields.clone(),
+    );
+    trace_log::append(
+        root,
+        if decision.approved {
+            "agent.start"
+        } else {
+            "agent.blocked"
+        },
+        fields,
     );
     decision
 }
@@ -222,4 +232,49 @@ fn detect_agent_name(root: &Path, description: &str, subagent_type: &str) -> Str
     }
 
     String::new()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn governance_approval_emits_new_and_legacy_trace_events() {
+        let root = tempfile::tempdir().unwrap();
+        let decision = check(root.path(), &json!({"tool_input": {}}));
+        assert!(decision.approved);
+        let trace =
+            std::fs::read_to_string(root.path().join(".ctx/godmode/traces/trace.jsonl")).unwrap();
+        assert!(trace.contains("agent.approved"));
+        assert!(trace.contains("agent.start"));
+    }
+
+    #[test]
+    fn governance_trace_write_failure_is_non_fatal() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(root.path().join(".ctx/godmode/traces/trace.jsonl")).unwrap();
+        assert!(check(root.path(), &json!({"tool_input": {}})).approved);
+    }
+    #[test]
+    fn governance_denial_emits_new_and_legacy_trace_events() {
+        let root = tempfile::tempdir().unwrap();
+        let policies = root.path().join("skills/agent-governance/policies");
+        std::fs::create_dir_all(&policies).unwrap();
+        std::fs::write(
+            policies.join("default.yaml"),
+            "name: default
+allowed_tools: [Read]
+blocked_tools: []
+subagent:
+  max_concurrent: 1
+",
+        )
+        .unwrap();
+        let decision = check(root.path(), &json!({"tool_input": {}}));
+        assert!(!decision.approved);
+        let trace =
+            std::fs::read_to_string(root.path().join(".ctx/godmode/traces/trace.jsonl")).unwrap();
+        assert!(trace.contains("agent.denied"));
+        assert!(trace.contains("agent.blocked"));
+    }
 }
