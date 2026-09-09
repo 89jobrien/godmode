@@ -16,17 +16,19 @@ task list — the file is the ground truth. Move tasks forward; never skip phase
 
 ## Task List Schema
 
-Each unit of work is a task entry in `.ctx/godmode/tasks.yaml`:
+The helper tracks TDD phases in its dedicated `tdd-tasks.yaml` file. Its task statuses use the
+same canonical vocabulary as `.ctx/godmode/tasks.yaml`, so entries remain compatible if another
+supported tool consumes them:
 
 ```yaml
-# .ctx/godmode/tasks.yaml
+# tdd-tasks.yaml
 tasks:
   - id: t1
     title: "parser rejects empty input"
     crate: godmode-core
     test: "parser_empty_input_returns_err"
     phase: red # red | green | refactor | done
-    status: active # pending | active | done | failed
+    status: running # pending | running | done | blocked
     depends_on: [] # sequential chain: this task blocks t2
 
   - id: t2
@@ -60,11 +62,11 @@ to exactly one test. Group related tasks into sequential chains using `depends_o
 rust-script skills/task-driven-development/helpers/task-runner.rs init "feat: parser" --crate godmode-core
 ```
 
-Or write `.ctx/godmode/tasks.yaml` manually using the schema above.
+Or write `tdd-tasks.yaml` manually using the schema above.
 
 ### 1. RED — write a failing test
 
-Advance the next `pending` task to `phase: red, status: active`:
+Advance the next `pending` task to `phase: red, status: running`:
 
 ```bash
 rust-script skills/task-driven-development/helpers/task-runner.rs red t1
@@ -76,7 +78,7 @@ Write the test. Run it and confirm it fails for the right reason — not a compi
 cargo nextest run -p <crate> -E 'test(<test_name>)'
 ```
 
-The runner sets `phase: red` and records `started_at` in the task file.
+The runner sets `phase: red`, sets `status: running`, and records `started_at` in the task file.
 
 ### 2. GREEN — write minimum implementation
 
@@ -109,7 +111,7 @@ Repeat from step 1 for each task in the list.
 
 ## 3-Attempt Rule
 
-If a test is still failing after 3 red→green attempts, mark the task `status: failed` and stop:
+If a test is still failing after 3 red→green attempts, mark the task `status: blocked` and stop:
 
 ```bash
 rust-script skills/task-driven-development/helpers/task-runner.rs fail t1 --reason "architecture needs redesign"
@@ -137,9 +139,13 @@ When tasks correspond to GitHub or Linear issues, add `issue:` to each entry:
   crate: godmode-core
   test: "parser_empty_input_returns_err"
   phase: red
-  status: active
+  status: running
   depends_on: []
 ```
+
+After the third failed attempt, the same entry becomes `status: blocked` with the reason in
+`notes`. The helper accepts legacy `active` input as `running`, but every save emits canonical
+statuses only.
 
 Close issues as tasks reach `status: done`:
 

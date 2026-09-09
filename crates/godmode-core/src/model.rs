@@ -57,7 +57,8 @@ impl std::fmt::Display for Priority {
 pub enum Status {
     /// The task is waiting to be started.
     Pending,
-    /// The task is currently being worked on.
+    /// The task is currently being worked on. Legacy `active` input maps here.
+    #[serde(alias = "active")]
     Running,
     /// The task completed successfully.
     Done,
@@ -326,6 +327,31 @@ mod tests {
         assert_eq!(Priority::High.to_string(), "high");
         assert_eq!(Priority::Normal.to_string(), "normal");
         assert_eq!(Priority::Low.to_string(), "low");
+    }
+
+    #[test]
+    fn active_status_deserializes_as_running_and_serializes_canonically() {
+        let task: Task =
+            serde_yaml::from_str("id: t1\ntitle: Active task\nstatus: active\n").unwrap();
+        assert_eq!(task.status, Status::Running);
+
+        let yaml = serde_yaml::to_string(&task).unwrap();
+        assert!(yaml.contains("status: running"), "got: {yaml}");
+        assert!(!yaml.contains("status: active"), "got: {yaml}");
+    }
+
+    #[test]
+    fn canonical_statuses_roundtrip_unchanged() {
+        for status in [
+            Status::Pending,
+            Status::Running,
+            Status::Done,
+            Status::Blocked,
+        ] {
+            let yaml = serde_yaml::to_string(&status).unwrap();
+            let parsed: Status = serde_yaml::from_str(&yaml).unwrap();
+            assert_eq!(parsed, status);
+        }
     }
 }
 

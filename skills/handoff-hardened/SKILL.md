@@ -17,9 +17,8 @@ Statuses persisted per repo: PENDING, RUNNING, RETRY, PARTIAL, COMPLETE, VERIFIE
 
 ## Rules
 
-- This skill does NOT depend on `skills/observability-as-infrastructure/helpers/trace-stats.nu`.
-  If it exists, call it opportunistically for extra stats in the final report — never fail
-  the run if it's missing or errors.
+- This skill does not depend on trace statistics. Call `godmode trace stats`
+  opportunistically for extra data in the final report, but never fail the run if it errors.
 - Never silently drop a repo. Any repo that fails twice becomes a PARTIAL marker in the
   checkpoint and in the final report — never omitted.
 - Never delete a claim flagged as unverifiable by the verification subagent. Flag it inline

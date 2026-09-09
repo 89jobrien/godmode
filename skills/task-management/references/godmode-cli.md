@@ -47,7 +47,7 @@ godmode dispatch [--max 5] [--json]     # independent chains for orca-strait
 tasks:
   - id: t1
     title: "Write failing test"
-    status: done # pending | running | done | blocked
+    status: done # canonical: pending | running | done | blocked
     crate_name: foo-core
     depends_on: []
     run: "cargo nextest run -p foo-core"
@@ -55,6 +55,9 @@ tasks:
     notes: ""
     completed: 2026-05-01
 ```
+
+The compatibility alias `active` is accepted on input as `running`. Saved task
+graphs always use the canonical `running` value.
 
 ## Status Values
 

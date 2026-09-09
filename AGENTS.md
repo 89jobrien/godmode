@@ -78,6 +78,8 @@ Four-member workspace:
 
 `.ctx/godmode/tasks.yaml` — ephemeral, gitignored. Created automatically on first write.
 `graph::load` returns an empty `TaskGraph` if the file is absent (no error).
+Canonical task statuses are `pending`, `running`, `done`, and `blocked`. The parser accepts
+legacy `active` as `running`, but serialization always emits `running`.
 
 ### Agent scratch space
 
@@ -171,6 +173,10 @@ godmode insight add <title> --body <text> [--tags t1,t2]
 godmode insight list [--date YYYY-MM-DD] [--json]
 godmode insight render [--date YYYY-MM-DD]
 godmode session prune --older-than <days> [--dry-run]
+godmode trace tail [--n N] [--session <id> | --current]
+godmode trace failures [--session <id> | --current]
+godmode trace stats [--session <id> | --current]
+godmode trace summary [--sessions N] [--previous]
 godmode policy resolve <agent> [--level <level>] [--json]
 godmode policy check <agent> <tool> [--input <content>] [--level <level>]
 godmode policy list [--json]

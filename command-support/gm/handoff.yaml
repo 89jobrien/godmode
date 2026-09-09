@@ -3,7 +3,7 @@ template: ops
 prompt: |
   Run session-end validation and write a handoff record.
   1. Run: godmode handoff
-  2. Run `nu ($env.HOME | path join ".agents" "skills" "observability-as-infrastructure" "helpers" "trace-stats.nu")` to summarise
+  2. Run `godmode trace stats --current` to summarise
      skill durations, agent convergence, and decisions made this session.
   3. If any tasks are still running, report them — do not silently ignore.
   4. Report: tasks completed, tasks blocked, any open issues requiring follow-up.

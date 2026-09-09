@@ -176,7 +176,7 @@ Example output:
 tasks:
   - id: t1
     title: "Write failing test for FooAdapter"
-    status: done # pending | running | done | blocked
+    status: done # canonical: pending | running | done | blocked
     depends_on: []
     crate_name: foo-core
     commit: abc1234
@@ -190,6 +190,9 @@ tasks:
     crate_name: foo-core
     notes: ""
 ```
+
+`active` is accepted when reading older task graphs and normalized to `running`
+on the next write. Supported Godmode commands always emit the canonical values.
 
 ## Workflow
 
@@ -253,7 +256,9 @@ The `task-driven-development` skill ships a standalone `rust-script` helper:
 | ------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `skills/task-driven-development/helpers/task-runner.rs` | Phase runner: init / red / green / refactor / next / status / fail / close-issues |
 
-Trace output lands in `.ctx/godmode/traces/trace.jsonl`. Use `godmode:observability-as-infrastructure`
+Trace output lands in `.ctx/godmode/traces/trace.jsonl`. Query it with
+`godmode trace tail`, `godmode trace failures`, `godmode trace stats`, or
+`godmode trace summary`. Use `godmode:observability-as-infrastructure`
 to query it.
 
 ### Session tracing

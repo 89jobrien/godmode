@@ -11,7 +11,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use godmode_core::{
     agent, agent_index, builder, command, context, detect, dispatch, graph, insights, integrations,
     memory_banking, model, pipeline, plan, policy, registry, release, review, session::Session,
-    skill, templates, workflow,
+    skill, templates, trace_stats, workflow,
 };
 
 mod commands;
@@ -51,6 +51,12 @@ enum Cmd {
     Session {
         #[command(subcommand)]
         action: SessionAction,
+    },
+
+    /// Query the built-in observability trace.
+    Trace {
+        #[command(subcommand)]
+        action: TraceAction,
     },
 
     /// Task graph management.
@@ -555,6 +561,49 @@ enum SessionAction {
 }
 
 #[derive(Subcommand)]
+enum TraceAction {
+    /// Print the last trace events.
+    Tail {
+        /// Maximum number of events to print.
+        #[arg(long, default_value = "20")]
+        n: usize,
+        /// Restrict results to one session identifier.
+        #[arg(long)]
+        session: Option<String>,
+        /// Restrict results to the current traced session.
+        #[arg(long, conflicts_with = "session")]
+        current: bool,
+    },
+    /// Print skill errors, blocked agents, and governance denials.
+    Failures {
+        /// Restrict results to one session identifier.
+        #[arg(long)]
+        session: Option<String>,
+        /// Restrict results to the current traced session.
+        #[arg(long, conflicts_with = "session")]
+        current: bool,
+    },
+    /// Aggregate skill durations, agent convergence, and decisions.
+    Stats {
+        /// Restrict results to one session identifier.
+        #[arg(long)]
+        session: Option<String>,
+        /// Restrict results to the current traced session.
+        #[arg(long, conflicts_with = "session")]
+        current: bool,
+    },
+    /// Summarize recent traced sessions.
+    Summary {
+        /// Maximum number of sessions to summarize.
+        #[arg(long, default_value = "3")]
+        sessions: usize,
+        /// Exclude the current traced session.
+        #[arg(long)]
+        previous: bool,
+    },
+}
+
+#[derive(Subcommand)]
 enum PlanAction {
     /// Parse a plan markdown file and populate the task graph.
     Ingest {
@@ -958,6 +1007,81 @@ mod command_dispatch {
                     Ok(())
                 }
             },
+
+            Cmd::Trace { action } => {
+                match action {
+                    TraceAction::Tail {
+                        n,
+                        session,
+                        current,
+                    } => {
+                        anyhow::ensure!((1..=1000).contains(&n), "--n must be between 1 and 1000");
+                        let session = resolve_trace_session(&root, session, current)?;
+                        let events = trace_stats::tail(&root, n, session.as_deref())?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&events)?);
+                        } else if events.is_empty() {
+                            println!("No trace events.");
+                        } else {
+                            for event in events {
+                                println!("{}", serde_json::to_string(&event)?);
+                            }
+                        }
+                    }
+                    TraceAction::Failures { session, current } => {
+                        let session = resolve_trace_session(&root, session, current)?;
+                        let events = trace_stats::failures(&root, session.as_deref())?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&events)?);
+                        } else if events.is_empty() {
+                            println!("No failures.");
+                        } else {
+                            for event in events {
+                                println!("{}", serde_json::to_string(&event)?);
+                            }
+                        }
+                    }
+                    TraceAction::Stats { session, current } => {
+                        let session = resolve_trace_session(&root, session, current)?;
+                        let report = trace_stats::stats(&root, session.as_deref())?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&report)?);
+                        } else {
+                            print_trace_stats(&report);
+                        }
+                    }
+                    TraceAction::Summary { sessions, previous } => {
+                        anyhow::ensure!(sessions > 0, "--sessions must be greater than zero");
+                        let current_session = if previous {
+                            trace_stats::current_session_id(&root)?
+                        } else {
+                            None
+                        };
+                        let summaries =
+                            trace_stats::summaries(&root, sessions, current_session.as_deref())?;
+                        if json {
+                            println!("{}", serde_json::to_string_pretty(&summaries)?);
+                        } else if summaries.is_empty() {
+                            println!("No traced sessions.");
+                        } else {
+                            for summary in summaries {
+                                println!(
+                                    "--- {} @ {}\n    errors={} blocked={} denied={} agents: {} complete / {} running / {} decisions",
+                                    summary.session_id,
+                                    summary.started_at,
+                                    summary.errors,
+                                    summary.agents_blocked,
+                                    summary.agents_denied,
+                                    summary.agents_complete,
+                                    summary.agents_running,
+                                    summary.decisions
+                                );
+                            }
+                        }
+                    }
+                }
+                Ok(())
+            }
 
             Cmd::Task { action } => {
                 commands::run_task_action(&root, json, action)?;
@@ -2573,6 +2697,65 @@ mod command_dispatch {
             }
         }
     }
+}
+
+fn print_trace_stats(report: &trace_stats::TraceStats) {
+    println!("=== skill durations (ms) ===");
+    if report.skills.is_empty() {
+        println!("(none)");
+    } else {
+        println!("skill\truns\tavg_ms\tmax_ms");
+        for skill in &report.skills {
+            println!(
+                "{}\t{}\t{}\t{}",
+                skill.skill, skill.runs, skill.avg_ms, skill.max_ms
+            );
+        }
+    }
+
+    println!("\n=== agent convergence ===");
+    if report.agents.is_empty() {
+        println!("(no agents)");
+    } else {
+        for agent in &report.agents {
+            println!("{}: {}", agent.agent_id, agent.status);
+        }
+    }
+
+    println!("\n=== decisions ===");
+    if report.decisions.is_empty() {
+        println!("(none)");
+    } else {
+        for decision in &report.decisions {
+            println!("{}", serde_json::to_string(decision).unwrap_or_default());
+        }
+    }
+
+    if !report.failures.is_empty() {
+        println!("\nFAILURES: {}", report.failures.len());
+        for failure in &report.failures {
+            println!("{}", serde_json::to_string(failure).unwrap_or_default());
+        }
+    }
+    if report.legacy_rows > 0 || report.malformed_rows > 0 {
+        println!(
+            "\nIgnored rows: {} legacy, {} malformed",
+            report.legacy_rows, report.malformed_rows
+        );
+    }
+}
+
+fn resolve_trace_session(
+    root: &std::path::Path,
+    session: Option<String>,
+    current: bool,
+) -> Result<Option<String>> {
+    if current {
+        return trace_stats::current_session_id(root)?
+            .map(Some)
+            .ok_or_else(|| anyhow::anyhow!("no current traced session"));
+    }
+    Ok(session)
 }
 
 /// Shared logic for `pipeline next` and `pipeline skip`.

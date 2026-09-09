@@ -37,6 +37,7 @@ pub mod session_trace;
 pub mod skill;
 pub mod templates;
 pub mod test_check;
+pub mod trace_stats;
 pub mod verify;
 pub mod wave;
 pub mod workflow;

@@ -1,7 +1,7 @@
 //! Shared JSONL trace-event writer for hooks.
 //!
-//! Appends events to `.ctx/godmode/traces/trace.jsonl`, the file
-//! `trace-stats.nu` reads. Centralised here because `observability`,
+//! Appends events to `.ctx/godmode/traces/trace.jsonl`, the file the built-in
+//! `godmode trace` queries read. Centralised here because `observability`,
 //! `agent_governance`, and `parallel_agents` all need to emit to the same
 //! file with the same session-id lookup.
 

@@ -33,6 +33,8 @@ All events share a common envelope:
 | `skill.complete` | every helper      | `trace_id`, `duration_ms`              |
 | `skill.error`    | every helper      | `trace_id`, `exit_code`, `stderr_tail` |
 | `decision`       | branching helpers | `skill`, `helper`, `kind`, `value`     |
+| `agent.approved` | agent-governance  | `agent_id`, `reason`                   |
+| `agent.denied`   | agent-governance  | `agent_id`, `reason`                   |
 | `agent.start`    | parallel-agents   | `agent_id`, `slot`, `crate`            |
 | `agent.complete` | parallel-agents   | `agent_id`, `slot`, `commits`          |
 | `agent.blocked`  | parallel-agents   | `agent_id`, `slot`, `reason`           |
@@ -40,9 +42,9 @@ All events share a common envelope:
 ### Session identity
 
 Session state lives at `.ctx/godmode/session.json`. It is created on the first
-trace write and reused for all subsequent events. `session_id` = git short SHA
-
-- epoch ms. `session-summary.nu` uses this to correlate work across sessions.
+trace write and reused for all subsequent events. `session_id` combines the git
+short SHA and epoch milliseconds. `godmode trace summary` uses it to correlate
+work across sessions.
 
 ## Shared library
 
@@ -77,14 +79,19 @@ trace-agent-complete $agent_id $slot $commits
 trace-agent-blocked  $agent_id $slot $reason
 ```
 
-## Query helpers
+## Built-in queries
 
-| Helper               | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `trace-tail.nu`      | Last N events; `--session <id>` to scope                      |
-| `trace-failures.nu`  | All `skill.error` and `agent.blocked` events                  |
-| `trace-stats.nu`     | Duration histogram, agent convergence, decision log           |
-| `session-summary.nu` | Cross-session triage: errors, blocked agents, unresolved work |
+| Command                    | Purpose                                                       |
+| -------------------------- | ------------------------------------------------------------- |
+| `godmode trace tail --n N` | Last N events; `--session <id>` scopes the query              |
+| `godmode trace failures`   | All `skill.error`, `agent.blocked`, and `agent.denied` events |
+| `godmode trace stats`      | Duration histogram, agent convergence, decision log           |
+| `godmode trace summary`    | Cross-session triage: errors, blocked agents, unresolved work |
+
+Every query supports the global `--json` flag. The Rust reader ignores legacy
+rows without an `event` field without aborting; `trace stats` reports legacy and
+malformed row counts. Tail, failures, and stats accept `--current` or an explicit
+`--session <id>`.
 
 ## Instrumentation contract
 

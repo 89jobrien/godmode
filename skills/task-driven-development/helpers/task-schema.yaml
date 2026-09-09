@@ -1,7 +1,7 @@
 # tdd-tasks.yaml — annotated schema
 # Place at repo root or .ctx/tdd-tasks.yaml.
 # This file is the ground truth for task phase state.
-# The task-runner.nu helper reads and writes it directly.
+# The task-runner.rs helper reads and writes it directly.
 
 tasks:
   - id: t1 # required; unique within this file
@@ -13,8 +13,8 @@ tasks:
     # Never skip a phase. Never go backwards.
     phase: red # red | green | refactor | done | pending
 
-    # Status reflects whether the task is currently active or finished
-    status: active # pending | active | done | failed
+    # Status uses the canonical godmode task-graph vocabulary.
+    status: running # pending | running | done | blocked
 
     # Sequential chain: this task's status must be 'done' before dependent tasks start.
     # Empty list = root task (no prerequisites).
@@ -67,9 +67,14 @@ tasks:
 #
 # Valid status values:
 #   pending   not yet started; may be blocked by depends_on
-#   active    currently being worked (phase is red, green, or refactor)
+#   running   currently being worked (phase is red, green, or refactor)
 #   done      all three phases complete; issue closed; committed
-#   failed    abandoned after 3 attempts; needs redesign or clarification
+#   blocked   stopped after 3 attempts; needs redesign or clarification
+#
+# Legacy compatibility:
+#   active    accepted on input as running; never emitted on save
+#   failed    accepted on input as blocked; never emitted on save
+# A failed 3-attempt cycle is persisted as `status: blocked` with a reason in `notes`.
 #
 # Chain rules:
 #   A task is eligible when all tasks in its depends_on list have status: done.

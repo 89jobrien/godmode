@@ -123,6 +123,8 @@ Check these before writing the file:
 
 Invoke `godmode:ingest` with the exact plan path returned by the scaffold helper. The ingest
 skill owns task graph creation and validation; do not edit `.ctx/godmode/tasks.yaml` directly.
+Plan ingestion creates tasks in canonical `pending` state; plan authors must not inject a task
+status into the graph. Runtime transitions use `running`, `done`, and `blocked`.
 
 ## Additional Resources
 

@@ -20,7 +20,7 @@
 //!   task-runner.rs fail <id> --reason <text>
 //!   task-runner.rs close-issues
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -47,9 +47,28 @@ enum Phase {
 #[serde(rename_all = "lowercase")]
 enum Status {
     Pending,
-    Active,
+    #[serde(alias = "active")]
+    Running,
     Done,
-    Failed,
+    #[serde(alias = "failed")]
+    Blocked,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Status;
+
+    #[test]
+    fn legacy_statuses_serialize_canonically() {
+        for (legacy, canonical, expected) in [
+            ("active", "running\n", Status::Running),
+            ("failed", "blocked\n", Status::Blocked),
+        ] {
+            let parsed: Status = serde_yaml::from_str(legacy).unwrap();
+            assert_eq!(parsed, expected);
+            assert_eq!(serde_yaml::to_string(&parsed).unwrap(), canonical);
+        }
+    }
 }
 
 // `crate` is a reserved word — use rename to keep the YAML key as "crate".
@@ -100,7 +119,7 @@ enum Cmd {
         #[arg(long = "crate", default_value = "")]
         krate: String,
     },
-    /// pending -> red (active): write the failing test
+    /// pending -> red (running): write the failing test
     Red { id: String },
     /// red -> green: runs cargo nextest run, advances on success
     Green { id: String },
@@ -110,7 +129,7 @@ enum Cmd {
     Next,
     /// Print task table
     Status,
-    /// Mark a task as failed
+    /// Block a task after failed attempts
     Fail {
         id: String,
         #[arg(long, default_value = "")]
@@ -223,7 +242,7 @@ fn cmd_red(id: &str) -> Result<()> {
             );
         }
         task.phase = Phase::Red;
-        task.status = Status::Active;
+        task.status = Status::Running;
         task.started_at = now();
 
         println!("[red] {id}: {}", task.title);
@@ -360,9 +379,9 @@ fn cmd_fail(id: &str, reason: &str) -> Result<()> {
     let mut data = load()?;
     {
         let task = get_task_mut(&mut data.tasks, id)?;
-        task.status = Status::Failed;
+        task.status = Status::Blocked;
         task.notes = reason.to_string();
-        println!("[failed] {id} — {reason}");
+        println!("[blocked] {id} — {reason}");
         println!("Redesign or ask the user before retrying.");
     }
     save(&data)

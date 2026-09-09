@@ -19,7 +19,5 @@ allowed-tools:
 Run session-start triage and orient to outstanding work.
 1. Run: godmode handon
 2. Run: godmode task next
-3. Check .ctx/godmode/traces/trace.jsonl for any skill.error or agent.blocked events from
-   the last session using
-   `nu ($env.HOME | path join ".agents" "skills" "observability-as-infrastructure" "helpers" "session-summary.nu")`.
+3. Check the last traced session using `godmode trace summary --sessions 1 --previous`.
 4. Report: running tasks, next runnable task(s), any unresolved failures from last session.

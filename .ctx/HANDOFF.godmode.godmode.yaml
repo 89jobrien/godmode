@@ -1,8 +1,151 @@
 project: godmode
 id: godmode
-updated: 2026-09-06
-items: []
+updated: 2026-09-09
+items:
+- id: uncommitted-work
+  name: uncommitted-work
+  priority: P1
+  status: open
+  title: Uncommitted changes (35 files)
+  description: |-
+    Working tree has uncommitted changes:
+    .ctx/HANDOFF.godmode.godmode.yaml
+    AGENTS.md
+    CLAUDE.md
+    README.md
+    agents/INDEX.md
+    agents/cfg/observability-as-infrastructure-agent.cfg.yaml
+    agents/gov__observability-as-infrastructure-agent.md
+    agents/observability-as-infrastructure-agent.md
+    agents/prompts/observability-as-infrastructure-agent.prompt.txt
+    command-support/gm/handoff.yaml
+    command-support/gm/handon.yaml
+    command-support/gm/trace.yaml
+    commands/gm-handoff.md
+    commands/gm-handon.md
+    commands/gm-trace.md
+    crates/godmode-cli/src/main.rs
+    crates/godmode-core/src/hooks/agent_governance.rs
+    crates/godmode-core/src/hooks/trace_log.rs
+    crates/godmode-core/src/lib.rs
+    crates/godmode-core/src/model.rs
+    skills/handoff-hardened/SKILL.md
+    skills/observability-as-infrastructure/SKILL.md
+    skills/observability-as-infrastructure/helpers/session-summary.nu
+    skills/observability-as-infrastructure/helpers/trace-failures.nu
+    skills/observability-as-infrastructure/helpers/trace-stats.nu
+    skills/observability-as-infrastructure/helpers/trace-tail.nu
+    skills/task-driven-development/SKILL.md
+    skills/task-driven-development/helpers/task-runner.rs
+    skills/task-driven-development/helpers/task-schema.yaml
+    skills/task-management/references/godmode-cli.md
+    skills/writing-plans/SKILL.md
+    crates/godmode-cli/tests/status_alias.rs
+    crates/godmode-cli/tests/trace_queries.rs
+    crates/godmode-core/src/trace_stats.rs
+    docs/bugs/
+  files:
+  - .ctx/HANDOFF.godmode.godmode.yaml
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - agents/INDEX.md
+  - agents/cfg/observability-as-infrastructure-agent.cfg.yaml
+  - agents/gov__observability-as-infrastructure-agent.md
+  - agents/observability-as-infrastructure-agent.md
+  - agents/prompts/observability-as-infrastructure-agent.prompt.txt
+  - command-support/gm/handoff.yaml
+  - command-support/gm/handon.yaml
+  - command-support/gm/trace.yaml
+  - commands/gm-handoff.md
+  - commands/gm-handon.md
+  - commands/gm-trace.md
+  - crates/godmode-cli/src/main.rs
+  - crates/godmode-core/src/hooks/agent_governance.rs
+  - crates/godmode-core/src/hooks/trace_log.rs
+  - crates/godmode-core/src/lib.rs
+  - crates/godmode-core/src/model.rs
+  - skills/handoff-hardened/SKILL.md
+  - skills/observability-as-infrastructure/SKILL.md
+  - skills/observability-as-infrastructure/helpers/session-summary.nu
+  - skills/observability-as-infrastructure/helpers/trace-failures.nu
+  - skills/observability-as-infrastructure/helpers/trace-stats.nu
+  - skills/observability-as-infrastructure/helpers/trace-tail.nu
+  - skills/task-driven-development/SKILL.md
+  - skills/task-driven-development/helpers/task-runner.rs
+  - skills/task-driven-development/helpers/task-schema.yaml
+  - skills/task-management/references/godmode-cli.md
+  - skills/writing-plans/SKILL.md
+  - crates/godmode-cli/tests/status_alias.rs
+  - crates/godmode-cli/tests/trace_queries.rs
+  - crates/godmode-core/src/trace_stats.rs
+  - docs/bugs/
 log:
+- date: '20260909.005839'
+  summary: done=99 running=0 pending=0 blocked=0
+  commits:
+  - 51026c45f34fb831742b25928f153555601520bb
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
+- date: '20260907.185914'
+  summary: done=99 running=0 pending=0 blocked=0
+  commits:
+  - 51026c45f34fb831742b25928f153555601520bb
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
+- date: '20260907.182229'
+  summary: done=98 running=1 pending=0 blocked=0
+  commits:
+  - 51026c45f34fb831742b25928f153555601520bb
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
+- date: '20260907.045011'
+  summary: done=97 running=1 pending=0 blocked=0
+  commits:
+  - 51026c45f34fb831742b25928f153555601520bb
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
+- date: '20260907.042655'
+  summary: done=97 running=0 pending=0 blocked=0
+  commits:
+  - 51026c45f34fb831742b25928f153555601520bb
+  - 83ef5f1d7298b97dd33769e21b52eb691262def6
+  - 10de9c885fd9767a07c831c484d62af04a309637
+  - 066231515d4929369bb554c9872281aca49de791
+  - 2e4cb28324f140abbcd334529e00fbc89c91a5a3
+  - f9ca1a00c1a2e6f1e8dbec86b86033ee26152bd0
+  - ee1012f2d2f45c086a404b23742ead7afdede862
+  - 47427d767e93208a1f39d98911cbbfdc6e4baeb4
+  - 49c193bb2003e0ff32993d93a8120da51e4dfd54
+  - b76a9f68d0235f7f13ebbe2a7342af7ff98fd82e
 - date: '20260906.140600'
   summary: done=97 running=0 pending=0 blocked=0
   commits:

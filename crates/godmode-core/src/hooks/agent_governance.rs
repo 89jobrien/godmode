@@ -39,17 +39,17 @@ impl GovernanceDecision {
     }
 }
 
-/// Run governance check. Returns a decision, and emits an `agent.start`
-/// (approved) or `agent.blocked` trace event keyed by the resolved agent name.
+/// Run governance check. Returns a decision, and emits an `agent.approved`
+/// or `agent.denied` trace event keyed by the resolved agent name.
 pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
     let decision = check_inner(root, input);
     let agent_name = detect_agent_name_for_trace(root, input);
     trace_log::append(
         root,
         if decision.approved {
-            "agent.start"
+            "agent.approved"
         } else {
-            "agent.blocked"
+            "agent.denied"
         },
         json!({"agent_id": agent_name, "reason": decision.reason}),
     );
