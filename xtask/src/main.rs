@@ -129,7 +129,7 @@ fn dist() -> Result<()> {
     header("release build");
     cargo(&["build", "--release", "-p", "godmode-cli"])?;
 
-    let binary = project_root()?.join("target/release/godmode");
+    let binary = target_dir()?.join("release/godmode");
     eprintln!("Binary: {}", binary.display());
     Ok(())
 }
@@ -139,7 +139,7 @@ fn dist() -> Result<()> {
 fn install() -> Result<()> {
     dist()?;
 
-    let src = project_root()?.join("target/release/godmode");
+    let src = target_dir()?.join("release/godmode");
     let dest_dir = home_dir()?.join(".cargo/bin");
     let dest = dest_dir.join("godmode");
 
@@ -151,6 +151,20 @@ fn install() -> Result<()> {
 
     eprintln!("Installed: {}", dest.display());
     Ok(())
+}
+
+fn target_dir() -> Result<std::path::PathBuf> {
+    match std::env::var_os("CARGO_TARGET_DIR") {
+        Some(path) => {
+            let path = std::path::PathBuf::from(path);
+            if path.is_absolute() {
+                Ok(path)
+            } else {
+                Ok(project_root()?.join(path))
+            }
+        }
+        None => Ok(project_root()?.join("target")),
+    }
 }
 
 fn home_dir() -> Result<std::path::PathBuf> {
@@ -185,16 +199,13 @@ fn command(program: &str, args: &[&str]) -> Result<()> {
 }
 
 fn project_root() -> Result<std::path::PathBuf> {
-    let dir = std::env::var("CARGO_MANIFEST_DIR")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| std::env::current_dir().unwrap());
+    let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
 
     // xtask/Cargo.toml -> workspace root
-    Ok(dir
-        .ancestors()
-        .find(|p| p.join("Cargo.toml").exists() && p.join("crates").exists())
-        .context("could not find workspace root")?
-        .to_path_buf())
+    manifest_dir
+        .parent()
+        .context("could not find workspace root")
+        .map(std::path::Path::to_path_buf)
 }
 
 fn header(label: &str) {
