@@ -3,7 +3,34 @@ use godmode_core::session::Session;
 use godmode_core::{detect, graph, integrations, model, templates};
 use std::path::Path;
 
-use crate::{TaskAction, exit_empty, filter_tasks};
+use super::exit_empty;
+use crate::TaskAction;
+
+fn filter_tasks<'a>(
+    tasks: &'a [model::Task],
+    priority: Option<&model::Priority>,
+    keyword: Option<&str>,
+) -> Vec<&'a model::Task> {
+    let mut result: Vec<&model::Task> = match priority {
+        None => tasks.iter().collect(),
+        Some(priority) => tasks
+            .iter()
+            .filter(|task| &task.priority == priority)
+            .collect(),
+    };
+    if let Some(keyword) = keyword {
+        let keyword = keyword.to_lowercase();
+        result.retain(|task| {
+            task.title.to_lowercase().contains(&keyword)
+                || task
+                    .crate_name
+                    .as_deref()
+                    .is_some_and(|name| name.to_lowercase().contains(&keyword))
+                || task.notes.to_lowercase().contains(&keyword)
+        });
+    }
+    result
+}
 
 /// Execute the `task` subcommand family against the session task graph.
 pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()> {
@@ -291,4 +318,74 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_task(id: &str, title: &str, crate_name: Option<&str>, notes: &str) -> model::Task {
+        model::Task {
+            id: id.to_string(),
+            title: title.to_string(),
+            status: model::Status::Pending,
+            depends_on: vec![],
+            notes: notes.to_string(),
+            crate_name: crate_name.map(str::to_string),
+            commit: None,
+            completed: None,
+            priority: model::Priority::Normal,
+            run: None,
+            started_at: None,
+            completed_at: None,
+            tags: vec![],
+        }
+    }
+
+    #[test]
+    fn filter_tasks_no_filters_returns_all() {
+        let tasks = vec![make_task("t1", "Alpha", None, "")];
+        assert_eq!(filter_tasks(&tasks, None, None).len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_title() {
+        let tasks = vec![
+            make_task("t1", "Add logging", None, ""),
+            make_task("t2", "Fix bug", None, ""),
+        ];
+        let result = filter_tasks(&tasks, None, Some("log"));
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].id, "t1");
+    }
+
+    #[test]
+    fn filter_tasks_keyword_case_insensitive() {
+        let tasks = vec![make_task("t1", "Add LOGGING", None, "")];
+        assert_eq!(filter_tasks(&tasks, None, Some("logging")).len(), 1);
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_crate_name() {
+        let tasks = vec![make_task("t1", "Something", Some("godmode-core"), "")];
+        assert_eq!(filter_tasks(&tasks, None, Some("core"))[0].id, "t1");
+    }
+
+    #[test]
+    fn filter_tasks_keyword_matches_notes() {
+        let tasks = vec![make_task("t1", "Task", None, "needs review before merge")];
+        assert_eq!(filter_tasks(&tasks, None, Some("review"))[0].id, "t1");
+    }
+
+    #[test]
+    fn filter_tasks_keyword_no_match() {
+        let tasks = vec![make_task("t1", "Alpha", None, "beta")];
+        assert!(filter_tasks(&tasks, None, Some("gamma")).is_empty());
+    }
+
+    #[test]
+    fn filter_tasks_priority_and_keyword_combined() {
+        let tasks = vec![make_task("t1", "Add logging", None, "")];
+        assert!(filter_tasks(&tasks, Some(&model::Priority::High), Some("add")).is_empty());
+    }
 }
