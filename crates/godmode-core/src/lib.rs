@@ -26,6 +26,7 @@ pub mod model;
 pub mod pipeline;
 pub mod plan;
 pub mod policy;
+pub mod projection;
 pub mod registry;
 pub mod release;
 pub mod report_index;
