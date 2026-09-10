@@ -44,35 +44,38 @@ Four-member workspace:
 
 ### Core modules (`godmode-core/src/`)
 
-| Module          | Responsibility                                                                                                                                                                            |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`         | `Task`, `TaskGraph`, `Status` — the data model. `TaskGraph` serializes to `.ctx/godmode/tasks.yaml`.                                                                                      |
-| `graph`         | Load/save task file, all task state transitions (`start`, `complete`, `block`, `unblock`, `add`, `remove`, `clear`), `runnable()` dependency resolution.                                  |
-| `detect`        | Walks up from CWD to find git root; reads `[package] name` from `Cargo.toml`.                                                                                                             |
-| `plan`          | Parses plan markdown (`### Task N: <title>`) into `Task` structs with sequential deps.                                                                                                    |
-| `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                                                            |
-| `session`       | `Session` struct — owns all task transitions, duration tracking, crux trace writes, rx validation. `handon()`/`handoff()` are thin wrappers. `SessionSummary` emitted at handoff.         |
-| `integrations/` | Thin subprocess wrappers: `doob` (todo sync), `hj` (handoff YAML), `rx` (run: dispatch + `list_scripts`/`validate_run`), `crux` (Step constructors).                                      |
-| `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                                                     |
-| `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                                                       |
-| `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                                                    |
-| `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                                                   |
-| `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                                                                |
-| `workflow`      | Causal workflow DAGs per agent — YAML step definitions with `run:` and `depends_on` edges.                                                                                                |
-| `review`        | Plugin conformance auditing — checks skills, agents, and `plugin.json` for structural issues.                                                                                             |
-| `release`       | Version bump, annotated tag, push, and changelog generation from git commits since last tag.                                                                                              |
-| `skill`         | Skill registry — install/uninstall skills from local paths; persists to `~/.config/godmode/registry.json`.                                                                                |
-| `registry`      | `Registry` / `RegistryEntry` types; load/save `~/.config/godmode/registry.json`.                                                                                                          |
-| `agent_index`   | Regenerates `agents/INDEX.md` from `agents/cfg/` and `agents/*.md`.                                                                                                                       |
-| `session_trace` | Low-level JSONL append helpers used by `session` for trace writes.                                                                                                                        |
-| `config`        | Loads `.godmode.toml` (repo-local) or `~/.config/godmode/config.toml` (global fallback). Fields: `project_name`, `integrations` (doob/hj/rx toggles), `handoff` output settings.          |
-| `context`       | `SessionContext` struct — assembled by `godmode context [--json]`; exposes running tasks, blocked summary, recent commits, critical-path depth for hooks and subagents.                   |
-| `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                                    |
-| `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from `agents/cfg/*.cfg.yaml`; `generate_from_cfg` pairs with `agents/prompts/*.prompt.txt` to emit top-level `.md`.             |
-| `insights`      | Append-only JSONL insight capture (`.ctx/godmode/traces/insights.jsonl`). `append`, `list`, `list_for_date`, `render_markdown`. Bridges to `.ctx/godmode/reports/insights-YYYY-MM-DD.md`. |
-| `policy`        | Governance policy engine — loads, composes, and enforces agent policies from `skills/agent-governance/policies/`. Supports resolve, check, list, audit.                                   |
-| `pipeline`      | Named multi-step skill sequences. State persists in `.ctx/godmode/pipeline.yaml`. Supports start, next, skip, stop, and status operations.                                                |
-| `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.                |
+| Module          | Responsibility                                                                                                                                                                                     |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`         | `Task`, `TaskGraph`, `Status` — the data model. `TaskGraph` serializes to `.ctx/godmode/tasks.yaml`.                                                                                               |
+| `graph`         | Load/save task file, all task state transitions (`start`, `complete`, `block`, `unblock`, `add`, `remove`, `clear`), `runnable()` dependency resolution.                                           |
+| `detect`        | Walks up from CWD to find git root; reads `[package] name` from `Cargo.toml`.                                                                                                                      |
+| `plan`          | Parses plan markdown (`### Task N: <title>`) into `Task` structs with sequential deps.                                                                                                             |
+| `dispatch`      | Groups tasks into independent crate-scoped chains for parallel agent dispatch.                                                                                                                     |
+| `session`       | `Session` struct — owns all task transitions, duration tracking, crux trace writes, rx validation. `handon()`/`handoff()` are thin wrappers. `SessionSummary` emitted at handoff.                  |
+| `integrations/` | External adapters for `doob`, `hj`, and `rx`, plus in-process Crux `Step` constructors; optional call sites choose their own degradation policy.                                                   |
+| `templates`     | Template resolution, `{{var}}` substitution, apply to graph. Files in `templates/` or `~/.config/godmode/templates/`.                                                                              |
+| `builder`       | Interactive (`graph build`) and file-driven graph construction. Phase logic: shape, wire, validate.                                                                                                |
+| `verify`        | nextest + clippy + fmt + git log gate.                                                                                                                                                             |
+| `wave`          | Parallel agent slot state — init, done, blocked, check.                                                                                                                                            |
+| `worktree`      | Git worktree lifecycle — add (with GH issue link), remove.                                                                                                                                         |
+| `workflow`      | Causal workflow DAGs per agent — YAML step definitions with `run:` and `depends_on` edges.                                                                                                         |
+| `review`        | Plugin conformance auditing — checks skills, agents, and `plugin.json` for structural issues.                                                                                                      |
+| `release`       | Version bump, annotated tag, push, and changelog generation from git commits since last tag.                                                                                                       |
+| `skill`         | Skill registry — install/uninstall skills from local paths; persists to `~/.config/godmode/registry.json`.                                                                                         |
+| `registry`      | `Registry` / `RegistryEntry` types; load/save `~/.config/godmode/registry.json`.                                                                                                                   |
+| `agent_index`   | Regenerates `agents/INDEX.md` from `agents/cfg/` and `agents/*.md`.                                                                                                                                |
+| `session_trace` | Low-level JSONL append helpers used by `session` for trace writes.                                                                                                                                 |
+| `command`       | Loads canonical command YAML, renders Claude/OpenCode projections, checks drift, and writes or installs generated commands.                                                                        |
+| `report_index`  | `ReportIndexPort` plus the JSON-file adapter for reconciling categorized report files under `.ctx/godmode/reports/`.                                                                               |
+| `trace_stats`   | Reads observability JSONL and provides tail, failure, aggregate-statistics, and cross-session summary queries.                                                                                     |
+| `config`        | Loads `.godmode.toml` (repo-local) or `~/.config/godmode/config.toml` (global fallback). Fields: `project_name`, `integrations` (doob/hj/rx toggles), `handoff` output settings.                   |
+| `context`       | `SessionContext` struct — assembled by `godmode context [--json]`; exposes running tasks, blocked summary, recent commits, critical-path depth for hooks and subagents.                            |
+| `cache`         | Writes `StatusCache` to `~/.cache/godmode/status.json` after every status update — designed for fast reads by starship prompt modules.                                                             |
+| `agent`         | `AgentDef` / `AgentMetadata` / `AgentHook` types — parsed from `agents/cfg/*.cfg.yaml`; `generate_from_cfg` pairs with `agents/prompts/*.prompt.txt` to emit top-level `.md`.                      |
+| `insights`      | Append-only JSONL insight capture (`.ctx/godmode/traces/insights.jsonl`). `append`, `list`, `list_for_date`, `render_markdown`. Bridges to `.ctx/godmode/reports/insights/insights-YYYY-MM-DD.md`. |
+| `policy`        | Governance policy engine — loads, composes, and enforces agent policies from `skills/agent-governance/policies/`. Supports resolve, check, list, audit.                                            |
+| `pipeline`      | Named multi-step skill sequences. State persists in `.ctx/godmode/pipeline.yaml`. Supports start, next, skip, stop, and status operations.                                                         |
+| `testing`       | Feature-gated (`--features testing`) helpers: `audit`, `binary` (fake_bin), `conformance`, `env`, `prop`, `seed`. Used by the `godmode-conformance` workspace member only.                         |
 
 ### State file
 
@@ -98,15 +101,18 @@ legacy `active` as `running`, but serialization always emits `running`.
 
 ### Trace events
 
-`Session::start_task` / `Session::complete_task` append `crux_core::Step` JSONL to
+`Session::start_task` / `Session::complete_task` append `crux_runtime::Step` JSONL to
 `.ctx/godmode/sessions/YYYY-MM-DD.jsonl`. `Session::handoff` writes a `SessionSummary` record to
 `.ctx/godmode/sessions/YYYY-MM-DD-summary.jsonl`. All trace writes are non-fatal (`let _ = ...`).
 
 ### Integration pattern
 
-All integrations (`doob`, `hj`, `rx`, `crux`) invoke external binaries via `std::process::Command`.
-They fail gracefully — callers use `.ok()` or `ok().flatten()` so missing tools don't abort the
-session. Never add a hard dependency on an external tool; always degrade gracefully.
+`doob` and `hj` are subprocess adapters whose public functions return errors when binaries or
+commands fail; selected session and sync call sites deliberately treat those integrations as
+best-effort. `rx` skips registry validation only when `rx` is absent, but rejects missing registered
+scripts when it is available. Crux task traces use the in-process `crux-runtime` dependency, and
+trace-file writes are best-effort. Do not assume every integration failure is swallowed; degrade
+gracefully only at call sites where the operation is explicitly optional.
 
 ### `--json` flag
 
@@ -128,64 +134,43 @@ re-ingesting a plan skips existing task IDs silently.
 
 ### CLI subcommands
 
-```
-godmode handon                                  # session-start triage summary
-godmode handoff                                 # session-end validation
-godmode context [--json]                        # full session context for hooks/agents
-godmode status [--compact]                      # graph counts + next runnable tasks
-godmode task list [--priority high|normal|low]
-godmode task next [--priority high|normal|low]
-godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X]
-godmode task start <id>
-godmode task done <id> [--commit <sha>] [--notes <text>]
-godmode task block <id> <reason>
-godmode task unblock <id>
-godmode task unblock-all                        # reset all blocked tasks to pending
-godmode task remove <id>
-godmode task clear --done | --all
-godmode task run <id> [--auto-done]             # execute task's run: field via rx
-godmode task pull [--project <name>]            # import pending doob todos
-godmode task pull --github [--repo owner/repo] [--label <label>]
-godmode task apply <name> [--var k=v]           # expand a template into the task graph
-godmode task list-templates                     # list available templates (local + global)
-godmode task push-done                          # sync completed tasks back to doob
-godmode plan ingest <path>                      # parse plan markdown into task graph
-godmode dispatch [--max N] [--critical-path]    # emit parallel chains JSON
-godmode agent list [--filter <kw>]              # list installed agents
-godmode agent index                             # regenerate agents/INDEX.md
-godmode agent dispatch <path> [--max N]         # plan ingest + dispatch in one shot
-godmode agent generate [<name>] [--all]         # generate .md from agent YAML
-godmode agent migrate [<name>] [--all]          # migrate agent .md frontmatter to YAML stubs
-godmode graph build [--input <tmpl>] [--var k=v]
-godmode verify [--crate-name X]                 # nextest + clippy + fmt + commits
-godmode wave init --wave N --agents a,b,c
-godmode wave status / done <agent> / block <agent> / check
-godmode worktree add <branch> [--issue N]
-godmode worktree remove <branch>
-godmode ci triage [--run-id <id>]
-godmode issue list [--repo owner/repo] [--label <label>]
-godmode issue close <number> --commit <sha> [--repo owner/repo]
-godmode hook list / log [--tail N] / test <script> / migrate
-godmode skill list / install <path> / uninstall <name>
-godmode review self / skills / agents
-godmode release current / bump [--version X] / tag / push / changelog
-godmode insight add <title> --body <text> [--tags t1,t2]
-godmode insight list [--date YYYY-MM-DD] [--json]
-godmode insight render [--date YYYY-MM-DD]
-godmode session prune --older-than <days> [--dry-run]
-godmode trace tail [--n N] [--session <id> | --current]
-godmode trace failures [--session <id> | --current]
-godmode trace stats [--session <id> | --current]
-godmode trace summary [--sessions N] [--previous]
-godmode policy resolve <agent> [--level <level>] [--json]
-godmode policy check <agent> <tool> [--input <content>] [--level <level>]
-godmode policy list [--json]
-godmode policy audit [--date YYYY-MM-DD] [--json]
-godmode workflow run <agent> <workflow>
-godmode workflow list [--agent <name>]
-godmode workflow status <name>
-godmode scaffold <crate> <dimension>                    # test stub generator
-godmode test-check <path>                               # check if .rs file has tests
+This inventory is derived from `godmode --help` and each command family’s `--help`; use
+`godmode <command> --help` for action-specific arguments.
+
+```text
+godmode handon
+godmode handoff
+godmode session {prune}
+godmode trace {tail|failures|stats|summary}
+godmode task {list|add|start|done|block|unblock|remove|clear|next|run|pull|push-done|unblock-all|apply|list-templates}
+godmode plan {ingest}
+godmode command {generate|install-opencode}
+godmode dispatch
+godmode context
+godmode status
+godmode agent {list|index|dispatch|generate|install-opencode|migrate}
+godmode verify
+godmode wave {init|status|done|block|check}
+godmode worktree {add|remove}
+godmode ci {triage}
+godmode issue {list|close}
+godmode graph {build}
+godmode hook {list|log|test|migrate|run}
+godmode skill {list|index|install|uninstall}
+godmode review {self|skills|agents}
+godmode release {current|bump|tag|push|changelog|validate}
+godmode workflow {run|list|status}
+godmode visualize-graph
+godmode memory-banking {inject|remind|init|status}
+godmode insight {add|list|render}
+godmode pipeline {list|show|start|next|skip|stop|status|run}
+godmode policy {resolve|check|list|audit}
+godmode pin
+godmode unpin
+godmode init
+godmode doctor
+godmode scaffold
+godmode test-check
 ```
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
@@ -202,14 +187,17 @@ godmode pipeline stop                           # deactivate pipeline, preserve 
 godmode pipeline status                         # show active pipeline + position
 ```
 
-Six pipelines are defined in `pipelines/`:
+Nine pipelines are defined in `pipelines/`:
 
 - `feature` — idea to merged PR
 - `parallel-feature` — fan-out across crates
 - `release` — health check, audit, changelog, tag
-- `maintenance` — health scorecard + targeted cleanup
+- `maintenance` — health scorecard and targeted cleanup
 - `triage` — issue backlog to task graph
 - `retrospective` — session reflection and learning
+- `lifecycle` — full session from handon to handoff
+- `aichat-system` — aichat system prompt generation and installation
+- `coursers-rules` — Coursers rule discovery, validation, and installation
 
 Pipeline state persists in `.ctx/godmode/pipeline.yaml` (gitignored).
 `task clear` requires `--done` (completed only) or `--all`.

@@ -1,5 +1,5 @@
 ---
-description: "Run `cargo nextest run --workspace`, fix any failures, and commit fixes"
+description: "Run workspace tests, fix failures, and commit the verified changes."
 allowed-tools:
   - Edit
   - Read

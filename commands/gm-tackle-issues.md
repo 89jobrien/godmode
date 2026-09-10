@@ -1,5 +1,5 @@
 ---
-description: "Fetch open GitHub issues, group into independent units, and dispatch parallel agents."
+description: "Resolve selected GitHub issues in isolated parallel worktrees."
 allowed-tools:
   - Bash
   - Read

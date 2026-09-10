@@ -1,5 +1,5 @@
 ---
-description: "Mixture-of-Agents architecture review pipeline. Analyze the current branch diff from five"
+description: "Run a five-lens architecture review, synthesize findings, and dispatch scoped fixes."
 allowed-tools:
   - Bash
   - Read

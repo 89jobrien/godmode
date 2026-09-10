@@ -1,5 +1,5 @@
 ---
-description: "Audit and update workspace dependencies."
+description: "Audit and safely update workspace dependencies."
 allowed-tools:
   - Bash
   - Read

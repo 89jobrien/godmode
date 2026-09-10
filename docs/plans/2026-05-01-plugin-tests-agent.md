@@ -27,7 +27,7 @@ orca-strait godmode-crate-agent. The compositor command that closes the loop.
 
 Add a `skills` array to `.claude-plugin/plugin.json` listing all 8 skill directories.
 Format matches orca-strait's convention: `{ "name": "<skill-name>", "path": "skills/<name>" }`.
-Verify `claude plugin install /dev/godmode` picks them up after the change.
+Verify `claude plugin install "$GODMODE_ROOT"` picks them up after the change.
 
 **Crate**: `godmode-cli`
 

@@ -1,5 +1,5 @@
 ---
-description: "Review, maintain, and sync all project documentation in one pass."
+description: "Review, maintain, and synchronize project documentation in one pass."
 allowed-tools:
   - Bash
   - Read

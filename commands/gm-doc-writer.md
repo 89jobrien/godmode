@@ -1,5 +1,5 @@
 ---
-description: "Write new documentation grounded in actual code."
+description: "Write new documentation grounded in current source and behavior."
 allowed-tools:
   - Bash
   - Read

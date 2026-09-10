@@ -62,7 +62,7 @@ Single command that emits everything a hook or subagent needs to orient. Replace
 
 ```json
 {
-  "git_root": "/dev/godmode",
+  "git_root": "/path/to/godmode",
   "project": "godmode",
   "running": [
     { "id": "t3", "title": "Implement X", "crate_name": "godmode-core" }

@@ -1,5 +1,5 @@
 ---
-description: "Run the full feature lifecycle for this idea"
+description: "Run the complete feature lifecycle from idea through verified integration."
 allowed-tools:
   - Bash
   - Read

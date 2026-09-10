@@ -1,5 +1,5 @@
 ---
-description: "Systematically debug this failing test or unexpected behaviour"
+description: "Find the root cause of a failing test or unexpected behavior before fixing it."
 allowed-tools:
   - Bash
   - Read

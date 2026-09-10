@@ -1,5 +1,5 @@
 ---
-description: "Run pre-flight checks before pushing or starting parallel issue resolution."
+description: "Validate environment, branch, authentication, and worktree readiness before development."
 allowed-tools:
   - Bash
   - Read

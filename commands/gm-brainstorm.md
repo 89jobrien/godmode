@@ -1,5 +1,5 @@
 ---
-description: "Explore and converge on a design for this topic before implementation begins"
+description: "Explore and converge on an approved design before implementation."
 allowed-tools:
   - Bash
   - Read

@@ -248,18 +248,16 @@ Before every commit, run `git branch --show-current`; require `fix/daily-orchest
 5. Replace the generated pipeline with three sequential top-level steps. Use this exact shape for lint and test:
 
    ```yaml
-
+   - step: lint
+     handler: shell::capture
+     allow_failure: true
+     timeout_ms: 120000
+     args:
+       cmd: "cargo clippy --all-targets -- -D warnings"
    ```
 
-- step: lint
-  handler: shell::capture
-  allow_failure: true
-  timeout_ms: 120000
-  args:
-  cmd: "cargo clippy --all-targets -- -D warnings"
+   Generate this exact Rust command, `go vet ./...`, `uv run ruff check .`, or `git status --short` according to the existing language map; project-native commands from AGENTS.md replace only their language default before the file is written.
 
-````
-Generate this exact Rust command, `go vet ./...`, `uv run ruff check .`, or `git status --short` according to the existing language map; project-native commands from AGENTS.md replace only their language default before the file is written.
 6. Remove `ignore_exit`; require agents to classify the failed-allowed trace as a warning/error.
 7. Run `tests/validate.nu`; all three fixture steps must execute and the validator must exit 0.
 8. Commit the skill and both fixture files: `fix(orchestration): retain health command failures`.
@@ -320,11 +318,12 @@ Generate this exact Rust command, `go vet ./...`, `uv run ruff check .`, or `git
 
 1. With unresolved provider variables present and no opt-in, confirm the current test attempts a live request.
 2. Add this as the first code in `TestRouterSmoke`:
+
 ```go
 if os.Getenv("DEVKIT_LIVE_TESTS") != "1" {
 	t.Skip("set DEVKIT_LIVE_TESTS=1 to run live provider smoke tests")
 }
-````
+```
 
 3. Verify the default test skips. Verify an explicit opt-in with intentionally absent credentials reaches the existing credential skip, not the network.
 4. Run `go test ./... -count=1` and commit: `fix(devkit): require opt-in for live provider smoke test`.

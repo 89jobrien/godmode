@@ -17,5 +17,6 @@ those are godmode's own skill-sequencing format, not crux-script.
 just crux-check-refs
 ```
 
-Requires a sibling `../crux` checkout (godmode depends on `crux-runtime` via a
-local path dependency already; this reuses that same checkout to run the CLI).
+The recipe requires a sibling `../crux` source checkout because the `crux` CLI is provided by
+that workspace’s `crux-agentic` package. Godmode’s runtime integration instead uses the published
+`crux-runtime` crate; that dependency neither supplies the CLI nor requires a local checkout.

@@ -1,5 +1,5 @@
 ---
-description: "Commit and Push. Run the cap workflow: validate (cargo check, nextest, clippy, fmt), stage all changes,"
+description: "Run Cargo quality gates, create a guarded conventional commit, and push it."
 allowed-tools:
   - Bash
   - Read

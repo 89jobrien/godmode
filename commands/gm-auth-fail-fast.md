@@ -1,5 +1,5 @@
 ---
-description: "If any gh or external CLI command (gh, jira, linear) fails with an auth or permission error"
+description: "Stop immediately and report actionable authentication or permission failures."
 allowed-tools:
   - Bash
   - Read

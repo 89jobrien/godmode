@@ -1,5 +1,5 @@
 ---
-description: "Detect drift between documentation and code. Read-only — report findings, do not fix."
+description: "Report drift between documentation and executable behavior without modifying files."
 allowed-tools:
   - Bash
   - Read

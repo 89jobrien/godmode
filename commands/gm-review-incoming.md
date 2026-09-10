@@ -1,5 +1,5 @@
 ---
-description: "Respond to an incoming PR review: triage comments, apply fixes, verify, and push."
+description: "Triage incoming review comments, apply valid fixes, verify, and push."
 allowed-tools:
   - Bash
   - Read

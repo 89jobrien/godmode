@@ -1,5 +1,5 @@
 ---
-description: "Autonomous parallel issue resolution. Fetch all open GitHub issues, dispatch one agent per"
+description: "Resolve open GitHub issues through capped parallel agents and sequential integration."
 allowed-tools:
   - Bash
   - Read

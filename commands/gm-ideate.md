@@ -1,5 +1,5 @@
 ---
-description: "Explore the repo for new feature ideas grounded in what the code already does and what it's missing."
+description: "Identify source-grounded feature opportunities and converge on one proposal."
 allowed-tools:
   - Bash
   - Read
