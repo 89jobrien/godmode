@@ -74,8 +74,25 @@ struct TraceLog {
     malformed_rows: usize,
 }
 
-/// Return the last `limit` structured events, optionally scoped to a session.
+/// Returns the last `limit` structured events, optionally scoped to a session.
+///
+/// # Errors
+///
+/// Returns an error when `limit` is zero or the trace file cannot be read.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::path::Path;
+///
+/// let events = godmode_core::trace_stats::tail(Path::new("."), 20, None)?;
+/// println!("read {} events", events.len());
+/// # Ok(())
+/// # }
+/// ```
 pub fn tail(root: &Path, limit: usize, session: Option<&str>) -> Result<Vec<Value>> {
+    anyhow::ensure!(limit > 0, "trace tail limit must be greater than zero");
     let log = load(root)?;
     let events = filtered_events(&log, session);
     let start = events.len().saturating_sub(limit);
@@ -85,7 +102,19 @@ pub fn tail(root: &Path, limit: usize, session: Option<&str>) -> Result<Vec<Valu
         .collect())
 }
 
-/// Return all `skill.error`, `agent.blocked`, and `agent.denied` events.
+/// Returns all `skill.error`, `agent.blocked`, and `agent.denied` events.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::path::Path;
+///
+/// let failures = godmode_core::trace_stats::failures(Path::new("."), None)?;
+/// println!("found {} failures", failures.len());
+/// # Ok(())
+/// # }
+/// ```
 pub fn failures(root: &Path, session: Option<&str>) -> Result<Vec<Value>> {
     let log = load(root)?;
     Ok(filtered_events(&log, session)
@@ -100,7 +129,19 @@ pub fn failures(root: &Path, session: Option<&str>) -> Result<Vec<Value>> {
         .collect())
 }
 
-/// Aggregate skill durations, agent convergence, decisions, and failures.
+/// Aggregates skill durations, agent convergence, decisions, and failures.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::path::Path;
+///
+/// let report = godmode_core::trace_stats::stats(Path::new("."), None)?;
+/// println!("aggregated {} skills", report.skills.len());
+/// # Ok(())
+/// # }
+/// ```
 pub fn stats(root: &Path, session: Option<&str>) -> Result<TraceStats> {
     let log = load(root)?;
     let events = filtered_events(&log, session);
@@ -191,7 +232,19 @@ pub fn stats(root: &Path, session: Option<&str>) -> Result<TraceStats> {
     })
 }
 
-/// Read the session identifier currently used by trace writers.
+/// Reads the session identifier currently used by trace writers.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::path::Path;
+///
+/// let session_id = godmode_core::trace_stats::current_session_id(Path::new("."))?;
+/// println!("current session: {session_id:?}");
+/// # Ok(())
+/// # }
+/// ```
 pub fn current_session_id(root: &Path) -> Result<Option<String>> {
     let path = root.join(".ctx/godmode/session.json");
     let raw = match std::fs::read_to_string(&path) {
@@ -207,7 +260,19 @@ pub fn current_session_id(root: &Path) -> Result<Option<String>> {
         .map(str::to_owned))
 }
 
-/// Summarize the most recent session boundary groups.
+/// Summarizes the most recent session boundary groups.
+///
+/// # Examples
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use std::path::Path;
+///
+/// let summaries = godmode_core::trace_stats::summaries(Path::new("."), 3, None)?;
+/// println!("summarized {} sessions", summaries.len());
+/// # Ok(())
+/// # }
+/// ```
 pub fn summaries(
     root: &Path,
     limit: usize,
@@ -327,5 +392,22 @@ fn summarize_session(events: &[Value], session_id: &str) -> TraceSessionSummary 
             .iter()
             .filter(|event| event_name(event) == Some("decision"))
             .count(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tail_rejects_zero_limit() {
+        let temp = tempfile::tempdir().unwrap();
+
+        let error = tail(temp.path(), 0, None).unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "trace tail limit must be greater than zero"
+        );
     }
 }

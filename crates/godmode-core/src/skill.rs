@@ -39,12 +39,46 @@ pub fn list_local(dir: &Path) -> Result<Vec<SkillDef>> {
 }
 
 /// Write `<root>/skills/INDEX.md` from the current local skills.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::skill::{generate_skill_index, list_local};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let root = tempfile::tempdir()?;
+/// let skill = root.path().join("skills/example");
+/// std::fs::create_dir_all(&skill)?;
+/// std::fs::write(
+///     skill.join("SKILL.md"),
+///     "---\nname: example\ndescription: Example skill.\n---\n",
+/// )?;
+/// let skills = list_local(&root.path().join("skills"))?;
+/// generate_skill_index(root.path(), &skills)?;
+/// assert!(root.path().join("skills/INDEX.md").exists());
+/// # Ok(())
+/// # }
+/// ```
 pub fn generate_skill_index(root: &Path, skills: &[SkillDef]) -> Result<()> {
     std::fs::write(root.join("skills/INDEX.md"), render_skill_index(skills)?)?;
     Ok(())
 }
 
 /// Return whether `skills/INDEX.md` matches the current local skill list.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::skill::{generate_skill_index, skill_index_is_current};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let root = tempfile::tempdir()?;
+/// std::fs::create_dir(root.path().join("skills"))?;
+/// generate_skill_index(root.path(), &[])?;
+/// assert!(skill_index_is_current(root.path(), &[])?);
+/// # Ok(())
+/// # }
+/// ```
 pub fn skill_index_is_current(root: &Path, skills: &[SkillDef]) -> Result<bool> {
     let expected = render_skill_index(skills)?;
     Ok(std::fs::read_to_string(root.join("skills/INDEX.md"))
