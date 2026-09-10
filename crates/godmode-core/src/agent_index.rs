@@ -113,6 +113,25 @@ pub fn filter_agents(agents: Vec<AgentEntry>, keyword: &str) -> Vec<AgentEntry> 
 }
 
 /// Write `<root>/agents/INDEX.md` from the given agent list.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent_index::{generate_agent_index, list_agents};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let root = tempfile::tempdir()?;
+/// std::fs::create_dir(root.path().join("agents"))?;
+/// std::fs::write(
+///     root.path().join("agents/example.md"),
+///     "---\nname: example\ndescription: Example agent\n---\n",
+/// )?;
+/// let agents = list_agents(root.path())?;
+/// generate_agent_index(root.path(), &agents)?;
+/// assert!(root.path().join("agents/INDEX.md").exists());
+/// # Ok(())
+/// # }
+/// ```
 pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
     let index_path = root.join("agents/INDEX.md");
     fs::write(&index_path, render_agent_index(agents))?;
@@ -120,6 +139,20 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
 }
 
 /// Return whether `agents/INDEX.md` matches the current agent list.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent_index::{agent_index_is_current, generate_agent_index};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let root = tempfile::tempdir()?;
+/// std::fs::create_dir(root.path().join("agents"))?;
+/// generate_agent_index(root.path(), &[])?;
+/// assert!(agent_index_is_current(root.path(), &[])?);
+/// # Ok(())
+/// # }
+/// ```
 pub fn agent_index_is_current(root: &Path, agents: &[AgentEntry]) -> Result<bool> {
     let index_path = root.join("agents/INDEX.md");
     Ok(fs::read_to_string(index_path).is_ok_and(|content| content == render_agent_index(agents)))

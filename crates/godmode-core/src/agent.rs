@@ -10,6 +10,8 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
+use crate::projection::{ProjectionFile, write_projection};
+
 /// Attribution and classification metadata attached to an agent definition.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentMetadata {
@@ -290,6 +292,7 @@ fn quote_list(items: &[String]) -> String {
 
 /// Declarative source for one OpenCode router and its project specialists.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeAgentCatalog {
     /// Primary router responsible for delegating workspace requests.
     pub router: OpenCodeRouterDef,
@@ -298,8 +301,25 @@ pub struct OpenCodeAgentCatalog {
     pub projects: Vec<OpenCodeProjectAgentDef>,
 }
 
+impl OpenCodeAgentCatalog {
+    /// Create a catalog with a router and no project specialists.
+    pub fn new(router: OpenCodeRouterDef) -> Self {
+        Self {
+            router,
+            projects: Vec::new(),
+        }
+    }
+
+    /// Set the project specialists exposed by this catalog.
+    pub fn with_projects(mut self, projects: Vec<OpenCodeProjectAgentDef>) -> Self {
+        self.projects = projects;
+        self
+    }
+}
+
 /// OpenCode primary-agent metadata.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeRouterDef {
     /// File-safe name of the primary router agent.
     pub name: String,
@@ -307,8 +327,19 @@ pub struct OpenCodeRouterDef {
     pub description: String,
 }
 
+impl OpenCodeRouterDef {
+    /// Create primary-router metadata.
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+        }
+    }
+}
+
 /// OpenCode subagent metadata for one workspace project.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeProjectAgentDef {
     /// File-safe name of the project specialist.
     pub name: String,
@@ -323,7 +354,43 @@ pub struct OpenCodeProjectAgentDef {
     pub visible: bool,
 }
 
+impl OpenCodeProjectAgentDef {
+    /// Create hidden project-specialist metadata.
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        project: impl Into<String>,
+        repo_path: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            project: project.into(),
+            repo_path: repo_path.into(),
+            visible: false,
+        }
+    }
+
+    /// Set whether the specialist is visible in OpenCode's agent picker.
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.visible = visible;
+        self
+    }
+}
+
 /// Load the project-agent catalog from a path or the embedded default.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::load_opencode_catalog;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let catalog = load_opencode_catalog(None)?;
+/// assert!(!catalog.projects.is_empty());
+/// # Ok(())
+/// # }
+/// ```
 pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog> {
     let raw = if let Some(path) = path {
         std::fs::read_to_string(path)
@@ -337,6 +404,18 @@ pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog
 }
 
 /// Render the router and project specialists as OpenCode Markdown agents.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::{
+///     OpenCodeAgentCatalog, OpenCodeRouterDef, render_opencode_agents,
+/// };
+///
+/// let catalog = OpenCodeAgentCatalog::new(OpenCodeRouterDef::new("workspace", "Router"));
+/// let rendered = render_opencode_agents(&catalog);
+/// assert_eq!(rendered[0].0, "workspace.md");
+/// ```
 pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, String)> {
     let mut rendered = Vec::with_capacity(catalog.projects.len() + 1);
     rendered.push((
@@ -353,27 +432,33 @@ pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, St
 }
 
 /// Install rendered OpenCode agents into `output_dir`, or preview paths in dry-run mode.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::{
+///     OpenCodeAgentCatalog, OpenCodeRouterDef, install_opencode_agents,
+/// };
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let output = tempfile::tempdir()?;
+/// let catalog = OpenCodeAgentCatalog::new(OpenCodeRouterDef::new("workspace", "Router"));
+/// let paths = install_opencode_agents(&catalog, output.path(), false)?;
+/// assert!(paths[0].exists());
+/// # Ok(())
+/// # }
+/// ```
 pub fn install_opencode_agents(
     catalog: &OpenCodeAgentCatalog,
     output_dir: &Path,
     dry_run: bool,
 ) -> Result<Vec<PathBuf>> {
     validate_opencode_catalog(catalog)?;
-    let rendered = render_opencode_agents(catalog);
-    if !dry_run {
-        std::fs::create_dir_all(output_dir)
-            .with_context(|| format!("creating OpenCode agent dir {}", output_dir.display()))?;
-    }
-    let mut paths = Vec::with_capacity(rendered.len());
-    for (file_name, content) in rendered {
-        let path = output_dir.join(file_name);
-        if !dry_run {
-            std::fs::write(&path, content)
-                .with_context(|| format!("writing OpenCode agent {}", path.display()))?;
-        }
-        paths.push(path);
-    }
-    Ok(paths)
+    let files = render_opencode_agents(catalog)
+        .into_iter()
+        .map(|(file_name, content)| ProjectionFile::new(file_name, content))
+        .collect::<Vec<_>>();
+    write_projection(&files, output_dir, dry_run)
 }
 
 fn render_opencode_router(catalog: &OpenCodeAgentCatalog) -> String {

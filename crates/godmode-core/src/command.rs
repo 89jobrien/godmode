@@ -2,8 +2,9 @@
 
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
-use std::io::Write;
 use std::path::{Path, PathBuf};
+
+use crate::projection::{ProjectionFile, write_projection};
 
 /// Supported command output formats.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -16,6 +17,7 @@ pub enum CommandTarget {
 
 /// Canonical command definition loaded from YAML.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct CommandDefinition {
     /// Stable command name.
     pub name: String,
@@ -33,8 +35,47 @@ pub struct CommandDefinition {
     pub max_turns: Option<u32>,
 }
 
+impl CommandDefinition {
+    /// Create a command definition with required fields and empty optional settings.
+    pub fn new(name: impl Into<String>, prompt: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            description: None,
+            template: None,
+            prompt: prompt.into(),
+            allowed_tools: Vec::new(),
+            max_turns: None,
+        }
+    }
+
+    /// Set the command-palette description.
+    pub fn with_description(mut self, description: impl Into<String>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    /// Set the shared prompt template name.
+    pub fn with_template(mut self, template: impl Into<String>) -> Self {
+        self.template = Some(template.into());
+        self
+    }
+
+    /// Set the Claude Code tool allowlist.
+    pub fn with_allowed_tools(mut self, allowed_tools: Vec<String>) -> Self {
+        self.allowed_tools = allowed_tools;
+        self
+    }
+
+    /// Set the optional agent turn limit.
+    pub fn with_max_turns(mut self, max_turns: u32) -> Self {
+        self.max_turns = Some(max_turns);
+        self
+    }
+}
+
 /// Fully rendered command ready to write.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct RenderedCommand {
     /// Destination file name.
     pub file_name: String,
@@ -42,7 +83,31 @@ pub struct RenderedCommand {
     pub content: String,
 }
 
+impl RenderedCommand {
+    /// Create a rendered command from its destination name and Markdown content.
+    pub fn new(file_name: impl Into<String>, content: impl Into<String>) -> Self {
+        Self {
+            file_name: file_name.into(),
+            content: content.into(),
+        }
+    }
+}
+
 /// Load sorted top-level YAML command definitions.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::command::load_command_definitions;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let source = tempfile::tempdir()?;
+/// std::fs::write(source.path().join("plan.yaml"), "name: plan\nprompt: Plan work\n")?;
+/// let definitions = load_command_definitions(source.path())?;
+/// assert_eq!(definitions[0].name, "plan");
+/// # Ok(())
+/// # }
+/// ```
 pub fn load_command_definitions(source_dir: &Path) -> Result<Vec<CommandDefinition>> {
     let mut paths = std::fs::read_dir(source_dir)
         .with_context(|| format!("reading command source dir {}", source_dir.display()))?
@@ -75,6 +140,20 @@ pub fn load_command_definitions(source_dir: &Path) -> Result<Vec<CommandDefiniti
 }
 
 /// Render definitions deterministically for one target.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::command::{CommandDefinition, CommandTarget, render_commands};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let templates = tempfile::tempdir()?;
+/// let definitions = [CommandDefinition::new("plan", "Plan $ARGUMENTS")];
+/// let rendered = render_commands(&definitions, CommandTarget::OpenCode, templates.path())?;
+/// assert_eq!(rendered[0].file_name, "gm-plan.md");
+/// # Ok(())
+/// # }
+/// ```
 pub fn render_commands(
     definitions: &[CommandDefinition],
     target: CommandTarget,
@@ -90,28 +169,49 @@ pub fn render_commands(
 }
 
 /// Write rendered commands, or return their paths without mutation in dry-run mode.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::command::{RenderedCommand, write_rendered_commands};
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let output = tempfile::tempdir()?;
+/// let commands = [RenderedCommand::new("gm-plan.md", "# Plan\n")];
+/// let paths = write_rendered_commands(&commands, output.path(), false)?;
+/// assert_eq!(std::fs::read_to_string(&paths[0])?, "# Plan\n");
+/// # Ok(())
+/// # }
+/// ```
 pub fn write_rendered_commands(
     commands: &[RenderedCommand],
     output_dir: &Path,
     dry_run: bool,
 ) -> Result<Vec<PathBuf>> {
-    if !dry_run {
-        std::fs::create_dir_all(output_dir)
-            .with_context(|| format!("creating command output dir {}", output_dir.display()))?;
-    }
-    commands
+    let files = commands
         .iter()
-        .map(|command| {
-            let path = output_dir.join(&command.file_name);
-            if !dry_run {
-                write_atomic(&path, command.content.as_bytes())?;
-            }
-            Ok(path)
-        })
-        .collect()
+        .map(|command| ProjectionFile::new(&command.file_name, &command.content))
+        .collect::<Vec<_>>();
+    write_projection(&files, output_dir, dry_run)
 }
 
 /// Fail when managed command output differs from the rendered set.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::command::{
+///     RenderedCommand, check_rendered_commands, write_rendered_commands,
+/// };
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let output = tempfile::tempdir()?;
+/// let commands = [RenderedCommand::new("gm-plan.md", "# Plan\n")];
+/// write_rendered_commands(&commands, output.path(), false)?;
+/// check_rendered_commands(&commands, output.path())?;
+/// # Ok(())
+/// # }
+/// ```
 pub fn check_rendered_commands(commands: &[RenderedCommand], output_dir: &Path) -> Result<()> {
     let expected = commands
         .iter()
@@ -139,62 +239,6 @@ pub fn check_rendered_commands(commands: &[RenderedCommand], output_dir: &Path) 
         }
     }
     Ok(())
-}
-
-fn write_atomic(path: &Path, content: &[u8]) -> Result<()> {
-    let parent = path
-        .parent()
-        .with_context(|| format!("command path has no parent: {}", path.display()))?;
-    let file_name = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .with_context(|| format!("invalid command output filename {}", path.display()))?;
-
-    for attempt in 0..100_u32 {
-        let temporary = parent.join(format!(
-            ".{file_name}.{}.{}.tmp",
-            std::process::id(),
-            attempt
-        ));
-        let mut file = match std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&temporary)
-        {
-            Ok(file) => file,
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
-            Err(error) => {
-                return Err(error).with_context(|| {
-                    format!("creating temporary command {}", temporary.display())
-                });
-            }
-        };
-
-        let result = (|| -> Result<()> {
-            file.write_all(content)
-                .with_context(|| format!("writing temporary command {}", temporary.display()))?;
-            file.sync_all()
-                .with_context(|| format!("syncing temporary command {}", temporary.display()))?;
-            drop(file);
-            std::fs::rename(&temporary, path).with_context(|| {
-                format!(
-                    "atomically replacing command {} with {}",
-                    path.display(),
-                    temporary.display()
-                )
-            })?;
-            Ok(())
-        })();
-        if result.is_err() {
-            let _ = std::fs::remove_file(&temporary);
-        }
-        return result;
-    }
-
-    bail!(
-        "unable to allocate temporary command file for {}",
-        path.display()
-    )
 }
 
 fn validate_definitions(definitions: &[CommandDefinition]) -> Result<()> {
@@ -274,10 +318,10 @@ fn render_command(
         let references = regex::Regex::new(r"/gm:([a-z0-9-]+)")?;
         body = references.replace_all(&body, "/gm-$1").into_owned();
     }
-    Ok(RenderedCommand {
-        file_name: format!("gm-{}.md", definition.name),
-        content: body,
-    })
+    Ok(RenderedCommand::new(
+        format!("gm-{}.md", definition.name),
+        body,
+    ))
 }
 
 #[cfg(test)]
@@ -362,6 +406,41 @@ mod tests {
     }
 
     #[test]
+    fn load_reports_missing_source_directory() {
+        let temp = TempDir::new().unwrap();
+        let error = load_command_definitions(&temp.path().join("missing")).unwrap_err();
+        assert!(error.to_string().contains("reading command source dir"));
+    }
+
+    #[test]
+    fn load_reports_malformed_yaml() {
+        let temp = TempDir::new().unwrap();
+        std::fs::write(temp.path().join("broken.yaml"), "name: [broken").unwrap();
+        let error = load_command_definitions(temp.path()).unwrap_err();
+        assert!(error.to_string().contains("parsing command definition"));
+    }
+
+    #[test]
+    fn load_rejects_empty_prompt() {
+        let temp = TempDir::new().unwrap();
+        std::fs::write(
+            temp.path().join("empty.yaml"),
+            "name: empty\nprompt: '  '\n",
+        )
+        .unwrap();
+        let error = load_command_definitions(temp.path()).unwrap_err();
+        assert!(error.to_string().contains("empty prompt"));
+    }
+
+    #[test]
+    fn load_reports_definition_read_errors() {
+        let temp = TempDir::new().unwrap();
+        std::fs::create_dir(temp.path().join("blocked.yaml")).unwrap();
+        let error = load_command_definitions(temp.path()).unwrap_err();
+        assert!(error.to_string().contains("reading command definition"));
+    }
+
+    #[test]
     fn render_rejects_duplicate_command_names() {
         let temp = TempDir::new().unwrap();
         assert!(
@@ -406,5 +485,19 @@ mod tests {
         check_rendered_commands(&rendered, temp.path()).unwrap();
         std::fs::write(temp.path().join("gm-plan.md"), "stale").unwrap();
         assert!(check_rendered_commands(&rendered, temp.path()).is_err());
+    }
+
+    #[test]
+    fn stale_check_rejects_unexpected_managed_command() {
+        let temp = TempDir::new().unwrap();
+        let rendered =
+            render_commands(&[definition()], CommandTarget::Claude, temp.path()).unwrap();
+        write_rendered_commands(&rendered, temp.path(), false).unwrap();
+        std::fs::write(temp.path().join("gm-unexpected.md"), "unexpected").unwrap();
+
+        let error = check_rendered_commands(&rendered, temp.path()).unwrap_err();
+
+        assert!(error.to_string().contains("unexpected managed command"));
+        assert!(error.to_string().contains("gm-unexpected.md"));
     }
 }
