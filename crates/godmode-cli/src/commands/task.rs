@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use godmode_core::session::Session;
 use godmode_core::{detect, graph, integrations, model, templates};
 use std::path::Path;
@@ -248,7 +248,13 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
                 .filter(|t| t.status == model::Status::Done)
             {
                 if let Some(uuid) = task.notes.strip_prefix("doob:") {
-                    integrations::doob::todo_done(uuid.trim())?;
+                    integrations::doob::todo_done(uuid.trim()).with_context(|| {
+                        format!(
+                            "pushing doob todo {} after {} completed task(s)",
+                            uuid.trim(),
+                            pushed
+                        )
+                    })?;
                     pushed += 1;
                 }
             }
@@ -288,6 +294,7 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
             }
         }
         TaskAction::ListTemplates => {
+            validate_local_templates(root)?;
             let entries = templates::list(root)?;
             if entries.is_empty() {
                 if json {
@@ -317,6 +324,27 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
         }
     }
 
+    Ok(())
+}
+
+fn validate_local_templates(root: &Path) -> Result<()> {
+    let dir = root.join("templates");
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    let entries = templates::list(root)?;
+    let valid = entries
+        .iter()
+        .map(|entry| entry.path.as_path())
+        .collect::<std::collections::HashSet<_>>();
+    for entry in std::fs::read_dir(&dir).with_context(|| format!("reading {}", dir.display()))? {
+        let path = entry?.path();
+        if path.extension().and_then(|value| value.to_str()) == Some("yaml")
+            && !valid.contains(path.as_path())
+        {
+            anyhow::bail!("invalid template {}", path.display());
+        }
+    }
     Ok(())
 }
 

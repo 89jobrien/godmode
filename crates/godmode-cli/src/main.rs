@@ -6,9 +6,11 @@
 #![allow(clippy::items_after_test_module)]
 #![deny(missing_docs)]
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
-use godmode_core::{detect, model, templates};
+use godmode_core::{
+    agent, agent_index, detect, dispatch, model, plan, session::Session, templates,
+};
 
 mod commands;
 
