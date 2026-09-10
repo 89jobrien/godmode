@@ -1,9 +1,9 @@
 ---
 name: "godmode:observability-as-infrastructure"
 description: >
-  Structured tracing for all godmode helpers and subagents. Every script
-  invocation, branching decision, and agent lifecycle transition is recorded
-  as a JSONL event. Use when diagnosing session failures, auditing agent
+  Structured tracing for instrumented godmode helpers and agent lifecycles. Skill
+  dispatch hooks record start/completion/error events; helpers record internal
+  decisions only when they call the shared trace library. Use when diagnosing session failures, auditing agent
   convergence, or reviewing cross-session continuity.
 requires: []
 next: []
@@ -11,9 +11,10 @@ next: []
 
 # Observability as Infrastructure
 
-The trace file is the infrastructure. No external monitoring needed — every
-helper and agent emits structured events to `.ctx/godmode/traces/trace.jsonl`, the
-same append-only file used by the core CLI's `start_traced`/`complete_traced`.
+Godmode's native trace reader uses `.ctx/godmode/traces/trace.jsonl`. Claude Skill
+hooks record dispatched skill outcomes, session hooks record lifecycle events, and
+helpers that import `skills/_lib/trace.nu` can add decision and agent events. Scripts
+run outside those hooks are not traced unless they explicitly use that library.
 
 ## Event Schema
 
@@ -27,17 +28,17 @@ All events share a common envelope:
 
 ### Event kinds
 
-| Event            | Emitted by        | Key fields                             |
-| ---------------- | ----------------- | -------------------------------------- |
-| `skill.start`    | every helper      | `skill`, `helper`, `args`, `trace_id`  |
-| `skill.complete` | every helper      | `trace_id`, `duration_ms`              |
-| `skill.error`    | every helper      | `trace_id`, `exit_code`, `stderr_tail` |
-| `decision`       | branching helpers | `skill`, `helper`, `kind`, `value`     |
-| `agent.approved` | agent-governance  | `agent_id`, `reason`                   |
-| `agent.denied`   | agent-governance  | `agent_id`, `reason`                   |
-| `agent.start`    | parallel-agents   | `agent_id`, `slot`, `crate`            |
-| `agent.complete` | parallel-agents   | `agent_id`, `slot`, `commits`          |
-| `agent.blocked`  | parallel-agents   | `agent_id`, `slot`, `reason`           |
+| Event            | Emitted by                        | Key fields                             |
+| ---------------- | --------------------------------- | -------------------------------------- |
+| `skill.start`    | Skill hook or instrumented helper | `skill`, `helper`, `args`, `trace_id`  |
+| `skill.complete` | Skill hook or instrumented helper | `trace_id`, `duration_ms`              |
+| `skill.error`    | Skill hook or instrumented helper | `trace_id`, `exit_code`, `stderr_tail` |
+| `decision`       | branching helpers                 | `skill`, `helper`, `kind`, `value`     |
+| `agent.approved` | agent-governance                  | `agent_id`, `reason`                   |
+| `agent.denied`   | agent-governance                  | `agent_id`, `reason`                   |
+| `agent.start`    | parallel-agents                   | `agent_id`, `slot`, `crate`            |
+| `agent.complete` | parallel-agents                   | `agent_id`, `slot`, `commits`          |
+| `agent.blocked`  | parallel-agents                   | `agent_id`, `slot`, `reason`           |
 
 ### Session identity
 
@@ -48,7 +49,7 @@ work across sessions.
 
 ## Shared library
 
-All helpers source `skills/_lib/trace.nu`:
+Instrumented Nushell helpers source `skills/_lib/trace.nu`:
 
 ```nushell
 use ($"(repo-root)/skills/_lib/trace.nu") *
@@ -93,9 +94,16 @@ rows without an `event` field without aborting; `trace stats` reports legacy and
 malformed row counts. Tail, failures, and stats accept `--current` or an explicit
 `--session <id>`.
 
+### Deprecated helper paths
+
+`helpers/trace-tail.nu`, `trace-failures.nu`, `trace-stats.nu`, and
+`session-summary.nu` remain as compatibility wrappers. They forward arguments and
+exit status to the corresponding native `godmode trace` command; new callers
+should invoke the CLI directly.
+
 ## Instrumentation contract
 
-Every helper **must**:
+Any helper claiming internal instrumentation **must**:
 
 1. Call `trace-start` before any work; capture the returned `trace_id`.
 2. Wrap every `run-external` call with `| complete` and check `exit_code`.

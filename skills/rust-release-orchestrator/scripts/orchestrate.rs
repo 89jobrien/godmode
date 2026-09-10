@@ -266,6 +266,16 @@ fn is_rate_limited(output: &str) -> bool {
         .any(|marker| output.contains(marker))
 }
 
+fn retry_delay(attempt: u32, base_ms: Option<u64>) -> Duration {
+    let factor = 1_u64
+        .checked_shl(attempt.saturating_sub(1))
+        .unwrap_or(u64::MAX);
+    match base_ms {
+        Some(base) => Duration::from_millis(base.saturating_mul(factor)),
+        None => Duration::from_secs(5_u64.saturating_mul(factor)),
+    }
+}
+
 fn publish_crate(package: &Package, dry_run: bool, max_retries: u32) -> Result<bool> {
     let cwd = package
         .manifest_path
@@ -276,6 +286,9 @@ fn publish_crate(package: &Package, dry_run: bool, max_retries: u32) -> Result<b
     } else {
         vec!["publish"]
     };
+    let retry_base_ms = std::env::var("GODMODE_RELEASE_RETRY_BASE_MS")
+        .ok()
+        .and_then(|value| value.parse().ok());
     for attempt in 1..=max_retries {
         info(format!(
             "Publishing {} v{} (attempt {attempt}/{max_retries})",
@@ -290,14 +303,17 @@ fn publish_crate(package: &Package, dry_run: bool, max_retries: u32) -> Result<b
             fail(format!("{} publish failed:\n{text}", package.name));
             return Ok(false);
         }
-        let wait = 5_u64 * 2_u64.pow(attempt - 1);
+        let wait = retry_delay(attempt, retry_base_ms);
         if is_rate_limited(&text) {
-            warn(format!("Rate limited; retrying in {wait}s"));
+            warn(format!(
+                "Rate limited; retrying in {:.3}s",
+                wait.as_secs_f64()
+            ));
         } else {
             fail(format!("{} publish failed:\n{text}", package.name));
-            warn(format!("Retrying in {wait}s"));
+            warn(format!("Retrying in {:.3}s", wait.as_secs_f64()));
         }
-        thread::sleep(Duration::from_secs(wait));
+        thread::sleep(wait);
     }
     Ok(false)
 }
@@ -385,13 +401,18 @@ fn main() -> Result<()> {
         }
     }
 
+    let max_retries = std::env::var("GODMODE_RELEASE_MAX_RETRIES")
+        .ok()
+        .and_then(|value| value.parse::<u32>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(5);
     let mut results = BTreeMap::new();
     for package in &order {
         if state.published.contains(&package.name) {
             results.insert(package.name.clone(), ResultStatus::Skipped);
             continue;
         }
-        if publish_crate(package, args.dry_run, 5)? {
+        if publish_crate(package, args.dry_run, max_retries)? {
             results.insert(package.name.clone(), ResultStatus::Published);
             if !args.dry_run {
                 state.published.push(package.name.clone());
@@ -482,6 +503,12 @@ mod tests {
     fn dry_run_disables_mutating_gate_remediation() {
         assert!(!allow_remediation(true));
         assert!(allow_remediation(false));
+    }
+
+    #[test]
+    fn retry_delay_can_be_disabled_for_fake_cargo_integration_tests() {
+        assert_eq!(retry_delay(3, Some(0)), Duration::ZERO);
+        assert_eq!(retry_delay(3, Some(2)), Duration::from_millis(8));
     }
 
     #[test]

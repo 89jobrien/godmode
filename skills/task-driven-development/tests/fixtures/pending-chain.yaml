@@ -1,0 +1,17 @@
+tasks:
+  - id: t1
+    title: core behavior
+    crate: demo
+    test: core_test
+    phase: pending
+    status: pending
+    depends_on: []
+    attempts: 0
+  - id: t2
+    title: dependent behavior
+    crate: demo
+    test: dependent_test
+    phase: pending
+    status: pending
+    depends_on: [t1]
+    attempts: 0

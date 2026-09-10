@@ -53,4 +53,3 @@ Session <id> — <date>
 
 Print one block per session, oldest first. Flag any session with errors or anomalies at the
 top of its block with a `[ANOMALY]` prefix.
-
