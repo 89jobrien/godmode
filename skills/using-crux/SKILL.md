@@ -20,7 +20,7 @@ serializable, and replayable.
 - **Edition**: Rust 2024
 - **MSRV**: 1.89
 - **License**: MIT
-- **Repo**: `<repository-url>`
+- **Repo**: `https://github.com/89jobrien/crux`
 
 ## Workspace Layout
 
@@ -89,21 +89,21 @@ For **external consumers** that only need the wire types (e.g., minibox):
 
 ```toml
 [dependencies]
-crux-types = { git = "<repository-url>", rev = "<sha>" }
+crux-types = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
 ```
 
 For **full runtime access**:
 
 ```toml
 [dependencies]
-crux = { git = "<repository-url>", rev = "<sha>" }
+crux = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
 ```
 
 For **plugin protocol** (subprocess plugins):
 
 ```toml
 [dependencies]
-crux-plugin = { git = "<repository-url>", rev = "<sha>" }
+crux-plugin = { git = "https://github.com/89jobrien/crux", rev = "<sha>" }
 ```
 
 ## Key Types and Traits

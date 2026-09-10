@@ -120,6 +120,61 @@ mod tests {
     fn non_leap_century_rolls_into_march() {
         assert_eq!(days_to_ymd(47_541), (2100, 3, 1));
     }
+
+    fn temp_root(label: &str) -> PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "godmode-trace-{label}-{}-{}",
+            process::id(),
+            epoch_ms()
+        ));
+        fs::create_dir_all(&root).unwrap();
+        root
+    }
+
+    #[test]
+    fn start_then_end_persists_one_session_lifecycle() {
+        let root = temp_root("lifecycle");
+        handle_command("start", &root);
+        let ctx = root.join(".ctx/godmode");
+        let session = read_session_id(&ctx).expect("session id");
+        handle_command("end", &root);
+        let lines = fs::read_to_string(ctx.join("traces/trace.jsonl")).unwrap();
+        let events = lines
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(events.len(), 2);
+        assert_eq!(events[0]["event"], "session.start");
+        assert_eq!(events[1]["event"], "session.end");
+        assert_eq!(events[1]["session_id"], session);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn corrupt_session_is_ignored_and_concurrent_appends_remain_jsonl() {
+        let root = temp_root("io");
+        let ctx = root.join(".ctx/godmode");
+        fs::create_dir_all(ctx.join("traces")).unwrap();
+        fs::write(ctx.join("session.json"), "{").unwrap();
+        handle_command("end", &root);
+        assert!(!ctx.join("traces/trace.jsonl").exists());
+        let mut threads = Vec::new();
+        for index in 0..32 {
+            let ctx = ctx.clone();
+            threads.push(std::thread::spawn(move || {
+                append_event(&ctx, serde_json::json!({"index": index}))
+            }));
+        }
+        for thread in threads {
+            thread.join().unwrap();
+        }
+        let lines = fs::read_to_string(ctx.join("traces/trace.jsonl")).unwrap();
+        assert_eq!(lines.lines().count(), 32);
+        assert!(lines
+            .lines()
+            .all(|line| serde_json::from_str::<Value>(line).is_ok()));
+        fs::remove_dir_all(root).unwrap();
+    }
 }
 
 fn git_short_sha(git_root: &PathBuf) -> String {
@@ -168,23 +223,16 @@ fn append_event(ctx_dir: &PathBuf, event: Value) {
     }
 }
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 3 {
-        eprintln!("usage: godmode-trace <start|end> <git-root>");
-        process::exit(0);
-    }
-    let cmd = &args[1];
-    let git_root = PathBuf::from(&args[2]);
+fn handle_command(cmd: &str, git_root: &PathBuf) {
     let ctx_dir = git_root.join(".ctx").join("godmode");
     let traces_dir = ctx_dir.join("traces");
+    if fs::create_dir_all(&traces_dir).is_err() {
+        return;
+    }
 
-    let _ = fs::create_dir_all(&traces_dir);
-
-    match cmd.as_str() {
+    match cmd {
         "start" => {
-            // Always create a fresh session on start
-            let sha = git_short_sha(&git_root);
+            let sha = git_short_sha(git_root);
             let sid = format!("{}-{}", sha, epoch_ms());
             let session = Session {
                 session_id: sid.clone(),
@@ -217,10 +265,15 @@ fn main() {
                 eprintln!("[godmode] session ended: {session_id}");
             }
         }
-        _ => {
-            eprintln!("[godmode-trace] unknown command: {cmd}");
-        }
+        _ => eprintln!("[godmode-trace] unknown command: {cmd}"),
     }
+}
 
-    process::exit(0);
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() < 3 {
+        eprintln!("usage: godmode-trace <start|end> <git-root>");
+        return;
+    }
+    handle_command(&args[1], &PathBuf::from(&args[2]));
 }

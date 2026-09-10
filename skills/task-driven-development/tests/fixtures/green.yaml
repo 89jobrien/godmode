@@ -1,0 +1,9 @@
+tasks:
+  - id: t1
+    title: preserve phase
+    crate: demo
+    test: behavior
+    phase: green
+    status: running
+    depends_on: []
+    attempts: 1

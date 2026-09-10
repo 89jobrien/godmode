@@ -20,7 +20,7 @@
 //!   task-runner.rs fail <id> --reason <text>
 //!   task-runner.rs close-issues
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -231,9 +231,12 @@ fn cmd_red(id: &str) -> Result<()> {
             }
             bail!("blocked");
         }
-        if task.status == Status::Done {
-            println!("Task {id} is already done");
-            return Ok(());
+        if task.status != Status::Pending || task.phase != Phase::Pending {
+            bail!(
+                "Task {id} must be pending before red (phase={:?}, status={:?})",
+                task.phase,
+                task.status
+            );
         }
         task.attempts += 1;
         if task.attempts > MAX_ATTEMPTS {
@@ -379,6 +382,9 @@ fn cmd_fail(id: &str, reason: &str) -> Result<()> {
     let mut data = load()?;
     {
         let task = get_task_mut(&mut data.tasks, id)?;
+        if task.status == Status::Done {
+            bail!("Task {id} is done and cannot be blocked");
+        }
         task.status = Status::Blocked;
         task.notes = reason.to_string();
         println!("[blocked] {id} — {reason}");

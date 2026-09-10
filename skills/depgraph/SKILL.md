@@ -31,21 +31,20 @@ tracking.
 
 ## Usage
 
-The script lives at `xtask/scripts/depgraph-report.py` in any repo that
-has it, or can be copied from the skill helpers directory.
+Run the bundled helper directly; `--repo` selects the workspace to analyze.
 
 ```bash
 # Current branch vs main, open in browser
-python3 xtask/scripts/depgraph-report.py --open
+python3 "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" --repo . --open
 
 # Specific branch and base
-python3 xtask/scripts/depgraph-report.py --branch feat/foo --base develop
+python3 "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" --repo . --branch feat/foo --base develop
 
 # Custom output
-python3 xtask/scripts/depgraph-report.py --output /tmp/report.html
+python3 "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" --repo . --output /tmp/report.html
 
 # Different repo
-python3 xtask/scripts/depgraph-report.py --repo ~/dev/other-workspace --open
+python3 "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" --repo "$HOME/dev/other-workspace" --open
 ```
 
 ## Process
@@ -53,16 +52,7 @@ python3 xtask/scripts/depgraph-report.py --repo ~/dev/other-workspace --open
 ### Step 1: Run the report
 
 ```bash
-python3 xtask/scripts/depgraph-report.py --repo <workspace> --open
-```
-
-If the script is not present in the target repo, copy it from the skill
-helpers directory:
-
-```bash
-mkdir -p <repo>/xtask/scripts
-cp "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" <repo>/xtask/scripts/
-cp "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph_layout.py" <repo>/xtask/scripts/
+python3 "$CLAUDE_PLUGIN_ROOT/skills/depgraph/helpers/depgraph-report.py" --repo <workspace> --open
 ```
 
 ### Step 2: Read the health score
