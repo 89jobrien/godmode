@@ -85,7 +85,7 @@ trace-agent-blocked  $agent_id $slot $reason
 | -------------------------- | ------------------------------------------------------------- |
 | `godmode trace tail --n N` | Last N events; `--session <id>` scopes the query              |
 | `godmode trace failures`   | All `skill.error`, `agent.blocked`, and `agent.denied` events |
-| `godmode trace stats`      | Duration histogram, agent convergence, decision log           |
+| `godmode trace stats`      | Duration aggregates, agent convergence, decision log          |
 | `godmode trace summary`    | Cross-session triage: errors, blocked agents, unresolved work |
 
 Every query supports the global `--json` flag. The Rust reader ignores legacy

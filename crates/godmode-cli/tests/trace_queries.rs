@@ -143,3 +143,40 @@ fn trace_queries_handle_missing_files_and_reject_invalid_limits() {
         .unwrap();
     assert!(!missing_current.status.success());
 }
+
+#[test]
+fn current_trace_query_reports_malformed_session_state_context() {
+    let temp = tempfile::tempdir().unwrap();
+    let session_path = temp.path().join(".ctx/godmode/session.json");
+    std::fs::create_dir_all(session_path.parent().unwrap()).unwrap();
+    std::fs::write(&session_path, "{not-json}").unwrap();
+
+    let result = Command::new(godmode_bin())
+        .args(["trace", "stats", "--current"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+
+    assert!(!result.status.success());
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert!(stderr.contains("parsing"), "{stderr}");
+    assert!(stderr.contains(".ctx/godmode/session.json"), "{stderr}");
+}
+
+#[test]
+fn current_trace_query_reports_unreadable_session_state_context() {
+    let temp = tempfile::tempdir().unwrap();
+    let session_path = temp.path().join(".ctx/godmode/session.json");
+    std::fs::create_dir_all(&session_path).unwrap();
+
+    let result = Command::new(godmode_bin())
+        .args(["trace", "stats", "--current"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+
+    assert!(!result.status.success());
+    let stderr = String::from_utf8_lossy(&result.stderr);
+    assert!(stderr.contains("reading"), "{stderr}");
+    assert!(stderr.contains(".ctx/godmode/session.json"), "{stderr}");
+}
