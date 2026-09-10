@@ -6,6 +6,9 @@ use std::path::{Path, PathBuf};
 
 use crate::projection::{ProjectionFile, write_projection};
 
+pub mod fs;
+pub mod render;
+
 /// Supported command output formats.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommandTarget {
@@ -159,12 +162,46 @@ pub fn render_commands(
     target: CommandTarget,
     template_dir: &Path,
 ) -> Result<Vec<RenderedCommand>> {
+    let mut templates = std::collections::BTreeMap::new();
+    for name in definitions
+        .iter()
+        .filter_map(|definition| definition.template.as_ref())
+    {
+        if templates.contains_key(name) {
+            continue;
+        }
+        let path = template_dir.join(format!("{name}.md"));
+        let template = std::fs::read_to_string(&path)
+            .with_context(|| format!("reading command template {}", path.display()))?;
+        templates.insert(name.clone(), template);
+    }
+    render_commands_with_templates(definitions, target, &templates)
+}
+
+/// Render commands using already-loaded templates and no filesystem access.
+pub fn render_commands_with_templates(
+    definitions: &[CommandDefinition],
+    target: CommandTarget,
+    templates: &std::collections::BTreeMap<String, String>,
+) -> Result<Vec<RenderedCommand>> {
     validate_definitions(definitions)?;
     let mut definitions = definitions.iter().collect::<Vec<_>>();
     definitions.sort_by(|left, right| left.name.cmp(&right.name));
     definitions
         .into_iter()
-        .map(|definition| render_command(definition, target, template_dir))
+        .map(|definition| {
+            let template = definition
+                .template
+                .as_ref()
+                .map(|name| {
+                    templates
+                        .get(name)
+                        .map(String::as_str)
+                        .with_context(|| format!("missing command template {name}"))
+                })
+                .transpose()?;
+            render_command(definition, target, template)
+        })
         .collect()
 }
 
@@ -188,11 +225,20 @@ pub fn write_rendered_commands(
     output_dir: &Path,
     dry_run: bool,
 ) -> Result<Vec<PathBuf>> {
+    write_rendered_commands_with_mode(commands, output_dir, dry_run.into())
+}
+
+/// Write rendered commands according to an explicit mutation mode.
+pub fn write_rendered_commands_with_mode(
+    commands: &[RenderedCommand],
+    output_dir: &Path,
+    mode: crate::write_mode::WriteMode,
+) -> Result<Vec<PathBuf>> {
     let files = commands
         .iter()
         .map(|command| ProjectionFile::new(&command.file_name, &command.content))
         .collect::<Vec<_>>();
-    write_projection(&files, output_dir, dry_run)
+    write_projection(&files, output_dir, !mode.writes())
 }
 
 /// Fail when managed command output differs from the rendered set.
@@ -273,7 +319,7 @@ fn validate_definition(definition: &CommandDefinition) -> Result<()> {
 fn render_command(
     definition: &CommandDefinition,
     target: CommandTarget,
-    template_dir: &Path,
+    template: Option<&str>,
 ) -> Result<RenderedCommand> {
     let description = definition.description.clone().unwrap_or_else(|| {
         definition
@@ -306,14 +352,11 @@ fn render_command(
             format!("---\ndescription: {quoted}\nsubtask: false\n---\n")
         }
     };
-    let template = if let Some(name) = &definition.template {
-        let path = template_dir.join(format!("{name}.md"));
-        std::fs::read_to_string(&path)
-            .with_context(|| format!("reading command template {}", path.display()))?
-    } else {
-        String::new()
-    };
-    let mut body = format!("{frontmatter}\n{template}\n{}", definition.prompt);
+    let mut body = format!(
+        "{frontmatter}\n{}\n{}",
+        template.unwrap_or_default(),
+        definition.prompt
+    );
     if target == CommandTarget::OpenCode {
         let references = regex::Regex::new(r"/gm:([a-z0-9-]+)")?;
         body = references.replace_all(&body, "/gm-$1").into_owned();
@@ -499,5 +542,59 @@ mod tests {
 
         assert!(error.to_string().contains("unexpected managed command"));
         assert!(error.to_string().contains("gm-unexpected.md"));
+    }
+
+    #[test]
+    fn pure_renderer_uses_supplied_templates_without_filesystem() {
+        let mut templates = std::collections::BTreeMap::new();
+        templates.insert("ops".to_string(), "Pure template".to_string());
+        let mut command = definition();
+        command.template = Some("ops".into());
+        let rendered =
+            render_commands_with_templates(&[command], CommandTarget::Claude, &templates).unwrap();
+        assert!(rendered[0].content.contains("Pure template"));
+    }
+
+    #[test]
+    fn pure_renderer_reports_missing_template() {
+        let mut command = definition();
+        command.template = Some("missing".into());
+        let error =
+            render_commands_with_templates(&[command], CommandTarget::Claude, &Default::default())
+                .unwrap_err()
+                .to_string();
+        assert!(error.contains("missing"), "{error}");
+    }
+
+    #[test]
+    fn explicit_preview_mode_does_not_write_commands() {
+        let temp = TempDir::new().unwrap();
+        let output = temp.path().join("commands");
+        let rendered =
+            render_commands(&[definition()], CommandTarget::OpenCode, temp.path()).unwrap();
+        write_rendered_commands_with_mode(
+            &rendered,
+            &output,
+            crate::write_mode::WriteMode::Preview,
+        )
+        .unwrap();
+        assert!(!output.exists());
+    }
+
+    #[test]
+    fn command_write_error_names_destination() {
+        let temp = TempDir::new().unwrap();
+        let output = temp.path().join("commands");
+        std::fs::write(&output, "file").unwrap();
+        let rendered =
+            render_commands(&[definition()], CommandTarget::OpenCode, temp.path()).unwrap();
+        let error = write_rendered_commands_with_mode(
+            &rendered,
+            &output,
+            crate::write_mode::WriteMode::Write,
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("commands"), "{error}");
     }
 }

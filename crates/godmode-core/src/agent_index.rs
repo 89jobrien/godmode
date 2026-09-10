@@ -38,6 +38,27 @@ pub struct AgentEntry {
 
 /// Walk `<root>/agents/*.md`, parse YAML frontmatter, return sorted entries.
 pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
+    list_agents_impl(root, false)
+}
+
+/// Discover agents while reporting malformed authoritative configuration.
+///
+/// # Errors
+///
+/// Returns an error when discovery or authoritative parsing fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -> anyhow::Result<()> {
+/// let _ = godmode_core::agent_index::list_agents_strict(std::path::Path::new("."))?;
+/// # Ok(()) }
+/// ```
+pub fn list_agents_strict(root: &Path) -> Result<Vec<AgentEntry>> {
+    list_agents_impl(root, true)
+}
+
+fn list_agents_impl(root: &Path, strict: bool) -> Result<Vec<AgentEntry>> {
     let agents_dir = root.join("agents");
     if !agents_dir.exists() {
         return Ok(vec![]);
@@ -72,7 +93,11 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
     let mut authoritative_names = std::collections::BTreeMap::new();
     for name in cfg_names {
         let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
-        let def = agent::load(&cfg_path)?;
+        let def = match agent::load(&cfg_path) {
+            Ok(def) => def,
+            Err(error) if strict => return Err(error),
+            Err(_) => continue,
+        };
         if let Some(previous) = authoritative_names.insert(def.name.clone(), cfg_path.clone()) {
             bail!(
                 "duplicate authoritative agent name '{}' in {} and {}",
@@ -392,15 +417,19 @@ mod tests {
     }
 
     #[test]
-    fn list_agents_reports_invalid_authoritative_cfg() {
+    fn list_agents_tolerates_invalid_authoritative_cfg() {
         let tmp = tempfile::tempdir().unwrap();
         let cfg_dir = tmp.path().join("agents/cfg");
         fs::create_dir_all(&cfg_dir).unwrap();
         fs::write(cfg_dir.join("broken.cfg.yaml"), "name: [invalid").unwrap();
 
-        let error = list_agents(tmp.path()).unwrap_err();
-
-        assert!(error.to_string().contains("parsing agent YAML"));
+        assert!(list_agents(tmp.path()).unwrap().is_empty());
+        assert!(
+            list_agents_strict(tmp.path())
+                .unwrap_err()
+                .to_string()
+                .contains("parsing agent YAML")
+        );
     }
 
     #[test]

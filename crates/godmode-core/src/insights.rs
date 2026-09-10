@@ -87,21 +87,56 @@ pub fn append(root: &Path, insight: &Insight) -> Result<()> {
 /// Read all insights from `.ctx/godmode/traces/insights.jsonl`.
 /// Returns an empty vec if the file does not exist.
 pub fn list(root: &Path) -> Result<Vec<Insight>> {
-    let path = insights_path(root);
-    if !path.exists() {
-        return Ok(vec![]);
-    }
-    let contents = std::fs::read_to_string(&path)?;
+    let canonical = insights_path(root);
+    let legacy = root.join(".ctx/insights.jsonl");
     let mut out = Vec::new();
-    for line in contents.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
+    let mut seen = std::collections::BTreeSet::new();
+    for path in [&canonical, &legacy] {
+        let contents = match std::fs::read_to_string(path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
+        };
+        for line in contents
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+        {
+            match serde_json::from_str::<Insight>(line) {
+                Ok(insight) => {
+                    let identity = serde_json::to_string(&insight)?;
+                    if seen.insert(identity) {
+                        out.push(insight);
+                    }
+                }
+                Err(error) => eprintln!("godmode: skipping malformed insight line: {error}"),
+            }
         }
-        match serde_json::from_str::<Insight>(line) {
-            Ok(i) => out.push(i),
-            Err(e) => eprintln!("godmode: skipping malformed insight line: {e}"),
+    }
+    if legacy.exists() {
+        if let Some(parent) = canonical.parent() {
+            std::fs::create_dir_all(parent)?;
         }
+        let rows = out
+            .iter()
+            .map(serde_json::to_string)
+            .collect::<Result<Vec<_>, _>>()?
+            .join(
+                "
+",
+            );
+        std::fs::write(
+            &canonical,
+            if rows.is_empty() {
+                rows
+            } else {
+                format!(
+                    "{rows}
+"
+                )
+            },
+        )?;
+        std::fs::remove_file(legacy)?;
     }
     Ok(out)
 }
@@ -120,21 +155,63 @@ pub fn list_for_date(root: &Path, date: NaiveDate) -> Result<Vec<Insight>> {
 /// Overwrites the report for the given date and updates the report index on a
 /// best-effort basis.
 pub fn render_markdown(root: &Path, date: NaiveDate) -> Result<PathBuf> {
+    render_markdown_with_index(root, date, &JsonFileIndex::new(root))
+}
+
+/// Render a daily report using an injected report-index adapter.
+///
+/// # Errors
+///
+/// Returns an error when insight migration, report writing, or directory creation fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -> anyhow::Result<()> {
+/// use godmode_core::{insights, report_index::JsonFileIndex};
+/// let root = std::path::Path::new(".");
+/// let _ = insights::render_markdown_with_index(root, insights::today(), &JsonFileIndex::new(root))?;
+/// # Ok(()) }
+/// ```
+pub fn render_markdown_with_index(
+    root: &Path,
+    date: NaiveDate,
+    index: &dyn ReportIndexPort,
+) -> Result<PathBuf> {
     let insights = list_for_date(root, date)?;
     let path = insights_md_path(root, &date);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let mut buf = format!("# Insights — {}\n", date.format("%Y-%m-%d"));
-    for insight in &insights {
-        buf.push_str(&format!("\n## {}\n\n{}\n", insight.title, insight.body));
+    let legacy = root.join(".ctx").join(format!("insights-{date}.md"));
+    if insights.is_empty() && legacy.exists() {
+        std::fs::rename(&legacy, &path).or_else(|_| {
+            std::fs::copy(&legacy, &path)?;
+            std::fs::remove_file(&legacy)
+        })?;
+    } else {
+        let mut buf = format!(
+            "# Insights — {}
+",
+            date.format("%Y-%m-%d")
+        );
+        for insight in &insights {
+            buf.push_str(&format!(
+                "
+## {}
+
+{}
+",
+                insight.title, insight.body
+            ));
+        }
+        std::fs::write(&path, &buf)?;
+        if legacy.exists() {
+            std::fs::remove_file(legacy)?;
+        }
     }
-    std::fs::write(&path, &buf)?;
-
-    // Update the report index (non-fatal — don't block render on index failure)
     let filename = format!("insights-{}.md", date.format("%Y-%m-%d"));
-    let _ = JsonFileIndex::new(root).add_entry("insights", &filename);
-
+    let _ = index.add_entry("insights", &filename);
     Ok(path)
 }
 
@@ -230,5 +307,72 @@ mod tests {
         let all = list(dir.path()).unwrap();
         assert_eq!(all.len(), 1);
         assert_eq!(all[0].title, "Good");
+    }
+
+    #[test]
+    fn list_migrates_legacy_store_without_duplicate_rows() {
+        let dir = TempDir::new().unwrap();
+        let legacy = dir.path().join(".ctx/insights.jsonl");
+        std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+        let insight = sample_insight("Legacy");
+        let row = serde_json::to_string(&insight).unwrap();
+        std::fs::write(
+            &legacy,
+            format!(
+                "{row}
+{row}
+"
+            ),
+        )
+        .unwrap();
+
+        let all = list(dir.path()).unwrap();
+
+        assert_eq!(all.len(), 1);
+        assert_eq!(all[0].title, "Legacy");
+        assert!(insights_path(dir.path()).exists());
+    }
+
+    #[derive(Default)]
+    struct RecordingIndex(std::sync::Mutex<Vec<(String, String)>>);
+
+    impl ReportIndexPort for RecordingIndex {
+        fn add_entry(&self, category: &str, filename: &str) -> Result<()> {
+            self.0
+                .lock()
+                .unwrap()
+                .push((category.to_owned(), filename.to_owned()));
+            Ok(())
+        }
+        fn add_item(&self, _: &str, _: &str) -> Result<()> {
+            Ok(())
+        }
+        fn rebuild(&self) -> Result<crate::report_index::ReportIndex> {
+            unreachable!()
+        }
+        fn load(&self) -> Result<crate::report_index::ReportIndex> {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn render_markdown_with_index_uses_injected_port_and_migrates_legacy_report() {
+        let dir = TempDir::new().unwrap();
+        let date = today();
+        let legacy = dir.path().join(".ctx").join(format!("insights-{date}.md"));
+        std::fs::create_dir_all(legacy.parent().unwrap()).unwrap();
+        std::fs::write(
+            &legacy,
+            "# legacy
+",
+        )
+        .unwrap();
+        let index = RecordingIndex::default();
+
+        let path = render_markdown_with_index(dir.path(), date, &index).unwrap();
+
+        assert!(path.exists());
+        assert!(!legacy.exists());
+        assert_eq!(index.0.lock().unwrap().len(), 1);
     }
 }

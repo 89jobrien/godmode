@@ -99,6 +99,53 @@ impl TestRunner {
         }
     }
 
+    /// Registers one concrete conformance test.
+    #[deprecated(note = "prefer add_boxed for heterogeneous collectors")]
+    pub fn add_test<T: ConformanceTest + 'static>(&mut self, test: T) {
+        self.tests.push(Box::new(test));
+    }
+
+    /// Registers an iterator of concrete conformance tests.
+    #[deprecated(note = "prefer add_boxed for heterogeneous collectors")]
+    pub fn add_tests<I, T>(&mut self, tests: I)
+    where
+        I: IntoIterator<Item = T>,
+        T: ConformanceTest + 'static,
+    {
+        for test in tests {
+            self.tests.push(Box::new(test));
+        }
+    }
+
+    /// Restricts execution to tests associated with the named crate.
+    #[deprecated(note = "prefer filter_name or dedicated collectors")]
+    pub fn filter_crate(mut self, crate_name: &str) -> Self {
+        self.crate_filter = Some(crate_name.to_string());
+        self
+    }
+
+    /// Restricts execution to tests in the specified category.
+    #[deprecated(note = "prefer filter_name or dedicated collectors")]
+    pub fn filter_category(mut self, category: TestCategory) -> Self {
+        self.category_filter = Some(category);
+        self
+    }
+
+    /// Returns the total number of registered tests.
+    #[deprecated(note = "run and inspect TestSummary::total")]
+    pub fn test_count(&self) -> usize {
+        self.tests.len()
+    }
+
+    /// Returns the number of registered tests matching filters.
+    #[deprecated(note = "run and inspect TestSummary::total")]
+    pub fn filtered_count(&self) -> usize {
+        self.tests
+            .iter()
+            .filter(|test| self.passes_filters(test.as_ref()))
+            .count()
+    }
+
     /// Add pre-boxed tests (from `all()` collectors that return `Vec<Box<dyn ConformanceTest>>`).
     pub fn add_boxed(&mut self, tests: Vec<Box<dyn ConformanceTest>>) {
         self.tests.extend(tests);

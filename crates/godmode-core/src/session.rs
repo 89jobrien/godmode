@@ -4,6 +4,7 @@
 //! after mutations, and emits optional Crux trace records and session summaries.
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use anyhow::Result;
 use chrono::Utc;
@@ -19,11 +20,105 @@ use crate::templates;
 // Public types
 // ---------------------------------------------------------------------------
 
+/// Persistence port used by [`Session`].
+pub trait TaskGraphStorePort: Send + Sync {
+    /// Load graph state for a repository root.
+    fn load(&self, root: &Path) -> Result<TaskGraph>;
+    /// Save graph state for a repository root.
+    fn save(&self, root: &Path, graph: &TaskGraph) -> Result<()>;
+}
+
+/// Run-command validation port used before task state mutation.
+pub trait RunValidatorPort: Send + Sync {
+    /// Validate one configured run command.
+    fn validate(&self, run: &str) -> Result<()>;
+}
+
+/// Lifecycle trace port used by [`Session`].
+pub trait SessionTracePort: Send + Sync {
+    /// Append one task lifecycle step.
+    fn append_step(&self, root: &Path, step: crux_runtime::types::step::Step) -> Result<()>;
+    /// Append one session summary.
+    fn append_summary(&self, root: &Path, summary: &SessionSummary) -> Result<()>;
+}
+
+struct FileTaskGraphStore;
+impl TaskGraphStorePort for FileTaskGraphStore {
+    fn load(&self, root: &Path) -> Result<TaskGraph> {
+        graph::load(root)
+    }
+    fn save(&self, root: &Path, graph: &TaskGraph) -> Result<()> {
+        graph::save(root, graph)
+    }
+}
+
+struct RxRunValidator;
+impl RunValidatorPort for RxRunValidator {
+    fn validate(&self, run: &str) -> Result<()> {
+        rx::validate_run(run)
+    }
+}
+
+struct JsonlSessionTrace;
+impl SessionTracePort for JsonlSessionTrace {
+    fn append_step(&self, root: &Path, step: crux_runtime::types::step::Step) -> Result<()> {
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        append_jsonl(
+            &crux::sessions_dir(root).join(format!("{date}.jsonl")),
+            &step,
+        )
+    }
+    fn append_summary(&self, root: &Path, summary: &SessionSummary) -> Result<()> {
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+        append_jsonl(
+            &crux::sessions_dir(root).join(format!("{date}-summary.jsonl")),
+            summary,
+        )
+    }
+}
+
+/// Injectable adapters for session persistence, validation, and tracing.
+#[derive(Clone)]
+pub struct SessionPorts {
+    graph_store: Arc<dyn TaskGraphStorePort>,
+    run_validator: Arc<dyn RunValidatorPort>,
+    trace: Arc<dyn SessionTracePort>,
+}
+
+impl Default for SessionPorts {
+    fn default() -> Self {
+        Self {
+            graph_store: Arc::new(FileTaskGraphStore),
+            run_validator: Arc::new(RxRunValidator),
+            trace: Arc::new(JsonlSessionTrace),
+        }
+    }
+}
+
+impl SessionPorts {
+    /// Replace the run validator while retaining default adapters.
+    pub fn with_run_validator(mut self, validator: Arc<dyn RunValidatorPort>) -> Self {
+        self.run_validator = validator;
+        self
+    }
+    /// Replace graph persistence while retaining other adapters.
+    pub fn with_graph_store(mut self, store: Arc<dyn TaskGraphStorePort>) -> Self {
+        self.graph_store = store;
+        self
+    }
+    /// Replace lifecycle tracing while retaining other adapters.
+    pub fn with_trace(mut self, trace: Arc<dyn SessionTracePort>) -> Self {
+        self.trace = trace;
+        self
+    }
+}
+
 /// A repository-scoped task session that owns graph state and integration config.
 pub struct Session {
     root: PathBuf,
     graph: TaskGraph,
     config: Config,
+    ports: SessionPorts,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -66,11 +161,36 @@ impl Session {
 
     /// Load (or create) a session rooted at `root` with explicit config.
     pub fn open_with_config(root: &Path, config: &Config) -> Result<Self> {
-        let graph = graph::load(root)?;
+        Self::open_with_config_and_ports(root, config, SessionPorts::default())
+    }
+
+    /// Open a session with focused infrastructure adapters.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when graph state cannot be loaded.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn main() -> anyhow::Result<()> {
+    /// use godmode_core::{config::Config, session::{Session, SessionPorts}};
+    /// let _ = Session::open_with_config_and_ports(
+    ///     std::path::Path::new("."), &Config::default(), SessionPorts::default(),
+    /// )?;
+    /// # Ok(()) }
+    /// ```
+    pub fn open_with_config_and_ports(
+        root: &Path,
+        config: &Config,
+        ports: SessionPorts,
+    ) -> Result<Self> {
+        let graph = ports.graph_store.load(root)?;
         Ok(Self {
             root: root.to_path_buf(),
             graph,
             config: config.clone(),
+            ports,
         })
     }
 
@@ -122,7 +242,7 @@ impl Session {
             && let Some(task) = self.graph.tasks.iter().find(|t| t.id == id)
             && let Some(run) = &task.run
         {
-            rx::validate_run(run)?;
+            self.ports.run_validator.validate(run)?;
         }
         graph::start(&mut self.graph, id)?;
         if let Some(task) = self.graph.tasks.iter_mut().find(|t| t.id == id) {
@@ -232,14 +352,12 @@ impl Session {
 
     /// Persist the graph to disk. Caller decides when to call.
     pub fn save(&self) -> Result<()> {
-        graph::save(&self.root, &self.graph)
+        self.ports.graph_store.save(&self.root, &self.graph)
     }
 
     /// Write a summary record to the summary JSONL file. Non-fatal.
     pub fn write_summary_jsonl(&self, summary: &SessionSummary) -> Result<()> {
-        let dir = crux::sessions_dir(&self.root);
-        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
-        append_jsonl(&dir.join(format!("{date}-summary.jsonl")), summary)
+        self.ports.trace.append_summary(&self.root, summary)
     }
 
     // -----------------------------------------------------------------------
@@ -249,15 +367,13 @@ impl Session {
     /// Best-effort flush of graph state to disk after each transition.
     /// Errors are logged but never abort the caller.
     fn auto_save(&self) {
-        if let Err(e) = graph::save(&self.root, &self.graph) {
+        if let Err(e) = self.ports.graph_store.save(&self.root, &self.graph) {
             eprintln!("godmode: auto-save failed: {e}");
         }
     }
 
     fn append_step(&self, step: crux_runtime::types::step::Step) -> Result<()> {
-        let dir = crux::sessions_dir(&self.root);
-        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
-        append_jsonl(&dir.join(format!("{date}.jsonl")), &step)
+        self.ports.trace.append_step(&self.root, step)
     }
 }
 
@@ -372,6 +488,30 @@ pub fn handoff(root: &Path) -> Result<GraphSummary> {
 /// If `dry_run` is true, prints what would be deleted but makes no changes.
 /// Returns the list of paths that were (or would be) deleted.
 pub fn prune_sessions_older_than(dir: &Path, days: u64, dry_run: bool) -> Result<Vec<PathBuf>> {
+    prune_sessions_older_than_with_mode(dir, days, dry_run.into())
+}
+
+/// Prune session files according to an explicit mutation mode.
+///
+/// # Errors
+///
+/// Returns an error when session metadata cannot be read or a selected file cannot be deleted.
+///
+/// # Examples
+///
+/// ```no_run
+/// # fn main() -> anyhow::Result<()> {
+/// use godmode_core::{session::prune_sessions_older_than_with_mode, write_mode::WriteMode};
+/// let _ = prune_sessions_older_than_with_mode(
+///     std::path::Path::new("sessions"), 30, WriteMode::Preview,
+/// )?;
+/// # Ok(()) }
+/// ```
+pub fn prune_sessions_older_than_with_mode(
+    dir: &Path,
+    days: u64,
+    mode: crate::write_mode::WriteMode,
+) -> Result<Vec<PathBuf>> {
     use std::time::{Duration, SystemTime};
 
     let cutoff = SystemTime::now()
@@ -393,7 +533,7 @@ pub fn prune_sessions_older_than(dir: &Path, days: u64, dry_run: bool) -> Result
         let meta = std::fs::metadata(&path)?;
         let modified = meta.modified()?;
         if modified < cutoff {
-            if dry_run {
+            if !mode.writes() {
                 println!("would delete: {}", path.display());
             } else {
                 std::fs::remove_file(&path)?;
@@ -696,5 +836,49 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(s.graph().tasks.len(), 1);
         assert_eq!(s.graph().tasks[0].id, "t2");
+    }
+    struct RejectRun;
+    impl RunValidatorPort for RejectRun {
+        fn validate(&self, _: &str) -> Result<()> {
+            anyhow::bail!("rejected by port")
+        }
+    }
+
+    #[test]
+    fn session_uses_injected_run_validator_without_breaking_facade() {
+        let dir = TempDir::new().unwrap();
+        let mut graph = TaskGraph::default();
+        let mut task = Task::new("t1", "run");
+        task.run = Some("rx missing".into());
+        graph.tasks.push(task);
+        graph::save(dir.path(), &graph).unwrap();
+        let mut config = Config::default();
+        config.integrations.rx = true;
+        let ports = SessionPorts::default().with_run_validator(std::sync::Arc::new(RejectRun));
+        let mut session = Session::open_with_config_and_ports(dir.path(), &config, ports).unwrap();
+        assert!(
+            session
+                .start_task("t1")
+                .unwrap_err()
+                .to_string()
+                .contains("rejected by port")
+        );
+        assert_eq!(session.graph().tasks[0].status, Status::Pending);
+    }
+
+    #[test]
+    fn explicit_prune_preview_mode_preserves_files() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("old.jsonl");
+        std::fs::write(&path, "{}").unwrap();
+        filetime::set_file_mtime(&path, filetime::FileTime::from_unix_time(0, 0)).unwrap();
+        let paths = prune_sessions_older_than_with_mode(
+            dir.path(),
+            1,
+            crate::write_mode::WriteMode::Preview,
+        )
+        .unwrap();
+        assert_eq!(paths, vec![path.clone()]);
+        assert!(path.exists());
     }
 }

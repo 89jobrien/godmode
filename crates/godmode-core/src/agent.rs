@@ -10,7 +10,9 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-use crate::projection::{ProjectionFile, write_projection};
+pub mod opencode;
+
+pub use opencode::RenderedAgent;
 
 /// Attribution and classification metadata attached to an agent definition.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -398,7 +400,11 @@ pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog
     } else {
         include_str!("../../../agents/opencode-projects.yaml").to_string()
     };
-    let catalog = serde_yaml::from_str(&raw).context("parsing OpenCode agent catalog")?;
+    let source = path
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|| "embedded catalog".to_string());
+    let catalog = serde_yaml::from_str(&raw)
+        .with_context(|| format!("parsing OpenCode agent catalog {source}"))?;
     validate_opencode_catalog(&catalog)?;
     Ok(catalog)
 }
@@ -417,16 +423,22 @@ pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog
 /// assert_eq!(rendered[0].0, "workspace.md");
 /// ```
 pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, String)> {
+    render_opencode_agent_files(catalog)
+        .into_iter()
+        .map(|agent| (agent.file_name, agent.content))
+        .collect()
+}
+
+/// Render typed router and specialist documents.
+pub fn render_opencode_agent_files(catalog: &OpenCodeAgentCatalog) -> Vec<RenderedAgent> {
     let mut rendered = Vec::with_capacity(catalog.projects.len() + 1);
-    rendered.push((
-        format!("{}.md", catalog.router.name),
-        render_opencode_router(catalog),
-    ));
-    rendered.extend(catalog.projects.iter().map(|project| {
-        (
-            format!("{}.md", project.name),
-            render_opencode_project_agent(project),
-        )
+    rendered.push(RenderedAgent {
+        file_name: format!("{}.md", catalog.router.name),
+        content: render_opencode_router(catalog),
+    });
+    rendered.extend(catalog.projects.iter().map(|project| RenderedAgent {
+        file_name: format!("{}.md", project.name),
+        content: render_opencode_project_agent(project),
     }));
     rendered
 }
@@ -453,12 +465,37 @@ pub fn install_opencode_agents(
     output_dir: &Path,
     dry_run: bool,
 ) -> Result<Vec<PathBuf>> {
+    install_opencode_agents_with_mode(catalog, output_dir, dry_run.into())
+}
+
+/// Atomically install the complete rendered agent set.
+pub fn install_opencode_agents_with_mode(
+    catalog: &OpenCodeAgentCatalog,
+    output_dir: &Path,
+    mode: crate::write_mode::WriteMode,
+) -> Result<Vec<PathBuf>> {
     validate_opencode_catalog(catalog)?;
-    let files = render_opencode_agents(catalog)
-        .into_iter()
-        .map(|(file_name, content)| ProjectionFile::new(file_name, content))
-        .collect::<Vec<_>>();
-    write_projection(&files, output_dir, dry_run)
+    opencode::install_opencode_agents_with_mode(&as_opencode_catalog(catalog), output_dir, mode)
+}
+
+fn as_opencode_catalog(catalog: &OpenCodeAgentCatalog) -> opencode::OpenCodeAgentCatalog {
+    opencode::OpenCodeAgentCatalog {
+        router: opencode::OpenCodeRouterDef {
+            name: catalog.router.name.clone(),
+            description: catalog.router.description.clone(),
+        },
+        projects: catalog
+            .projects
+            .iter()
+            .map(|project| opencode::OpenCodeProjectAgentDef {
+                name: project.name.clone(),
+                description: project.description.clone(),
+                project: project.project.clone(),
+                repo_path: project.repo_path.clone(),
+                visible: project.visible,
+            })
+            .collect(),
+    }
 }
 
 fn render_opencode_router(catalog: &OpenCodeAgentCatalog) -> String {
@@ -848,5 +885,48 @@ Some prose here.
                 .unwrap();
             assert!(content.contains(&format!("{tool}: ask")));
         }
+    }
+
+    #[test]
+    fn rendered_agent_boundary_exposes_named_content() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let files = render_opencode_agent_files(&catalog);
+        assert_eq!(files[0].file_name, "workspace.md");
+        assert!(files[0].content.contains("mode: primary"));
+    }
+
+    #[test]
+    fn opencode_catalog_read_error_names_source_path() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("catalog.yaml");
+        std::fs::create_dir_all(&path).unwrap();
+        let error = load_opencode_catalog(Some(&path)).unwrap_err().to_string();
+        assert!(error.contains("catalog.yaml"), "{error}");
+    }
+
+    #[test]
+    fn opencode_install_failure_leaves_no_partial_output() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let dir = TempDir::new().unwrap();
+        let output = dir.path().join("agents");
+        std::fs::write(&output, "not a directory").unwrap();
+        assert!(
+            install_opencode_agents_with_mode(
+                &catalog,
+                &output,
+                crate::write_mode::WriteMode::Write
+            )
+            .is_err()
+        );
+        assert_eq!(std::fs::read_to_string(output).unwrap(), "not a directory");
+    }
+
+    #[test]
+    fn opencode_catalog_parse_error_names_source_path() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("broken.yaml");
+        std::fs::write(&path, "router: [").unwrap();
+        let error = load_opencode_catalog(Some(&path)).unwrap_err().to_string();
+        assert!(error.contains("broken.yaml"), "{error}");
     }
 }

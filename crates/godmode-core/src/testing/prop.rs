@@ -1,6 +1,6 @@
 //! Property-based testing helpers.
 //!
-//! Thin wrappers around [`proptest`]:
+//! Thin wrappers around [`mod@proptest`]:
 //!
 //! - [`PropConfig`] — named presets (`ci`, `dev`, `exhaustive`).
 //! - [`assert_round_trip`] — verifies `deserialize(serialize(x)) == x`.

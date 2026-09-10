@@ -9,7 +9,7 @@
 //!   N adapters of a port trait.
 //! - [`audit`] — compile-time trait-bound checks, dep-allowlist auditing,
 //!   golden-file snapshot comparisons.
-//! - [`env`] — RAII environment variable isolation for tests.
+//! - [`mod@env`] — RAII environment variable isolation for tests.
 //! - [`prop`] — proptest presets and serde round-trip assertion.
 //! - [`seed`] — deterministic FNV-1a seed from test names.
 //! - [`binary`] — locate compiled binaries from integration tests.
