@@ -1,5 +1,5 @@
 ---
-description: "Write an implementation plan ready for ingestion."
+description: "Write an implementation plan ready for task-graph ingestion."
 allowed-tools:
   - Bash
   - Read

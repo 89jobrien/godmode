@@ -1,5 +1,5 @@
 ---
-description: "Review documentation for accuracy, completeness, clarity, and navigability before publishing."
+description: "Review documentation for accuracy, completeness, clarity, and navigation."
 allowed-tools:
   - Bash
   - Read

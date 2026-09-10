@@ -1,5 +1,5 @@
 ---
-description: "Run session-end validation and write a handoff record."
+description: "Validate session-end state and write a handoff record."
 allowed-tools:
   - Bash
   - Read

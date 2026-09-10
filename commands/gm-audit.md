@@ -1,5 +1,5 @@
 ---
-description: "Full repo health audit: quality, dead code, dependencies, recurring mistakes, and backlog gaps."
+description: "Audit repository health, dead code, dependencies, recurring mistakes, and backlog gaps."
 allowed-tools:
   - Bash
   - Read

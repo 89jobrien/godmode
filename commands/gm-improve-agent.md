@@ -1,5 +1,5 @@
 ---
-description: "Identify recurring agent behaviour patterns and codify improvements into skills or agents."
+description: "Codify recurring agent behavior improvements into governed skills or agents."
 allowed-tools:
   - Bash
   - Read

@@ -1,5 +1,5 @@
 ---
-description: "Author and open a pull request from the current branch."
+description: "Review the branch and author a pull request for the verified changes."
 allowed-tools:
   - Bash
   - Read

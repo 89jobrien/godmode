@@ -1,5 +1,5 @@
 ---
-description: "Implement this feature or fix using strict test-driven development"
+description: "Implement the requested feature or fix with strict test-driven development."
 allowed-tools:
   - Bash
   - Read

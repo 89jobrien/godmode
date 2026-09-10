@@ -1,5 +1,5 @@
 ---
-description: "Build and refresh project context for"
+description: "Build or refresh source-grounded context for the requested project scope."
 allowed-tools:
   - Bash
   - Read

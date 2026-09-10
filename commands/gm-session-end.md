@@ -1,5 +1,5 @@
 ---
-description: "Close out a coding session: summarise, reflect, capture learnings, update memory, commit."
+description: "Summarize, reflect, preserve learnings, update memory, and close the session."
 allowed-tools:
   - Bash
   - Read

@@ -1,5 +1,5 @@
 ---
-description: "Create a clean branch from origin/main."
+description: "Create a clean guarded branch from the latest origin/main."
 allowed-tools:
   - Bash
   - Read

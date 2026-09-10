@@ -1,5 +1,5 @@
 ---
-description: "Refactor this scope without changing observable behaviour"
+description: "Restructure the requested scope without changing observable behavior."
 allowed-tools:
   - Bash
   - Read

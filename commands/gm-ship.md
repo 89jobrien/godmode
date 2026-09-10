@@ -1,5 +1,5 @@
 ---
-description: "Ship the current work slice: verify, document, commit, and push."
+description: "Verify, document, commit, and push the current work slice."
 allowed-tools:
   - Bash
   - Read

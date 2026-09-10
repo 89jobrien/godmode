@@ -60,11 +60,18 @@ Multi-skill pipelines that chain skills in sequence.
 | `/gm:issues`          | `issue-triage` → `tackle-issues` → `todo-issue-sync` → `cap`                                                             |
 | `/gm:observe`         | `observability-as-infrastructure` → `health-score` → `issue-triage` (read-only)                                          |
 
+## Legacy path compatibility
+
+`command-support/gm/*.yaml` is the canonical source. The tracked `commands/gm/*.yaml` mirrors keep
+older readers working, and `commands/gm/generate.nu` forwards the former generator path to the
+canonical wrapper. Generation refreshes the mirrors from canonical YAML before rendering. New
+tooling must use `command-support/gm/`; mirrored files must not become a second source of truth.
+
 ## Adding a Command
 
-1. Create `command-support/gm/<name>.yaml` with fields: `name`, `template`, `prompt`,
-   `allowedTools`, `maxTurns`, and optionally `description`. When omitted, the generator uses
-   the first non-empty prompt line as the Claude command description.
+1. Create `command-support/gm/<name>.yaml` with fields: `name`, `description`, `template`,
+   `prompt`, `allowedTools`, and `maxTurns`. `description` is canonical, required repository
+   metadata; do not rely on the renderer’s compatibility fallback to the first prompt line.
 2. Use `template: dev` for implementation commands, `template: debug` for diagnostic ones.
 3. Reference skills as `godmode:<skill-name>` in the prompt body.
 4. Run `nu command-support/gm/generate.nu`; do not create the `.md` file manually. The wrapper

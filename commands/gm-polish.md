@@ -1,5 +1,5 @@
 ---
-description: "Pre-release code quality pass: refactor, test discipline, quality score, readiness check, changelog, commit."
+description: "Run a pre-release quality pass across refactoring, tests, readiness, and changelog."
 allowed-tools:
   - Bash
   - Read

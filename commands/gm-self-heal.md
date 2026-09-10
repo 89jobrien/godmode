@@ -1,5 +1,5 @@
 ---
-description: "Self-healing CI loop. Run cargo clippy + nextest + fmt, diagnose each failure, apply the"
+description: "Iteratively fix Clippy, nextest, and rustfmt failures until all gates pass."
 allowed-tools:
   - Bash
   - Read

@@ -1,5 +1,5 @@
 ---
-description: "Triage, work, and close GitHub issues end-to-end."
+description: "Triage, resolve, and close GitHub issues end to end."
 allowed-tools:
   - Bash
   - Read

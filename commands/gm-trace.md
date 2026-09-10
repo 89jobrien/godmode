@@ -1,5 +1,5 @@
 ---
-description: "Query the observability trace for this request"
+description: "Query and summarize observability trace events for the current request."
 allowed-tools:
   - Bash
   - Read

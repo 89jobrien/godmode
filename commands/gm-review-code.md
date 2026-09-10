@@ -1,5 +1,5 @@
 ---
-description: "Run a structured code review on ``; if empty, review the current diff."
+description: "Review the requested scope or current diff across all severity levels."
 allowed-tools:
   - Bash
   - Read

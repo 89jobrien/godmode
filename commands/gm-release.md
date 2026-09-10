@@ -1,5 +1,5 @@
 ---
-description: "Workspace release pipeline: readiness check, impact analysis, version bumps, docs, commit, push."
+description: "Run workspace release readiness, impact, versioning, documentation, and publication steps."
 allowed-tools:
   - Bash
   - Read

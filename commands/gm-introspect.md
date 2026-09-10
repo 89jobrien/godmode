@@ -1,5 +1,5 @@
 ---
-description: "Audit all godmode skills, agents, and plugin files for internal consistency."
+description: "Audit godmode skills, agents, and plugin assets for internal consistency."
 allowed-tools:
   - Bash
   - Read

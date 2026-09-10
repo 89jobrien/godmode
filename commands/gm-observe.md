@@ -1,5 +1,5 @@
 ---
-description: "Post-release observability sweep: query traces, score health, triage surfaced issues."
+description: "Query traces, score repository health, and triage surfaced issues without mutation."
 allowed-tools:
   - Bash
   - Read

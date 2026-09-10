@@ -1,5 +1,5 @@
 ---
-description: "Systematically debug this failure, verify the fix, and commit"
+description: "Diagnose a failure, verify the minimal fix, and commit it safely."
 allowed-tools:
   - Bash
   - Read

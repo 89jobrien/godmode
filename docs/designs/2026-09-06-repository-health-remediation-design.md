@@ -25,9 +25,31 @@ completion in this pass.
 
 ## Public API
 
-No new production public API is required. Existing feature-gated testing APIs remain compatible and
-receive missing documentation. Potential removals such as `GateStep` and compatibility-only feature
-flags are deferred to a breaking release and receive issue-linked TODO comments.
+The remediation adds and preserves these production APIs:
+
+- `godmode_core::command`: `CommandTarget`, `CommandDefinition`, `RenderedCommand`,
+  `load_command_definitions`, `render_commands`, `write_rendered_commands`, and
+  `check_rendered_commands`.
+- `godmode_core::report_index`: `ReportIndex`, `ReportCategory`, `ReportIndexPort`, and
+  `JsonFileIndex` for incremental updates and on-disk reconciliation.
+- `godmode_core::trace_stats`: `SkillDuration`, `AgentConvergence`, `TraceStats`,
+  `TraceSessionSummary`, and the `tail`, `failures`, `stats`, `summaries`, and
+  `current_session_id` query functions.
+
+Existing feature-gated testing APIs remain compatible. Potential removals such as `GateStep` and
+compatibility-only feature flags remain deferred to a breaking release with issue-linked TODOs.
+
+### Serialized status and governance contracts
+
+- Task state serializes as `pending`, `running`, `done`, or `blocked`; legacy `active` remains an
+  accepted input alias but is never emitted. `StatusCache` exposes the matching `running` count
+  alongside `pending`, `blocked`, `done`, `project`, and `updated_at`.
+- Governance actions serialize as `allow`, `deny`, or `review`, and levels as `open`, `standard`,
+  `strict`, or `locked`. Policy YAML includes inheritance, tool allow/block lists, blocked input
+  patterns, call limits, approval requirements, subagent constraints, and audit settings.
+- Resolved-policy JSON includes `policy`, `agent`, `category`, `level`, and ordered `sources`;
+  tool checks include `action` and `reason`. These fields are consumer-facing schema, not prose-only
+  implementation details.
 
 ## Data Flow
 
@@ -37,9 +59,11 @@ flags are deferred to a breaking release and receive issue-linked TODO comments.
    and the deduplicated agent index.
 3. Cargo workspace version metadata flows through release validation into both plugin manifests;
    hooks validate parity rather than stamping commit hashes.
-4. Task state flows through the Rust pre-commit checker; Nu hooks delegate to that contract and
-   reject unresolved running or blocked tasks.
-5. `xtask` composes formatting, all-target/all-feature clippy, workspace tests, conformance,
+4. Task state flows through canonical status serialization and `StatusCache`; the Rust
+   pre-commit checker and Nu adapters reject unresolved running or blocked tasks.
+5. Governance YAML composes into resolved-policy JSON and allow/deny/review audit events consumed
+   by CLI and hook adapters.
+6. `xtask` composes formatting, all-target/all-feature clippy, workspace tests, conformance,
    generated-artifact checks, hook parsing, and dependency policy for local and CI use.
 
 ## Integration Points
@@ -65,7 +89,6 @@ flags are deferred to a breaking release and receive issue-linked TODO comments.
 
 - Removing public APIs or compatibility feature flags before a breaking release.
 - Forcing incompatible transitive dependency convergence.
-- Rewriting historical examples in completed design and plan documents.
 - Reverting or replacing the existing staged command-renderer and OpenCode migration.
 
 ## Risk
@@ -73,6 +96,6 @@ flags are deferred to a breaking release and receive issue-linked TODO comments.
 - [x] Breaking API changes: no; candidates are deferred with issue-linked TODOs.
 - [x] New external dependency: no.
 - [x] Feature flag required: existing `testing` and compatibility flags are preserved.
-- [x] Persisted state changes: no task or trace schema changes.
+- [x] Persisted state changes: canonical task/status output uses `running`; legacy `active` remains input-compatible, and governance/status JSON fields are documented above.
 - [x] CLI output changes: generated command output and release validation become stricter; human and
       JSON contracts receive integration coverage.
