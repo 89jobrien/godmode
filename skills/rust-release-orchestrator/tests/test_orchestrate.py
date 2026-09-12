@@ -44,6 +44,10 @@ if args and args[0] == \"clippy\" and \"--fix\" in args:
 if args and args[0] == \"clippy\":
     raise SystemExit(0 if (root / \".clippy-fixed\").exists() else 1)
 if args and args[0] == \"publish\" and pathlib.Path.cwd().name == \"adapter\":
+    if os.environ.get(\"ALREADY_PUBLISHED_ADAPTER\") == \"1\":
+        with log.open(\"a\") as handle: handle.write(\"adapter|publish|already-published-error\\n\")
+        print(\"error: failed to publish to registry at https://crates.io\\n\\nCaused by:\\n  crate version `0.1.0` is already uploaded\", file=sys.stderr)
+        raise SystemExit(101)
     if os.environ.get(\"FAIL_ADAPTER\") == \"1\":
         print(\"HTTP 429 Too Many Requests\", file=sys.stderr); raise SystemExit(1)
     once = root / \".adapter-failed-once\"
@@ -125,6 +129,7 @@ raise SystemExit(0)
         self.assertIn("published", result.stdout)
         lines = self.log.read_text().splitlines()
         self.assertEqual(sum(line == "adapter|publish" for line in lines), 1)
+        self.assertIn("adapter|publish|already-published-error", lines)
         self.assertFalse((self.workspace / ".release-state.json").exists())
 
 
