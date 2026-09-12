@@ -6,7 +6,7 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashSet,
+    collections::{BTreeMap, HashSet},
     path::{Component, Path, PathBuf},
 };
 
@@ -99,6 +99,10 @@ fn default_version() -> String {
 }
 
 /// Parse an agent YAML file.
+///
+/// # Errors
+///
+/// Returns an error when the file cannot be read or contains invalid YAML.
 pub fn load(path: &Path) -> Result<AgentDef> {
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("reading agent file {}", path.display()))?;
@@ -106,6 +110,10 @@ pub fn load(path: &Path) -> Result<AgentDef> {
 }
 
 /// Write an agent YAML file.
+///
+/// # Errors
+///
+/// Returns an error when serialization, directory creation, or writing fails.
 pub fn save(path: &Path, agent: &AgentDef) -> Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -141,6 +149,10 @@ fn parse_frontmatter_value(content: &str) -> Result<serde_yaml::Value> {
 
 /// Migrate an existing `agents/*.md` (frontmatter + prose) to an `agents/*.yaml` stub.
 /// Returns the path of the written YAML file.
+///
+/// # Errors
+///
+/// Returns an error when Markdown cannot be read, frontmatter is absent or invalid, or YAML cannot be written.
 pub fn migrate_md_to_yaml(md_path: &Path, out_dir: &Path) -> Result<PathBuf> {
     let content = std::fs::read_to_string(md_path)
         .with_context(|| format!("reading {}", md_path.display()))?;
@@ -237,6 +249,10 @@ pub fn generate_md(agent: &AgentDef) -> String {
 /// `agents/prompts/<name>.txt`, and generate the top-level `.md`.
 ///
 /// Returns `(md_content, output_path)`.
+///
+/// # Errors
+///
+/// Returns an error when the agent definition or optional prompt cannot be read or parsed.
 pub fn generate_from_cfg(agents_dir: &Path, name: &str) -> Result<(String, PathBuf)> {
     let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
     let prompt_path = agents_dir
@@ -263,6 +279,10 @@ pub fn generate_from_cfg(agents_dir: &Path, name: &str) -> Result<(String, PathB
 }
 
 /// List all agent names available in `agents/cfg/`.
+///
+/// # Errors
+///
+/// Returns an error when the configuration directory or one of its entries cannot be read.
 pub fn list_cfg_agents(agents_dir: &Path) -> Result<Vec<String>> {
     let cfg_dir = agents_dir.join("cfg");
     if !cfg_dir.exists() {
@@ -292,6 +312,32 @@ fn quote_list(items: &[String]) -> String {
         .join(", ")
 }
 
+/// Permission level rendered for an OpenCode tool.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum OpenCodePermission {
+    /// Permit the tool without prompting.
+    Allow,
+    /// Ask the user before invoking the tool.
+    Ask,
+    /// Deny the tool.
+    Deny,
+}
+
+impl std::fmt::Display for OpenCodePermission {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Allow => "allow",
+            Self::Ask => "ask",
+            Self::Deny => "deny",
+        })
+    }
+}
+
+/// Project ID to tool-name permission mappings.
+pub type OpenCodePermissions = BTreeMap<String, BTreeMap<String, OpenCodePermission>>;
+
 /// Declarative source for one OpenCode router and its project specialists.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[non_exhaustive]
@@ -301,6 +347,9 @@ pub struct OpenCodeAgentCatalog {
     /// Project-specific subagents available to the router.
     #[serde(default)]
     pub projects: Vec<OpenCodeProjectAgentDef>,
+    /// Optional project-specific tool permissions loaded from catalog data.
+    #[serde(default)]
+    pub permissions: OpenCodePermissions,
 }
 
 impl OpenCodeAgentCatalog {
@@ -309,7 +358,14 @@ impl OpenCodeAgentCatalog {
         Self {
             router,
             projects: Vec::new(),
+            permissions: BTreeMap::new(),
         }
+    }
+
+    /// Set project-specific tool permissions.
+    pub fn with_permissions(mut self, permissions: OpenCodePermissions) -> Self {
+        self.permissions = permissions;
+        self
     }
 
     /// Set the project specialists exposed by this catalog.
@@ -382,6 +438,10 @@ impl OpenCodeProjectAgentDef {
 
 /// Load the project-agent catalog from a path or the embedded default.
 ///
+/// # Errors
+///
+/// Returns an error when a custom catalog cannot be read, parsed, or validated.
+///
 /// # Examples
 ///
 /// ```
@@ -438,12 +498,16 @@ pub fn render_opencode_agent_files(catalog: &OpenCodeAgentCatalog) -> Vec<Render
     });
     rendered.extend(catalog.projects.iter().map(|project| RenderedAgent {
         file_name: format!("{}.md", project.name),
-        content: render_opencode_project_agent(project),
+        content: render_opencode_project_agent(project, catalog.permissions.get(&project.project)),
     }));
     rendered
 }
 
 /// Install rendered OpenCode agents into `output_dir`, or preview paths in dry-run mode.
+///
+/// # Errors
+///
+/// Returns an error when catalog validation or the atomic installation transaction fails.
 ///
 /// # Examples
 ///
@@ -469,6 +533,10 @@ pub fn install_opencode_agents(
 }
 
 /// Atomically install the complete rendered agent set.
+///
+/// # Errors
+///
+/// Returns an error when catalog validation or staging, swapping, or cleanup fails.
 pub fn install_opencode_agents_with_mode(
     catalog: &OpenCodeAgentCatalog,
     output_dir: &Path,
@@ -484,6 +552,7 @@ fn as_opencode_catalog(catalog: &OpenCodeAgentCatalog) -> opencode::OpenCodeAgen
             name: catalog.router.name.clone(),
             description: catalog.router.description.clone(),
         },
+        permissions: catalog.permissions.clone(),
         projects: catalog
             .projects
             .iter()
@@ -529,7 +598,10 @@ Available routes:
     )
 }
 
-fn render_opencode_project_agent(project: &OpenCodeProjectAgentDef) -> String {
+fn render_opencode_project_agent(
+    project: &OpenCodeProjectAgentDef,
+    permissions: Option<&BTreeMap<String, OpenCodePermission>>,
+) -> String {
     let hidden = if project.visible { "false" } else { "true" };
     let mut rendered = format!(
         r#"---
@@ -555,7 +627,7 @@ permission:
 "#,
         yaml_double_quoted(&project.description),
     );
-    for (tool, permission) in project_tool_permissions(&project.project) {
+    for (tool, permission) in permissions.into_iter().flatten() {
         rendered.push_str(&format!("  {tool}: {permission}\n"));
     }
     rendered.push_str("---\n");
@@ -602,6 +674,23 @@ fn validate_opencode_catalog(catalog: &OpenCodeAgentCatalog) -> Result<()> {
             anyhow::bail!("invalid OpenCode agent repo path: {}", project.repo_path);
         }
     }
+    for (project, permissions) in &catalog.permissions {
+        validate_project_id(project)?;
+        if !catalog
+            .projects
+            .iter()
+            .any(|entry| entry.project == *project)
+        {
+            anyhow::bail!("OpenCode permissions reference unknown project: {project}");
+        }
+        for tool in permissions.keys() {
+            if !tool.starts_with("personal_")
+                || !tool.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+            {
+                anyhow::bail!("invalid OpenCode permission tool name: {tool}");
+            }
+        }
+    }
     Ok(())
 }
 
@@ -626,43 +715,6 @@ fn validate_project_id(project: &str) -> Result<()> {
         Ok(())
     } else {
         anyhow::bail!("invalid OpenCode project identifier: {project}")
-    }
-}
-
-fn project_tool_permissions(project: &str) -> &'static [(&'static str, &'static str)] {
-    match project {
-        "devloop" => &[
-            ("personal_devloop_list_branches", "allow"),
-            ("personal_devloop_get_branch", "allow"),
-            ("personal_devloop_get_timeline", "allow"),
-        ],
-        "minibox" => &[
-            ("personal_minibox_list_containers", "allow"),
-            ("personal_minibox_get_logs", "allow"),
-            ("personal_minibox_get_manifest", "allow"),
-            ("personal_minibox_stop_container", "ask"),
-        ],
-        "crux" => &[
-            ("personal_crux_list_pipelines", "allow"),
-            ("personal_crux_validate_pipeline", "allow"),
-            ("personal_crux_task_list", "allow"),
-            ("personal_crux_task_update", "ask"),
-        ],
-        "taskit" => &[
-            ("personal_taskit_health_inspect", "allow"),
-            ("personal_taskit_health_drift", "allow"),
-            ("personal_taskit_protocol_drift", "ask"),
-        ],
-        "mcpipe" => &[
-            ("personal_mcpipe_scan_catalog", "ask"),
-            ("personal_mcpipe_list_personal_tools", "allow"),
-            ("personal_mcpipe_generate_doob_openapi", "ask"),
-        ],
-        "agentlint" => &[
-            ("personal_agentlint_check", "allow"),
-            ("personal_agentlint_infer_docs_schema", "allow"),
-        ],
-        _ => &[],
     }
 }
 
@@ -815,6 +867,48 @@ Some prose here.
         assert_eq!(paths.len(), 24);
         assert!(output.join("workspace.md").exists());
         assert!(output.join("workspace-doob.md").exists());
+    }
+
+    #[test]
+    fn catalog_rejects_empty_and_invalid_project_data_variants() {
+        let dir = TempDir::new().unwrap();
+        for (name, body) in [
+            ("empty.yaml", ""),
+            (
+                "empty-router.yaml",
+                "router: { name: , description: router }\nprojects: []\n",
+            ),
+            (
+                "empty-project.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: , repo_path: x }]\n",
+            ),
+            (
+                "absolute-path.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: x, repo_path: /tmp/x }]\n",
+            ),
+            (
+                "parent-path.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: x, repo_path: ../x }]\n",
+            ),
+        ] {
+            let path = dir.path().join(name);
+            std::fs::write(&path, body).unwrap();
+            assert!(load_opencode_catalog(Some(&path)).is_err(), "{name}");
+        }
+    }
+
+    #[test]
+    fn catalog_permissions_are_loaded_from_yaml_and_validated() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("catalog.yaml");
+        std::fs::write(&path, "router: { name: workspace, description: router }\nprojects:\n  - name: workspace-x\n    project: x\n    repo_path: x\n    description: x specialist\npermissions:\n  x: { personal_x_read: allow, personal_x_write: ask }\n").unwrap();
+        let catalog = load_opencode_catalog(Some(&path)).unwrap();
+        let rendered = render_opencode_agents(&catalog);
+        assert!(rendered[1].1.contains("personal_x_read: allow"));
+        assert!(rendered[1].1.contains("personal_x_write: ask"));
+
+        std::fs::write(&path, "router: { name: workspace, description: router }\nprojects:\n  - { name: workspace-x, description: x, project: x, repo_path: x }\npermissions: { x: { personal_x: execute } }\n").unwrap();
+        assert!(load_opencode_catalog(Some(&path)).is_err());
     }
 
     #[test]

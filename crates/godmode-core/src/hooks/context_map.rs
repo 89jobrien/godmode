@@ -33,8 +33,10 @@ pub fn run(root: &Path, file_path: &str) -> String {
                 if !name_str.contains("context-map") {
                     return false;
                 }
-                e.metadata()
+                e.file_type()
                     .ok()
+                    .filter(|kind| kind.is_file())
+                    .and_then(|_| e.metadata().ok())
                     .and_then(|m| m.modified().ok())
                     .map(|t| t > four_hours_ago)
                     .unwrap_or(false)
@@ -52,6 +54,47 @@ pub fn run(root: &Path, file_path: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ignores_non_source_edits_even_without_a_map() {
+        let root = tempfile::tempdir().unwrap();
+        assert_eq!(run(root.path(), "/repo/tests/case.rs"), "");
+    }
+
+    #[test]
+    fn canonical_map_matrix_covers_missing_empty_current_and_stale() {
+        use std::time::{Duration, SystemTime};
+        let root = tempfile::tempdir().unwrap();
+        let source = "/repo/src/lib.rs";
+        assert!(run(root.path(), source).contains("without a context map"));
+        let scratch = root.path().join(".ctx/godmode/_WORKING_DIR");
+        std::fs::create_dir_all(&scratch).unwrap();
+        assert!(run(root.path(), source).contains("without a recent context map"));
+        let map = scratch.join("context-map-current.md");
+        std::fs::write(&map, "map").unwrap();
+        assert_eq!(run(root.path(), source), "");
+        filetime::set_file_mtime(
+            &map,
+            filetime::FileTime::from_system_time(SystemTime::now() - Duration::from_secs(5 * 3600)),
+        )
+        .unwrap();
+        assert!(run(root.path(), source).contains("without a recent context map"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn context_map_entry_metadata_failure_is_ignored() {
+        use std::os::unix::fs::symlink;
+        let root = tempfile::tempdir().unwrap();
+        let scratch = root.path().join(".ctx/godmode/_WORKING_DIR");
+        std::fs::create_dir_all(&scratch).unwrap();
+        symlink(
+            scratch.join("missing"),
+            scratch.join("context-map-broken.md"),
+        )
+        .unwrap();
+        assert!(run(root.path(), "/repo/src/lib.rs").contains("without a recent context map"));
+    }
 
     #[test]
     fn accepts_recent_legacy_context_map_scratch_file() {

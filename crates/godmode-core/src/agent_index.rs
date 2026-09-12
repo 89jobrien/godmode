@@ -37,6 +37,10 @@ pub struct AgentEntry {
 // ---------------------------------------------------------------------------
 
 /// Walk `<root>/agents/*.md`, parse YAML frontmatter, return sorted entries.
+///
+/// # Errors
+///
+/// Returns an error when agent directories, entries, or authoritative configuration names cannot be read. Malformed authoritative definitions are skipped.
 pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
     list_agents_impl(root, false)
 }
@@ -139,6 +143,10 @@ pub fn filter_agents(agents: Vec<AgentEntry>, keyword: &str) -> Vec<AgentEntry> 
 
 /// Write `<root>/agents/INDEX.md` from the given agent list.
 ///
+/// # Errors
+///
+/// Returns an error when the index file cannot be written.
+///
 /// # Examples
 ///
 /// ```
@@ -165,6 +173,10 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
 
 /// Return whether `agents/INDEX.md` matches the current agent list.
 ///
+/// # Errors
+///
+/// Returns an error when the index file cannot be read.
+///
 /// # Examples
 ///
 /// ```
@@ -180,7 +192,11 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
 /// ```
 pub fn agent_index_is_current(root: &Path, agents: &[AgentEntry]) -> Result<bool> {
     let index_path = root.join("agents/INDEX.md");
-    Ok(fs::read_to_string(index_path).is_ok_and(|content| content == render_agent_index(agents)))
+    match fs::read_to_string(&index_path) {
+        Ok(content) => Ok(content == render_agent_index(agents)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(error.into()),
+    }
 }
 
 fn render_agent_index(agents: &[AgentEntry]) -> String {

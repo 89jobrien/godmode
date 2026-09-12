@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::HashSet,
+    collections::{BTreeMap, HashSet},
     path::{Component, Path, PathBuf},
 };
 
@@ -15,6 +15,9 @@ pub struct OpenCodeAgentCatalog {
     /// Project-specific subagents available to the router.
     #[serde(default)]
     pub projects: Vec<OpenCodeProjectAgentDef>,
+    /// Optional project-specific tool permissions loaded from catalog data.
+    #[serde(default)]
+    pub permissions: super::OpenCodePermissions,
 }
 
 /// OpenCode primary-agent metadata.
@@ -47,6 +50,10 @@ pub struct OpenCodeProjectAgentDef {
 }
 
 /// Load the project-agent catalog from a path or the embedded default.
+///
+/// # Errors
+///
+/// Returns an error when a custom catalog cannot be read, parsed, or validated.
 pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog> {
     let raw = if let Some(path) = path {
         std::fs::read_to_string(path)
@@ -82,7 +89,7 @@ pub fn render_opencode_agent_files(catalog: &OpenCodeAgentCatalog) -> Vec<Render
     });
     rendered.extend(catalog.projects.iter().map(|project| RenderedAgent {
         file_name: format!("{}.md", project.name),
-        content: render_opencode_project_agent(project),
+        content: render_opencode_project_agent(project, catalog.permissions.get(&project.project)),
     }));
     rendered
 }
@@ -96,6 +103,10 @@ pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, St
 }
 
 /// Install OpenCode agents or preview paths from a legacy dry-run flag.
+///
+/// # Errors
+///
+/// Returns an error when catalog validation or the atomic installation transaction fails.
 pub fn install_opencode_agents(
     catalog: &OpenCodeAgentCatalog,
     output_dir: &Path,
@@ -135,7 +146,67 @@ pub fn install_opencode_agents_with_mode(
     if !mode.writes() {
         return Ok(paths);
     }
-    if output_dir.is_file() {
+    install_rendered_with_fs(&rendered, output_dir, &StdInstallFs)?;
+    Ok(paths)
+}
+
+trait InstallFsPort {
+    fn exists(&self, path: &Path) -> bool;
+    fn is_file(&self, path: &Path) -> bool;
+    fn create_dir_all(&self, path: &Path) -> std::io::Result<()>;
+    fn create_dir(&self, path: &Path) -> std::io::Result<()>;
+    fn write(&self, path: &Path, content: &str) -> std::io::Result<()>;
+    fn rename(&self, from: &Path, to: &Path) -> std::io::Result<()>;
+    fn remove_dir_all(&self, path: &Path) -> std::io::Result<()>;
+}
+
+struct StdInstallFs;
+impl InstallFsPort for StdInstallFs {
+    fn exists(&self, path: &Path) -> bool {
+        path.exists()
+    }
+    fn is_file(&self, path: &Path) -> bool {
+        path.is_file()
+    }
+    fn create_dir_all(&self, path: &Path) -> std::io::Result<()> {
+        std::fs::create_dir_all(path)
+    }
+    fn create_dir(&self, path: &Path) -> std::io::Result<()> {
+        std::fs::create_dir(path)
+    }
+    fn write(&self, path: &Path, content: &str) -> std::io::Result<()> {
+        std::fs::write(path, content)
+    }
+    fn rename(&self, from: &Path, to: &Path) -> std::io::Result<()> {
+        std::fs::rename(from, to)
+    }
+    fn remove_dir_all(&self, path: &Path) -> std::io::Result<()> {
+        std::fs::remove_dir_all(path)
+    }
+}
+
+#[cfg(test)]
+fn install_opencode_agents_with_fs(
+    catalog: &OpenCodeAgentCatalog,
+    output_dir: &Path,
+    fs: &dyn InstallFsPort,
+) -> Result<Vec<PathBuf>> {
+    validate_opencode_catalog(catalog)?;
+    let rendered = render_opencode_agent_files(catalog);
+    let paths = rendered
+        .iter()
+        .map(|agent| output_dir.join(&agent.file_name))
+        .collect();
+    install_rendered_with_fs(&rendered, output_dir, fs)?;
+    Ok(paths)
+}
+
+fn install_rendered_with_fs(
+    rendered: &[RenderedAgent],
+    output_dir: &Path,
+    fs: &dyn InstallFsPort,
+) -> Result<()> {
+    if fs.is_file(output_dir) {
         anyhow::bail!(
             "OpenCode agent output is not a directory: {}",
             output_dir.display()
@@ -144,7 +215,7 @@ pub fn install_opencode_agents_with_mode(
     let parent = output_dir
         .parent()
         .context("OpenCode output directory has no parent")?;
-    std::fs::create_dir_all(parent)
+    fs.create_dir_all(parent)
         .with_context(|| format!("creating OpenCode agent parent {}", parent.display()))?;
     let name = output_dir
         .file_name()
@@ -152,41 +223,40 @@ pub fn install_opencode_agents_with_mode(
         .context("invalid OpenCode output directory name")?;
     let staging = parent.join(format!(".{name}.{}.staging", std::process::id()));
     let backup = parent.join(format!(".{name}.{}.backup", std::process::id()));
-    if staging.exists() || backup.exists() {
+    if fs.exists(&staging) || fs.exists(&backup) {
         anyhow::bail!(
             "OpenCode install transaction already exists for {}",
             output_dir.display()
         );
     }
-    std::fs::create_dir(&staging)
+    fs.create_dir(&staging)
         .with_context(|| format!("creating OpenCode staging dir {}", staging.display()))?;
     let staged = (|| -> Result<()> {
-        for agent in &rendered {
+        for agent in rendered {
             let path = staging.join(&agent.file_name);
-            std::fs::write(&path, &agent.content)
+            fs.write(&path, &agent.content)
                 .with_context(|| format!("writing staged OpenCode agent {}", path.display()))?;
         }
-        if output_dir.exists() {
-            std::fs::rename(output_dir, &backup)?;
+        if fs.exists(output_dir) {
+            fs.rename(output_dir, &backup)?;
         }
-        if let Err(error) = std::fs::rename(&staging, output_dir) {
-            if backup.exists() {
-                let _ = std::fs::rename(&backup, output_dir);
+        if let Err(error) = fs.rename(&staging, output_dir) {
+            if fs.exists(&backup) {
+                let _ = fs.rename(&backup, output_dir);
             }
             return Err(error).with_context(|| {
                 format!("installing OpenCode agents into {}", output_dir.display())
             });
         }
-        if backup.exists() {
-            std::fs::remove_dir_all(&backup)?;
+        if fs.exists(&backup) {
+            fs.remove_dir_all(&backup)?;
         }
         Ok(())
     })();
-    if staged.is_err() && staging.exists() {
-        let _ = std::fs::remove_dir_all(&staging);
+    if staged.is_err() && fs.exists(&staging) {
+        let _ = fs.remove_dir_all(&staging);
     }
-    staged?;
-    Ok(paths)
+    staged
 }
 
 fn render_opencode_router(catalog: &OpenCodeAgentCatalog) -> String {
@@ -220,7 +290,10 @@ Available routes:
     )
 }
 
-fn render_opencode_project_agent(project: &OpenCodeProjectAgentDef) -> String {
+fn render_opencode_project_agent(
+    project: &OpenCodeProjectAgentDef,
+    permissions: Option<&BTreeMap<String, super::OpenCodePermission>>,
+) -> String {
     let hidden = if project.visible { "false" } else { "true" };
     let mut rendered = format!(
         r#"---
@@ -246,7 +319,7 @@ permission:
 "#,
         yaml_double_quoted(&project.description),
     );
-    for (tool, permission) in project_tool_permissions(&project.project) {
+    for (tool, permission) in permissions.into_iter().flatten() {
         rendered.push_str(&format!("  {tool}: {permission}\n"));
     }
     rendered.push_str("---\n");
@@ -293,6 +366,23 @@ fn validate_opencode_catalog(catalog: &OpenCodeAgentCatalog) -> Result<()> {
             anyhow::bail!("invalid OpenCode agent repo path: {}", project.repo_path);
         }
     }
+    for (project, permissions) in &catalog.permissions {
+        validate_project_id(project)?;
+        if !catalog
+            .projects
+            .iter()
+            .any(|entry| entry.project == *project)
+        {
+            anyhow::bail!("OpenCode permissions reference unknown project: {project}");
+        }
+        for tool in permissions.keys() {
+            if !tool.starts_with("personal_")
+                || !tool.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+            {
+                anyhow::bail!("invalid OpenCode permission tool name: {tool}");
+            }
+        }
+    }
     Ok(())
 }
 
@@ -320,39 +410,147 @@ fn validate_project_id(project: &str) -> Result<()> {
     }
 }
 
-fn project_tool_permissions(project: &str) -> &'static [(&'static str, &'static str)] {
-    match project {
-        "devloop" => &[
-            ("personal_devloop_list_branches", "allow"),
-            ("personal_devloop_get_branch", "allow"),
-            ("personal_devloop_get_timeline", "allow"),
-        ],
-        "minibox" => &[
-            ("personal_minibox_list_containers", "allow"),
-            ("personal_minibox_get_logs", "allow"),
-            ("personal_minibox_get_manifest", "allow"),
-            ("personal_minibox_stop_container", "ask"),
-        ],
-        "crux" => &[
-            ("personal_crux_list_pipelines", "allow"),
-            ("personal_crux_validate_pipeline", "allow"),
-            ("personal_crux_task_list", "allow"),
-            ("personal_crux_task_update", "ask"),
-        ],
-        "taskit" => &[
-            ("personal_taskit_health_inspect", "allow"),
-            ("personal_taskit_health_drift", "allow"),
-            ("personal_taskit_protocol_drift", "ask"),
-        ],
-        "mcpipe" => &[
-            ("personal_mcpipe_scan_catalog", "ask"),
-            ("personal_mcpipe_list_personal_tools", "allow"),
-            ("personal_mcpipe_generate_doob_openapi", "ask"),
-        ],
-        "agentlint" => &[
-            ("personal_agentlint_check", "allow"),
-            ("personal_agentlint_infer_docs_schema", "allow"),
-        ],
-        _ => &[],
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    #[derive(Clone, Copy)]
+    enum Failure {
+        Staging,
+        SecondFile,
+        Swap,
+    }
+
+    struct FailingFs {
+        failure: Failure,
+        writes: AtomicUsize,
+    }
+    impl FailingFs {
+        fn new(failure: Failure) -> Self {
+            Self {
+                failure,
+                writes: AtomicUsize::new(0),
+            }
+        }
+    }
+    impl InstallFsPort for FailingFs {
+        fn exists(&self, path: &Path) -> bool {
+            path.exists()
+        }
+        fn is_file(&self, path: &Path) -> bool {
+            path.is_file()
+        }
+        fn create_dir_all(&self, path: &Path) -> std::io::Result<()> {
+            std::fs::create_dir_all(path)
+        }
+        fn create_dir(&self, path: &Path) -> std::io::Result<()> {
+            if matches!(self.failure, Failure::Staging) {
+                return Err(std::io::Error::other("staging failed"));
+            }
+            std::fs::create_dir(path)
+        }
+        fn write(&self, path: &Path, content: &str) -> std::io::Result<()> {
+            if matches!(self.failure, Failure::SecondFile)
+                && self.writes.fetch_add(1, Ordering::SeqCst) == 1
+            {
+                return Err(std::io::Error::other("second file failed"));
+            }
+            std::fs::write(path, content)
+        }
+        fn rename(&self, from: &Path, to: &Path) -> std::io::Result<()> {
+            if matches!(self.failure, Failure::Swap) && from.to_string_lossy().ends_with(".staging")
+            {
+                return Err(std::io::Error::other("swap failed"));
+            }
+            std::fs::rename(from, to)
+        }
+        fn remove_dir_all(&self, path: &Path) -> std::io::Result<()> {
+            std::fs::remove_dir_all(path)
+        }
+    }
+
+    fn catalog() -> OpenCodeAgentCatalog {
+        OpenCodeAgentCatalog {
+            router: OpenCodeRouterDef {
+                name: "workspace".into(),
+                description: "router".into(),
+            },
+            projects: vec![OpenCodeProjectAgentDef {
+                name: "workspace-x".into(),
+                description: "x".into(),
+                project: "x".into(),
+                repo_path: "x".into(),
+                visible: false,
+            }],
+            permissions: Default::default(),
+        }
+    }
+
+    #[test]
+    fn empty_catalog_documents_and_router_only_catalogs_are_distinguished() {
+        let dir = tempfile::tempdir().unwrap();
+        let empty = dir.path().join("empty.yaml");
+        std::fs::write(&empty, "").unwrap();
+        assert!(load_opencode_catalog(Some(&empty)).is_err());
+        let router_only = dir.path().join("router.yaml");
+        std::fs::write(
+            &router_only,
+            "router: { name: workspace, description: router }\nprojects: []\n",
+        )
+        .unwrap();
+        assert!(
+            load_opencode_catalog(Some(&router_only))
+                .unwrap()
+                .projects
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn install_reports_staging_and_per_file_failures_without_partial_output() {
+        for failure in [Failure::Staging, Failure::SecondFile] {
+            let dir = tempfile::tempdir().unwrap();
+            let output = dir.path().join("agents");
+            assert!(
+                install_opencode_agents_with_fs(&catalog(), &output, &FailingFs::new(failure))
+                    .is_err()
+            );
+            assert!(!output.exists());
+            assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 0);
+        }
+    }
+
+    #[test]
+    fn install_swap_failure_restores_previous_generation() {
+        let dir = tempfile::tempdir().unwrap();
+        let output = dir.path().join("agents");
+        std::fs::create_dir(&output).unwrap();
+        std::fs::write(output.join("old.md"), "old").unwrap();
+        assert!(
+            install_opencode_agents_with_fs(&catalog(), &output, &FailingFs::new(Failure::Swap))
+                .is_err()
+        );
+        assert_eq!(
+            std::fs::read_to_string(output.join("old.md")).unwrap(),
+            "old"
+        );
+    }
+
+    #[test]
+    fn install_rejects_preexisting_transaction_artifacts() {
+        let dir = tempfile::tempdir().unwrap();
+        let output = dir.path().join("agents");
+        let staging = dir
+            .path()
+            .join(format!(".agents.{}.staging", std::process::id()));
+        std::fs::create_dir(&staging).unwrap();
+        let error = install_opencode_agents_with_mode(
+            &catalog(),
+            &output,
+            crate::write_mode::WriteMode::Write,
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("transaction already exists"));
     }
 }

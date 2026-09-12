@@ -248,11 +248,14 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
                 .filter(|t| t.status == model::Status::Done)
             {
                 if let Some(uuid) = task.notes.strip_prefix("doob:") {
-                    integrations::doob::todo_done(uuid.trim()).with_context(|| {
+                    let uuid = uuid.trim();
+                    if uuid.is_empty() {
+                        continue;
+                    }
+                    integrations::doob::todo_done(uuid).with_context(|| {
                         format!(
                             "pushing doob todo {} after {} completed task(s)",
-                            uuid.trim(),
-                            pushed
+                            uuid, pushed
                         )
                     })?;
                     pushed += 1;

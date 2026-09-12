@@ -238,6 +238,41 @@ fn detect_agent_name(root: &Path, description: &str, subagent_type: &str) -> Str
 mod tests {
     use super::*;
 
+    fn trace_rows(root: &Path) -> Vec<Value> {
+        std::fs::read_to_string(root.join(".ctx/godmode/traces/trace.jsonl"))
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn governance_trace_uses_unknown_fallback_agent_id() {
+        let root = tempfile::tempdir().unwrap();
+        check(root.path(), &json!({"tool_input": {}}));
+        assert!(
+            trace_rows(root.path())
+                .iter()
+                .all(|row| row["agent_id"] == "unknown")
+        );
+    }
+
+    #[test]
+    fn governance_reports_policy_resolution_failed_reason() {
+        let root = tempfile::tempdir().unwrap();
+        let policies = root.path().join("skills/agent-governance/policies");
+        std::fs::create_dir_all(&policies).unwrap();
+        std::fs::write(policies.join("default.yaml"), "not: [valid").unwrap();
+        let decision = check(root.path(), &json!({"tool_input": {}}));
+        assert!(decision.approved);
+        assert_eq!(decision.reason, "policy_resolution_failed");
+        assert!(
+            trace_rows(root.path())
+                .iter()
+                .all(|row| row["reason"] == "policy_resolution_failed")
+        );
+    }
+
     #[test]
     fn governance_approval_emits_new_and_legacy_trace_events() {
         let root = tempfile::tempdir().unwrap();
