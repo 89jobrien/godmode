@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
     fs::{self, OpenOptions},
-    io::Write,
+    io::{self, Write},
     path::PathBuf,
     process,
     time::{SystemTime, UNIX_EPOCH},
@@ -134,10 +134,10 @@ mod tests {
     #[test]
     fn start_then_end_persists_one_session_lifecycle() {
         let root = temp_root("lifecycle");
-        handle_command("start", &root);
+        handle_command("start", &root).unwrap();
         let ctx = root.join(".ctx/godmode");
         let session = read_session_id(&ctx).expect("session id");
-        handle_command("end", &root);
+        handle_command("end", &root).unwrap();
         let lines = fs::read_to_string(ctx.join("traces/trace.jsonl")).unwrap();
         let events = lines
             .lines()
@@ -156,7 +156,7 @@ mod tests {
         let ctx = root.join(".ctx/godmode");
         fs::create_dir_all(ctx.join("traces")).unwrap();
         fs::write(ctx.join("session.json"), "{").unwrap();
-        handle_command("end", &root);
+        handle_command("end", &root).unwrap();
         assert!(!ctx.join("traces/trace.jsonl").exists());
         let mut threads = Vec::new();
         for index in 0..32 {
@@ -166,7 +166,7 @@ mod tests {
             }));
         }
         for thread in threads {
-            thread.join().unwrap();
+            thread.join().unwrap().unwrap();
         }
         let lines = fs::read_to_string(ctx.join("traces/trace.jsonl")).unwrap();
         assert_eq!(lines.lines().count(), 32);
@@ -174,6 +174,45 @@ mod tests {
             .lines()
             .all(|line| serde_json::from_str::<Value>(line).is_ok()));
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn unknown_commands_are_rejected_without_creating_state() {
+        let root = temp_root("unknown");
+        let error = handle_command("bogus", &root).unwrap_err();
+        assert_eq!(error.kind(), std::io::ErrorKind::InvalidInput);
+        assert!(!root.join(".ctx").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn directory_and_open_failures_are_reported() {
+        let root = temp_root("directory-failure");
+        fs::write(root.join(".ctx"), "not a directory").unwrap();
+        assert!(handle_command("start", &root).is_err());
+        fs::remove_dir_all(&root).unwrap();
+
+        let root = temp_root("open-failure");
+        let ctx = root.join(".ctx/godmode");
+        fs::create_dir_all(ctx.join("traces/trace.jsonl")).unwrap();
+        assert!(append_event(&ctx, serde_json::json!({"event": "test"})).is_err());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn write_failures_are_reported() {
+        struct FailingWriter;
+        impl std::io::Write for FailingWriter {
+            fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("injected write failure"))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        assert!(
+            write_json_line(&mut FailingWriter, &serde_json::json!({"event": "test"})).is_err()
+        );
     }
 }
 
@@ -201,34 +240,32 @@ fn read_session_id(ctx_dir: &PathBuf) -> Option<String> {
     v.get("session_id")?.as_str().map(|s| s.to_string())
 }
 
-fn append_event(ctx_dir: &PathBuf, event: Value) {
-    let trace_file = ctx_dir.join("traces").join("trace.jsonl");
-    if let Ok(line) = serde_json::to_string(&event) {
-        if let Ok(mut f) = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&trace_file)
-        {
-            // Concurrent godmode-trace invocations (multiple sessions) share this
-            // O_APPEND file. `writeln!` can split the content and trailing "\n"
-            // literal across two write() syscalls, letting another process's
-            // atomic append land in between and corrupt the line (two JSON
-            // objects concatenated with no separating newline). Build the full
-            // line in one buffer and issue a single write_all so O_APPEND's
-            // per-write atomicity actually covers the whole record.
-            let mut buf = line.into_bytes();
-            buf.push(b'\n');
-            let _ = f.write_all(&buf);
-        }
-    }
+fn write_json_line(writer: &mut impl Write, event: &Value) -> io::Result<()> {
+    let line = serde_json::to_string(event).map_err(io::Error::other)?;
+    let mut buf = line.into_bytes();
+    buf.push(b'\n');
+    writer.write_all(&buf)
 }
 
-fn handle_command(cmd: &str, git_root: &PathBuf) {
-    let ctx_dir = git_root.join(".ctx").join("godmode");
-    let traces_dir = ctx_dir.join("traces");
-    if fs::create_dir_all(&traces_dir).is_err() {
-        return;
+fn append_event(ctx_dir: &PathBuf, event: Value) -> io::Result<()> {
+    let trace_file = ctx_dir.join("traces").join("trace.jsonl");
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(trace_file)?;
+    write_json_line(&mut file, &event)
+}
+
+fn handle_command(cmd: &str, git_root: &PathBuf) -> io::Result<()> {
+    if !matches!(cmd, "start" | "end") {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("unknown command: {cmd}"),
+        ));
     }
+
+    let ctx_dir = git_root.join(".ctx").join("godmode");
+    fs::create_dir_all(ctx_dir.join("traces"))?;
 
     match cmd {
         "start" => {
@@ -238,18 +275,15 @@ fn handle_command(cmd: &str, git_root: &PathBuf) {
                 session_id: sid.clone(),
                 started_at: iso_now(),
             };
-            if let Ok(json) = serde_json::to_string(&session) {
-                let _ = fs::write(ctx_dir.join("session.json"), json);
-            }
+            let json = serde_json::to_string(&session).map_err(io::Error::other)?;
+            fs::write(ctx_dir.join("session.json"), json)?;
             append_event(
                 &ctx_dir,
                 serde_json::json!({
-                    "event": "session.start",
-                    "session_id": sid,
-                    "cwd": git_root.to_str().unwrap_or(""),
-                    "ts": iso_now(),
+                    "event": "session.start", "session_id": sid,
+                    "cwd": git_root.to_str().unwrap_or(""), "ts": iso_now(),
                 }),
-            );
+            )?;
             eprintln!("[godmode] session started: {sid}");
         }
         "end" => {
@@ -257,16 +291,15 @@ fn handle_command(cmd: &str, git_root: &PathBuf) {
                 append_event(
                     &ctx_dir,
                     serde_json::json!({
-                        "event": "session.end",
-                        "session_id": session_id,
-                        "ts": iso_now(),
+                        "event": "session.end", "session_id": session_id, "ts": iso_now(),
                     }),
-                );
+                )?;
                 eprintln!("[godmode] session ended: {session_id}");
             }
         }
-        _ => eprintln!("[godmode-trace] unknown command: {cmd}"),
+        _ => unreachable!(),
     }
+    Ok(())
 }
 
 fn main() {
@@ -275,5 +308,9 @@ fn main() {
         eprintln!("usage: godmode-trace <start|end> <git-root>");
         return;
     }
-    handle_command(&args[1], &PathBuf::from(&args[2]));
+    if let Err(error) = handle_command(&args[1], &PathBuf::from(&args[2])) {
+        if error.kind() == io::ErrorKind::InvalidInput {
+            eprintln!("[godmode-trace] {error}");
+        }
+    }
 }

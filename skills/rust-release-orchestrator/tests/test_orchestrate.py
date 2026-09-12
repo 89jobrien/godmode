@@ -69,10 +69,12 @@ raise SystemExit(0)
     def tearDown(self):
         self.tmp.cleanup()
 
-    def run_release(self, *args, fail_adapter=False, fail_adapter_once=False, max_retries=None):
+    def run_release(self, *args, fail_adapter=False, fail_adapter_once=False,
+                    already_published_adapter=False, max_retries=None):
         env = dict(self.env)
         if fail_adapter: env["FAIL_ADAPTER"] = "1"
         if fail_adapter_once: env["FAIL_ADAPTER_ONCE"] = "1"
+        if already_published_adapter: env["ALREADY_PUBLISHED_ADAPTER"] = "1"
         if max_retries is not None: env["GODMODE_RELEASE_MAX_RETRIES"] = str(max_retries)
         return subprocess.run(["rust-script", str(SCRIPT), "--workspace", str(self.workspace), *args], env=env, text=True, capture_output=True, timeout=180)
 
@@ -103,6 +105,27 @@ raise SystemExit(0)
         self.assertFalse((self.workspace / ".release-state.json").exists())
         lines = self.log.read_text().splitlines()
         self.assertEqual(sum(line == "adapter|publish" for line in lines), 2)
+
+    def test_resume_rejects_malformed_state_and_accepts_partial_state(self):
+        state_path = self.workspace / ".release-state.json"
+        state_path.write_text("{")
+        malformed = self.run_release("--resume")
+        self.assertNotEqual(malformed.returncode, 0)
+        self.assertIn("parsing", malformed.stderr)
+
+        state_path.write_text(json.dumps({"published": ["core"]}))
+        partial = self.run_release("--resume")
+        self.assertEqual(partial.returncode, 0, partial.stdout + partial.stderr)
+        self.assertIn("skipped", partial.stdout)
+        self.assertFalse(state_path.exists())
+
+    def test_already_published_response_is_success_without_retry(self):
+        result = self.run_release(already_published_adapter=True, max_retries=3)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("published", result.stdout)
+        lines = self.log.read_text().splitlines()
+        self.assertEqual(sum(line == "adapter|publish" for line in lines), 1)
+        self.assertFalse((self.workspace / ".release-state.json").exists())
 
 
 if __name__ == "__main__":

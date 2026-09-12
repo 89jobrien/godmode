@@ -32,6 +32,14 @@ export def classify-repo [repo: string, path: path, status: record, upstream: re
                 $error = "git rev-list returned invalid counts"
             }
         }
+    } else {
+        let detail = ($upstream.stderr | default "" | str trim)
+        let normalized = ($detail | str downcase)
+        if ($normalized | str contains "detached") or ($normalized | str contains "does not point to a branch") {
+            $error = "detached HEAD"
+        } else if not ($detail | is-empty) and not ($normalized | str contains "no upstream") {
+            $error = $"git upstream failed: ($detail)"
+        }
     }
     let result = {
         repo: $repo path: $path dirty: $dirty unpushed: ($ahead > 0)

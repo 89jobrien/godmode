@@ -1,4 +1,5 @@
 import os
+import textwrap
 import shutil
 import subprocess
 import tempfile
@@ -27,6 +28,9 @@ class TaskRunnerExecutableTests(unittest.TestCase):
 exit ${FAKE_CARGO_EXIT:-0}
 """)
         cargo.chmod(0o755)
+        gh = self.bin / "gh"
+        gh.write_text("#!/bin/sh\nexit ${FAKE_GH_EXIT:-0}\n")
+        gh.chmod(0o755)
         self.env = dict(os.environ)
         self.env["PATH"] = str(self.bin) + os.pathsep + os.environ.get("PATH", "")
 
@@ -41,6 +45,20 @@ exit ${FAKE_CARGO_EXIT:-0}
 
     def install_fixture(self, name):
         shutil.copy(FIXTURES / name, self.cwd / "tdd-tasks.yaml")
+
+    def write_task(self, *, title="task", phase="pending", status="pending",
+                   attempts=0, issue=""):
+        (self.cwd / "tdd-tasks.yaml").write_text(textwrap.dedent(f"""\
+            tasks:
+              - id: t1
+                title: {title!r}
+                crate: core
+                test: task_test
+                phase: {phase}
+                status: {status}
+                attempts: {attempts}
+                issue: {issue!r}
+        """))
 
     def test_rejects_red_transition_from_green_without_mutating_fixture(self):
         self.install_fixture("green.yaml")
@@ -87,6 +105,30 @@ exit ${FAKE_CARGO_EXIT:-0}
         state = (self.cwd / "tdd-tasks.yaml").read_text()
         self.assertIn("phase: red", state)
         self.assertIn("status: running", state)
+
+    def test_third_failed_attempt_blocks_task(self):
+        self.write_task()
+        for attempt in range(1, 4):
+            red = self.run_runner("red", "t1")
+            self.assertEqual(red.returncode, 0, red.stdout + red.stderr)
+            failed = self.run_runner("fail", "t1", "--reason", f"attempt {attempt}")
+            self.assertEqual(failed.returncode, 0, failed.stdout + failed.stderr)
+        state = (self.cwd / "tdd-tasks.yaml").read_text()
+        self.assertIn("attempts: 3", state)
+        self.assertIn("status: blocked", state)
+
+    def test_status_truncates_utf8_title_without_panicking(self):
+        self.write_task(title="é" * 40)
+        result = self.run_runner("status")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("é" * 34, result.stdout)
+
+    def test_close_issues_propagates_github_failure(self):
+        self.write_task(phase="done", status="done", issue="gh:42")
+        self.env["FAKE_GH_EXIT"] = "1"
+        result = self.run_runner("close-issues")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("could not close #42", result.stderr)
 
 
 if __name__ == "__main__":
