@@ -7,8 +7,35 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
+/// Permission level rendered for an OpenCode tool.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum OpenCodePermission {
+    /// Permit the tool without prompting.
+    Allow,
+    /// Ask the user before invoking the tool.
+    Ask,
+    /// Deny the tool.
+    Deny,
+}
+
+impl std::fmt::Display for OpenCodePermission {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Self::Allow => "allow",
+            Self::Ask => "ask",
+            Self::Deny => "deny",
+        })
+    }
+}
+
+/// Project ID to tool-name permission mappings.
+pub type OpenCodePermissions = BTreeMap<String, BTreeMap<String, OpenCodePermission>>;
+
 /// Declarative source for one OpenCode router and its project specialists.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeAgentCatalog {
     /// Primary router responsible for delegating workspace requests.
     pub router: OpenCodeRouterDef,
@@ -17,36 +44,91 @@ pub struct OpenCodeAgentCatalog {
     pub projects: Vec<OpenCodeProjectAgentDef>,
     /// Optional project-specific tool permissions loaded from catalog data.
     #[serde(default)]
-    pub permissions: super::OpenCodePermissions,
+    pub permissions: OpenCodePermissions,
+}
+
+impl OpenCodeAgentCatalog {
+    /// Create a catalog with a router and no project specialists.
+    pub fn new(router: OpenCodeRouterDef) -> Self {
+        Self {
+            router,
+            projects: Vec::new(),
+            permissions: BTreeMap::new(),
+        }
+    }
+
+    /// Set project-specific tool permissions.
+    pub fn with_permissions(mut self, permissions: OpenCodePermissions) -> Self {
+        self.permissions = permissions;
+        self
+    }
+
+    /// Set the project specialists exposed by this catalog.
+    pub fn with_projects(mut self, projects: Vec<OpenCodeProjectAgentDef>) -> Self {
+        self.projects = projects;
+        self
+    }
 }
 
 /// OpenCode primary-agent metadata.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeRouterDef {
     /// File-safe name of the primary router agent.
     pub name: String,
     /// Human-readable summary rendered into agent frontmatter.
-    #[serde(default)]
     pub description: String,
+}
+
+impl OpenCodeRouterDef {
+    /// Create primary-router metadata.
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+        }
+    }
 }
 
 /// OpenCode subagent metadata for one workspace project.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct OpenCodeProjectAgentDef {
     /// File-safe name of the project specialist.
     pub name: String,
     /// Human-readable summary of the specialist's scope.
-    #[serde(default)]
     pub description: String,
     /// Registry identifier for the governed project tools.
-    #[serde(default)]
     pub project: String,
     /// Project path relative to the workspace root.
-    #[serde(default)]
     pub repo_path: String,
     /// Whether the specialist is visible in OpenCode's agent picker.
     #[serde(default)]
     pub visible: bool,
+}
+
+impl OpenCodeProjectAgentDef {
+    /// Create hidden project-specialist metadata.
+    pub fn new(
+        name: impl Into<String>,
+        description: impl Into<String>,
+        project: impl Into<String>,
+        repo_path: impl Into<String>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            description: description.into(),
+            project: project.into(),
+            repo_path: repo_path.into(),
+            visible: false,
+        }
+    }
+
+    /// Set whether the specialist is visible in OpenCode's agent picker.
+    pub fn with_visibility(mut self, visible: bool) -> Self {
+        self.visible = visible;
+        self
+    }
 }
 
 /// Load the project-agent catalog from a path or the embedded default.
@@ -54,6 +136,18 @@ pub struct OpenCodeProjectAgentDef {
 /// # Errors
 ///
 /// Returns an error when a custom catalog cannot be read, parsed, or validated.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::load_opencode_catalog;
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let catalog = load_opencode_catalog(None)?;
+/// assert!(!catalog.projects.is_empty());
+/// # Ok(())
+/// # }
+/// ```
 pub fn load_opencode_catalog(path: Option<&Path>) -> Result<OpenCodeAgentCatalog> {
     let raw = if let Some(path) = path {
         std::fs::read_to_string(path)
@@ -95,6 +189,18 @@ pub fn render_opencode_agent_files(catalog: &OpenCodeAgentCatalog) -> Vec<Render
 }
 
 /// Render the router and project specialists as legacy `(name, content)` pairs.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::{
+///     OpenCodeAgentCatalog, OpenCodeRouterDef, render_opencode_agents,
+/// };
+///
+/// let catalog = OpenCodeAgentCatalog::new(OpenCodeRouterDef::new("workspace", "Router"));
+/// let rendered = render_opencode_agents(&catalog);
+/// assert_eq!(rendered[0].0, "workspace.md");
+/// ```
 pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, String)> {
     render_opencode_agent_files(catalog)
         .into_iter()
@@ -107,6 +213,22 @@ pub fn render_opencode_agents(catalog: &OpenCodeAgentCatalog) -> Vec<(String, St
 /// # Errors
 ///
 /// Returns an error when catalog validation or the atomic installation transaction fails.
+///
+/// # Examples
+///
+/// ```
+/// use godmode_core::agent::{
+///     OpenCodeAgentCatalog, OpenCodeRouterDef, install_opencode_agents,
+/// };
+///
+/// # fn main() -> anyhow::Result<()> {
+/// let output = tempfile::tempdir()?;
+/// let catalog = OpenCodeAgentCatalog::new(OpenCodeRouterDef::new("workspace", "Router"));
+/// let paths = install_opencode_agents(&catalog, output.path(), false)?;
+/// assert!(paths[0].exists());
+/// # Ok(())
+/// # }
+/// ```
 pub fn install_opencode_agents(
     catalog: &OpenCodeAgentCatalog,
     output_dir: &Path,
@@ -292,7 +414,7 @@ Available routes:
 
 fn render_opencode_project_agent(
     project: &OpenCodeProjectAgentDef,
-    permissions: Option<&BTreeMap<String, super::OpenCodePermission>>,
+    permissions: Option<&BTreeMap<String, OpenCodePermission>>,
 ) -> String {
     let hidden = if project.visible { "false" } else { "true" };
     let mut rendered = format!(
@@ -412,8 +534,10 @@ fn validate_project_id(project: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use super::super::extract_frontmatter;
     use super::*;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use tempfile::TempDir;
 
     #[derive(Clone, Copy)]
     enum Failure {
@@ -552,5 +676,232 @@ mod tests {
         )
         .unwrap_err();
         assert!(error.to_string().contains("transaction already exists"));
+    }
+
+    #[test]
+    fn embedded_opencode_catalog_contains_all_project_agents() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        assert_eq!(catalog.router.name, "workspace");
+        assert_eq!(catalog.projects.len(), 23);
+        assert!(
+            catalog
+                .projects
+                .iter()
+                .any(|project| project.project == "minibox" && project.visible)
+        );
+    }
+
+    #[test]
+    fn render_opencode_agents_includes_router_and_specialists() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let rendered = render_opencode_agents(&catalog);
+        assert_eq!(rendered.len(), 24);
+
+        let router = rendered
+            .iter()
+            .find(|(name, _)| name == "workspace.md")
+            .map(|(_, content)| content)
+            .unwrap();
+        assert!(router.contains("mode: primary"));
+        assert!(router.contains("\"workspace-*\": allow"));
+        assert!(router.contains("  edit: deny"));
+        assert!(router.contains("permission:\n  \"*\": deny"));
+        assert!(router.contains("task:\n    \"*\": deny"));
+
+        let minibox = rendered
+            .iter()
+            .find(|(name, _)| name == "workspace-minibox.md")
+            .map(|(_, content)| content)
+            .unwrap();
+        assert!(minibox.contains("hidden: false"));
+        assert!(minibox.contains("personal_project_describe"));
+        assert!(minibox.contains("  read: allow"));
+        assert!(minibox.contains("personal_project_run: allow"));
+        assert!(!minibox.contains("personal_project_*"));
+        assert!(minibox.contains("personal_minibox_list_containers: allow"));
+        assert!(minibox.contains("personal_minibox_stop_container: ask"));
+
+        let maestro = rendered
+            .iter()
+            .find(|(name, _)| name == "workspace-maestro.md")
+            .map(|(_, content)| content)
+            .unwrap();
+        assert!(maestro.contains("hidden: true"));
+    }
+
+    #[test]
+    fn dry_run_install_does_not_write_files() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let dir = TempDir::new().unwrap();
+        let output = dir.path().join("agents");
+        let paths = install_opencode_agents(&catalog, &output, true).unwrap();
+        assert_eq!(paths.len(), 24);
+        assert!(!output.exists());
+    }
+
+    #[test]
+    fn install_writes_rendered_agents() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let dir = TempDir::new().unwrap();
+        let output = dir.path().join("agents");
+        let paths = install_opencode_agents(&catalog, &output, false).unwrap();
+        assert_eq!(paths.len(), 24);
+        assert!(output.join("workspace.md").exists());
+        assert!(output.join("workspace-doob.md").exists());
+    }
+
+    #[test]
+    fn catalog_rejects_empty_and_invalid_project_data_variants() {
+        let dir = TempDir::new().unwrap();
+        for (name, body) in [
+            ("empty.yaml", ""),
+            (
+                "empty-router.yaml",
+                "router: { name: , description: router }\nprojects: []\n",
+            ),
+            (
+                "empty-project.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: , repo_path: x }]\n",
+            ),
+            (
+                "absolute-path.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: x, repo_path: /tmp/x }]\n",
+            ),
+            (
+                "parent-path.yaml",
+                "router: { name: workspace, description: router }\nprojects: [{ name: workspace-x, project: x, repo_path: ../x }]\n",
+            ),
+        ] {
+            let path = dir.path().join(name);
+            std::fs::write(&path, body).unwrap();
+            assert!(load_opencode_catalog(Some(&path)).is_err(), "{name}");
+        }
+    }
+
+    #[test]
+    fn catalog_permissions_are_loaded_from_yaml_and_validated() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("catalog.yaml");
+        std::fs::write(&path, "router: { name: workspace, description: router }\nprojects:\n  - name: workspace-x\n    project: x\n    repo_path: x\n    description: x specialist\npermissions:\n  x: { personal_x_read: allow, personal_x_write: ask }\n").unwrap();
+        let catalog = load_opencode_catalog(Some(&path)).unwrap();
+        let rendered = render_opencode_agents(&catalog);
+        assert!(rendered[1].1.contains("personal_x_read: allow"));
+        assert!(rendered[1].1.contains("personal_x_write: ask"));
+
+        std::fs::write(&path, "router: { name: workspace, description: router }\nprojects:\n  - { name: workspace-x, description: x, project: x, repo_path: x }\npermissions: { x: { personal_x: execute } }\n").unwrap();
+        assert!(load_opencode_catalog(Some(&path)).is_err());
+    }
+
+    #[test]
+    fn catalog_rejects_unsafe_and_duplicate_agent_names() {
+        let dir = TempDir::new().unwrap();
+        let unsafe_catalog = dir.path().join("unsafe.yaml");
+        std::fs::write(
+            &unsafe_catalog,
+            "router: { name: ../escape, description: bad }\nprojects: []\n",
+        )
+        .unwrap();
+        assert!(load_opencode_catalog(Some(&unsafe_catalog)).is_err());
+
+        let duplicate_catalog = dir.path().join("duplicate.yaml");
+        std::fs::write(
+            &duplicate_catalog,
+            concat!(
+                "router: { name: workspace, description: router }\n",
+                "projects:\n",
+                "  - { name: workspace, description: duplicate, project: crux, ",
+                "repo_path: crux }\n"
+            ),
+        )
+        .unwrap();
+        assert!(load_opencode_catalog(Some(&duplicate_catalog)).is_err());
+    }
+
+    #[test]
+    fn rendered_frontmatter_parses_as_yaml() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        for (_, content) in render_opencode_agents(&catalog) {
+            let frontmatter = extract_frontmatter(&content).expect("frontmatter");
+            let value: serde_yaml::Value = serde_yaml::from_str(frontmatter).unwrap();
+            assert!(value.get("permission").is_some());
+        }
+    }
+
+    #[test]
+    fn project_tools_render_with_declared_permission() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let rendered = render_opencode_agents(&catalog);
+        let devloop = rendered
+            .iter()
+            .find(|(name, _)| name == "workspace-devloop.md")
+            .map(|(_, content)| content)
+            .unwrap();
+        assert!(devloop.contains("personal_devloop_get_timeline: allow"));
+    }
+
+    #[test]
+    fn mutation_tools_render_as_ask() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let rendered = render_opencode_agents(&catalog);
+        for (agent, tool) in [
+            ("workspace-minibox.md", "personal_minibox_stop_container"),
+            ("workspace-crux.md", "personal_crux_task_update"),
+            ("workspace-taskit.md", "personal_taskit_protocol_drift"),
+            ("workspace-mcpipe.md", "personal_mcpipe_scan_catalog"),
+            (
+                "workspace-mcpipe.md",
+                "personal_mcpipe_generate_doob_openapi",
+            ),
+        ] {
+            let content = rendered
+                .iter()
+                .find(|(name, _)| name == agent)
+                .map(|(_, content)| content)
+                .unwrap();
+            assert!(content.contains(&format!("{tool}: ask")));
+        }
+    }
+
+    #[test]
+    fn rendered_agent_boundary_exposes_named_content() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let files = render_opencode_agent_files(&catalog);
+        assert_eq!(files[0].file_name, "workspace.md");
+        assert!(files[0].content.contains("mode: primary"));
+    }
+
+    #[test]
+    fn opencode_catalog_read_error_names_source_path() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("catalog.yaml");
+        std::fs::create_dir_all(&path).unwrap();
+        let error = load_opencode_catalog(Some(&path)).unwrap_err().to_string();
+        assert!(error.contains("catalog.yaml"), "{error}");
+    }
+
+    #[test]
+    fn opencode_install_failure_leaves_no_partial_output() {
+        let catalog = load_opencode_catalog(None).unwrap();
+        let dir = TempDir::new().unwrap();
+        let output = dir.path().join("agents");
+        std::fs::write(&output, "not a directory").unwrap();
+        assert!(
+            install_opencode_agents_with_mode(
+                &catalog,
+                &output,
+                crate::write_mode::WriteMode::Write
+            )
+            .is_err()
+        );
+        assert_eq!(std::fs::read_to_string(output).unwrap(), "not a directory");
+    }
+
+    #[test]
+    fn opencode_catalog_parse_error_names_source_path() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("broken.yaml");
+        std::fs::write(&path, "router: [").unwrap();
+        let error = load_opencode_catalog(Some(&path)).unwrap_err().to_string();
+        assert!(error.contains("broken.yaml"), "{error}");
     }
 }
