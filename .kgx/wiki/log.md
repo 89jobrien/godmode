@@ -6,3 +6,6 @@
 - write: HANDOFF State 2026-06-06
 - write: Agent Registry
 - write: Skill Registry
+- write: Godmode Core
+- write: Persisted State
+- write: Quality Harnesses

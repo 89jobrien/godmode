@@ -1,31 +1,9 @@
 # Session
 
-Central orchestrator for task state transitions, duration tracking, and trace writes.
+At functional/session baseline `3589433`, `Session::open` delegates loading to default `SessionPorts`, whose graph-store adapter calls `graph::load` and `graph::save` (`crates/godmode-core/src/session.rs:61-68,196-235`).
 
-## Structure
+Typed mutation methods route task transitions through graph functions, validate configured run commands before start, obtain timestamps from `ClockPort`, append best-effort Crux steps, and auto-save (`crates/godmode-core/src/session.rs:250-369,414-425`). Explicit `save` and summary writes return their errors (`crates/godmode-core/src/session.rs:398-408`).
 
-- `root: PathBuf` — project root directory
-- `graph: TaskGraph` — owned task graph
-- `config: Config` — loaded from .godmode.toml
+`run_task_action` opens one Session and routes add, start, complete, block, unblock, remove, clear, and template application through it (`crates/godmode-cli/src/commands/task.rs:35-165,270-298`).
 
-## Lifecycle
-
-1. `Session::open(root)` — loads graph from disk, reads config
-2. `start_task(id)` — validates via rx, sets started_at, writes cruxx Step
-3. `complete_task(id, commit, notes)` — records completed_at, duration, cruxx Step
-4. `handoff()` — writes SessionSummary to JSONL, returns summary
-
-## Key constraint
-
-All task transitions MUST go through Session (not raw graph functions)
-for duration tracking and trace writes to work correctly.
-
-## Defined in
-
-`crates/godmode-core/src/session.rs`
-
-## Related
-
-- [[Task]] / [[TaskGraph]] — data model
-- [[cruxx]] — trace Step writes
-- [[rx]] — run command validation
+The default trace adapter writes dated step and summary JSONL under `.ctx/godmode/sessions/` (`crates/godmode-core/src/session.rs:85-110`). See [[Persisted State]] and [[Integrations]].

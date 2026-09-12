@@ -1,35 +1,12 @@
 # Integrations
 
-Subprocess wrappers for external CLI tools. All live under
-`crates/godmode-core/src/integrations/`.
+The core integrations module isolates external developer tools and subprocess concerns (`crates/godmode-core/src/integrations/mod.rs:1-16`). Boundaries include `rx`, `doob`, `hj`, `coursers`, `crux`, and `gh`.
 
-## Design pattern
+Directly evidenced calls include:
 
-Every integration invokes an external binary via `std::process::Command`.
-Callers use `.ok()` or `.ok().flatten()` — missing tools never abort.
-Each integration is toggled via `Config.integrations` booleans.
+- [[Session]] validates configured run commands before mutation and emits Crux steps (`crates/godmode-core/src/session.rs:279-340`)
+- task commands execute through rx and synchronize through doob or gh (`crates/godmode-cli/src/commands/task.rs:188-260`)
+- context conditionally reads coursers failures (`crates/godmode-core/src/context.rs:97-102`)
+- handon and handoff treat configured hj and doob calls as best effort (`crates/godmode-core/src/integrations/mod.rs:32-59,153-191`)
 
-## Components
-
-| Integration    | Binary | Purpose                                             |
-| -------------- | ------ | --------------------------------------------------- |
-| `cruxx`        | cruxx  | Write Step JSONL traces to `.ctx/godmode/sessions/` |
-| `doob`         | doob   | Sync todos, pull pending items, handoff sync        |
-| `hj`           | hj     | Read/write HANDOFF.yaml files                       |
-| `rx`           | rx     | Dispatch scripts, validate `run:` commands          |
-| `gh`           | gh     | CI triage (`ci.rs`), GitHub issues (`issues.rs`)    |
-| `hook_runner`  | —      | Execute hook scripts                                |
-| `hook_migrate` | —      | Migrate legacy hooks                                |
-| `handoff_yaml` | —      | Write native HANDOFF YAML from task state           |
-| `subprocess`   | —      | Shared `run()` helper for Command execution         |
-| `output`       | —      | GraphOut, HandonOutput, HandoffOutput types         |
-
-## handon / handoff
-
-The top-level `integrations::handon()` and `integrations::handoff()` functions
-orchestrate the full session-start and session-end sequences, combining
-graph state, hj output, doob todos, and dirty file detection.
-
-## Defined in
-
-`crates/godmode-core/src/integrations/mod.rs`
+The rx adapter returns an empty registry when rx is absent and rejects unknown scripts when a nonempty registry is available (`crates/godmode-core/src/integrations/rx.rs:72-115`).

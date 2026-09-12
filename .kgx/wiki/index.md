@@ -10,6 +10,9 @@
 
 ## Entity
 
+- [godmode-core](entity/godmode-core.md)
 - [integrations](entity/integrations.md)
+- [persisted-state](entity/persisted-state.md)
+- [quality-harnesses](entity/quality-harnesses.md)
 - [session](entity/session.md)
 - [task](entity/task.md)

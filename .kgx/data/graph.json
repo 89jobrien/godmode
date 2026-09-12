@@ -1,6 +1,51 @@
 {
   "nodes": [
     {
+      "id": "1b18f59a-4a08-45fc-a5ec-e0365ee2bc29",
+      "name": ".ctx/godmode/pipeline.yaml",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/pipeline.rs:101-126 defines pipeline state and its path.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
+      "id": "e62ec3c7-17c6-4428-a676-2a7d5125ccaf",
+      "name": ".ctx/godmode/sessions jsonl",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/session.rs:85-110 writes dated step and summary JSONL under the sessions directory.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
+      "id": "b70a456e-4cc4-42b7-82d7-02dab1a23c4a",
+      "name": ".ctx/godmode/tasks.yaml",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/model.rs:149 identifies the TaskGraph storage path.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
+      "id": "fb7e35f4-b3c9-4b61-bff5-233215450350",
+      "name": ".ctx/godmode/wave-status.json",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/wave.rs:40-42 constructs the wave state path.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
+      "id": "8cc142bc-dace-4d93-bed0-db342649a5bb",
+      "name": ".ctx/godmode/workflow state json",
+      "type": "file",
+      "supporting_text": "crates/godmode-core/src/workflow.rs:123-129 constructs workflow-name JSON state.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
       "id": "e56ce19a-ac27-420f-8cf4-01032a1e67a7",
       "name": "AgentDef",
       "type": "struct",
@@ -31,9 +76,10 @@
       "id": "fa9ba982-9684-4302-8a96-840252e21919",
       "name": "Session",
       "type": "struct",
-      "supporting_text": "Session owns all task state transitions, duration tracking, and trace writes",
+      "supporting_text": "crates/godmode-core/src/session.rs:156-190 defines Session and SessionSummary; lines 196-425 implement lifecycle and trace behavior.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -112,7 +158,7 @@
       "id": "28190619-17f2-415f-8f74-6a840bb9173b",
       "name": "agent governance skill",
       "type": "system",
-      "supporting_text": "skills/agent-governance/ — SKILL.md, hook.nu, helpers, policies directory",
+      "supporting_text": "skills/agent-governance/ \u2014 SKILL.md, hook.nu, helpers, policies directory",
       "source_docs": [
         "godmode_handoff_20260606"
       ]
@@ -172,6 +218,15 @@
       ]
     },
     {
+      "id": "2dbe63e8-3359-4437-8fc1-a4336c27094e",
+      "name": "cargo",
+      "type": "tool",
+      "supporting_text": "xtask/src/main.rs:49-123 defines Cargo-backed gates; lines 178-185 invoke cargo and godmode-cli.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
       "id": "60a896be-631a-4fca-88ed-9b2ae91ff00e",
       "name": "changelog",
       "type": "system",
@@ -208,12 +263,22 @@
       ]
     },
     {
+      "id": "3352aee5-4663-4b30-8ace-c46f21183e3e",
+      "name": "conformance test runner",
+      "type": "concept",
+      "supporting_text": "tests/conformance/src/lib.rs:23-33 builds a TestRunner with module suites.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
       "id": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
       "name": "context",
       "type": "module",
-      "supporting_text": "context module assembles SessionContext for hooks and subagents",
+      "supporting_text": "context module assembles SessionContext for hooks and subagents crates/godmode-core/src/context.rs:1-13 identifies session context assembly.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -226,6 +291,15 @@
       ]
     },
     {
+      "id": "7fd9a66b-aa43-4165-af6a-7bd288f77959",
+      "name": "coursers",
+      "type": "tool",
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:6 exports the coursers adapter.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
       "id": "1266b0ae-5bb3-4621-ba87-a9c0d9c21609",
       "name": "cross-issue",
       "type": "system",
@@ -235,19 +309,19 @@
       ]
     },
     {
+      "id": "79229622-113b-4311-972e-1a7e2db20e42",
+      "name": "crux",
+      "type": "tool",
+      "supporting_text": "crates/godmode-core/src/integrations/crux.rs:16-100 constructs task lifecycle Step values.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
       "id": "90ece3f4-9877-4271-8dd5-dcdc033e42a1",
       "name": "crux-runtime",
       "type": "dependency",
       "supporting_text": "crux-runtime for agentic runtime",
-      "source_docs": [
-        "godmode_architecture"
-      ]
-    },
-    {
-      "id": "9b053349-c90d-4c31-8195-8af279a4f547",
-      "name": "cruxx",
-      "type": "integration",
-      "supporting_text": "cruxx integration writes Step JSONL traces",
       "source_docs": [
         "godmode_architecture"
       ]
@@ -310,9 +384,10 @@
       "id": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
       "name": "dispatch",
       "type": "module",
-      "supporting_text": "dispatch module computes independent chains for parallel agent execution",
+      "supporting_text": "dispatch module computes independent chains for parallel agent execution crates/godmode-core/src/context.rs:95 calls dispatch::critical_path.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -337,10 +412,11 @@
       "id": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
       "name": "doob",
       "type": "integration",
-      "supporting_text": "doob integration syncs todos and handoff state",
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:8 exports the doob adapter; handon and handoff use it at lines 51-54 and 178-190.",
       "source_docs": [
         "godmode_architecture",
-        "godmode_handoff_20260606"
+        "godmode_handoff_20260606",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -356,9 +432,10 @@
       "id": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
       "name": "gh",
       "type": "integration",
-      "supporting_text": "gh integration handles CI triage and GitHub issues",
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:9 exports the gh adapter.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -680,36 +757,48 @@
       "id": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
       "name": "godmode",
       "type": "workspace",
-      "supporting_text": "Godmode is a two-crate Rust workspace (v0.6.0) for agentic task management",
+      "supporting_text": "Godmode is a Rust 2024 workspace with four members: godmode-core, godmode-cli, godmode-conformance, and xtask.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture_3589433"
+      ]
+    },
+    {
+      "id": "679797f0-2139-4c3c-a9ac-b6a31a7877bc",
+      "name": "godmode binary",
+      "type": "file",
+      "supporting_text": "crates/godmode-cli/Cargo.toml:8-10 defines binary godmode at src/main.rs.",
+      "source_docs": [
+        "godmode_architecture_3589433"
       ]
     },
     {
       "id": "b1be8cbb-9c92-4880-b199-34998f431432",
       "name": "godmode-cli",
       "type": "crate",
-      "supporting_text": "godmode-cli is a thin clap binary",
+      "supporting_text": "godmode-cli is a thin Clap binary that delegates to godmode-core (crates/godmode-cli/src/main.rs:1-17).",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
       "id": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
       "name": "godmode-conformance",
       "type": "crate",
-      "supporting_text": "godmode-conformance holds property tests and benchmarks",
+      "supporting_text": "godmode-conformance holds property tests and benchmarks tests/conformance/Cargo.toml:1-11 names the conformance harness and its core dependency.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
       "id": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "name": "godmode-core",
       "type": "crate",
-      "supporting_text": "godmode-core is the library containing all domain logic",
+      "supporting_text": "godmode-core owns domain and integration behavior and exports its public modules (crates/godmode-core/src/lib.rs:1-47).",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -725,9 +814,10 @@
       "id": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
       "name": "graph",
       "type": "module",
-      "supporting_text": "graph module handles load/save task file, all task state transitions, runnable() dependency resolution",
+      "supporting_text": "crates/godmode-core/src/lib.rs:19 exports the graph module for persistence, transitions, and dependency resolution.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -743,9 +833,10 @@
       "id": "ce545721-dadd-4a9f-b220-56814a9b088e",
       "name": "hj",
       "type": "integration",
-      "supporting_text": "hj integration manages handoff YAML files",
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:11 exports hj; handon and handoff call it at lines 46-50 and 165-170.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -779,9 +870,9 @@
       "id": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
       "name": "integrations",
       "type": "module",
-      "supporting_text": "integrations submodule wraps external binaries: cruxx, doob, hj, rx, gh",
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:1-16 isolates external-tool adapters and subprocess concerns.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -878,9 +969,10 @@
       "id": "6e53093e-4b32-4744-95da-6e0789077b0c",
       "name": "model",
       "type": "module",
-      "supporting_text": "model module contains Task, TaskGraph, Status, Priority data types",
+      "supporting_text": "model module contains Task, TaskGraph, Status, Priority data types crates/godmode-core/src/lib.rs:25 exports model; model.rs:54-156 defines Status, Task, and TaskGraph.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -932,9 +1024,10 @@
       "id": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
       "name": "pipeline",
       "type": "module",
-      "supporting_text": "pipeline module handles pipeline execution",
+      "supporting_text": "pipeline module handles pipeline execution crates/godmode-core/src/pipeline.rs:1-5 identifies pipeline definitions and persisted state.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -959,7 +1052,7 @@
       "id": "c6946a0f-68f2-400a-9cff-c4b2f4010910",
       "name": "policy module",
       "type": "file",
-      "supporting_text": "crates/godmode-core/src/policy.rs — new untracked file",
+      "supporting_text": "crates/godmode-core/src/policy.rs \u2014 new untracked file",
       "source_docs": [
         "godmode_handoff_20260606"
       ]
@@ -1067,16 +1160,17 @@
       "id": "7949101a-ed34-42e2-b640-a9ebd94b7573",
       "name": "rx",
       "type": "integration",
-      "supporting_text": "rx integration dispatches scripts and validates run commands",
+      "supporting_text": "crates/godmode-core/src/integrations/rx.rs:40-55 resolves commands and lines 72-115 validate registry scripts.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
       "id": "34fa4cf8-a083-4b52-8188-6fae6c9f6926",
       "name": "sarif module",
       "type": "file",
-      "supporting_text": "crates/godmode-core/src/sarif.rs — new untracked file",
+      "supporting_text": "crates/godmode-core/src/sarif.rs \u2014 new untracked file",
       "source_docs": [
         "godmode_handoff_20260606"
       ]
@@ -1151,6 +1245,15 @@
       "supporting_text": "Dispatch agents per issue",
       "source_docs": [
         "godmode_skills"
+      ]
+    },
+    {
+      "id": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "name": "task command handler",
+      "type": "concept",
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:35-37 defines run_task_action and opens Session.",
+      "source_docs": [
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -1265,18 +1368,20 @@
       "id": "d3438be4-1608-4699-b93e-00de98186c3e",
       "name": "verify",
       "type": "module",
-      "supporting_text": "verify module runs nextest + clippy + fmt + git log gate",
+      "supporting_text": "verify module runs nextest + clippy + fmt + git log gate crates/godmode-core/src/verify.rs:1 identifies composable verification gates.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
       "id": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
       "name": "wave",
       "type": "module",
-      "supporting_text": "wave module tracks parallel agent slot state",
+      "supporting_text": "wave module tracks parallel agent slot state crates/godmode-core/src/wave.rs:1 identifies persistent wave state.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -1292,9 +1397,10 @@
       "id": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
       "name": "workflow",
       "type": "module",
-      "supporting_text": "workflow module defines causal workflow DAGs per agent",
+      "supporting_text": "workflow module defines causal workflow DAGs per agent crates/godmode-core/src/workflow.rs:1-4 identifies command-driven workflow DAGs.",
       "source_docs": [
-        "godmode_architecture"
+        "godmode_architecture",
+        "godmode_architecture_3589433"
       ]
     },
     {
@@ -1323,71 +1429,35 @@
       "source_docs": [
         "godmode_skills"
       ]
+    },
+    {
+      "id": "c4f160b7-6a80-4cad-b2a5-15458b142ffd",
+      "name": "xtask",
+      "type": "system",
+      "supporting_text": "xtask/src/main.rs:1-3 identifies workspace maintenance commands.",
+      "source_docs": [
+        "godmode_architecture_3589433"
+      ]
     }
   ],
   "edges": [
     {
-      "id": "087df866-5742-4b51-a10a-db1a5a0c2ccb",
-      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
-      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "Two-crate workspace",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "6978ff6e-422c-4353-91f6-b403534e237e",
-      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
-      "target": "b1be8cbb-9c92-4880-b199-34998f431432",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "Two-crate workspace",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "d093a0c7-0c05-4d74-89d9-a54a708dcf15",
+      "id": "656614d6-2cc4-4ae5-bc1b-64520f441d89",
       "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
       "target": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "tests/conformance workspace member",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "Cargo.toml:1-2 lists tests/conformance as a workspace member. [godmode_architecture_3589433] | tests/conformance workspace member [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
-      "id": "482acd4c-fd9e-40e4-a14f-75b7b53b2777",
-      "source": "b1be8cbb-9c92-4880-b199-34998f431432",
-      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
-      "type": "depends_on",
-      "confidence": 1.0,
-      "supporting_text": "thin clap CLI that calls into core",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "bc5c8639-34e7-4092-872e-7aab627f59ef",
+      "id": "1250a37f-b927-46ce-b032-cea9213f03fa",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "6e53093e-4b32-4744-95da-6e0789077b0c",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod model in lib.rs",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "4ab9d807-45a0-4d8e-ac50-5959b84e6bfd",
-      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
-      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "pub mod graph in lib.rs",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "6c3e4ff8-2c15-46d6-9f28-874e92af5231",
-      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
-      "target": "fa9ba982-9684-4302-8a96-840252e21919",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "pub mod session in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:25 exports model. [godmode_architecture_3589433] | pub mod model in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "bddb6570-ef40-4e2d-8dfb-a2a8b276ccdd",
@@ -1399,22 +1469,22 @@
       "source_doc": "godmode_architecture"
     },
     {
-      "id": "b6c413e5-7249-40fd-aa4f-2704a86fbc50",
+      "id": "a1c75e5c-d007-4003-ae90-57e54f2fc5f6",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod dispatch in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:17 exports dispatch. [godmode_architecture_3589433] | pub mod dispatch in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
-      "id": "2f3c5b40-9532-4eff-b6e2-af81f3649a8b",
+      "id": "edb31d7a-ac7a-44f5-8a0a-e9c514f8d119",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod wave in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:43 exports wave. [godmode_architecture_3589433] | pub mod wave in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "eb8b578a-2c65-4890-bbe3-0601bfe32de5",
@@ -1444,13 +1514,13 @@
       "source_doc": "godmode_architecture"
     },
     {
-      "id": "c77d0ac5-9a8e-41c9-b4f6-e5a377459866",
+      "id": "f01b48fa-3cdb-4347-b529-d00691f9aadd",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod context in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:15 exports context. [godmode_architecture_3589433] | pub mod context in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "10abdbea-ea81-4e7b-b99f-5c40a43b3903",
@@ -1462,13 +1532,13 @@
       "source_doc": "godmode_architecture"
     },
     {
-      "id": "0acfab0f-f335-4996-9687-e12ba39646dc",
+      "id": "00bcdda0-486f-4c89-a466-a6abf8a3642a",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "d3438be4-1608-4699-b93e-00de98186c3e",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod verify in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:42 exports verify. [godmode_architecture_3589433] | pub mod verify in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "ea5bfe75-1eed-47b9-a586-fb92f1eb0664",
@@ -1552,22 +1622,13 @@
       "source_doc": "godmode_architecture"
     },
     {
-      "id": "dd788bfb-eb90-4473-8a65-d73b4de7cf66",
-      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
-      "target": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "pub mod integrations in lib.rs",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "3f9fc493-e210-486f-ad89-4d0377bf37e2",
+      "id": "13b4e66e-3c50-40ad-b0bb-55e8c61d15ba",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod workflow in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:44 exports workflow. [godmode_architecture_3589433] | pub mod workflow in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "40cb70ad-678c-4cb1-8fad-6d675e309795",
@@ -1588,13 +1649,13 @@
       "source_doc": "godmode_architecture"
     },
     {
-      "id": "64c1aa32-2882-44ff-b4b1-22bf751a191c",
+      "id": "2824db77-aa5c-43c0-9192-58604e264e72",
       "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
       "target": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
       "type": "contains",
       "confidence": 1.0,
-      "supporting_text": "pub mod pipeline in lib.rs",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "crates/godmode-core/src/lib.rs:26 exports pipeline. [godmode_architecture_3589433] | pub mod pipeline in lib.rs [godmode_architecture]",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "17b3c194-89f5-442c-a790-50cc4e684fe5",
@@ -1779,11 +1840,11 @@
     {
       "id": "36e8cdb8-de75-4749-9309-f191adac95bc",
       "source": "fa9ba982-9684-4302-8a96-840252e21919",
-      "target": "9b053349-c90d-4c31-8195-8af279a4f547",
+      "target": "79229622-113b-4311-972e-1a7e2db20e42",
       "type": "depends_on",
       "confidence": 1.0,
-      "supporting_text": "Session writes cruxx Step traces",
-      "source_doc": "godmode_architecture"
+      "supporting_text": "Session writes crux Step traces",
+      "source_doc": "godmode_architecture_3589433"
     },
     {
       "id": "66df3396-9c21-4363-9c75-aaaf4d644edd",
@@ -1819,51 +1880,6 @@
       "type": "depends_on",
       "confidence": 1.0,
       "supporting_text": "dispatch imports wave types for concurrency tracking",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "f48d6ddf-1517-4aaf-a0af-a1e878180ef7",
-      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "target": "9b053349-c90d-4c31-8195-8af279a4f547",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "integrations submodule wraps cruxx",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "c8e34049-0e02-41ec-a1cd-9c078441eb28",
-      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "target": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "integrations submodule wraps doob",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "b18f98bd-ad53-46d3-af40-8b1c88dd17b4",
-      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "target": "ce545721-dadd-4a9f-b220-56814a9b088e",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "integrations submodule wraps hj",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "471847e6-d6d3-42c6-a016-44fab2a15acb",
-      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "integrations submodule wraps rx",
-      "source_doc": "godmode_architecture"
-    },
-    {
-      "id": "bdcbcdde-af4b-48da-8f65-9dd05d21ec9e",
-      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
-      "target": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
-      "type": "contains",
-      "confidence": 1.0,
-      "supporting_text": "integrations submodule wraps gh",
       "source_doc": "godmode_architecture"
     },
     {
@@ -2783,6 +2799,366 @@
       "confidence": 1.0,
       "supporting_text": null,
       "source_doc": null
+    },
+    {
+      "id": "19d71df2-7a22-431a-b175-6d45a3b527d1",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Cargo.toml:1-2 lists crates/godmode-core as a workspace member.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "528593f8-f709-4f8d-9891-2316f458326d",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Cargo.toml:1-2 lists crates/godmode-cli as a workspace member.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "d53b09c8-61e1-4b5c-bba6-58c7ca9e1b8a",
+      "source": "e58a8adc-04df-4051-9c5b-b68d16ac39a7",
+      "target": "c4f160b7-6a80-4cad-b2a5-15458b142ffd",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "Cargo.toml:1-2 lists xtask as a workspace member.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "205733d7-f8c8-42d1-bbc8-45a5696a372f",
+      "source": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/Cargo.toml:12-14 declares godmode-core as a dependency.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "0d88dd14-e6c1-482c-bf2f-e48b802beaae",
+      "source": "b1be8cbb-9c92-4880-b199-34998f431432",
+      "target": "679797f0-2139-4c3c-a9ac-b6a31a7877bc",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/Cargo.toml:8-10 defines the godmode binary at src/main.rs.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "acd66c39-e877-4874-ad24-e2d53f470020",
+      "source": "679797f0-2139-4c3c-a9ac-b6a31a7877bc",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/main.rs:11-15 imports public godmode_core modules and Session.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "b8edd2ba-1e92-40aa-8165-b3b4828c43ea",
+      "source": "679797f0-2139-4c3c-a9ac-b6a31a7877bc",
+      "target": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "type": "uses",
+      "confidence": 0.95,
+      "supporting_text": "crates/godmode-cli/src/main.rs:15 declares commands; crates/godmode-cli/src/commands/task.rs:35-37 defines run_task_action.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "060f9e28-23b3-4d8f-a2f5-fed7ae3e3492",
+      "source": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "target": "fa9ba982-9684-4302-8a96-840252e21919",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:35-37 opens Session for task actions.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "3e611f06-499a-4fa1-be62-66122a5c8295",
+      "source": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:79 calls graph::next_task_id and line 167 calls graph::runnable.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "390d6feb-7c0c-4d8a-bcd9-fd6e23071469",
+      "source": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:188-208 executes configured task commands through integrations::rx::run_cmd.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "c841fa5e-e3af-481f-9302-98853c9779be",
+      "source": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "target": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:218-223 imports doob todos and lines 242-260 synchronize completed todos.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "095f7756-4c1e-4065-b061-687432c02116",
+      "source": "c06e3e9a-b90c-4e66-9156-5c7822632770",
+      "target": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-cli/src/commands/task.rs:209-216 imports GitHub issues through integrations::gh::pull_issues.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "0d1069c4-8f35-479b-bda3-757e3c6300dd",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/lib.rs:19 exports graph.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "011c013e-9def-4511-83e9-3c3d9061efb5",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "fa9ba982-9684-4302-8a96-840252e21919",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/lib.rs:36 exports session.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "d20a7cbe-0ac0-4532-94b5-ce9da70779d4",
+      "source": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "target": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/lib.rs:23 exports integrations.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "b00986c6-3ce4-4170-b51f-fac271012684",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/session.rs:61-68 adapts graph load/save; lines 223-234 load through the store, lines 250-369 route transitions through graph, and lines 398-418 persist through the store.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "735eaed5-9eb4-4e22-8e9a-f31a93fc26ad",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/session.rs:71-75 defines the rx-backed validator; lines 279-286 validate configured run commands before transition.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "567596a1-6873-4e1e-8f23-ccc71c455e0b",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "79229622-113b-4311-972e-1a7e2db20e42",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/session.rs:85-110 defines the JSONL trace adapter; lines 279-340 build lifecycle steps and lines 422-425 append them.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "2e2c6d18-c745-4aec-87fa-45cae6a7c66c",
+      "source": "fa9ba982-9684-4302-8a96-840252e21919",
+      "target": "e62ec3c7-17c6-4428-a676-2a7d5125ccaf",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/session.rs:85-110 writes dated step and summary JSONL under .ctx/godmode/sessions/.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "7f3dc725-a9f6-4772-af31-3052273183fd",
+      "source": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "target": "b70a456e-4cc4-42b7-82d7-02dab1a23c4a",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/model.rs:149 identifies TaskGraph storage at .ctx/godmode/tasks.yaml; commit 3589433cc3c907c3a60085c830549bee375e2838.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "a500e5dd-68b2-4e47-8d4b-867208c93563",
+      "source": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/context.rs:64 loads graph state.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "d317b9ef-cde2-4280-82f8-4c5b8c957502",
+      "source": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
+      "target": "6a2d19a1-b4f4-457b-ad74-57f44aab81eb",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/context.rs:95 computes critical path through dispatch.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "1ad01a9b-e5cf-4ca0-a45e-6e7d649760b0",
+      "source": "fbc1c35b-096a-4aee-9c11-2ae9b35f46d6",
+      "target": "7fd9a66b-aa43-4165-af6a-7bd288f77959",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/context.rs:97-102 conditionally reads coursers failures.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "d3a92816-000f-48a6-a351-5400bbdc146b",
+      "source": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
+      "target": "86052e04-2f41-41ed-8a32-a3eba8b1cde2",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/pipeline.rs:12 imports graph for pipeline execution.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "e5af7dd0-3a3a-42b1-adc9-e6e476aefee3",
+      "source": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/pipeline.rs:13 imports the rx integration.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "8ce2ccaa-5196-45e6-b6ec-c0ba197053fd",
+      "source": "c8ae97fa-9cef-4a6c-a81c-300023406c99",
+      "target": "1b18f59a-4a08-45fc-a5ec-e0365ee2bc29",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/pipeline.rs:101-126 defines PipelineState and its state path; lines 172-192 load and save it.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "3a04fbf5-1215-4d78-aad9-1f33314dd16a",
+      "source": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/workflow.rs:11 and 140-148 resolve workflow run commands through rx::resolve_cmd.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "4d3034dd-1e3a-4f2a-9d63-9429f4db0063",
+      "source": "7053848f-3a99-4d4a-8e2d-d07aac78c803",
+      "target": "8cc142bc-dace-4d93-bed0-db342649a5bb",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/workflow.rs:123-129 constructs workflow state path and lines 163-169 persist it.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "a184547e-657a-4f99-87d6-6ebb10b3a86f",
+      "source": "6a5b931c-3164-4035-bdb6-e6ee39504d9f",
+      "target": "fb7e35f4-b3c9-4b61-bff5-233215450350",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/wave.rs:40-42 constructs the path and lines 68-80 load and save JSON state.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "55fc13cc-478d-4d04-a6fc-f68ffe37f27d",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "7949101a-ed34-42e2-b640-a9ebd94b7573",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:15 exports rx.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "1e11233b-c1b8-4ee4-a803-11ea3a39a65d",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "51d287e8-1566-4231-9c47-5ff9d1a6be0c",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:8 exports doob.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "c77d081f-2929-4865-8fa3-d878f6e9de04",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "ce545721-dadd-4a9f-b220-56814a9b088e",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:11 exports hj.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "f97a74e3-74cf-44eb-a97a-22a73ba9cc60",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "7fd9a66b-aa43-4165-af6a-7bd288f77959",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:6 exports coursers.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "889f7f3d-0bbd-4e00-b80e-1dc88e6bfdf5",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "79229622-113b-4311-972e-1a7e2db20e42",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:7 exports crux.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "fbeb65b5-cce1-4ede-9932-3e5c728e9599",
+      "source": "fbeec99f-e37d-480e-9ff0-e459e0f6b9ea",
+      "target": "8a1b80b4-835e-410f-aa2b-78e60dacac1c",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/integrations/mod.rs:9 exports gh.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "b42f38bd-2bc5-4874-94f3-474a04a41710",
+      "source": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
+      "target": "fc72b99b-ac5a-404d-8877-3dd689f1abea",
+      "type": "depends_on",
+      "confidence": 1.0,
+      "supporting_text": "tests/conformance/Cargo.toml:10-12 declares godmode-core as a dependency.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "cd7e2cf6-92fb-47c0-802e-a8e92318201c",
+      "source": "1eb7dffc-a3d0-4b4b-80a1-4764934e77a7",
+      "target": "3352aee5-4663-4b30-8ace-c46f21183e3e",
+      "type": "contains",
+      "confidence": 1.0,
+      "supporting_text": "tests/conformance/src/lib.rs:23-33 defines all_tests and registers module suites.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "16dff0e1-fe2e-4416-89bf-b86041e5d3b9",
+      "source": "c4f160b7-6a80-4cad-b2a5-15458b142ffd",
+      "target": "2dbe63e8-3359-4437-8fc1-a4336c27094e",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "xtask/src/main.rs:49-123 runs formatting, Clippy, conformance, nextest, plugin checks, and cargo-deny through command helpers.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "1cdfb747-8dfb-41b9-9d89-529757e2a168",
+      "source": "c4f160b7-6a80-4cad-b2a5-15458b142ffd",
+      "target": "679797f0-2139-4c3c-a9ac-b6a31a7877bc",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "xtask/src/main.rs:107-117 invokes godmode checks; lines 182-185 route them through godmode-cli.",
+      "source_doc": "godmode_architecture_3589433"
+    },
+    {
+      "id": "29572de1-930e-40a6-adce-1b7cf1d6ddb4",
+      "source": "d3438be4-1608-4699-b93e-00de98186c3e",
+      "target": "2dbe63e8-3359-4437-8fc1-a4336c27094e",
+      "type": "uses",
+      "confidence": 1.0,
+      "supporting_text": "crates/godmode-core/src/verify.rs:47-100 implements nextest and clippy steps with Command::new cargo.",
+      "source_doc": "godmode_architecture_3589433"
     }
   ]
 }
