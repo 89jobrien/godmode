@@ -124,14 +124,12 @@ fn trace_queries_handle_missing_files_and_reject_invalid_limits() {
         serde_json::Value::Array(vec![])
     );
 
-    for args in [["trace", "summary", "--sessions", "0"]] {
-        let result = Command::new(godmode_bin())
-            .args(args)
-            .current_dir(temp.path())
-            .output()
-            .unwrap();
-        assert!(!result.status.success());
-    }
+    let result = Command::new(godmode_bin())
+        .args(["trace", "summary", "--sessions", "0"])
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(!result.status.success());
 
     let missing_current = Command::new(godmode_bin())
         .args(["trace", "stats", "--current"])

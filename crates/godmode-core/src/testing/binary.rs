@@ -4,6 +4,10 @@ use anyhow::{Context, Result};
 use std::path::PathBuf;
 
 /// Resolves a Cargo-built integration-test binary from its package target name.
+///
+/// # Errors
+///
+/// Returns an error when Cargo did not provide the target binary environment variable.
 pub fn binary_path(name: &str) -> Result<PathBuf> {
     let key = format!("CARGO_BIN_EXE_{}", name.replace('-', "_"));
     std::env::var_os(&key)

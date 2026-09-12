@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use crate::config::Config;
@@ -34,12 +34,28 @@ pub trait RunValidatorPort: Send + Sync {
     fn validate(&self, run: &str) -> Result<()>;
 }
 
+/// Time source used by [`Session`] transitions and summaries.
+pub trait ClockPort: Send + Sync {
+    /// Return the current UTC time.
+    fn now(&self) -> DateTime<Utc>;
+}
+
 /// Lifecycle trace port used by [`Session`].
 pub trait SessionTracePort: Send + Sync {
     /// Append one task lifecycle step.
-    fn append_step(&self, root: &Path, step: crux_runtime::types::step::Step) -> Result<()>;
+    fn append_step(
+        &self,
+        root: &Path,
+        at: DateTime<Utc>,
+        step: crux_runtime::types::step::Step,
+    ) -> Result<()>;
     /// Append one session summary.
-    fn append_summary(&self, root: &Path, summary: &SessionSummary) -> Result<()>;
+    fn append_summary(
+        &self,
+        root: &Path,
+        at: DateTime<Utc>,
+        summary: &SessionSummary,
+    ) -> Result<()>;
 }
 
 struct FileTaskGraphStore;
@@ -59,17 +75,34 @@ impl RunValidatorPort for RxRunValidator {
     }
 }
 
+struct SystemClock;
+impl ClockPort for SystemClock {
+    fn now(&self) -> DateTime<Utc> {
+        Utc::now()
+    }
+}
+
 struct JsonlSessionTrace;
 impl SessionTracePort for JsonlSessionTrace {
-    fn append_step(&self, root: &Path, step: crux_runtime::types::step::Step) -> Result<()> {
-        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+    fn append_step(
+        &self,
+        root: &Path,
+        at: DateTime<Utc>,
+        step: crux_runtime::types::step::Step,
+    ) -> Result<()> {
+        let date = at.format("%Y-%m-%d").to_string();
         append_jsonl(
             &crux::sessions_dir(root).join(format!("{date}.jsonl")),
             &step,
         )
     }
-    fn append_summary(&self, root: &Path, summary: &SessionSummary) -> Result<()> {
-        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+    fn append_summary(
+        &self,
+        root: &Path,
+        at: DateTime<Utc>,
+        summary: &SessionSummary,
+    ) -> Result<()> {
+        let date = at.format("%Y-%m-%d").to_string();
         append_jsonl(
             &crux::sessions_dir(root).join(format!("{date}-summary.jsonl")),
             summary,
@@ -83,6 +116,7 @@ pub struct SessionPorts {
     graph_store: Arc<dyn TaskGraphStorePort>,
     run_validator: Arc<dyn RunValidatorPort>,
     trace: Arc<dyn SessionTracePort>,
+    clock: Arc<dyn ClockPort>,
 }
 
 impl Default for SessionPorts {
@@ -91,6 +125,7 @@ impl Default for SessionPorts {
             graph_store: Arc::new(FileTaskGraphStore),
             run_validator: Arc::new(RxRunValidator),
             trace: Arc::new(JsonlSessionTrace),
+            clock: Arc::new(SystemClock),
         }
     }
 }
@@ -104,6 +139,11 @@ impl SessionPorts {
     /// Replace graph persistence while retaining other adapters.
     pub fn with_graph_store(mut self, store: Arc<dyn TaskGraphStorePort>) -> Self {
         self.graph_store = store;
+        self
+    }
+    /// Replace the clock while retaining other adapters.
+    pub fn with_clock(mut self, clock: Arc<dyn ClockPort>) -> Self {
+        self.clock = clock;
         self
     }
     /// Replace lifecycle tracing while retaining other adapters.
@@ -246,7 +286,7 @@ impl Session {
         }
         graph::start(&mut self.graph, id)?;
         if let Some(task) = self.graph.tasks.iter_mut().find(|t| t.id == id) {
-            task.started_at = Some(Utc::now());
+            task.started_at = Some(self.ports.clock.now());
         }
         if self.config.integrations.crux {
             let _ = self.append_step(crux::step_started(id));
@@ -262,6 +302,7 @@ impl Session {
         commit: Option<&str>,
         notes: Option<&str>,
     ) -> Result<()> {
+        let completed_at = self.ports.clock.now();
         let duration_ms = self
             .graph
             .tasks
@@ -269,7 +310,7 @@ impl Session {
             .find(|t| t.id == id)
             .and_then(|t| t.started_at)
             .map(|start| {
-                Utc::now()
+                completed_at
                     .signed_duration_since(start)
                     .num_milliseconds()
                     .max(0) as u64
@@ -277,6 +318,9 @@ impl Session {
             .unwrap_or(0);
 
         graph::complete(&mut self.graph, id, commit, notes)?;
+        if let Some(task) = self.graph.tasks.iter_mut().find(|task| task.id == id) {
+            task.completed_at = Some(completed_at);
+        }
 
         if self.config.integrations.crux {
             let mut step = crux::step_completed(id, commit, notes);
@@ -328,6 +372,7 @@ impl Session {
     /// Aggregate counts and per-task durations.
     pub fn summary(&self) -> SessionSummary {
         let mut s = SessionSummary::default();
+        let now = self.ports.clock.now();
         for task in &self.graph.tasks {
             match task.status {
                 Status::Done => s.done += 1,
@@ -335,7 +380,7 @@ impl Session {
                 Status::Pending => s.pending += 1,
                 Status::Blocked => s.blocked += 1,
             }
-            let end = task.completed_at.unwrap_or_else(Utc::now);
+            let end = task.completed_at.unwrap_or(now);
             let duration_ms = task
                 .started_at
                 .map(|start| end.signed_duration_since(start).num_milliseconds().max(0) as u64)
@@ -357,7 +402,9 @@ impl Session {
 
     /// Write a summary record to the summary JSONL file. Non-fatal.
     pub fn write_summary_jsonl(&self, summary: &SessionSummary) -> Result<()> {
-        self.ports.trace.append_summary(&self.root, summary)
+        self.ports
+            .trace
+            .append_summary(&self.root, self.ports.clock.now(), summary)
     }
 
     // -----------------------------------------------------------------------
@@ -373,7 +420,9 @@ impl Session {
     }
 
     fn append_step(&self, step: crux_runtime::types::step::Step) -> Result<()> {
-        self.ports.trace.append_step(&self.root, step)
+        self.ports
+            .trace
+            .append_step(&self.root, self.ports.clock.now(), step)
     }
 }
 
@@ -864,6 +913,35 @@ mod tests {
                 .contains("rejected by port")
         );
         assert_eq!(session.graph().tasks[0].status, Status::Pending);
+    }
+
+    struct FixedClock(chrono::DateTime<Utc>);
+    impl ClockPort for FixedClock {
+        fn now(&self) -> chrono::DateTime<Utc> {
+            self.0
+        }
+    }
+
+    #[test]
+    fn session_routes_transition_and_summary_time_through_clock_port() {
+        use chrono::{Duration, TimeZone};
+        let dir = TempDir::new().unwrap();
+        let started = Utc.with_ymd_and_hms(2026, 9, 12, 12, 0, 0).unwrap();
+        let ports = SessionPorts::default().with_clock(std::sync::Arc::new(FixedClock(started)));
+        let mut session =
+            Session::open_with_config_and_ports(dir.path(), &Config::default(), ports).unwrap();
+        session.add_task(Task::new("t1", "clocked")).unwrap();
+        session.start_task("t1").unwrap();
+        assert_eq!(session.graph().tasks[0].started_at, Some(started));
+
+        let completed = started + Duration::seconds(2);
+        session.ports = session
+            .ports
+            .clone()
+            .with_clock(std::sync::Arc::new(FixedClock(completed)));
+        session.complete_task("t1", None, None).unwrap();
+        assert_eq!(session.graph().tasks[0].completed_at, Some(completed));
+        assert_eq!(session.summary().total_duration_ms, 2_000);
     }
 
     #[test]

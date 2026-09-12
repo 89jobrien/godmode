@@ -2,6 +2,33 @@ router:
   name: workspace
   description: Route workspace requests to project specialists that prefer governed project tools.
 
+permissions:
+  devloop:
+    personal_devloop_get_branch: allow
+    personal_devloop_get_timeline: allow
+    personal_devloop_list_branches: allow
+  minibox:
+    personal_minibox_get_logs: allow
+    personal_minibox_get_manifest: allow
+    personal_minibox_list_containers: allow
+    personal_minibox_stop_container: ask
+  crux:
+    personal_crux_list_pipelines: allow
+    personal_crux_task_list: allow
+    personal_crux_task_update: ask
+    personal_crux_validate_pipeline: allow
+  taskit:
+    personal_taskit_health_drift: allow
+    personal_taskit_health_inspect: allow
+    personal_taskit_protocol_drift: ask
+  mcpipe:
+    personal_mcpipe_generate_doob_openapi: ask
+    personal_mcpipe_list_personal_tools: allow
+    personal_mcpipe_scan_catalog: ask
+  agentlint:
+    personal_agentlint_check: allow
+    personal_agentlint_infer_docs_schema: allow
+
 projects:
   - { name: workspace-maestro, description: "Use and maintain the Maestro Kubernetes pod manager.", project: maestro, repo_path: maestro }
   - { name: workspace-crux, description: "Use and maintain the Crux agentic Rust DSL and runtime.", project: crux, repo_path: crux, visible: true }

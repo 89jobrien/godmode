@@ -98,6 +98,10 @@ impl RenderedCommand {
 
 /// Load sorted top-level YAML command definitions.
 ///
+/// # Errors
+///
+/// Returns an error when the source directory or a definition cannot be read, parsed, or validated.
+///
 /// # Examples
 ///
 /// ```
@@ -144,6 +148,10 @@ pub fn load_command_definitions(source_dir: &Path) -> Result<Vec<CommandDefiniti
 
 /// Render definitions deterministically for one target.
 ///
+/// # Errors
+///
+/// Returns an error when a referenced template cannot be read or a definition cannot be validated or rendered.
+///
 /// # Examples
 ///
 /// ```
@@ -179,6 +187,10 @@ pub fn render_commands(
 }
 
 /// Render commands using already-loaded templates and no filesystem access.
+///
+/// # Errors
+///
+/// Returns an error when definitions are invalid, a referenced template is absent, or rendering fails.
 pub fn render_commands_with_templates(
     definitions: &[CommandDefinition],
     target: CommandTarget,
@@ -207,6 +219,10 @@ pub fn render_commands_with_templates(
 
 /// Write rendered commands, or return their paths without mutation in dry-run mode.
 ///
+/// # Errors
+///
+/// Returns an error when a destination name is invalid or the atomic projection transaction fails.
+///
 /// # Examples
 ///
 /// ```
@@ -229,6 +245,10 @@ pub fn write_rendered_commands(
 }
 
 /// Write rendered commands according to an explicit mutation mode.
+///
+/// # Errors
+///
+/// Returns an error when a destination name is invalid or the atomic projection transaction fails.
 pub fn write_rendered_commands_with_mode(
     commands: &[RenderedCommand],
     output_dir: &Path,
@@ -242,6 +262,10 @@ pub fn write_rendered_commands_with_mode(
 }
 
 /// Fail when managed command output differs from the rendered set.
+///
+/// # Errors
+///
+/// Returns an error when generated output is missing, stale, unexpected, or unreadable.
 ///
 /// # Examples
 ///

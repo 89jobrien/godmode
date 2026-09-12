@@ -184,3 +184,97 @@ fn task_apply_and_list_templates_cover_duplicates_missing_vars_and_invalid_yaml(
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("bad.template.yaml"));
 }
+
+#[test]
+fn task_pull_uses_real_empty_doob_output_and_ignores_invalid_todo_shapes() {
+    let temp = tempfile::tempdir().unwrap();
+    let tools = temp.path().join("tools");
+    for body in [
+        r#"{"todos":[]}"#,
+        r#"{}"#,
+        r#"{"todos":{}}"#,
+        r#"{"todos":[{"status":"pending"},{"id":"abc","status":"pending"},{"id":"done","content":"done","status":"done"}]}"#,
+    ] {
+        let escaped = body.replace('"', r#"\""#);
+        fake(
+            &tools,
+            "doob",
+            &format!("#!/bin/sh\nprintf %s \"{}\"\n", escaped),
+        );
+        let output = Command::new(bin())
+            .args(["--json", "task", "pull", "--project", "demo"])
+            .env("PATH", path_with(&tools))
+            .current_dir(temp.path())
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(value["imported"], 0, "{body}");
+    }
+}
+
+#[test]
+fn task_run_reports_missing_task_and_maps_signal_exit_to_two() {
+    let temp = tempfile::tempdir().unwrap();
+    let missing = run(temp.path(), &["task", "run", "missing"]);
+    assert!(!missing.status.success());
+    assert!(String::from_utf8_lossy(&missing.stderr).contains("not found"));
+
+    let tools = temp.path().join("tools");
+    fake(&tools, "signal-runner", "#!/bin/sh\nkill -9 $$\n");
+    state(
+        temp.path(),
+        "tasks:\n- id: t1\n  title: signal\n  status: pending\n  depends_on: []\n  notes: \"\"\n  run: signal-runner\n",
+    );
+    let output = Command::new(bin())
+        .args(["task", "run", "t1"])
+        .env("PATH", path_with(&tools))
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn task_push_done_ignores_empty_links_and_non_done_tasks() {
+    let temp = tempfile::tempdir().unwrap();
+    state(
+        temp.path(),
+        "tasks:\n- id: t1\n  title: empty\n  status: done\n  depends_on: []\n  notes: \"doob:   \"\n- id: t2\n  title: pending\n  status: pending\n  depends_on: []\n  notes: doob:valid\n- id: t3\n  title: unrelated\n  status: done\n  depends_on: []\n  notes: other\n",
+    );
+    let tools = temp.path().join("tools");
+    let calls = temp.path().join("calls");
+    fake(
+        &tools,
+        "doob",
+        &format!("#!/bin/sh\nprintf called >> {}\n", calls.display()),
+    );
+    let output = Command::new(bin())
+        .args(["--json", "task", "push-done"])
+        .env("PATH", path_with(&tools))
+        .current_dir(temp.path())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value["pushed"], 0);
+    assert!(!calls.exists());
+}
+
+#[test]
+fn task_apply_and_list_templates_cover_missing_and_empty_sources() {
+    let temp = tempfile::tempdir().unwrap();
+    let listed = run(temp.path(), &["--json", "task", "list-templates"]);
+    assert!(listed.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&listed.stdout).unwrap(),
+        serde_json::json!([])
+    );
+    let missing = run(temp.path(), &["task", "apply", "missing"]);
+    assert!(!missing.status.success());
+    assert!(String::from_utf8_lossy(&missing.stderr).contains("missing"));
+}

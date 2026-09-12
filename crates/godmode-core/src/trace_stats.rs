@@ -9,6 +9,7 @@ use serde_json::Value;
 
 /// Aggregated duration statistics for one skill.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct SkillDuration {
     /// Skill name from the trace event.
     pub skill: String,
@@ -18,6 +19,18 @@ pub struct SkillDuration {
     pub avg_ms: u64,
     /// Maximum duration in milliseconds.
     pub max_ms: u64,
+}
+
+impl SkillDuration {
+    /// Create duration statistics for one skill.
+    pub fn new(skill: impl Into<String>, runs: usize, avg_ms: u64, max_ms: u64) -> Self {
+        Self {
+            skill: skill.into(),
+            runs,
+            avg_ms,
+            max_ms,
+        }
+    }
 }
 
 /// Latest lifecycle state observed for an agent.
@@ -73,6 +86,7 @@ impl PartialEq<&str> for ConvergenceStatus {
 
 /// Latest observed convergence state for one agent.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct AgentConvergence {
     /// Agent identifier from the trace event.
     pub agent_id: String,
@@ -80,8 +94,19 @@ pub struct AgentConvergence {
     pub status: ConvergenceStatus,
 }
 
+impl AgentConvergence {
+    /// Create a latest convergence result for one agent.
+    pub fn new(agent_id: impl Into<String>, status: ConvergenceStatus) -> Self {
+        Self {
+            agent_id: agent_id.into(),
+            status,
+        }
+    }
+}
+
 /// Combined statistics for the observability trace.
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
 pub struct TraceStats {
     /// Skill duration aggregates sorted by skill name.
     pub skills: Vec<SkillDuration>,
@@ -97,8 +122,40 @@ pub struct TraceStats {
     pub malformed_rows: usize,
 }
 
+impl TraceStats {
+    /// Create a trace report with empty decisions, failures, and row counters.
+    pub fn new(skills: Vec<SkillDuration>, agents: Vec<AgentConvergence>) -> Self {
+        Self {
+            skills,
+            agents,
+            decisions: Vec::new(),
+            failures: Vec::new(),
+            legacy_rows: 0,
+            malformed_rows: 0,
+        }
+    }
+
+    /// Set decision events.
+    pub fn with_decisions(mut self, decisions: Vec<Value>) -> Self {
+        self.decisions = decisions;
+        self
+    }
+    /// Set failure events.
+    pub fn with_failures(mut self, failures: Vec<Value>) -> Self {
+        self.failures = failures;
+        self
+    }
+    /// Set legacy and malformed row counters.
+    pub fn with_row_counts(mut self, legacy_rows: usize, malformed_rows: usize) -> Self {
+        self.legacy_rows = legacy_rows;
+        self.malformed_rows = malformed_rows;
+        self
+    }
+}
+
 /// Cross-session trace summary.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[non_exhaustive]
 pub struct TraceSessionSummary {
     /// Session identifier.
     pub session_id: String,
@@ -116,6 +173,46 @@ pub struct TraceSessionSummary {
     pub agents_running: usize,
     /// Number of decision events.
     pub decisions: usize,
+}
+
+impl TraceSessionSummary {
+    /// Create an empty-count summary for one session.
+    pub fn new(session_id: impl Into<String>, started_at: impl Into<String>) -> Self {
+        Self {
+            session_id: session_id.into(),
+            started_at: started_at.into(),
+            errors: 0,
+            agents_blocked: 0,
+            agents_denied: 0,
+            agents_complete: 0,
+            agents_running: 0,
+            decisions: 0,
+        }
+    }
+    /// Set the skill-error count.
+    pub fn with_errors(mut self, errors: usize) -> Self {
+        self.errors = errors;
+        self
+    }
+    /// Set blocked, denied, complete, and running agent counts.
+    pub fn with_agent_counts(
+        mut self,
+        blocked: usize,
+        denied: usize,
+        complete: usize,
+        running: usize,
+    ) -> Self {
+        self.agents_blocked = blocked;
+        self.agents_denied = denied;
+        self.agents_complete = complete;
+        self.agents_running = running;
+        self
+    }
+    /// Set the decision count.
+    pub fn with_decisions(mut self, decisions: usize) -> Self {
+        self.decisions = decisions;
+        self
+    }
 }
 
 #[derive(Debug, Default)]
@@ -150,6 +247,10 @@ pub fn tail(root: &Path, limit: usize, session: Option<&str>) -> Result<Vec<Valu
 }
 
 /// Returns the last non-zero number of structured events, optionally scoped to a session.
+///
+/// # Errors
+///
+/// Returns an error when `limit` is zero or the trace file cannot be read.
 pub fn tail_checked(root: &Path, limit: usize, session: Option<&str>) -> Result<Vec<Value>> {
     anyhow::ensure!(limit > 0, "trace tail limit must be greater than zero");
     let log = load(root)?;
@@ -162,6 +263,10 @@ pub fn tail_checked(root: &Path, limit: usize, session: Option<&str>) -> Result<
 }
 
 /// Returns all `skill.error`, `agent.blocked`, and `agent.denied` events.
+///
+/// # Errors
+///
+/// Returns an error when the trace file cannot be read.
 ///
 /// # Examples
 ///
@@ -189,6 +294,10 @@ pub fn failures(root: &Path, session: Option<&str>) -> Result<Vec<Value>> {
 }
 
 /// Aggregates skill durations, agent convergence, decisions, and failures.
+///
+/// # Errors
+///
+/// Returns an error when the trace file cannot be read. Malformed rows are counted rather than returned as errors.
 ///
 /// # Examples
 ///
@@ -262,12 +371,12 @@ pub fn stats(root: &Path, session: Option<&str>) -> Result<TraceStats> {
         .into_iter()
         .map(|(skill, values)| {
             let total: u64 = values.iter().sum();
-            SkillDuration {
+            SkillDuration::new(
                 skill,
-                runs: values.len(),
-                avg_ms: total / values.len() as u64,
-                max_ms: values.iter().copied().max().unwrap_or_default(),
-            }
+                values.len(),
+                total / values.len() as u64,
+                values.iter().copied().max().unwrap_or_default(),
+            )
         })
         .collect();
     let agents = agent_order
@@ -278,21 +387,21 @@ pub fn stats(root: &Path, session: Option<&str>) -> Result<TraceStats> {
                 "blocked" => ConvergenceStatus::Blocked,
                 _ => ConvergenceStatus::Running,
             };
-            AgentConvergence { agent_id, status }
+            AgentConvergence::new(agent_id, status)
         })
         .collect();
 
-    Ok(TraceStats {
-        skills,
-        agents,
-        decisions,
-        failures: failure_events,
-        legacy_rows: log.legacy_rows,
-        malformed_rows: log.malformed_rows,
-    })
+    Ok(TraceStats::new(skills, agents)
+        .with_decisions(decisions)
+        .with_failures(failure_events)
+        .with_row_counts(log.legacy_rows, log.malformed_rows))
 }
 
 /// Reads the session identifier currently used by trace writers.
+///
+/// # Errors
+///
+/// Returns an error when session state is unreadable or malformed. A missing state file returns `None`.
 ///
 /// # Examples
 ///
@@ -321,6 +430,10 @@ pub fn current_session_id(root: &Path) -> Result<Option<String>> {
 }
 
 /// Summarizes the most recent session boundary groups.
+///
+/// # Errors
+///
+/// Returns an error when the trace file cannot be read.
 ///
 /// # Examples
 ///
@@ -420,44 +533,67 @@ fn summarize_session(events: &[Value], session_id: &str) -> TraceSessionSummary 
         }
     }
 
-    TraceSessionSummary {
-        session_id: session_id.to_owned(),
-        started_at: scoped
+    TraceSessionSummary::new(
+        session_id,
+        scoped
             .first()
             .and_then(|event| event.get("ts"))
             .and_then(Value::as_str)
-            .unwrap_or_default()
-            .to_owned(),
-        errors: scoped
+            .unwrap_or_default(),
+    )
+    .with_errors(
+        scoped
             .iter()
             .filter(|event| event_name(event) == Some("skill.error"))
             .count(),
-        agents_blocked: agent_states
+    )
+    .with_agent_counts(
+        agent_states
             .values()
             .filter(|status| **status == "blocked")
             .count(),
-        agents_denied: scoped
+        scoped
             .iter()
             .filter(|event| event_name(event) == Some("agent.denied"))
             .count(),
-        agents_complete: agent_states
+        agent_states
             .values()
             .filter(|status| **status == "complete")
             .count(),
-        agents_running: agent_states
+        agent_states
             .values()
             .filter(|status| **status == "running")
             .count(),
-        decisions: scoped
+    )
+    .with_decisions(
+        scoped
             .iter()
             .filter(|event| event_name(event) == Some("decision"))
             .count(),
-    }
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn trace_results_are_constructed_and_extended_through_builders() {
+        let skill = SkillDuration::new("review", 2, 10, 15);
+        let agent = AgentConvergence::new("agent-1", ConvergenceStatus::Complete);
+        let stats = TraceStats::new(vec![skill], vec![agent])
+            .with_decisions(vec![serde_json::json!({"event": "decision"})])
+            .with_row_counts(1, 2);
+        assert_eq!(stats.decisions.len(), 1);
+        assert_eq!(stats.legacy_rows, 1);
+
+        let summary = TraceSessionSummary::new("session-1", "2026-09-12T12:00:00Z")
+            .with_errors(2)
+            .with_agent_counts(1, 2, 3, 4)
+            .with_decisions(5);
+        assert_eq!(summary.agents_denied, 2);
+        assert_eq!(summary.decisions, 5);
+    }
 
     #[test]
     fn tail_checked_rejects_zero_limit() {

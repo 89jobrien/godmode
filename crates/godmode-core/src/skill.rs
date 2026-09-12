@@ -14,6 +14,10 @@ pub struct SkillDef {
 }
 
 /// List all skills in `dir` by scanning for subdirectories containing `SKILL.md`.
+///
+/// # Errors
+///
+/// Returns an error when the skills directory or one of its entries cannot be read.
 pub fn list_local(dir: &Path) -> Result<Vec<SkillDef>> {
     if !dir.exists() {
         return Ok(vec![]);
@@ -40,6 +44,10 @@ pub fn list_local(dir: &Path) -> Result<Vec<SkillDef>> {
 
 /// Write `<root>/skills/INDEX.md` from the current local skills.
 ///
+/// # Errors
+///
+/// Returns an error when a skill manifest cannot be read or parsed, or the index cannot be written.
+///
 /// # Examples
 ///
 /// ```
@@ -65,6 +73,10 @@ pub fn generate_skill_index(root: &Path, skills: &[SkillDef]) -> Result<()> {
 }
 
 /// Return whether `skills/INDEX.md` matches the current local skill list.
+///
+/// # Errors
+///
+/// Returns an error when a skill manifest cannot be read or parsed. A missing index is reported as `false`.
 ///
 /// # Examples
 ///
