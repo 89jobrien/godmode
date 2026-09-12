@@ -394,7 +394,6 @@ description: "{}"
 mode: primary
 color: primary
 permission:
-  "*": deny
   edit: deny
   bash: deny
   task:
@@ -424,7 +423,6 @@ mode: subagent
 hidden: {hidden}
 color: info
 permission:
-  "*": deny
   read: allow
   glob: allow
   grep: allow
@@ -705,7 +703,7 @@ mod tests {
         assert!(router.contains("mode: primary"));
         assert!(router.contains("\"workspace-*\": allow"));
         assert!(router.contains("  edit: deny"));
-        assert!(router.contains("permission:\n  \"*\": deny"));
+        assert!(!router.contains("permission:\n  \"*\":"));
         assert!(router.contains("task:\n    \"*\": deny"));
 
         let minibox = rendered
@@ -714,6 +712,7 @@ mod tests {
             .map(|(_, content)| content)
             .unwrap();
         assert!(minibox.contains("hidden: false"));
+        assert!(!minibox.contains("permission:\n  \"*\":"));
         assert!(minibox.contains("personal_project_describe"));
         assert!(minibox.contains("  read: allow"));
         assert!(minibox.contains("personal_project_run: allow"));
