@@ -32,3 +32,12 @@ let ahead = (classify-repo "ahead" "/tmp/ahead" {exit_code: 0 stdout: "" stderr:
 assert equal [$ahead.ahead $ahead.behind $ahead.unpushed] [2 3 true]
 let broken = (classify-repo "broken" "/tmp/broken" {exit_code: 128 stdout: "" stderr: "fatal"} {exit_code: 1 stdout: "" stderr: ""} null)
 assert equal $broken.error "git status failed: fatal"
+
+let detached = (classify-repo "detached" "/tmp/detached" {exit_code: 0 stdout: "" stderr: ""} {exit_code: 1 stdout: "" stderr: "fatal: HEAD is detached"} null)
+assert equal $detached.error "detached HEAD"
+let upstream_failed = (classify-repo "upstream" "/tmp/upstream" {exit_code: 0 stdout: "" stderr: ""} {exit_code: 128 stdout: "" stderr: "fatal: transport failure"} null)
+assert equal $upstream_failed.error "git upstream failed: fatal: transport failure"
+let rev_list_failed = (classify-repo "rev-list" "/tmp/rev-list" {exit_code: 0 stdout: "" stderr: ""} {exit_code: 0 stdout: "origin/main" stderr: ""} {exit_code: 128 stdout: "" stderr: "fatal: bad revision"})
+assert equal $rev_list_failed.error "git rev-list failed: fatal: bad revision"
+let invalid_counts = (classify-repo "counts" "/tmp/counts" {exit_code: 0 stdout: "" stderr: ""} {exit_code: 0 stdout: "origin/main" stderr: ""} {exit_code: 0 stdout: "not-counts" stderr: ""})
+assert equal $invalid_counts.error "git rev-list returned invalid counts"

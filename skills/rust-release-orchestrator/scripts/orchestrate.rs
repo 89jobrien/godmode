@@ -54,6 +54,7 @@ struct Dependency {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(default)]
 struct ReleaseState {
     published: Vec<String>,
     gates_passed: bool,

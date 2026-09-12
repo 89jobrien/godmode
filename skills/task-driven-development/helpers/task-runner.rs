@@ -365,11 +365,7 @@ fn cmd_status() -> Result<()> {
         println!(
             "{:<6} {:<35} {:<10} {:<10} {}",
             t.id,
-            if t.title.len() > 34 {
-                &t.title[..34]
-            } else {
-                &t.title
-            },
+            t.title.chars().take(34).collect::<String>(),
             format!("{:?}", t.phase).to_lowercase(),
             format!("{:?}", t.status).to_lowercase(),
             t.crate_name
@@ -385,10 +381,19 @@ fn cmd_fail(id: &str, reason: &str) -> Result<()> {
         if task.status == Status::Done {
             bail!("Task {id} is done and cannot be blocked");
         }
-        task.status = Status::Blocked;
         task.notes = reason.to_string();
-        println!("[blocked] {id} — {reason}");
-        println!("Redesign or ask the user before retrying.");
+        if task.attempts >= MAX_ATTEMPTS {
+            task.status = Status::Blocked;
+            println!("[blocked] {id} after {} attempts — {reason}", task.attempts);
+            println!("Redesign or ask the user before retrying.");
+        } else {
+            task.phase = Phase::Pending;
+            task.status = Status::Pending;
+            println!(
+                "[retry] {id} attempt {}/{} failed — {reason}",
+                task.attempts, MAX_ATTEMPTS
+            );
+        }
     }
     save(&data)
 }
@@ -404,6 +409,7 @@ fn cmd_close_issues() -> Result<()> {
         println!("No done tasks with gh: issues.");
         return Ok(());
     }
+    let mut failures = Vec::new();
     for t in done_with_issues {
         let num = t.issue.trim_start_matches("gh:");
         println!("Closing gh#{num}: {}", t.title);
@@ -420,9 +426,14 @@ fn cmd_close_issues() -> Result<()> {
             .unwrap_or(false);
         if !ok {
             eprintln!("  Warning: could not close #{num}");
+            failures.push(num.to_string());
         }
     }
-    Ok(())
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        bail!("could not close GitHub issues: {}", failures.join(", "))
+    }
 }
 
 // ---------------------------------------------------------------------------
