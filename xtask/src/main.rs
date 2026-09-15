@@ -74,6 +74,7 @@ fn ci() -> Result<()> {
     cargo(&["clippy", "--workspace", "--", "-D", "warnings"])?;
 
     header("nextest");
+    // TODO(#102): Run workspace tests with all features enabled in CI.
     cargo(&["nextest", "run", "--workspace"])?;
 
     header("conformance");

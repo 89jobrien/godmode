@@ -11,6 +11,7 @@ use crate::integrations::rx;
 // ---------------------------------------------------------------------------
 
 /// A single step in a pipeline definition.
+// TODO(#111): Execute optional and parallel_with semantics in the headless runner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineStep {
     pub skill: String,
@@ -330,6 +331,7 @@ impl RunResult {
 /// 5. On exit 0: mark task done. On non-zero: record failure.
 /// 6. Advance pipeline state after each step.
 /// 7. If any task failed and `fail_fast`: stop and return.
+// TODO(#101): Pass the requested entry point into fresh pipeline state.
 pub fn run_tasks(root: &Path, pipeline_name: &str, fail_fast: bool) -> Result<RunResult> {
     let p = load_pipeline(root, pipeline_name)?;
 
