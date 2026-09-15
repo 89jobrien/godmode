@@ -29,6 +29,8 @@ struct Cli {
     cmd: Cmd,
 }
 
+// TODO(#108): Add native, resumable TODO-to-issue synchronization commands.
+// TODO(#113): Add first-class skill evaluation run, compare, promote, and status commands.
 #[derive(Subcommand)]
 enum Cmd {
     /// Print triage summary at session start.
@@ -413,6 +415,7 @@ enum TaskAction {
     },
 
     /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
+    // TODO(#103): Accept notes, run command, priority, and tags when adding a task.
     Add {
         /// Task title (required).
         title: String,

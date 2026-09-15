@@ -72,6 +72,7 @@ pub fn todo_done_args(uuid: &str) -> Vec<String> {
 }
 
 /// Build argv for `doob todo add -p <project> <title>`.
+// TODO(#109): Publish locally created graph tasks and retain returned Doob IDs.
 pub fn todo_add_args(project: &str, title: &str) -> Vec<String> {
     vec![
         "todo".into(),

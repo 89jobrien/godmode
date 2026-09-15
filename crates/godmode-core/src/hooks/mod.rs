@@ -3,6 +3,8 @@
 //! Each submodule implements one lifecycle hook. The CLI dispatches to these
 //! via `godmode hook run <name>`.
 
+// TODO(#106): Add a declarative hook registry and coverage diagnostics.
+
 pub mod agent_governance;
 pub mod auto_block;
 pub mod brainstorm;

@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+# TODO(#105): Generate tracked Claude and OpenCode projections in one invocation.
+# TODO(#112): Derive workflow commands from canonical pipeline definitions.
 # Generate Claude Code .md command files from YAML definitions.
 # YAML source: commands/gm/*.yaml
 # Output: commands/gm-<name>.md (top-level commands/ dir)

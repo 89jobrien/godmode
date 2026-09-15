@@ -153,6 +153,7 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
 // Private helpers
 // ---------------------------------------------------------------------------
 
+// TODO(#107): Resume compatible persisted state and surface persistence failures.
 fn init_state(def: &WorkflowDef) -> WorkflowState {
     WorkflowState {
         workflow: def.name.clone(),
