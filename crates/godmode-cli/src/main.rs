@@ -501,7 +501,14 @@ enum TaskAction {
         label: Option<String>,
     },
 
-    /// Mark completed tasks as done in doob (uses `doob:` UUID in notes field).
+    /// Publish tasks that do not yet have Doob provenance.
+    Push {
+        /// Doob project name (defaults to configured or detected project name).
+        #[arg(long)]
+        project: Option<String>,
+    },
+
+    /// Mark completed tasks as done in doob (uses structured provenance or legacy notes).
     PushDone,
 
     /// Reset all blocked tasks to pending in one operation.
@@ -711,6 +718,7 @@ mod tests {
             status: model::Status::Pending,
             depends_on: vec![],
             notes: notes.to_string(),
+            provenance: Default::default(),
             crate_name: crate_name.map(|s| s.to_string()),
             commit: None,
             completed: None,

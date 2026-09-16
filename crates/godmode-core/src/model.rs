@@ -70,6 +70,25 @@ impl std::fmt::Display for Status {
     }
 }
 
+/// External-system provenance retained for synchronization.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TaskProvenance {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub doob: Option<DoobProvenance>,
+}
+
+impl TaskProvenance {
+    fn is_empty(&self) -> bool {
+        self.doob.is_none()
+    }
+}
+
+/// Provenance for a task published to or imported from Doob.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DoobProvenance {
+    pub id: String,
+}
+
 /// A single task in the execution graph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
@@ -80,6 +99,9 @@ pub struct Task {
     pub depends_on: Vec<String>,
     #[serde(default)]
     pub notes: String,
+    /// Structured identifiers assigned by external task systems.
+    #[serde(default, skip_serializing_if = "TaskProvenance::is_empty")]
+    pub provenance: TaskProvenance,
     /// Crate targeted by this task, if applicable.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub crate_name: Option<String>,
@@ -113,6 +135,7 @@ impl Task {
             status: Status::Pending,
             depends_on: vec![],
             notes: String::new(),
+            provenance: TaskProvenance::default(),
             crate_name: None,
             commit: None,
             completed: None,
@@ -122,6 +145,14 @@ impl Task {
             priority: Priority::Normal,
             tags: vec![],
         }
+    }
+
+    pub fn doob_id(&self) -> Option<&str> {
+        self.provenance.doob.as_ref().map(|value| value.id.as_str())
+    }
+
+    pub fn set_doob_id(&mut self, id: impl Into<String>) {
+        self.provenance.doob = Some(DoobProvenance { id: id.into() });
     }
 }
 

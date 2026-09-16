@@ -72,7 +72,6 @@ pub fn todo_done_args(uuid: &str) -> Vec<String> {
 }
 
 /// Build argv for `doob todo add -p <project> <title>`.
-// TODO(#109): Publish locally created graph tasks and retain returned Doob IDs.
 pub fn todo_add_args(project: &str, title: &str) -> Vec<String> {
     vec![
         "todo".into(),
@@ -80,7 +79,53 @@ pub fn todo_add_args(project: &str, title: &str) -> Vec<String> {
         "-p".into(),
         project.into(),
         title.into(),
+        "--json".into(),
     ]
+}
+
+/// Port used by task publication so domain synchronization can be tested without Doob.
+pub trait TodoPublisher {
+    fn publish(&mut self, project: &str, title: &str) -> Result<String>;
+}
+
+/// Production adapter for the Doob command-line client.
+pub struct DoobCli;
+
+impl TodoPublisher for DoobCli {
+    fn publish(&mut self, project: &str, title: &str) -> Result<String> {
+        todo_add(project, title)
+    }
+}
+
+/// Publish every task that has no Doob provenance, retaining each returned identifier.
+pub fn publish_tasks(
+    publisher: &mut impl TodoPublisher,
+    project: &str,
+    tasks: &mut [Task],
+) -> Result<usize> {
+    let mut published = 0;
+    for task in tasks {
+        if let Some(id) = todo_id(task).map(str::to_owned) {
+            if task.doob_id().is_none() {
+                task.set_doob_id(id);
+            }
+            continue;
+        }
+        let id = publisher.publish(project, &task.title)?;
+        task.set_doob_id(id);
+        published += 1;
+    }
+    Ok(published)
+}
+
+/// Resolve a Doob identifier from structured provenance or the legacy notes encoding.
+pub fn todo_id(task: &Task) -> Option<&str> {
+    task.doob_id().or_else(|| {
+        task.notes
+            .strip_prefix("doob:")
+            .map(str::trim)
+            .filter(|id| !id.is_empty())
+    })
 }
 
 /// Convert pending doob todos into `Task` values for import into the task graph.
@@ -100,6 +145,7 @@ pub fn todos_to_tasks(value: &serde_json::Value) -> Vec<Task> {
                     let title = t.get("content")?.as_str()?;
                     let mut task = Task::new(format!("doob-{}", &id[..8.min(id.len())]), title);
                     task.notes = format!("doob:{id}");
+                    task.set_doob_id(id);
                     Some(task)
                 })
                 .collect()
@@ -110,6 +156,37 @@ pub fn todos_to_tasks(value: &serde_json::Value) -> Vec<Task> {
 // ---------------------------------------------------------------------------
 // Write — shell-out layer
 // ---------------------------------------------------------------------------
+
+/// Add a todo and return the identifier emitted by Doob JSON output.
+#[instrument(name = "doob::todo_add", fields(integration = "doob"))]
+pub fn todo_add(project: &str, title: &str) -> Result<String> {
+    let args = todo_add_args(project, title);
+    let args_ref: Vec<&str> = args.iter().map(String::as_str).collect();
+    let raw = subprocess::run("doob", &args_ref, "doob not found on PATH")?;
+    parse_added_todo_id(&raw)
+}
+
+fn parse_added_todo_id(raw: &str) -> Result<String> {
+    let value: serde_json::Value =
+        serde_json::from_str(raw).context("doob todo add: invalid JSON")?;
+    let id = value
+        .get("id")
+        .and_then(serde_json::Value::as_str)
+        .or_else(|| value.get("todo")?.get("id")?.as_str())
+        .or_else(|| value.as_array()?.first()?.get("id")?.as_str())
+        .or_else(|| value.get("todos")?.as_array()?.first()?.get("id")?.as_str())
+        .or_else(|| {
+            value
+                .get("created")?
+                .as_array()?
+                .first()?
+                .get("id")?
+                .as_str()
+        })
+        .filter(|id| !id.is_empty())
+        .context("doob todo add: JSON response missing todo id")?;
+    Ok(id.to_string())
+}
 
 /// Mark a doob todo as complete by UUID.
 #[instrument(name = "doob::todo_done", fields(integration = "doob"))]

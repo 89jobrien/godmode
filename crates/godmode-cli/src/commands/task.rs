@@ -1,6 +1,6 @@
 use anyhow::Result;
 use godmode_core::session::Session;
-use godmode_core::{detect, graph, integrations, model, templates};
+use godmode_core::{config::Config, detect, graph, integrations, model, templates};
 use std::path::Path;
 
 use crate::{TaskAction, exit_empty, filter_tasks};
@@ -219,6 +219,24 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
                 println!("Imported {} pending todos from doob.", imported);
             }
         }
+        TaskAction::Push { project } => {
+            let project = project.unwrap_or_else(|| Config::load(root).project_name(root));
+            let mut adapter = integrations::doob::DoobCli;
+            let published = integrations::doob::publish_tasks(
+                &mut adapter,
+                &project,
+                &mut session.graph_mut().tasks,
+            )?;
+            session.save()?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({"ok": true, "published": published})
+                );
+            } else {
+                println!("Published {} task(s) to doob.", published);
+            }
+        }
         TaskAction::PushDone => {
             let mut pushed = 0usize;
             for task in session
@@ -227,8 +245,8 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
                 .iter()
                 .filter(|t| t.status == model::Status::Done)
             {
-                if let Some(uuid) = task.notes.strip_prefix("doob:") {
-                    integrations::doob::todo_done(uuid.trim())?;
+                if let Some(uuid) = integrations::doob::todo_id(task) {
+                    integrations::doob::todo_done(uuid)?;
                     pushed += 1;
                 }
             }

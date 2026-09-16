@@ -51,6 +51,7 @@ pub fn run(root: &Path, command: &str, tool_response: &Value) -> String {
         status: Status::Pending,
         depends_on: vec![],
         notes: url.to_string(),
+        provenance: Default::default(),
         crate_name: None,
         commit: None,
         completed: None,
