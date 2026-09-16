@@ -2,6 +2,8 @@ use std::process::{Command, ExitCode};
 
 use anyhow::{Context, Result, bail};
 
+const CI_NEXTEST_ARGS: &[&str] = &["nextest", "run", "--workspace", "--all-features"];
+
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
@@ -74,8 +76,7 @@ fn ci() -> Result<()> {
     cargo(&["clippy", "--workspace", "--", "-D", "warnings"])?;
 
     header("nextest");
-    // TODO(#102): Run workspace tests with all features enabled in CI.
-    cargo(&["nextest", "run", "--workspace"])?;
+    cargo(CI_NEXTEST_ARGS)?;
 
     header("conformance");
     cargo(&[
@@ -158,4 +159,17 @@ fn project_root() -> Result<std::path::PathBuf> {
 
 fn header(label: &str) {
     eprintln!("\n--- {label} ---");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CI_NEXTEST_ARGS;
+
+    #[test]
+    fn ci_nextest_enables_all_workspace_features() {
+        assert_eq!(
+            CI_NEXTEST_ARGS,
+            &["nextest", "run", "--workspace", "--all-features"]
+        );
+    }
 }

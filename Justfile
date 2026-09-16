@@ -18,7 +18,7 @@ install: build-release
 
 # Run Rust tests
 test:
-    cargo nextest run --workspace
+    cargo nextest run --workspace --all-features
 
 # Run CI gates (matches GitHub Actions)
 ci: test
