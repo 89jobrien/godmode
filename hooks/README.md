@@ -4,7 +4,7 @@ Claude Code hook scripts and git hooks for the godmode plugin.
 
 ## Hook Registration
 
-Hooks are registered in `hooks.json` and loaded by the Claude Code plugin system.
+Hook metadata is owned by `godmode_core::hooks::registry`. `hooks.json` is the generated Claude Code projection; conformance tests reject projection drift.
 Valid `godmode hook run` names (verified against the binary):
 
 ```
@@ -17,17 +17,17 @@ Any other name passed to `godmode hook run` exits 1 with an "Unknown hook" error
 
 ## hooks.json Events
 
-| Event        | Matcher | Hooks                                                                          |
-| ------------ | ------- | ------------------------------------------------------------------------------ |
-| SessionStart | \*      | `session-start.rs`, `godmode hook run task-management`                         |
-| PreToolUse   | Agent   | `pre-agent-task-context.nu`, `godmode hook run agent-governance`               |
-| PreToolUse   | Bash    | `pre-bash-nag.nu`, `pre-commit-gate.nu`, `godmode hook run moa`                |
-| PreToolUse   | Write   | `godmode hook run brainstorm`                                                  |
-| PostToolUse  | Agent   | `check-blocked.sh`, `godmode hook run parallel-agents`                         |
-| PostToolUse  | Bash    | `task-done-sync.nu`, `auto-block`, `ci-fix`, `code-review`, `wave-integration` |
-| PostToolUse  | Write   | JSON/TOML/YAML/Nu validators, `post-write-plan-ingest.rs`                      |
-| PostToolUse  | Edit    | JSON/TOML/YAML/Nu validators                                                   |
-| Stop         | \*      | `godmode hook run stop-guard`, `memory-bank-update-remind.nu`                  |
+| Event        | Matcher | Hooks                                                                                                   |
+| ------------ | ------- | ------------------------------------------------------------------------------------------------------- |
+| SessionStart | \*      | `session-start.rs`, `memory-bank-inject.nu`, `godmode hook run task-management`                         |
+| PreToolUse   | Agent   | `pre-agent-task-context.nu`, `godmode hook run agent-governance`                                        |
+| PreToolUse   | Bash    | `pre-bash-nag.nu`, `pre-commit-gate.nu`, `godmode hook run moa`                                         |
+| PreToolUse   | Write   | `godmode hook run brainstorm`                                                                           |
+| PostToolUse  | Agent   | `check-blocked.sh`, `godmode hook run parallel-agents`                                                  |
+| PostToolUse  | Bash    | `task-done-sync.nu`, `post-pipeline-step.nu`, `auto-block`, `ci-fix`, `code-review`, `wave-integration` |
+| PostToolUse  | Write   | JSON/TOML/YAML/Nu validators, `post-write-plan-ingest.rs`                                               |
+| PostToolUse  | Edit    | JSON/TOML/YAML/Nu validators                                                                            |
+| Stop         | \*      | `godmode hook run stop-guard`, `memory-bank-update-remind.nu`                                           |
 
 ## scripts/
 

@@ -11,6 +11,11 @@
           },
           {
             "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/memory-bank-inject.nu",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "godmode hook run task-management",
             "timeout": 10
           }
@@ -87,6 +92,11 @@
             "type": "command",
             "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/task-done-sync.nu",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-pipeline-step.nu",
+            "timeout": 10
           },
           {
             "type": "command",
