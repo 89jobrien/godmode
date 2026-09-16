@@ -1,6 +1,5 @@
 name: Conformance
 
-# TODO(#110): Add tag release artifacts and scheduled bounded fuzzing.
 on:
   push:
     branches: [main]

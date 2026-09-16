@@ -1,0 +1,58 @@
+name: Bounded fuzzing
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+  FUZZ_SECONDS: 300
+
+jobs:
+  fuzz:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - fuzz_plan_parse
+          - fuzz_template_substitute
+          - fuzz_yaml_roundtrip
+          - fuzz_config_toml
+          - fuzz_pipeline_parse
+          - fuzz_pipeline_state
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install nightly toolchain
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: install cargo-fuzz
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-fuzz
+
+      - name: run bounded fuzz target
+        run: |
+          mkdir -p fuzz-logs
+          set -o pipefail
+          cargo +nightly fuzz run ${{ matrix.target }} -- -max_total_time="${FUZZ_SECONDS}" 2>&1 \
+            | tee "fuzz-logs/${{ matrix.target }}.log"
+
+      - name: retain failure reproducer and log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failure-${{ matrix.target }}-${{ github.run_id }}
+          path: |
+            fuzz/artifacts/${{ matrix.target }}/
+            fuzz/corpus/${{ matrix.target }}/
+            fuzz-logs/
+          if-no-files-found: warn
+          retention-days: 30

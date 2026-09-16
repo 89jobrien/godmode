@@ -1,56 +1,43 @@
 project: godmode
 id: godmode
-updated: 2026-08-16
+updated: 2026-09-16
 items:
+- id: issue110-verify
+  name: validate-and-commit-issue-110-ci-changes
+  priority: P2
+  status: open
+  title: Validate and commit issue 110 CI changes
+  description: Task issue110-verify in progress
 - id: uncommitted-work
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (20 files)
+  title: Uncommitted changes (4 files)
   description: |-
     Working tree has uncommitted changes:
-    .ctx/HANDOFF.godmode.godmode.yaml
-    CLAUDE.md
-    skills/task-management/helpers/session-workflow.md
-    skills/using-godmode/SKILL.md
-    .codex-plugin/
-    .ctx/HANDOFF.tools.yaml
-    .plugin-eval/
-    AGENTS.md
-    crates/godmode-cli/src/commands/
-    skills/depgraph/
-    skills/joe:inject
-    skills/joe:persona
-    skills/joe:portfolio
-    skills/open-knowledge-discovery/
-    skills/open-knowledge-write-skill/
-    skills/rust-release-orchestrator-workspace/
-    skills/rust-release-orchestrator/
-    skills/think-consistency/
-    skills/using-doob/
-    toolkit.nu
+    .github/workflows/conformance.yml
+    tests/conformance/src/command_projection_tests.rs
+    .github/workflows/fuzz.yml
+    .github/workflows/release.yml
   files:
-  - .ctx/HANDOFF.godmode.godmode.yaml
-  - CLAUDE.md
-  - skills/task-management/helpers/session-workflow.md
-  - skills/using-godmode/SKILL.md
-  - .codex-plugin/
-  - .ctx/HANDOFF.tools.yaml
-  - .plugin-eval/
-  - AGENTS.md
-  - crates/godmode-cli/src/commands/
-  - skills/depgraph/
-  - skills/joe:inject
-  - skills/joe:persona
-  - skills/joe:portfolio
-  - skills/open-knowledge-discovery/
-  - skills/open-knowledge-write-skill/
-  - skills/rust-release-orchestrator-workspace/
-  - skills/rust-release-orchestrator/
-  - skills/think-consistency/
-  - skills/using-doob/
-  - toolkit.nu
+  - .github/workflows/conformance.yml
+  - tests/conformance/src/command_projection_tests.rs
+  - .github/workflows/fuzz.yml
+  - .github/workflows/release.yml
 log:
+- date: '20260916.043724'
+  summary: done=2 running=1 pending=0 blocked=0
+  commits:
+  - 457578cb30d25f4d2e5f3e4302db5f8fa51f42db
+  - 4ade98ce8a48e1a1a2337630a7ca93d519d1de2d
+  - e668eb8782cc88e54034424dd94d6c8d8d598261
+  - be1a0b39654619bee79f4ff631a503701ae4c861
+  - fc84b85b3bcfc1c63d13b6c8d4806be6e4aa3a83
+  - da0025029c5f2bd40e97b84c7065684a6775d062
+  - 1650c9f3bcd91253ec0891e69cc27f025e022e22
+  - 34813a02161fc020bd827f498b2d9fd7435c1403
+  - c163645e99559b4a900a2f9b484cc77465996265
+  - 1422b889659ef120015846fcc9bb505cb07d1939
 - date: '20260816'
   summary: |-
     Surfaced coursers failure-learning data in handoff and context (godmode-core).
@@ -59,9 +46,6 @@ log:
   commits:
   - bfc958b
   - 5059d20
-  build_state: clean
-  test_state: all passed (369)
-  branch: fix/coursers-followups-2026-08-03
 - date: '20260816.231505'
   summary: done=12 running=0 pending=0 blocked=0
   commits:
