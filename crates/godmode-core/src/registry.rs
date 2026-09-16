@@ -2,6 +2,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+/// Kind of installable artifact tracked in the global registry.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum EntryKind {
@@ -9,6 +10,7 @@ pub enum EntryKind {
     Agent,
 }
 
+/// One installed artifact persisted in the global registry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryEntry {
     pub name: String,
@@ -17,6 +19,7 @@ pub struct RegistryEntry {
     pub version: String,
 }
 
+/// Global registry of installed skills and agents.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Registry {
     pub entries: Vec<RegistryEntry>,

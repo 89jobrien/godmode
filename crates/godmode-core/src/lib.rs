@@ -1,3 +1,7 @@
+//! Core domain and integration library for the `godmode` CLI.
+//!
+//! Task graph logic, session orchestration, and external-tool adapters live here.
+
 pub mod agent;
 pub mod agent_index;
 pub mod builder;

@@ -5,12 +5,14 @@ use anyhow::{Context, Result, bail};
 
 use crate::integrations::subprocess;
 
+/// Details of a created worktree.
 pub struct WorktreeInfo {
     pub branch: String,
     pub path: PathBuf,
     pub issue_number: Option<u64>,
 }
 
+/// Returns whether `.gitignore` contains an exact entry.
 pub fn gitignore_contains(root: &Path, entry: &str) -> bool {
     let path = root.join(".gitignore");
     match fs::read_to_string(&path) {
@@ -19,6 +21,7 @@ pub fn gitignore_contains(root: &Path, entry: &str) -> bool {
     }
 }
 
+/// Ensures `.gitignore` contains the entry exactly once.
 pub fn ensure_gitignore(root: &Path, entry: &str) -> Result<()> {
     if gitignore_contains(root, entry) {
         return Ok(());
@@ -30,6 +33,7 @@ pub fn ensure_gitignore(root: &Path, entry: &str) -> Result<()> {
     Ok(())
 }
 
+/// Creates a branch worktree under `.worktrees/`.
 pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<WorktreeInfo> {
     let worktrees_dir = root.join(".worktrees");
     fs::create_dir_all(&worktrees_dir)
@@ -70,6 +74,7 @@ pub fn add(root: &Path, branch: &str, issue_number: Option<u64>) -> Result<Workt
     })
 }
 
+/// Removes a worktree whose branch has no commits ahead of `main`.
 pub fn remove(root: &Path, branch: &str) -> Result<()> {
     let root_str = root.to_str().unwrap_or(".");
 

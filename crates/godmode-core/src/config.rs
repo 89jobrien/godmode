@@ -181,6 +181,19 @@ max_commits = 5
     }
 
     #[test]
+    fn accepts_toml_1_1_multiline_inline_tables() {
+        let dir = TempDir::new().unwrap();
+        std::fs::write(
+            dir.path().join(".godmode.toml"),
+            "integrations = {\n  doob = false,\n  hj = false,\n}\n",
+        )
+        .unwrap();
+        let cfg = Config::load(dir.path());
+        assert!(!cfg.integrations.doob);
+        assert!(!cfg.integrations.hj);
+    }
+
+    #[test]
     fn missing_file_returns_defaults() {
         let cfg = Config::load(Path::new("/tmp/nonexistent"));
         assert!(cfg.project_name.is_none());

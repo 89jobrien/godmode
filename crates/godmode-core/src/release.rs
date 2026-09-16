@@ -232,12 +232,17 @@ pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
 
     let tag_version = latest_tag_version(root);
 
-    if let Some(ref cv) = cargo_version
-        && *cv != plugin_version
-    {
-        warnings.push(format!(
-            "version mismatch: plugin.json={plugin_version}, Cargo.toml={cv}"
-        ));
+    let config = load_config(root)?;
+    for target in &config.files {
+        let version = read_version_field(root, target)?;
+        if let Some(ref cargo_version) = cargo_version
+            && version != *cargo_version
+        {
+            warnings.push(format!(
+                "version mismatch: {}={version}, Cargo.toml={cargo_version}",
+                target.path
+            ));
+        }
     }
 
     if let Some(ref tv) = tag_version
@@ -353,5 +358,27 @@ edition = "2024"
         let tmp = make_fixture("1.0.0");
         let warnings = validate_versions(tmp.path()).unwrap();
         assert!(warnings.is_empty());
+    }
+    #[test]
+    fn validate_versions_checks_every_configured_version_adapter() {
+        let tmp = make_fixture("1.0.0");
+        fs::create_dir_all(tmp.path().join("adapters/example")).unwrap();
+        fs::write(
+            tmp.path().join("adapters/example/manifest.json"),
+            r#"{"version":"0.9.0"}"#,
+        )
+        .unwrap();
+        fs::write(tmp.path().join(".version-bump.json"), r#"{"files":[{"path":".claude-plugin/plugin.json","field":"version"},{"path":"adapters/example/manifest.json","field":"version"}],"audit":{"exclude":["target"]}}"#).unwrap();
+        fs::write(
+            tmp.path().join("Cargo.toml"),
+            "[workspace]\n\n[workspace.package]\nversion = \"1.0.0\"\n",
+        )
+        .unwrap();
+        let warnings = validate_versions(tmp.path()).unwrap();
+        assert!(
+            warnings.iter().any(|warning| warning
+                .contains("adapters/example/manifest.json=0.9.0, Cargo.toml=1.0.0")),
+            "warnings: {warnings:?}"
+        );
     }
 }

@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 use crate::agent;
@@ -56,7 +56,8 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
     }
 
     // Also load from agents/cfg/*.cfg.yaml (authoritative source)
-    let cfg_names = agent::list_cfg_agents(&agents_dir).unwrap_or_default();
+    let cfg_names = agent::list_cfg_agents(&agents_dir)?;
+    let mut authoritative_names = std::collections::BTreeMap::new();
     for name in cfg_names {
         // Skip if we already have this agent from a flat .md
         if entries.iter().any(|e| {
@@ -69,16 +70,23 @@ pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
             continue;
         }
         let cfg_path = agents_dir.join("cfg").join(format!("{name}.cfg.yaml"));
-        if let Ok(def) = agent::load(&cfg_path) {
-            entries.push(AgentEntry {
-                name: def.name,
-                description: def.description,
-                color: def.color,
-                skills: def.skills,
-                tools: def.tools,
-                path: cfg_path,
-            });
+        let def = agent::load(&cfg_path)?;
+        if let Some(previous) = authoritative_names.insert(def.name.clone(), cfg_path.clone()) {
+            bail!(
+                "duplicate authoritative agent name {} in {} and {}",
+                def.name,
+                previous.display(),
+                cfg_path.display()
+            );
         }
+        entries.push(AgentEntry {
+            name: def.name,
+            description: def.description,
+            color: def.color,
+            skills: def.skills,
+            tools: def.tools,
+            path: cfg_path,
+        });
     }
 
     entries.sort_by(|a, b| a.name.cmp(&b.name));
@@ -333,5 +341,20 @@ mod tests {
         let agents = list_agents(tmp.path()).unwrap();
         assert_eq!(agents.len(), 1);
         assert_eq!(agents[0].name, "godmode:real");
+    }
+    #[test]
+    fn rejects_duplicate_authoritative_agent_names() {
+        let tmp = tempfile::tempdir().unwrap();
+        let cfg = tmp.path().join("agents/cfg");
+        fs::create_dir_all(&cfg).unwrap();
+        let definition = "name: gm-duplicate\ndescription: Duplicate agent\nmodel: inherit\ncolor: blue\ntools: [Read]\nskills: []\n";
+        fs::write(cfg.join("alpha.cfg.yaml"), definition).unwrap();
+        fs::write(cfg.join("beta.cfg.yaml"), definition).unwrap();
+        let error = list_agents(tmp.path()).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("duplicate authoritative agent name")
+        );
     }
 }

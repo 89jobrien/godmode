@@ -776,6 +776,7 @@ const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "ci triage",
     "issue list",
     "issue close",
+    "issue sync-todos",
     "graph build",
     "review self",
     "review skills",
@@ -1050,6 +1051,11 @@ mod tests {
         .unwrap();
         let r = check_agent_naming(root).unwrap();
         assert!(r.findings.is_empty());
+    }
+
+    #[test]
+    fn canonical_subcommands_include_native_issue_sync() {
+        assert!(CANONICAL_SUBCOMMANDS.contains(&"issue sync-todos"));
     }
 
     #[test]
