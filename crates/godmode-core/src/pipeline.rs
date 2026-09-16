@@ -11,7 +11,6 @@ use crate::integrations::rx;
 // ---------------------------------------------------------------------------
 
 /// A single step in a pipeline definition.
-// TODO(#111): Execute optional and parallel_with semantics in the headless runner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineStep {
     pub skill: String,
@@ -49,6 +48,7 @@ pub enum StepStatus {
     Pending,
     Running,
     Done,
+    Failed,
     Skipped,
 }
 
@@ -58,6 +58,7 @@ impl StepStatus {
             StepStatus::Pending => "pending",
             StepStatus::Running => "running",
             StepStatus::Done => "done",
+            StepStatus::Failed => "failed",
             StepStatus::Skipped => "skipped",
         }
     }
@@ -76,6 +77,17 @@ pub struct StepRecord {
     pub status: StepStatus,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_at: Option<DateTime<Utc>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub companions: Vec<CompanionRecord>,
+}
+
+/// Persisted outcome for a skill joined to a parallel step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompanionRecord {
+    pub skill: String,
+    pub status: StepStatus,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_at: Option<DateTime<Utc>>,
 }
 
 /// Persisted pipeline execution state at `.ctx/godmode/pipeline.yaml`.
@@ -86,6 +98,9 @@ pub struct PipelineState {
     pub started_at: DateTime<Utc>,
     #[serde(default)]
     pub history: Vec<StepRecord>,
+    /// Current joined execution, retained until every member succeeds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_progress: Option<StepRecord>,
 }
 
 // ---------------------------------------------------------------------------
@@ -218,6 +233,7 @@ pub fn start(pipeline: &Pipeline, from: Option<&str>) -> Result<PipelineState> {
         current_step: start_idx,
         started_at: Utc::now(),
         history: Vec::new(),
+        in_progress: None,
     })
 }
 
@@ -236,6 +252,7 @@ fn record_and_advance<'a>(
             skill: step.skill.clone(),
             status,
             completed_at: Some(Utc::now()),
+            companions: Vec::new(),
         });
     }
     state.current_step += 1;
@@ -252,6 +269,162 @@ pub fn advance<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<
 /// Returns the next step, or `None` if the pipeline is complete.
 pub fn skip<'a>(state: &mut PipelineState, pipeline: &'a Pipeline) -> Option<&'a PipelineStep> {
     record_and_advance(state, pipeline, StepStatus::Skipped)
+}
+
+/// Decline the current optional step and advance it as skipped.
+pub fn decline(state: &mut PipelineState, pipeline: &Pipeline) -> Result<()> {
+    let step = current_step(state, pipeline).context("pipeline is already complete")?;
+    if !step.optional {
+        bail!("pipeline step {} is not optional", step.skill);
+    }
+    if let Some(mut progress) = state.in_progress.take() {
+        progress.status = StepStatus::Skipped;
+        progress.completed_at = Some(Utc::now());
+        for companion in &mut progress.companions {
+            if companion.status != StepStatus::Done {
+                companion.status = StepStatus::Skipped;
+                companion.completed_at = Some(Utc::now());
+            }
+        }
+        state.history.push(progress);
+        state.current_step += 1;
+    } else {
+        skip(state, pipeline);
+    }
+    Ok(())
+}
+
+/// Execute the current step and companions with bounded concurrency.
+///
+/// Completed members are persisted as they join. A retry executes only members that did not
+/// previously finish, so interrupted and partially failed groups remain recoverable.
+pub fn execute_current<F>(
+    root: &Path,
+    state: &mut PipelineState,
+    pipeline: &Pipeline,
+    max_concurrency: usize,
+    execute: F,
+) -> Result<bool>
+where
+    F: Fn(&str) -> Result<()> + Sync,
+{
+    if max_concurrency == 0 {
+        bail!("parallel execution requires max_concurrency greater than zero");
+    }
+    let step = current_step(state, pipeline).context("pipeline is already complete")?;
+
+    if let Some(progress) = &state.in_progress {
+        let same_definition = progress.skill == step.skill
+            && progress.companions.len() == step.parallel_with.len()
+            && progress
+                .companions
+                .iter()
+                .zip(&step.parallel_with)
+                .all(|(record, skill)| record.skill == *skill);
+        if !same_definition {
+            bail!("pipeline step definition changed during execution");
+        }
+    } else {
+        state.in_progress = Some(StepRecord {
+            skill: step.skill.clone(),
+            status: StepStatus::Running,
+            completed_at: None,
+            companions: step
+                .parallel_with
+                .iter()
+                .map(|skill| CompanionRecord {
+                    skill: skill.clone(),
+                    status: StepStatus::Running,
+                    completed_at: None,
+                })
+                .collect(),
+        });
+        save_state(root, state)?;
+    }
+
+    let progress = state.in_progress.as_ref().expect("initialized above");
+    let mut pending = Vec::new();
+    if progress.status != StepStatus::Done {
+        pending.push((None, progress.skill.clone()));
+    }
+    pending.extend(
+        progress
+            .companions
+            .iter()
+            .enumerate()
+            .filter(|(_, record)| record.status != StepStatus::Done)
+            .map(|(index, record)| (Some(index), record.skill.clone())),
+    );
+
+    for chunk in pending.chunks(max_concurrency) {
+        for (index, _) in chunk {
+            let progress = state
+                .in_progress
+                .as_mut()
+                .expect("execution remains active");
+            match index {
+                None => progress.status = StepStatus::Running,
+                Some(index) => progress.companions[*index].status = StepStatus::Running,
+            }
+        }
+        save_state(root, state)?;
+
+        let outcomes = std::thread::scope(|scope| {
+            let handles: Vec<_> = chunk
+                .iter()
+                .map(|(index, skill)| {
+                    let skill = skill.clone();
+                    let index = *index;
+                    let execute = &execute;
+                    (index, scope.spawn(move || execute(&skill).is_ok()))
+                })
+                .collect();
+            handles
+                .into_iter()
+                .map(|(index, handle)| (index, handle.join().unwrap_or(false)))
+                .collect::<Vec<_>>()
+        });
+
+        for (index, succeeded) in outcomes {
+            let progress = state
+                .in_progress
+                .as_mut()
+                .expect("execution remains active");
+            let status = if succeeded {
+                StepStatus::Done
+            } else {
+                StepStatus::Failed
+            };
+            let completed_at = Some(Utc::now());
+            match index {
+                None => {
+                    progress.status = status;
+                    progress.completed_at = completed_at;
+                }
+                Some(index) => {
+                    progress.companions[index].status = status;
+                    progress.companions[index].completed_at = completed_at;
+                }
+            }
+            save_state(root, state)?;
+        }
+    }
+
+    let all_done = state.in_progress.as_ref().is_some_and(|progress| {
+        progress.status == StepStatus::Done
+            && progress
+                .companions
+                .iter()
+                .all(|record| record.status == StepStatus::Done)
+    });
+    if all_done {
+        state
+            .history
+            .push(state.in_progress.take().expect("checked above"));
+        state.current_step += 1;
+        save_state(root, state)?;
+    }
+    Ok(all_done)
 }
 
 /// Returns `true` when `current_step` is past the last step.
@@ -868,6 +1041,98 @@ mod tests {
         // Task should be blocked.
         let g = graph::load(dir.path()).unwrap();
         assert_eq!(g.tasks[0].status, crate::model::Status::Blocked);
+    }
+
+    #[test]
+    fn decline_requires_an_optional_current_step() {
+        let p = sample_pipeline();
+        let mut state = start(&p, None).unwrap();
+        decline(&mut state, &p).expect("optional step can be declined");
+        assert_eq!(state.history[0].status, StepStatus::Skipped);
+
+        let err = decline(&mut state, &p).unwrap_err();
+        assert!(err.to_string().contains("not optional"), "got: {err}");
+        assert_eq!(state.current_step, 1);
+    }
+
+    #[test]
+    fn parallel_execution_is_bounded_and_joins_companions() {
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::time::Duration;
+
+        let mut p = sample_pipeline();
+        p.steps.truncate(1);
+        p.steps[0].parallel_with = vec!["beta".into(), "gamma".into(), "delta".into()];
+        let dir = tempfile::tempdir().unwrap();
+        let mut state = start(&p, None).unwrap();
+        let active = Arc::new(AtomicUsize::new(0));
+        let peak = Arc::new(AtomicUsize::new(0));
+
+        let completed = execute_current(dir.path(), &mut state, &p, 2, {
+            let active = Arc::clone(&active);
+            let peak = Arc::clone(&peak);
+            move |_| {
+                let now = active.fetch_add(1, Ordering::SeqCst) + 1;
+                peak.fetch_max(now, Ordering::SeqCst);
+                std::thread::sleep(Duration::from_millis(20));
+                active.fetch_sub(1, Ordering::SeqCst);
+                Ok(())
+            }
+        })
+        .unwrap();
+
+        assert!(completed);
+        assert!(peak.load(Ordering::SeqCst) <= 2);
+        assert_eq!(state.current_step, 1);
+        assert_eq!(state.history[0].companions.len(), 3);
+        assert!(
+            state.history[0]
+                .companions
+                .iter()
+                .all(|record| record.status == StepStatus::Done)
+        );
+    }
+
+    #[test]
+    fn partial_parallel_failure_persists_and_retries_only_failed_members() {
+        use std::sync::{Arc, Mutex};
+
+        let mut p = sample_pipeline();
+        p.steps.truncate(1);
+        p.steps[0].parallel_with = vec!["beta".into(), "gamma".into()];
+        let dir = tempfile::tempdir().unwrap();
+        let mut state = start(&p, None).unwrap();
+
+        let completed = execute_current(dir.path(), &mut state, &p, 2, |skill| {
+            if skill == "beta" {
+                anyhow::bail!("beta failed");
+            }
+            Ok(())
+        })
+        .unwrap();
+        assert!(!completed);
+
+        let mut recovered = load_state(dir.path()).unwrap().unwrap();
+        assert_eq!(recovered.current_step, 0);
+        let progress = recovered.in_progress.as_ref().unwrap();
+        assert_eq!(progress.status, StepStatus::Done);
+        assert_eq!(progress.companions[0].status, StepStatus::Failed);
+        assert_eq!(progress.companions[1].status, StepStatus::Done);
+
+        let retried = Arc::new(Mutex::new(Vec::new()));
+        let completed = execute_current(dir.path(), &mut recovered, &p, 2, {
+            let retried = Arc::clone(&retried);
+            move |skill| {
+                retried.lock().unwrap().push(skill.to_owned());
+                Ok(())
+            }
+        })
+        .unwrap();
+        assert!(completed);
+        assert_eq!(*retried.lock().unwrap(), ["beta"]);
+        assert_eq!(recovered.current_step, 1);
+        assert!(recovered.in_progress.is_none());
     }
 
     #[test]

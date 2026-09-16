@@ -69,7 +69,7 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
 
             PipelineAction::Next => advance_pipeline(root, json, pipeline::advance),
 
-            PipelineAction::Skip => advance_pipeline(root, json, pipeline::skip),
+            PipelineAction::Skip => decline_pipeline(root, json),
 
             PipelineAction::Stop => {
                 pipeline::clear_state(root)?;
@@ -153,7 +153,24 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
     }
 }
 
-/// Shared logic for `pipeline next` and `pipeline skip`.
+/// Decline the current step only when its definition marks it optional.
+fn decline_pipeline(root: &std::path::Path, json: bool) -> Result<()> {
+    let mut state =
+        pipeline::load_state(root)?.ok_or_else(|| anyhow::anyhow!("No active pipeline."))?;
+    let p = pipeline::load_pipeline(root, &state.active.clone())?;
+    pipeline::decline(&mut state, &p)?;
+    pipeline::save_state(root, &state)?;
+    if json {
+        println!("{}", serde_json::to_string_pretty(&state)?);
+    } else if let Some(step) = pipeline::current_step(&state, &p) {
+        println!("Advanced to: {}", step.skill);
+    } else {
+        println!("Pipeline complete.");
+    }
+    Ok(())
+}
+
+/// Shared logic for pipeline advancement.
 fn advance_pipeline(
     root: &std::path::Path,
     json: bool,

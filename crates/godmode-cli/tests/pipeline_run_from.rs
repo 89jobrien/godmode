@@ -61,6 +61,14 @@ fn run_pipeline(root: &std::path::Path, from: Option<&str>) -> Output {
     command.current_dir(root).output().unwrap()
 }
 
+fn skip_pipeline(root: &std::path::Path) -> Output {
+    Command::new(godmode_bin())
+        .args(["--json", "pipeline", "skip"])
+        .current_dir(root)
+        .output()
+        .unwrap()
+}
+
 fn step_skills(output: &Output) -> Vec<String> {
     let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     value["steps"]
@@ -140,4 +148,31 @@ fn matching_active_state_ignores_supplied_from() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert_eq!(step_skills(&output), ["second", "internal"]);
+}
+
+#[test]
+fn skip_declines_only_optional_steps() {
+    let (dir, mut definition) = setup_pipeline();
+    let state = pipeline::start(&definition, None).unwrap();
+    pipeline::save_state(dir.path(), &state).unwrap();
+
+    let required = skip_pipeline(dir.path());
+    assert!(!required.status.success());
+    assert!(String::from_utf8_lossy(&required.stderr).contains("not optional"));
+
+    definition.steps[0].optional = true;
+    std::fs::write(
+        dir.path().join("pipelines/entry-points.yaml"),
+        serde_yaml::to_string(&definition).unwrap(),
+    )
+    .unwrap();
+    let optional = skip_pipeline(dir.path());
+    assert!(
+        optional.status.success(),
+        "{}",
+        String::from_utf8_lossy(&optional.stderr)
+    );
+    let state = pipeline::load_state(dir.path()).unwrap().unwrap();
+    assert_eq!(state.current_step, 1);
+    assert_eq!(state.history[0].status, pipeline::StepStatus::Skipped);
 }
