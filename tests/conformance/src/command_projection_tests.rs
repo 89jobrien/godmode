@@ -303,6 +303,18 @@ fn github_actions_runs_projection_conformance() -> Result<()> {
 }
 
 #[test]
+fn github_actions_audits_linux_and_macos_dependency_graphs() -> Result<()> {
+    let root = repo_root();
+    let deny = std::fs::read_to_string(root.join("deny.toml"))?;
+    let workflow = std::fs::read_to_string(root.join(".github/workflows/conformance.yml"))?;
+
+    assert!(deny.contains("x86_64-unknown-linux-gnu"));
+    assert!(deny.contains("aarch64-apple-darwin"));
+    assert!(workflow.contains("cargo deny check"));
+    Ok(())
+}
+
+#[test]
 fn generated_projections_are_excluded_from_markdown_reformatting() -> Result<()> {
     let ignored = std::fs::read_to_string(repo_root().join(".prettierignore"))?;
     assert!(ignored.lines().any(|line| line == "commands/gm-*.md"));
