@@ -331,15 +331,27 @@ impl RunResult {
 /// 5. On exit 0: mark task done. On non-zero: record failure.
 /// 6. Advance pipeline state after each step.
 /// 7. If any task failed and `fail_fast`: stop and return.
-// TODO(#101): Pass the requested entry point into fresh pipeline state.
-pub fn run_tasks(root: &Path, pipeline_name: &str, fail_fast: bool) -> Result<RunResult> {
+///
+/// `from` selects the entry point only when creating fresh state. Matching active state resumes
+/// from its saved step and ignores `from`.
+///
+/// # Errors
+///
+/// Returns an error when the pipeline cannot be loaded, a fresh run has an invalid entry point,
+/// state cannot be persisted, or task execution fails.
+pub fn run_tasks(
+    root: &Path,
+    pipeline_name: &str,
+    from: Option<&str>,
+    fail_fast: bool,
+) -> Result<RunResult> {
     let p = load_pipeline(root, pipeline_name)?;
 
     // Start or resume the pipeline.
     let mut state = match load_state(root)? {
         Some(s) if s.active == pipeline_name => s,
         _ => {
-            let s = start(&p, None)?;
+            let s = start(&p, from)?;
             save_state(root, &s)?;
             s
         }
@@ -791,7 +803,7 @@ mod tests {
         std::fs::create_dir_all(&pdir).unwrap();
         std::fs::write(pdir.join("empty.yaml"), serde_yaml::to_string(&p).unwrap()).unwrap();
 
-        let result = run_tasks(root, "empty", false).unwrap();
+        let result = run_tasks(root, "empty", None, false).unwrap();
         assert!(result.completed);
         assert!(result.steps.is_empty());
         assert!(result.stopped_at.is_none());
@@ -807,7 +819,7 @@ mod tests {
         }];
         // No tasks at all.
         let (dir, name) = setup_run_tasks_env(steps, vec![]);
-        let result = run_tasks(dir.path(), &name, false).unwrap();
+        let result = run_tasks(dir.path(), &name, None, false).unwrap();
         assert!(result.completed);
         assert_eq!(result.steps.len(), 1);
         assert!(result.steps[0].skipped);
@@ -825,7 +837,7 @@ mod tests {
         t.run = Some("true".into());
         let (dir, name) = setup_run_tasks_env(steps, vec![t]);
 
-        let result = run_tasks(dir.path(), &name, false).unwrap();
+        let result = run_tasks(dir.path(), &name, None, false).unwrap();
         assert!(result.completed);
         assert_eq!(result.steps.len(), 1);
         assert_eq!(result.steps[0].tasks_run, 1);
@@ -848,7 +860,7 @@ mod tests {
         t.run = Some("false".into());
         let (dir, name) = setup_run_tasks_env(steps, vec![t]);
 
-        let result = run_tasks(dir.path(), &name, true).unwrap();
+        let result = run_tasks(dir.path(), &name, None, true).unwrap();
         assert!(!result.completed);
         assert_eq!(result.stopped_at.as_deref(), Some("build"));
         assert_eq!(result.steps[0].tasks_failed, 1);
@@ -873,7 +885,7 @@ mod tests {
         t2.run = Some("true".into());
         let (dir, name) = setup_run_tasks_env(steps, vec![t1, t2]);
 
-        let result = run_tasks(dir.path(), &name, false).unwrap();
+        let result = run_tasks(dir.path(), &name, None, false).unwrap();
         assert!(result.completed);
         assert_eq!(result.steps[0].tasks_run, 2);
         assert_eq!(result.steps[0].tasks_failed, 0);

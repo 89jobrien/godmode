@@ -23,4 +23,5 @@ default = []
 test-utils = []
 
 [dev-dependencies]
+serde_yaml = { workspace = true }
 tempfile = "3"

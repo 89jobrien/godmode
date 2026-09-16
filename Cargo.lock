@@ -601,6 +601,7 @@ dependencies = [
  "godmode-core",
  "miette",
  "serde_json",
+ "serde_yaml",
  "tempfile",
 ]
 
