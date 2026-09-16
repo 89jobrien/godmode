@@ -35,7 +35,6 @@ impl Fixture {
         fs::create_dir_all(&fixture.home).unwrap();
         fs::create_dir_all(&fixture.target).unwrap();
         fixture.fake_tool("cargo");
-        fixture.fake_tool("just");
         fixture
     }
     fn fake_tool(&self, name: &str) {
@@ -96,8 +95,9 @@ fn ci_runs_current_workspace_quality_contract_from_project_root() {
         "cargo\tcheck\t--workspace\t--all-features",
         "cargo\tclippy\t--workspace\t--all-targets\t--all-features\t--\t-D\twarnings",
         "cargo\tnextest\trun\t--workspace\t--all-features",
+        "cargo\trun\t-p\tgodmode-conformance\t--bin\trun-conformance\t--\t--verbose",
         "cargo\tdeny\tcheck",
-        "just\tconformance",
+        "cargo\trun\t-q\t-p\tgodmode-cli\t--\trelease\tvalidate",
     ] {
         assert!(
             log.contains(command),
@@ -108,6 +108,8 @@ fn ci_runs_current_workspace_quality_contract_from_project_root() {
         .parent()
         .unwrap()
         .to_path_buf();
+    assert!(!log.contains("just\t"));
+    assert!(!log.contains("nu\t"));
     assert!(
         log.lines()
             .all(|line| line.contains(&format!("PWD={}", root.display())))
@@ -144,4 +146,37 @@ fn install_uses_cargo_target_dir_for_the_built_binary() {
         fs::read(fixture.home.join(".cargo/bin/godmode")).unwrap(),
         b"binary"
     );
+}
+
+#[test]
+fn ci_propagates_typed_conformance_failures() {
+    let fixture = Fixture::new();
+    let output = fixture
+        .command("ci")
+        .env(
+            "FAKE_FAIL_MATCH",
+            "cargo run -p godmode-conformance --bin run-conformance -- --verbose",
+        )
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    let log = fixture.log();
+    assert!(log.contains("godmode-conformance"));
+    assert!(!log.contains("cargo\tdeny\tcheck"));
+}
+
+#[test]
+fn usage_describes_the_complete_ci_gate() {
+    let output = Command::new(env!("CARGO_BIN_EXE_xtask")).output().unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    for gate in [
+        "check",
+        "clippy",
+        "nextest",
+        "typed conformance",
+        "deny",
+        "release validate",
+    ] {
+        assert!(stderr.contains(gate), "missing {gate:?} in {stderr:?}");
+    }
 }

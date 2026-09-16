@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 ///
 /// Returns an error when Cargo did not provide the target binary environment variable.
 pub fn binary_path(name: &str) -> Result<PathBuf> {
-    let key = format!("CARGO_BIN_EXE_{}", name.replace("-", "_"));
+    let key = format!("CARGO_BIN_EXE_{name}");
     std::env::var_os(&key)
         .map(PathBuf::from)
         .with_context(|| format!("Cargo binary environment variable {key} is not set"))
@@ -22,7 +22,7 @@ mod tests {
     fn binary_path_resolves_hyphenated_cargo_target_name() {
         let _guard = crate::testing::env::TestContext::builder()
             .env(
-                "CARGO_BIN_EXE_godmode_test_helper",
+                "CARGO_BIN_EXE_godmode-test-helper",
                 "/tmp/godmode-test-helper",
             )
             .build();

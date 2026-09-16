@@ -75,6 +75,7 @@ def main [] {
     # using-godmode is excluded: it hosts the index and is not listed in it
     # -----------------------------------------------------------------------
     let index_content = (open $skill_index)
+    let using_content = (open --raw $using_godmode_skill)
 
     for skill_path in $skill_dirs {
         let skill_name = ($skill_path | path basename)
@@ -90,11 +91,23 @@ def main [] {
         if not ($skill_name in $index_content.skills.name) {
             $failures = ($failures | append $"[($skill_name)] name '($skill_full_name)' not found in skill-index.json")
         }
+        if not ($using_content | str contains $skill_full_name) {
+            $failures = ($failures | append $"[($skill_name)] name not found in using-godmode/SKILL.md Available Skills table")
+        }
     }
 
     # -----------------------------------------------------------------------
     # Check 4: No orphan index entries — every entry in skill-index.json has a dir
     # -----------------------------------------------------------------------
+
+    let index_names = ($index_content.skills.name | uniq)
+    let dir_names = ($skill_dirs | each { |path| $path | path basename })
+    for entry in $index_names {
+        $checks = $checks + 1
+        if not ($dir_names | any { |name| $name == $entry }) {
+            $failures = ($failures | append $"[index] orphan entry ($entry) — no matching skills/($entry)/ dir")
+        }
+    }
 
     # -----------------------------------------------------------------------
     # Check 5: references/ links resolve

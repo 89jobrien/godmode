@@ -128,7 +128,7 @@
     },
     {
       "name": "self-reflect",
-      "trigger": "End-of-session retrospective \u2014 \"reflect\", \"what did we do\"",
+      "trigger": "End-of-session retrospective — \"reflect\", \"what did we do\"",
       "phase": "SHIP"
     },
     {
@@ -335,16 +335,6 @@
       "name": "agent-improvement-loop",
       "trigger": "Collect traces, generate evals, run HALO diagnosis cycle",
       "phase": "ACT"
-    },
-    {
-      "name": "depgraph",
-      "trigger": "Visualize crate dependency graph as hexagonal architecture report",
-      "phase": "ORIENT"
-    },
-    {
-      "name": "open-knowledge-discovery",
-      "trigger": "What is Open Knowledge, install on repo, share notes",
-      "phase": "ORIENT"
     },
     {
       "name": "rustqual-workspace",

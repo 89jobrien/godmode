@@ -138,6 +138,10 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:baml-iteration`                  | Edit/validate/test loop for devloop \*.baml files            |
 | `godmode:chunked-file-reading`            | Reading large files that exceed context limits               |
 | `godmode:crs-hook-testing`                | Adding/debugging a crs hook pipeline rule                    |
+| `godmode:crs-discover`                    | Discover candidate coursers rules from hook telemetry        |
+| `godmode:crs-install`                     | Install and configure coursers rules                         |
+| `godmode:crs-propose-rules`               | Propose coursers rules from observed failures                |
+| `godmode:crs-validate`                    | Validate coursers hook and rule configuration                |
 | `godmode:daily-orchestration`             | Daily maintenance across all repos                           |
 | `godmode:devloop-analyze`                 | Running `devloop git analyze` on a repo                      |
 | `godmode:devloop-bench-cycle`             | Full benchmark cycle — criterion, budgets, regressions       |

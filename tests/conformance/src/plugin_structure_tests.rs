@@ -146,6 +146,8 @@ impl ConformanceTest for SkillNamesInIndex {
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let root = repo_root();
+        let using_path = root.join("skills/using-godmode/SKILL.md");
+        let using = std::fs::read_to_string(&using_path).unwrap_or_default();
         let index = match skill_index_names(&root) {
             Ok(index) => index,
             Err(error) => {
@@ -174,6 +176,12 @@ impl ConformanceTest for SkillNamesInIndex {
             if !index.contains(&skill_name) {
                 ctx.fail(&format!(
                     "[{}] name {} not found in skill-index.json",
+                    skill_name, full_name
+                ));
+            }
+            if !using.contains(&full_name) {
+                ctx.fail(&format!(
+                    "[{}] name {} not found in using-godmode/SKILL.md",
                     skill_name, full_name
                 ));
             }
@@ -274,7 +282,7 @@ fn check_link_pattern(root: &Path, pattern: &str, ctx: &mut TestContext) {
             .into_owned();
         for line in non_fence_lines(&content) {
             for cap in re.captures_iter(line) {
-                let link = &cap[1];
+                let link = cap[1].split_whitespace().next().unwrap_or(&cap[1]);
                 // Skip bare directory references like "references/" with no filename
                 if link.ends_with('/') {
                     continue;
@@ -635,7 +643,7 @@ impl ConformanceTest for LibReferencesResolve {
                 .to_string_lossy()
                 .into_owned();
             for cap in re.captures_iter(&content) {
-                let link = &cap[1];
+                let link = cap[1].split_whitespace().next().unwrap_or(&cap[1]);
                 let resolved = root.join(link);
                 if !resolved.exists() {
                     ctx.fail(&format!("[{}] broken _lib link: {}", skill_name, link));
@@ -841,6 +849,7 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(EverySkillHasSkillMd),
         Box::new(SkillMdHasFrontmatterName),
         Box::new(SkillNamesInIndex),
+        Box::new(NoOrphanIndexEntries),
         Box::new(ReferencesLinksResolve),
         Box::new(HelpersLinksResolve),
         Box::new(PluginJsonAllowedFields),
@@ -856,6 +865,44 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
 #[cfg(test)]
 mod quality_contract_tests {
     use super::repo_root;
+
+    #[test]
+    fn strict_index_suite_registers_orphan_validation() {
+        assert!(
+            super::all()
+                .iter()
+                .any(|test| test.name() == "no_orphan_index_entries")
+        );
+    }
+
+    #[test]
+    fn repository_versions_share_one_semver() {
+        let root = repo_root();
+        let cargo = std::fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        let cargo_version = cargo
+            .lines()
+            .skip_while(|line| line.trim() != "[workspace.package]")
+            .skip(1)
+            .find_map(|line| line.trim().strip_prefix("version = "))
+            .unwrap()
+            .trim_matches(char::from(34));
+        let bump_config: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(".version-bump.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(bump_config["workspace_manifest"], "Cargo.toml");
+        let plugin: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(".claude-plugin/plugin.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(plugin["version"], cargo_version);
+        assert_eq!(cargo_version.split(char::from(46)).count(), 3);
+        assert!(
+            cargo_version
+                .split(char::from(46))
+                .all(|part| part.parse::<u64>().is_ok())
+        );
+    }
 
     #[test]
     fn repository_provides_both_declared_license_texts() {

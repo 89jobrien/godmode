@@ -9,7 +9,13 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct VersionBumpConfig {
+    #[serde(default = "default_workspace_manifest")]
+    pub workspace_manifest: String,
     pub files: Vec<FileTarget>,
+}
+
+fn default_workspace_manifest() -> String {
+    "Cargo.toml".to_string()
 }
 
 #[derive(Debug, Deserialize)]

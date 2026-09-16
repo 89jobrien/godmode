@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 #[derive(Debug, serde::Serialize, PartialEq)]
 pub enum Severity {
@@ -173,16 +173,15 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
     let mut r = ReviewReport::new();
     let dirs = skill_dirs(root)?;
 
-    let index_path = root.join("skills/using-godmode/references/skill-index.md");
+    let index_names = load_skill_index_names(root)?;
     let using_path = root.join("skills/using-godmode/SKILL.md");
-    let index_content = fs::read_to_string(&index_path).unwrap_or_default();
     let using_content = fs::read_to_string(&using_path).unwrap_or_default();
 
     for dir in &dirs {
         r.merge(check_skill_frontmatter(
             root,
             dir,
-            &index_content,
+            &index_names,
             &using_content,
         )?);
         r.merge(check_skill_links(root, dir)?);
@@ -190,7 +189,7 @@ pub fn check_skills(root: &Path) -> Result<ReviewReport> {
         r.merge(check_skill_consistency(dir)?);
     }
 
-    r.merge(check_skill_index_entries(root, &dirs, &index_content)?);
+    r.merge(check_skill_index_entries(&dirs, &index_names));
 
     Ok(r)
 }
@@ -206,7 +205,7 @@ fn skill_name_of(dir: &Path) -> String {
 fn check_skill_frontmatter(
     _root: &Path,
     dir: &Path,
-    index_content: &str,
+    index_names: &std::collections::BTreeSet<String>,
     using_content: &str,
 ) -> Result<ReviewReport> {
     let mut r = ReviewReport::new();
@@ -238,14 +237,14 @@ fn check_skill_frontmatter(
     }
 
     if let Some(ref full_name) = fm_name {
-        // Check 3: name in skill-index.md (skip using-godmode itself)
+        // Check 3: directory name in canonical skill-index.json.
         if skill_name != "using-godmode" {
             r.checks += 1;
-            if !index_content.contains(full_name.as_str()) {
+            if !index_names.contains(&skill_name) {
                 r.fail(
                     &skill_name,
-                    "not in skill-index.md",
-                    format!("[{skill_name}] name '{full_name}' not found in skill-index.md"),
+                    "not in skill-index.json",
+                    format!("[{skill_name}] name '{full_name}' not found in skill-index.json"),
                 );
             }
 
@@ -266,28 +265,47 @@ fn check_skill_frontmatter(
     Ok(r)
 }
 
-/// Check orphan index entries (entries in skill-index.md with no matching skill dir).
+fn load_skill_index_names(root: &Path) -> Result<std::collections::BTreeSet<String>> {
+    let path = root.join("skills/using-godmode/references/skill-index.json");
+    let content =
+        fs::read_to_string(&path).with_context(|| format!("cannot read {}", path.display()))?;
+    let value: serde_json::Value = serde_json::from_str(&content)
+        .with_context(|| format!("invalid JSON in {}", path.display()))?;
+    value
+        .get("skills")
+        .and_then(serde_json::Value::as_array)
+        .context("skill-index.json missing skills array")?
+        .iter()
+        .map(|entry| {
+            entry
+                .get("name")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string)
+                .context("skill-index.json entry missing name")
+        })
+        .collect()
+}
+
+/// Check orphan JSON index entries against repository skill directories.
 fn check_skill_index_entries(
-    _root: &Path,
     dirs: &[PathBuf],
-    index_content: &str,
-) -> Result<ReviewReport> {
-    let mut r = ReviewReport::new();
-    for entry_name in extract_godmode_names_from_index(index_content) {
-        r.checks += 1;
-        let short = entry_name.trim_start_matches("godmode:");
+    index_names: &std::collections::BTreeSet<String>,
+) -> ReviewReport {
+    let mut report = ReviewReport::new();
+    for name in index_names {
+        report.checks += 1;
         let exists = dirs
             .iter()
-            .any(|d| d.file_name().unwrap_or_default().to_string_lossy() == short);
+            .any(|dir| dir.file_name().unwrap_or_default().to_string_lossy() == name.as_str());
         if !exists {
-            r.fail(
+            report.fail(
                 "index",
                 "orphan entry",
-                format!("[index] orphan entry '{entry_name}' — no matching skills/{short}/ dir"),
+                format!("[index] orphan entry {name} — no matching skills/{name}/ dir"),
             );
         }
     }
-    Ok(r)
+    report
 }
 
 /// Check references/, helpers/, and _lib/ links resolve.
@@ -303,6 +321,9 @@ fn check_skill_links(root: &Path, dir: &Path) -> Result<ReviewReport> {
     // Check 5: references/ links resolve
     for line in content.lines() {
         if let Some(cap) = extract_backtick_path(line, "references/") {
+            if cap.ends_with(char::from(47)) {
+                continue;
+            }
             r.checks += 1;
             let resolved = dir.join(&cap);
             if !resolved.exists() {
@@ -318,6 +339,9 @@ fn check_skill_links(root: &Path, dir: &Path) -> Result<ReviewReport> {
     // Check 6: helpers/ links resolve
     for line in content.lines() {
         if let Some(cap) = extract_backtick_path(line, "helpers/") {
+            if cap.ends_with(char::from(47)) {
+                continue;
+            }
             r.checks += 1;
             let resolved = dir.join(&cap);
             if !resolved.exists() {
@@ -744,6 +768,13 @@ const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "handon",
     "handoff",
     "status",
+    "context",
+    "visualize-graph",
+    "pin",
+    "unpin",
+    "init",
+    "doctor",
+    "memory-banking",
     "task list",
     "task next",
     "task add",
@@ -762,6 +793,15 @@ const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "plan ingest",
     "dispatch",
     "agent",
+    "hook",
+    "skill",
+    "pipeline",
+    "policy",
+    "insight",
+    "session",
+    "workflow",
+    "scaffold",
+    "test-check",
     "agent list",
     "agent index",
     "agent dispatch",
@@ -811,7 +851,7 @@ fn extract_backtick_path(line: &str, prefix: &str) -> Option<String> {
         if let Some(end) = rest.find('`') {
             let inner = &rest[..end];
             if inner.starts_with(prefix) {
-                return Some(inner.to_string());
+                return inner.split_whitespace().next().map(str::to_string);
             }
             rest = &rest[end + 1..];
         } else {
@@ -819,30 +859,6 @@ fn extract_backtick_path(line: &str, prefix: &str) -> Option<String> {
         }
     }
     None
-}
-
-/// Extract all `godmode:*` names from the skill-index content.
-fn extract_godmode_names_from_index(content: &str) -> Vec<String> {
-    let mut names = vec![];
-    for line in content.lines() {
-        if !line.contains('`') {
-            continue;
-        }
-        let mut rest = line;
-        while let Some(start) = rest.find('`') {
-            rest = &rest[start + 1..];
-            if let Some(end) = rest.find('`') {
-                let inner = &rest[..end];
-                if inner.starts_with("godmode:") && !names.contains(&inner.to_string()) {
-                    names.push(inner.to_string());
-                }
-                rest = &rest[end + 1..];
-            } else {
-                break;
-            }
-        }
-    }
-    names
 }
 
 // ---------------------------------------------------------------------------
@@ -868,8 +884,15 @@ mod tests {
     fn make_index(dir: &Path, entries: &[&str]) {
         let ref_dir = dir.join("skills/using-godmode/references");
         fs::create_dir_all(&ref_dir).unwrap();
-        let lines: String = entries.iter().map(|e| format!("`{e}`\n")).collect();
-        fs::write(ref_dir.join("skill-index.md"), lines).unwrap();
+        let skills: Vec<serde_json::Value> = entries
+            .iter()
+            .map(|entry| serde_json::json!({"name": entry.trim_start_matches("godmode:")}))
+            .collect();
+        fs::write(
+            ref_dir.join("skill-index.json"),
+            serde_json::to_string(&serde_json::json!({"skills": skills})).unwrap(),
+        )
+        .unwrap();
     }
 
     fn make_using_godmode(dir: &Path, entries: &[&str]) {
@@ -926,6 +949,22 @@ mod tests {
             r.findings
                 .iter()
                 .any(|f| f.check == "missing frontmatter name")
+        );
+    }
+
+    #[test]
+    fn detects_frontmatter_missing_from_using_godmode_table() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        make_skill(root, "brainstorm", "godmode:brainstorm");
+        make_index(root, &["godmode:brainstorm"]);
+        make_using_godmode(root, &[]);
+        let report = check_skills(root).unwrap();
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|finding| finding.check == "not in using-godmode SKILL.md")
         );
     }
 

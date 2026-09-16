@@ -40,7 +40,7 @@ fn print_usage() {
         "Usage: cargo xtask <COMMAND>\n\n\
          Commands:\n  \
            pre-commit   fmt-check + clippy + conformance\n  \
-           ci           full gate (fmt + clippy -D warnings + nextest + conformance)\n  \
+           ci           fmt + check + clippy + nextest + typed conformance + deny + release validate\n  \
            dist         release build of godmode-cli\n  \
            install      build release and copy to ~/.cargo/bin/"
     );
@@ -93,11 +93,30 @@ fn ci() -> Result<()> {
     header("nextest --all-features");
     cargo(CI_NEXTEST_ARGS)?;
 
+    header("typed conformance");
+    cargo(&[
+        "run",
+        "-p",
+        "godmode-conformance",
+        "--bin",
+        "run-conformance",
+        "--",
+        "--verbose",
+    ])?;
+
     header("cargo deny check");
     cargo(&["deny", "check"])?;
 
-    header("conformance");
-    command("just", &["conformance"])?;
+    header("release validate");
+    cargo(&[
+        "run",
+        "-q",
+        "-p",
+        "godmode-cli",
+        "--",
+        "release",
+        "validate",
+    ])?;
 
     eprintln!("\nAll CI checks passed.");
     Ok(())
