@@ -132,6 +132,17 @@ godmode task pull [--project <name>] # import pending doob todos as tasks
 godmode task push-done               # mark completed tasks done in doob
 ```
 
+### Skill evaluations
+
+```bash
+godmode eval run <skill> --results <fixture.json> [--repeat 3] [--max-cases 100] [--max-cost-usd 1.0]
+godmode eval compare <skill>
+godmode eval promote <skill> [--min-pass-rate 0.8] [--max-cost-usd 1.0]
+godmode eval status <skill> [--min-pass-rate 0.8] [--max-cost-usd 1.0]
+```
+
+Runs are stored under `.ctx/godmode/evaluations/`; promotion records the latest gated run as the baseline. Model-backed adapters implement the core `EvalExecutor` port; the bundled fixture executor is deterministic and incurs no network or model cost.
+
 ### Status
 
 ```bash

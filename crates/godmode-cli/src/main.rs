@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use godmode_core::{
-    agent, agent_index, builder, context, detect, dispatch, graph, insights, integrations,
+    agent, agent_index, builder, context, detect, dispatch, eval, graph, insights, integrations,
     memory_banking, model, pipeline, plan, policy, registry, release, review, session::Session,
     skill, templates, workflow,
 };
@@ -30,7 +30,6 @@ struct Cli {
 }
 
 // TODO(#108): Add native, resumable TODO-to-issue synchronization commands.
-// TODO(#113): Add first-class skill evaluation run, compare, promote, and status commands.
 #[derive(Subcommand)]
 enum Cmd {
     /// Print triage summary at session start.
@@ -134,6 +133,12 @@ enum Cmd {
     Skill {
         #[command(subcommand)]
         action: SkillAction,
+    },
+
+    /// Skill evaluation runs, baselines, comparisons, and CI gates.
+    Eval {
+        #[command(subcommand)]
+        action: EvalAction,
     },
 
     /// Plugin conformance and consistency auditing.
@@ -267,6 +272,45 @@ enum SkillAction {
     Uninstall {
         /// Skill name to remove.
         name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum EvalAction {
+    /// Execute a bounded evaluation using deterministic result fixtures.
+    Run {
+        /// Skill directory name under skills/.
+        skill: String,
+        /// JSON fixture containing pass/fail outcomes from an evaluation adapter.
+        #[arg(long)]
+        results: String,
+        /// Number of times to run each case (maximum 10).
+        #[arg(long, default_value = "1")]
+        repeat: u32,
+        /// Maximum total case invocations.
+        #[arg(long, default_value = "100")]
+        max_cases: usize,
+        /// Maximum aggregate model cost in US dollars.
+        #[arg(long, default_value = "1.0")]
+        max_cost_usd: f64,
+    },
+    /// Compare the latest run with the promoted baseline.
+    Compare { skill: String },
+    /// Promote the latest passing run to the baseline.
+    Promote {
+        skill: String,
+        #[arg(long, default_value = "0.8")]
+        min_pass_rate: f64,
+        #[arg(long, default_value = "1.0")]
+        max_cost_usd: f64,
+    },
+    /// Show latest and baseline results and enforce a CI gate.
+    Status {
+        skill: String,
+        #[arg(long, default_value = "0.8")]
+        min_pass_rate: f64,
+        #[arg(long, default_value = "1.0")]
+        max_cost_usd: f64,
     },
 }
 
@@ -822,4 +866,23 @@ fn run() -> Result<()> {
     let cli = Cli::parse();
     let root = detect::root_or_cwd()?;
     commands::dispatch(cli.cmd, &root, cli.json, cli.sarif)
+}
+
+#[cfg(test)]
+mod eval_cli_tests {
+    use super::*;
+
+    #[test]
+    fn parses_all_eval_operations() {
+        for operation in ["run", "compare", "promote", "status"] {
+            let mut args = vec!["godmode", "eval", operation, "demo"];
+            if operation == "run" {
+                args.extend(["--results", "results.json"]);
+            }
+            assert!(
+                Cli::try_parse_from(args).is_ok(),
+                "failed to parse {operation}"
+            );
+        }
+    }
 }

@@ -7,6 +7,7 @@ pub mod context;
 pub mod detect;
 pub mod dispatch;
 pub mod doctor;
+pub mod eval;
 pub mod graph;
 pub mod hooks;
 pub mod init;
