@@ -25,11 +25,19 @@ jobs:
         with:
           tool: cargo-nextest
 
+      - name: install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
       - name: build godmode-cli
         run: cargo build -p godmode-cli
 
       - name: cargo nextest run (godmode-core conformance)
         run: cargo nextest run -p godmode-core --test conformance
+
+      - name: audit dependency graph
+        run: cargo deny check
 
   conformance-skill-index:
     name: skill index completeness
