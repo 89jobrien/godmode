@@ -48,6 +48,8 @@ pub enum StepState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowState {
     pub workflow: String,
+    #[serde(default)]
+    pub definition_hash: String,
     pub steps: Vec<StepStatus>,
 }
 
@@ -97,11 +99,12 @@ pub fn runnable_steps<'a>(def: &'a WorkflowDef, state: &WorkflowState) -> Vec<&'
 /// Run a workflow to completion. Executes steps in dependency order.
 /// Returns the final `WorkflowState`.
 pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
-    let mut state = init_state(def);
     let state_path = root
         .join(".ctx")
         .join("godmode")
         .join(format!("workflow-{}.json", def.name));
+    let mut state = load_or_init_state(def, &state_path)?;
+    persist_state(&state, &state_path)?;
 
     loop {
         let runnable: Vec<String> = runnable_steps(def, &state)
@@ -116,6 +119,7 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
         for step_id in runnable {
             let step = def.steps.iter().find(|s| s.id == step_id).unwrap();
             set_state(&mut state, &step_id, StepState::Running, None);
+            persist_state(&state, &state_path)?;
 
             let (prog, args) = resolve_cmd(&step.run);
             let exit_status = std::process::Command::new(&prog)
@@ -137,12 +141,12 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
                     skip_all_except(&mut state, def, target);
                 } else {
                     // no recovery — persist and stop
-                    persist_state(&state, &state_path);
+                    persist_state(&state, &state_path)?;
                     return Ok(state);
                 }
             }
 
-            persist_state(&state, &state_path);
+            persist_state(&state, &state_path)?;
         }
     }
 
@@ -153,10 +157,44 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
 // Private helpers
 // ---------------------------------------------------------------------------
 
-// TODO(#107): Resume compatible persisted state and surface persistence failures.
+fn load_or_init_state(def: &WorkflowDef, path: &Path) -> Result<WorkflowState> {
+    if !path.exists() {
+        return Ok(init_state(def));
+    }
+
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("reading workflow state {}", path.display()))?;
+    let mut state: WorkflowState = serde_json::from_str(&raw)
+        .with_context(|| format!("parsing workflow state {}", path.display()))?;
+    let current_hash = definition_hash(def);
+    let compatible_steps = state.steps.len() == def.steps.len()
+        && def
+            .steps
+            .iter()
+            .zip(&state.steps)
+            .all(|(step, status)| step.id == status.id);
+
+    if state.workflow != def.name
+        || !compatible_steps
+        || (!state.definition_hash.is_empty() && state.definition_hash != current_hash)
+    {
+        anyhow::bail!("workflow definition drift detected for {}", def.name);
+    }
+
+    state.definition_hash = current_hash;
+    for step in &mut state.steps {
+        if step.state == StepState::Running {
+            step.state = StepState::Pending;
+            step.exit_code = None;
+        }
+    }
+    Ok(state)
+}
+
 fn init_state(def: &WorkflowDef) -> WorkflowState {
     WorkflowState {
         workflow: def.name.clone(),
+        definition_hash: definition_hash(def),
         steps: def
             .steps
             .iter()
@@ -167,6 +205,14 @@ fn init_state(def: &WorkflowDef) -> WorkflowState {
             })
             .collect(),
     }
+}
+
+fn definition_hash(def: &WorkflowDef) -> String {
+    let bytes = serde_json::to_vec(&def.steps).expect("workflow steps must serialize");
+    let hash = bytes.iter().fold(0xcbf29ce484222325_u64, |hash, byte| {
+        (hash ^ u64::from(*byte)).wrapping_mul(0x100000001b3)
+    });
+    format!("{hash:016x}")
 }
 
 fn set_state(state: &mut WorkflowState, id: &str, new_state: StepState, code: Option<i32>) {
@@ -210,13 +256,13 @@ fn reachable_from(def: &WorkflowDef, start: &str) -> Vec<String> {
     visited
 }
 
-fn persist_state(state: &WorkflowState, path: &Path) {
+fn persist_state(state: &WorkflowState, path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("creating workflow state directory {}", parent.display()))?;
     }
-    if let Ok(json) = serde_json::to_string_pretty(state) {
-        let _ = std::fs::write(path, json);
-    }
+    let json = serde_json::to_string_pretty(state).context("serializing workflow state")?;
+    std::fs::write(path, json).with_context(|| format!("writing workflow state {}", path.display()))
 }
 
 // ---------------------------------------------------------------------------
@@ -317,5 +363,52 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         let bad = final_state.steps.iter().find(|s| s.id == "bad").unwrap();
         assert_eq!(bad.state, StepState::Failed);
+    }
+
+    #[test]
+    fn run_resumes_compatible_persisted_state() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut def = two_step_def();
+        def.steps[0].run = "false".to_string();
+        let mut state = init_state(&def);
+        set_state(&mut state, "step1", StepState::Done, Some(0));
+        let state_path = dir
+            .path()
+            .join(".ctx")
+            .join("godmode")
+            .join("workflow-test-wf.json");
+        persist_state(&state, &state_path).unwrap();
+
+        let final_state = run(&def, dir.path()).unwrap();
+
+        assert!(final_state.steps.iter().all(|s| s.state == StepState::Done));
+    }
+
+    #[test]
+    fn run_rejects_persisted_state_after_definition_drift() {
+        let dir = tempfile::tempdir().unwrap();
+        let def = two_step_def();
+        let state_path = dir
+            .path()
+            .join(".ctx")
+            .join("godmode")
+            .join("workflow-test-wf.json");
+        persist_state(&init_state(&def), &state_path).unwrap();
+        let mut changed = def;
+        changed.steps[1].run = "false".to_string();
+
+        let error = run(&changed, dir.path()).unwrap_err();
+
+        assert!(error.to_string().contains("definition drift"));
+    }
+
+    #[test]
+    fn run_returns_persistence_write_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join(".ctx"), "not a directory").unwrap();
+
+        let error = run(&two_step_def(), dir.path()).unwrap_err();
+
+        assert!(error.to_string().contains("workflow state"));
     }
 }
