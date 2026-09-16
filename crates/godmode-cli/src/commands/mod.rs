@@ -9,6 +9,7 @@ mod ci;
 mod context;
 mod dispatch;
 mod doctor;
+mod eval;
 mod graph;
 mod handoff;
 mod handon;
@@ -54,6 +55,7 @@ pub fn dispatch(cmd: Cmd, root: &Path, json: bool, sarif: bool) -> Result<()> {
         command @ Cmd::Ci { .. } => ci::handle(command, root, json, sarif),
         command @ Cmd::Issue { .. } => issue::handle(command, root, json, sarif),
         command @ Cmd::Graph { .. } => graph::handle(command, root, json, sarif),
+        command @ Cmd::Eval { .. } => eval::handle(command, root, json, sarif),
         command @ Cmd::Skill { .. } => skill::handle(command, root, json, sarif),
         command @ Cmd::Review { .. } => review::handle(command, root, json, sarif),
         command @ Cmd::Release { .. } => release::handle(command, root, json, sarif),

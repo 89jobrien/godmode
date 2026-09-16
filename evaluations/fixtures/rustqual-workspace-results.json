@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "eval_id": 1,
+      "passed": true,
+      "output": "bounded CI fixture",
+      "cost_usd": 0.001
+    },
+    {
+      "eval_id": 2,
+      "passed": true,
+      "output": "bounded CI fixture",
+      "cost_usd": 0.001
+    },
+    {
+      "eval_id": 3,
+      "passed": true,
+      "output": "bounded CI fixture",
+      "cost_usd": 0.001
+    }
+  ]
+}
