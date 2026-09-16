@@ -1,3 +1,5 @@
+//! Shared conformance harness building blocks.
+
 pub mod comparison;
 pub mod context;
 pub mod fixtures;

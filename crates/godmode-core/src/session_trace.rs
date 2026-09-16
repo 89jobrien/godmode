@@ -1,3 +1,5 @@
+//! Crux-backed session trace persistence for task graph lifecycle events.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -14,6 +16,7 @@ use crate::model::TaskGraph;
 // Public API
 // ---------------------------------------------------------------------------
 
+/// Session-scoped trace writer.
 pub struct Session {
     inner: Crux<TaskGraph>,
     root: PathBuf,

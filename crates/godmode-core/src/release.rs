@@ -29,14 +29,69 @@ pub struct ReleaseInfo {
 
 // ── Public API ──────────────────────────────────────────────────────
 
-/// Read the current version from `plugin.json` (first file in `.version-bump.json`).
+/// Read the current semantic version from the Cargo workspace.
 pub fn current_version(root: &Path) -> Result<String> {
     let cfg = load_config(root)?;
-    let target = cfg
-        .files
-        .first()
-        .context("no files in .version-bump.json")?;
-    read_version_field(root, target)
+    let cargo_toml = root.join(&cfg.workspace_manifest);
+    let version = if cargo_toml.exists() {
+        let content = fs::read_to_string(&cargo_toml)?;
+        extract_cargo_workspace_version(&content).with_context(|| {
+            format!(
+                "workspace.package.version missing from {}",
+                cargo_toml.display()
+            )
+        })?
+    } else {
+        let target = cfg
+            .files
+            .first()
+            .context("no files in .version-bump.json")?;
+        read_version_field(root, target)?
+    };
+    validate_semver(&version)?;
+    Ok(version)
+}
+
+fn semver_components(version: &str) -> Result<(u64, u64, u64)> {
+    let parts: Vec<&str> = version.split(char::from(46)).collect();
+    if parts.len() != 3 {
+        bail!("version {version} is not semver (expected MAJOR.MINOR.PATCH)");
+    }
+    Ok((parts[0].parse()?, parts[1].parse()?, parts[2].parse()?))
+}
+
+fn validate_semver(version: &str) -> Result<()> {
+    semver_components(version).map(|_| ())
+}
+
+fn write_cargo_workspace_version(root: &Path, manifest: &str, version: &str) -> Result<()> {
+    let path = root.join(manifest);
+    if !path.exists() {
+        return Ok(());
+    }
+    let content = fs::read_to_string(&path)?;
+    let mut in_workspace_package = false;
+    let mut replaced = false;
+    let mut lines = Vec::new();
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed == "[workspace.package]" {
+            in_workspace_package = true;
+        } else if trimmed.starts_with(char::from(91)) {
+            in_workspace_package = false;
+        }
+        if in_workspace_package && trimmed.starts_with("version") {
+            lines.push(format!("version = \"{version}\""));
+            replaced = true;
+        } else {
+            lines.push(line.to_string());
+        }
+    }
+    if !replaced {
+        bail!("workspace.package.version missing from Cargo.toml");
+    }
+    fs::write(path, format!("{}\n", lines.join("\n")))?;
+    Ok(())
 }
 
 /// Increment the patch component across all files in `.version-bump.json`.
@@ -55,15 +110,19 @@ pub fn bump(root: &Path, explicit: Option<&str>) -> Result<ReleaseInfo> {
         bail!("no files listed in .version-bump.json");
     }
 
-    let old_version = read_version_field(root, &cfg.files[0])?;
+    let old_version = current_version(root)?;
     let new_version = match explicit {
-        Some(v) => v.to_string(),
+        Some(v) => {
+            validate_semver(v)?;
+            v.to_string()
+        }
         None => bump_patch(&old_version)?,
     };
 
     for target in &cfg.files {
         write_version_field(root, target, &new_version)?;
     }
+    write_cargo_workspace_version(root, &cfg.workspace_manifest, &new_version)?;
 
     let tag = format!("v{new_version}");
     Ok(ReleaseInfo {
@@ -220,7 +279,7 @@ pub fn write_changelog(root: &Path, entry: &ChangelogEntry) -> Result<()> {
 pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
     let mut warnings = Vec::new();
 
-    let plugin_version = current_version(root)?;
+    let project_version = current_version(root)?;
 
     let cargo_toml = root.join("Cargo.toml");
     let cargo_version = if cargo_toml.exists() {
@@ -232,28 +291,24 @@ pub fn validate_versions(root: &Path) -> Result<Vec<String>> {
 
     let tag_version = latest_tag_version(root);
 
-    if let Some(ref cv) = cargo_version
-        && *cv != plugin_version
-    {
-        warnings.push(format!(
-            "version mismatch: plugin.json={plugin_version}, Cargo.toml={cv}"
-        ));
+    let config = load_config(root)?;
+    for target in &config.files {
+        let version = read_version_field(root, target)?;
+        if let Some(ref cargo_version) = cargo_version
+            && version != *cargo_version
+        {
+            warnings.push(format!(
+                "version mismatch: {}={version}, Cargo.toml={cargo_version}",
+                target.path
+            ));
+        }
     }
 
-    if let Some(ref tv) = tag_version
-        && *tv != plugin_version
+    if let Some(ref tag_version) = tag_version
+        && semver_components(tag_version)? > semver_components(&project_version)?
     {
         warnings.push(format!(
-            "version mismatch: plugin.json={plugin_version}, latest tag=v{tv}"
-        ));
-    }
-
-    if let Some(ref cv) = cargo_version
-        && let Some(ref tv) = tag_version
-        && cv != tv
-    {
-        warnings.push(format!(
-            "version mismatch: Cargo.toml={cv}, latest tag=v{tv}"
+            "version regression: workspace={project_version}, latest tag=v{tag_version}"
         ));
     }
 
@@ -279,6 +334,12 @@ mod tests {
         .unwrap();
 
         fs::write(
+            root.join("Cargo.toml"),
+            format!("[workspace]\n\n[workspace.package]\nversion = \"{version}\"\n"),
+        )
+        .unwrap();
+
+        fs::write(
             root.join(".version-bump.json"),
             r#"{"files":[{"path":".claude-plugin/plugin.json","field":"version"}],"audit":{"exclude":["target"]}}"#,
         )
@@ -288,7 +349,7 @@ mod tests {
     }
 
     #[test]
-    fn current_version_reads_plugin_json() {
+    fn current_version_reads_workspace_semver() {
         let tmp = make_fixture("1.2.3");
         assert_eq!(current_version(tmp.path()).unwrap(), "1.2.3");
     }
@@ -353,5 +414,32 @@ edition = "2024"
         let tmp = make_fixture("1.0.0");
         let warnings = validate_versions(tmp.path()).unwrap();
         assert!(warnings.is_empty());
+    }
+    #[test]
+    fn validate_versions_checks_every_configured_version_adapter() {
+        let tmp = make_fixture("1.0.0");
+        fs::create_dir_all(tmp.path().join("adapters/example")).unwrap();
+        fs::write(
+            tmp.path().join("adapters/example/manifest.json"),
+            r#"{"version":"0.9.0"}"#,
+        )
+        .unwrap();
+        fs::write(tmp.path().join(".version-bump.json"), r#"{"files":[{"path":".claude-plugin/plugin.json","field":"version"},{"path":"adapters/example/manifest.json","field":"version"}],"audit":{"exclude":["target"]}}"#).unwrap();
+        fs::write(
+            tmp.path().join("Cargo.toml"),
+            "[workspace]\n\n[workspace.package]\nversion = \"1.0.0\"\n",
+        )
+        .unwrap();
+        let warnings = validate_versions(tmp.path()).unwrap();
+        assert!(
+            warnings.iter().any(|warning| warning
+                .contains("adapters/example/manifest.json=0.9.0, Cargo.toml=1.0.0")),
+            "warnings: {warnings:?}"
+        );
+    }
+    #[test]
+    fn bump_rejects_non_semver_explicit_versions() {
+        let tmp = make_fixture("1.0.0");
+        assert!(bump(tmp.path(), Some("deadbeef")).is_err());
     }
 }

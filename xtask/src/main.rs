@@ -1,3 +1,7 @@
+//! Workspace maintenance commands used by local development and CI.
+
+#![deny(missing_docs)]
+
 use std::process::{Command, ExitCode};
 
 use anyhow::{Context, Result, bail};
@@ -36,7 +40,7 @@ fn print_usage() {
         "Usage: cargo xtask <COMMAND>\n\n\
          Commands:\n  \
            pre-commit   fmt-check + clippy + conformance\n  \
-           ci           full gate (fmt + clippy -D warnings + nextest + conformance)\n  \
+           ci           fmt + check + clippy + nextest + typed conformance + deny + release validate\n  \
            dist         release build of godmode-cli\n  \
            install      build release and copy to ~/.cargo/bin/"
     );
@@ -72,13 +76,24 @@ fn ci() -> Result<()> {
     header("fmt --check");
     cargo(&["fmt", "--all", "--check"])?;
 
-    header("clippy");
-    cargo(&["clippy", "--workspace", "--", "-D", "warnings"])?;
+    header("check --all-features");
+    cargo(&["check", "--workspace", "--all-features"])?;
 
-    header("nextest");
+    header("clippy --all-targets --all-features");
+    cargo(&[
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings",
+    ])?;
+
+    header("nextest --all-features");
     cargo(CI_NEXTEST_ARGS)?;
 
-    header("conformance");
+    header("typed conformance");
     cargo(&[
         "run",
         "-p",
@@ -87,6 +102,20 @@ fn ci() -> Result<()> {
         "run-conformance",
         "--",
         "--verbose",
+    ])?;
+
+    header("cargo deny check");
+    cargo(&["deny", "check"])?;
+
+    header("release validate");
+    cargo(&[
+        "run",
+        "-q",
+        "-p",
+        "godmode-cli",
+        "--",
+        "release",
+        "validate",
     ])?;
 
     eprintln!("\nAll CI checks passed.");
@@ -99,7 +128,7 @@ fn dist() -> Result<()> {
     header("release build");
     cargo(&["build", "--release", "-p", "godmode-cli"])?;
 
-    let binary = project_root()?.join("target/release/godmode");
+    let binary = target_dir()?.join("release/godmode");
     eprintln!("Binary: {}", binary.display());
     Ok(())
 }
@@ -109,7 +138,7 @@ fn dist() -> Result<()> {
 fn install() -> Result<()> {
     dist()?;
 
-    let src = project_root()?.join("target/release/godmode");
+    let src = target_dir()?.join("release/godmode");
     let dest_dir = home_dir()?.join(".cargo/bin");
     let dest = dest_dir.join("godmode");
 
@@ -123,6 +152,20 @@ fn install() -> Result<()> {
     Ok(())
 }
 
+fn target_dir() -> Result<std::path::PathBuf> {
+    match std::env::var_os("CARGO_TARGET_DIR") {
+        Some(path) => {
+            let path = std::path::PathBuf::from(path);
+            if path.is_absolute() {
+                Ok(path)
+            } else {
+                Ok(project_root()?.join(path))
+            }
+        }
+        None => Ok(project_root()?.join("target")),
+    }
+}
+
 fn home_dir() -> Result<std::path::PathBuf> {
     std::env::var("HOME")
         .map(std::path::PathBuf::from)
@@ -132,29 +175,27 @@ fn home_dir() -> Result<std::path::PathBuf> {
 // ── Helpers ────────────────────────────────────────────────────────
 
 fn cargo(args: &[&str]) -> Result<()> {
-    let status = Command::new("cargo")
+    command("cargo", args)
+}
+
+fn command(program: &str, args: &[&str]) -> Result<()> {
+    let status = Command::new(program)
         .args(args)
         .current_dir(project_root()?)
         .status()
-        .with_context(|| format!("failed to run cargo {}", args.join(" ")))?;
+        .with_context(|| format!("failed to run {program} {}", args.join(" ")))?;
 
     if !status.success() {
-        bail!("cargo {} failed (exit {})", args.join(" "), status);
+        bail!("{program} {} failed (exit {status})", args.join(" "));
     }
     Ok(())
 }
 
 fn project_root() -> Result<std::path::PathBuf> {
-    let dir = std::env::var("CARGO_MANIFEST_DIR")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| std::env::current_dir().unwrap());
-
-    // xtask/Cargo.toml -> workspace root
-    Ok(dir
-        .ancestors()
-        .find(|p| p.join("Cargo.toml").exists() && p.join("crates").exists())
-        .context("could not find workspace root")?
-        .to_path_buf())
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .context("could not find workspace root")
+        .map(std::path::Path::to_path_buf)
 }
 
 fn header(label: &str) {

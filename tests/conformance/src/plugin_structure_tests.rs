@@ -113,7 +113,25 @@ impl ConformanceTest for SkillMdHasFrontmatterName {
     }
 }
 
-// ── Check 3: skill names appear in skill-index.md and using-godmode ───────
+fn skill_index_names(root: &Path) -> Result<std::collections::BTreeSet<String>, String> {
+    let path = root.join("skills/using-godmode/references/skill-index.json");
+    let raw = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+    let json: serde_json::Value = serde_json::from_str(&raw).map_err(|error| error.to_string())?;
+    json.get("skills")
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| "skill-index.json missing skills array".to_string())?
+        .iter()
+        .map(|entry| {
+            entry
+                .get("name")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string)
+                .ok_or_else(|| "skill-index.json entry missing name".to_string())
+        })
+        .collect()
+}
+
+// ── Check 3: skill names appear in skill-index.json and using-godmode ─────
 
 pub struct SkillNamesInIndex;
 impl ConformanceTest for SkillNamesInIndex {
@@ -128,19 +146,15 @@ impl ConformanceTest for SkillNamesInIndex {
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let root = repo_root();
-        let index_path = root
-            .join("skills")
-            .join("using-godmode")
-            .join("references")
-            .join("skill-index.md");
-        let using_path = root.join("skills").join("using-godmode").join("SKILL.md");
-        if !index_path.exists() || !using_path.exists() {
-            return TestResult::Skipped {
-                reason: "skill-index.md or using-godmode SKILL.md not found".into(),
-            };
-        }
-        let index = std::fs::read_to_string(&index_path).unwrap_or_default();
+        let using_path = root.join("skills/using-godmode/SKILL.md");
         let using = std::fs::read_to_string(&using_path).unwrap_or_default();
+        let index = match skill_index_names(&root) {
+            Ok(index) => index,
+            Err(error) => {
+                ctx.fail(&format!("[skill-index.json] {error}"));
+                return ctx.result();
+            }
+        };
 
         for dir in skill_dirs(&root) {
             let skill_name = dir
@@ -159,15 +173,15 @@ impl ConformanceTest for SkillNamesInIndex {
             let Some(full_name) = extract_fm_name(&content) else {
                 continue;
             };
-            if !index.contains(&full_name) {
+            if !index.contains(&skill_name) {
                 ctx.fail(&format!(
-                    "[{}] name '{}' not found in skill-index.md",
+                    "[{}] name {} not found in skill-index.json",
                     skill_name, full_name
                 ));
             }
             if !using.contains(&full_name) {
                 ctx.fail(&format!(
-                    "[{}] name '{}' not found in using-godmode/SKILL.md",
+                    "[{}] name {} not found in using-godmode/SKILL.md",
                     skill_name, full_name
                 ));
             }
@@ -191,34 +205,24 @@ impl ConformanceTest for NoOrphanIndexEntries {
     }
     fn run(&self, ctx: &mut TestContext) -> TestResult {
         let root = repo_root();
-        let index_path = root
-            .join("skills")
-            .join("using-godmode")
-            .join("references")
-            .join("skill-index.md");
-        if !index_path.exists() {
-            return TestResult::Skipped {
-                reason: "skill-index.md not found".into(),
-            };
-        }
-        let index = std::fs::read_to_string(&index_path).unwrap_or_default();
+        let index = match skill_index_names(&root) {
+            Ok(index) => index,
+            Err(error) => {
+                ctx.fail(&format!("[skill-index.json] {error}"));
+                return ctx.result();
+            }
+        };
         let dirs: Vec<String> = skill_dirs(&root)
             .iter()
             .filter_map(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
             .collect();
 
-        // Extract `godmode:XXX` entries (skip fenced code block lines)
-        let re = regex_lite(r"`(godmode:[^`]+)`");
-        for line in non_fence_lines(&index) {
-            for cap in re.captures_iter(line) {
-                let full = &cap[1];
-                let short = full.trim_start_matches("godmode:");
-                if !dirs.iter().any(|d| d == short) {
-                    ctx.fail(&format!(
-                        "[index] orphan entry '{}' — no skills/{}/",
-                        full, short
-                    ));
-                }
+        for name in index {
+            if !dirs.iter().any(|dir| dir == &name) {
+                ctx.fail(&format!(
+                    "[index] orphan entry {} — no skills/{}/",
+                    name, name
+                ));
             }
         }
         ctx.result()
@@ -278,7 +282,7 @@ fn check_link_pattern(root: &Path, pattern: &str, ctx: &mut TestContext) {
             .into_owned();
         for line in non_fence_lines(&content) {
             for cap in re.captures_iter(line) {
-                let link = &cap[1];
+                let link = cap[1].split_whitespace().next().unwrap_or(&cap[1]);
                 // Skip bare directory references like "references/" with no filename
                 if link.ends_with('/') {
                     continue;
@@ -379,6 +383,7 @@ impl ConformanceTest for CliSubcommandConformance {
             "ci triage",
             "issue list",
             "issue close",
+            "issue sync-todos",
             "graph build",
             "review self",
             "review skills",
@@ -638,7 +643,7 @@ impl ConformanceTest for LibReferencesResolve {
                 .to_string_lossy()
                 .into_owned();
             for cap in re.captures_iter(&content) {
-                let link = &cap[1];
+                let link = cap[1].split_whitespace().next().unwrap_or(&cap[1]);
                 let resolved = root.join(link);
                 if !resolved.exists() {
                     ctx.fail(&format!("[{}] broken _lib link: {}", skill_name, link));
@@ -855,4 +860,88 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
         Box::new(BranchGuard),
         Box::new(LibReferencesResolve),
     ]
+}
+
+#[cfg(test)]
+mod quality_contract_tests {
+    use super::repo_root;
+
+    #[test]
+    fn strict_index_suite_registers_orphan_validation() {
+        assert!(
+            super::all()
+                .iter()
+                .any(|test| test.name() == "no_orphan_index_entries")
+        );
+    }
+
+    #[test]
+    fn repository_versions_share_one_semver() {
+        let root = repo_root();
+        let cargo = std::fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        let cargo_version = cargo
+            .lines()
+            .skip_while(|line| line.trim() != "[workspace.package]")
+            .skip(1)
+            .find_map(|line| line.trim().strip_prefix("version = "))
+            .unwrap()
+            .trim_matches(char::from(34));
+        let bump_config: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(".version-bump.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(bump_config["workspace_manifest"], "Cargo.toml");
+        let plugin: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(".claude-plugin/plugin.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(plugin["version"], cargo_version);
+        assert_eq!(cargo_version.split(char::from(46)).count(), 3);
+        assert!(
+            cargo_version
+                .split(char::from(46))
+                .all(|part| part.parse::<u64>().is_ok())
+        );
+    }
+
+    #[test]
+    fn repository_provides_both_declared_license_texts() {
+        let root = repo_root();
+        let cargo = std::fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        assert!(cargo.contains("license = \"MIT OR Apache-2.0\""));
+        assert!(
+            std::fs::read_to_string(root.join("LICENSE"))
+                .unwrap()
+                .contains("MIT License")
+        );
+        let apache = std::fs::read_to_string(root.join("LICENSE-APACHE")).unwrap();
+        assert!(apache.contains("Apache License"));
+        assert!(apache.contains("Version 2.0, January 2004"));
+        assert!(apache.contains("END OF TERMS AND CONDITIONS"));
+    }
+
+    #[test]
+    fn canonical_skill_index_reads_structured_names() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("skills/using-godmode/references");
+        std::fs::create_dir_all(&path).unwrap();
+        std::fs::write(
+            path.join("skill-index.json"),
+            r#"{"skills":[{"name":"alpha"},{"name":"beta"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            super::skill_index_names(dir.path()).unwrap(),
+            ["alpha".to_string(), "beta".to_string()]
+                .into_iter()
+                .collect()
+        );
+    }
+
+    #[test]
+    fn conformance_benchmarks_use_current_criterion() {
+        let manifest =
+            std::fs::read_to_string(repo_root().join("tests/conformance/Cargo.toml")).unwrap();
+        assert!(manifest.contains("criterion = { version = \"0.8\""));
+    }
 }

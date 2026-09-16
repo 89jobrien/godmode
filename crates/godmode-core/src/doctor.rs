@@ -274,4 +274,9 @@ mod tests {
         assert!(!wt.passed);
         assert!(wt.detail.contains("/tmp/stale-wt"));
     }
+    #[test]
+    fn doctor_uses_which_v8_contract() {
+        let manifest = include_str!("../Cargo.toml");
+        assert!(manifest.lines().any(|line| line.trim() == "which = \"8\""));
+    }
 }
