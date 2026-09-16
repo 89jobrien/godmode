@@ -96,3 +96,110 @@ pub fn issue_close(number: u64, repo: Option<&str>, commit_sha: &str) -> Result<
     }
     Ok(())
 }
+
+/// GitHub CLI adapter for native TODO issue synchronization.
+pub struct GhIssueClient {
+    repo: String,
+}
+
+impl GhIssueClient {
+    pub fn new(repo: Option<&str>) -> Result<Self> {
+        let repo = match repo {
+            Some(value) => value.to_string(),
+            None => subprocess::run(
+                "gh",
+                &[
+                    "repo",
+                    "view",
+                    "--json",
+                    "nameWithOwner",
+                    "--jq",
+                    ".nameWithOwner",
+                ],
+                "authenticate the GitHub CLI to synchronize TODOs",
+            )?
+            .trim()
+            .to_string(),
+        };
+        Ok(Self { repo })
+    }
+}
+
+impl crate::todo_issue_sync::GitHubIssuePort for GhIssueClient {
+    fn list_open_issues_page(
+        &self,
+        page: usize,
+        per_page: usize,
+    ) -> Result<Vec<crate::todo_issue_sync::GitHubIssue>> {
+        let endpoint = format!(
+            "search/issues?q=repo:{}+is:issue+is:open&per_page={per_page}&page={page}",
+            self.repo
+        );
+        let raw = subprocess::run(
+            "gh",
+            &["api", "--method", "GET", &endpoint],
+            "authenticate the GitHub CLI to synchronize TODOs",
+        )?;
+        let value: serde_json::Value =
+            serde_json::from_str(&raw).context("gh api issues: invalid JSON")?;
+        let values = value
+            .get("items")
+            .and_then(|items| items.as_array())
+            .context("gh api issues: missing items")?;
+        values
+            .iter()
+            .map(|value| {
+                Ok(crate::todo_issue_sync::GitHubIssue {
+                    number: value
+                        .get("number")
+                        .and_then(|item| item.as_u64())
+                        .context("issue missing number")?,
+                    title: value
+                        .get("title")
+                        .and_then(|item| item.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    body: value
+                        .get("body")
+                        .and_then(|item| item.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                    url: value
+                        .get("html_url")
+                        .and_then(|item| item.as_str())
+                        .unwrap_or_default()
+                        .to_string(),
+                })
+            })
+            .collect()
+    }
+
+    fn create_issue(
+        &self,
+        issue: &crate::todo_issue_sync::NewIssue,
+    ) -> Result<crate::todo_issue_sync::CreatedIssue> {
+        let endpoint = format!("repos/{}/issues", self.repo);
+        let title = format!("title={}", issue.title);
+        let body = format!("body={}", issue.body);
+        let raw = subprocess::run(
+            "gh",
+            &[
+                "api", "--method", "POST", &endpoint, "-f", &title, "-f", &body,
+            ],
+            "authenticate the GitHub CLI to synchronize TODOs",
+        )?;
+        let value: serde_json::Value =
+            serde_json::from_str(&raw).context("gh api create issue: invalid JSON")?;
+        Ok(crate::todo_issue_sync::CreatedIssue {
+            number: value
+                .get("number")
+                .and_then(|item| item.as_u64())
+                .context("created issue missing number")?,
+            url: value
+                .get("html_url")
+                .and_then(|item| item.as_str())
+                .context("created issue missing html_url")?
+                .to_string(),
+        })
+    }
+}

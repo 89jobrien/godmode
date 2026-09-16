@@ -29,7 +29,6 @@ struct Cli {
     cmd: Cmd,
 }
 
-// TODO(#108): Add native, resumable TODO-to-issue synchronization commands.
 // TODO(#113): Add first-class skill evaluation run, compare, promote, and status commands.
 #[derive(Subcommand)]
 enum Cmd {
@@ -399,6 +398,17 @@ enum IssueAction {
         repo: Option<String>,
         #[arg(long)]
         commit: String,
+    },
+    /// Synchronize source TODO markers with GitHub issues (preview by default).
+    SyncTodos {
+        #[arg(long)]
+        repo: Option<String>,
+        /// Explicitly preview without creating issues (the default).
+        #[arg(long, conflicts_with = "apply")]
+        preview: bool,
+        /// Create missing issues and persist progress.
+        #[arg(long)]
+        apply: bool,
     },
 }
 

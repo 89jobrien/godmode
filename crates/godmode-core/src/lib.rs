@@ -28,10 +28,12 @@ pub mod session_trace;
 pub mod skill;
 pub mod templates;
 pub mod test_check;
+pub mod todo_issue_sync;
 pub mod verify;
 pub mod wave;
 pub mod workflow;
 pub mod worktree;
+pub mod write_mode;
 
 #[cfg(feature = "testing")]
 pub mod testing;
