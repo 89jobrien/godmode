@@ -33,6 +33,12 @@ fn setup_pipeline() -> (tempfile::TempDir, Pipeline) {
                 r#loop: None,
                 parallel_with: vec![],
             },
+            PipelineStep {
+                skill: "internal".into(),
+                optional: false,
+                r#loop: None,
+                parallel_with: vec![],
+            },
         ],
         entry_points: vec!["first".into(), "second".into()],
     };
@@ -40,7 +46,7 @@ fn setup_pipeline() -> (tempfile::TempDir, Pipeline) {
     std::fs::create_dir_all(&pipelines_dir).unwrap();
     std::fs::write(
         pipelines_dir.join("entry-points.yaml"),
-        "name: entry-points\ndescription: test pipeline entry points\nsteps:\n  - skill: first\n  - skill: second\nentry_points:\n  - first\n  - second\n",
+        serde_yaml::to_string(&pipeline).unwrap(),
     )
     .unwrap();
     (dir, pipeline)
@@ -76,7 +82,7 @@ fn fresh_run_with_valid_from_starts_at_named_entry_point() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert_eq!(step_skills(&output), ["second"]);
+    assert_eq!(step_skills(&output), ["second", "internal"]);
 }
 
 #[test]
@@ -93,6 +99,19 @@ fn fresh_run_with_invalid_from_returns_validation_error() {
 }
 
 #[test]
+fn fresh_run_from_non_entry_point_returns_validation_error() {
+    let (dir, _) = setup_pipeline();
+
+    let output = run_pipeline(dir.path(), Some("internal"));
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("skill 'internal' is not a valid entry point for pipeline 'entry-points'")
+    );
+}
+
+#[test]
 fn fresh_run_without_from_starts_at_first_step() {
     let (dir, _) = setup_pipeline();
 
@@ -103,7 +122,7 @@ fn fresh_run_without_from_starts_at_first_step() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert_eq!(step_skills(&output), ["first", "second"]);
+    assert_eq!(step_skills(&output), ["first", "second", "internal"]);
 }
 
 #[test]
@@ -120,5 +139,5 @@ fn matching_active_state_ignores_supplied_from() {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    assert_eq!(step_skills(&output), ["second"]);
+    assert_eq!(step_skills(&output), ["second", "internal"]);
 }
