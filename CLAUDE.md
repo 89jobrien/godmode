@@ -131,7 +131,8 @@ godmode context [--json]                        # full session context for hooks
 godmode status [--compact]                      # graph counts + next runnable tasks
 godmode task list [--priority high|normal|low]
 godmode task next [--priority high|normal|low]
-godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X]
+godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X] \
+  [--notes <text>] [--run <command>] [--priority high|normal|low] [--tag <tag>]...
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>

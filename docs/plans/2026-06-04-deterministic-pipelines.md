@@ -98,6 +98,7 @@ pub struct RunResult {
 pub fn run_tasks(
     root: &Path,
     pipeline_name: &str,
+    from: Option<&str>,
     fail_fast: bool,
 ) -> Result<RunResult>
 ```
@@ -194,7 +195,7 @@ The orchestrator prompt (updated in p5) already covers pipeline driving. Add:
 New in `crates/godmode-core/src/pipeline.rs`:
 
 - `StepResult`, `RunResult` structs
-- `run_tasks(root, pipeline_name, fail_fast) -> Result<RunResult>`
+- `run_tasks(root, pipeline_name, from, fail_fast) -> Result<RunResult>`
 - Uses `graph::load`, `graph::runnable`, `rx::run_cmd`, `graph::complete`
 - Advances pipeline state after each step via `advance` + `save_state`
 - Returns structured results, does no I/O formatting

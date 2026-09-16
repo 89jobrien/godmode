@@ -12,7 +12,8 @@ godmode status                          # fast mid-session check: counts + next 
 
 ```bash
 godmode task list [--json]
-godmode task add <id> "<title>" [--depends-on t1,t2] [--crate-name <crate>]
+godmode task add <title> [--id <id>] [--depends-on t1,t2] [--crate-name <crate>] \
+  [--notes <text>] [--run <command>] [--priority high|normal|low] [--tag <tag>]...
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes "<text>"]
 godmode task block <id> "<reason>"

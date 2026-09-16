@@ -1,8 +1,8 @@
 # commands/gm/
 
-Slash commands for Claude Code. Each `.yaml` file maps to a `/gm:<name>` command in the
-command palette. The `.md` files in `commands/` are generated from these sources —
-do not edit them directly.
+Slash commands for Claude Code and OpenCode. Each `.yaml` file maps to `/gm:<name>` in
+Claude Code and `/gm-<name>` in OpenCode. The `.md` files in `commands/` and
+`.opencode/commands/` are generated from these sources — do not edit them directly.
 
 ## Atomic Commands
 
@@ -63,4 +63,5 @@ Multi-skill pipelines that chain skills in sequence.
    `allowedTools`, `maxTurns`.
 2. Use `template: dev` for implementation commands, `template: debug` for diagnostic ones.
 3. Reference skills as `godmode:<skill-name>` in the prompt body.
-4. The `.md` file in `commands/` is auto-generated — do not create it manually.
+4. Run `nu commands/gm/generate.nu` to refresh both tracked projections.
+5. Do not edit generated `.md` files in `commands/` or `.opencode/commands/` directly.

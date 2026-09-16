@@ -12,7 +12,6 @@ target/
 .ctx/.initialized
 # handoff-end
 .worktrees/
-commands/gm-*.md
 # Ignore everything in agents/ except the final .md agents
 agents/*
 !agents/*.md

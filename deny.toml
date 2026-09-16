@@ -1,6 +1,7 @@
 # cargo-deny configuration for godmode workspace
 
 [graph]
+# TODO(#104): Audit the Linux dependency graph used by GitHub Actions.
 targets = [
     "aarch64-apple-darwin",
 ]

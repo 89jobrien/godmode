@@ -21,7 +21,7 @@ anyhow = "1"
 thiserror = "2"
 miette = "7"
 slashcrux = "0.1.2"
-crux-runtime = { path = "/Users/joe/dev/crux/crates/crux-runtime", features = ["tokio-runtime"] }
+crux-runtime = { version = "0.3.1", features = ["tokio-runtime"] }
 rayon = "1"
 petgraph = { version = "0.6", features = ["stable_graph"] }
 similar = "2"

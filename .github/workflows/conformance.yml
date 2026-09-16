@@ -1,5 +1,6 @@
 name: Conformance
 
+# TODO(#110): Add tag release artifacts and scheduled bounded fuzzing.
 on:
   push:
     branches: [main]
@@ -44,3 +45,6 @@ jobs:
 
       - name: check skill index
         run: nu scripts/check-skill-index.nu
+
+      - name: check command projections
+        run: cargo test -p godmode-conformance
