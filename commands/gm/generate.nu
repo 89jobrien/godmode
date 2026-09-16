@@ -1,9 +1,56 @@
 #!/usr/bin/env nu
 
-# TODO(#112): Derive workflow commands from canonical pipeline definitions.
 # Generate repository-local Claude Code and OpenCode command projections.
 # YAML source: commands/gm/*.yaml
 # Outputs: commands/gm-<name>.md and .opencode/commands/gm-<name>.md
+
+def compose-prompt [raw: record, repo_dir: path] {
+    let pipeline_name = ($raw.pipeline? | default null)
+    if $pipeline_name == null {
+        return $raw.prompt
+    }
+
+    let pipeline_path = ($repo_dir | path join "pipelines" $"($pipeline_name).yaml")
+    if not ($pipeline_path | path exists) {
+        error make {msg: $"pipeline ($pipeline_name) not found for command ($raw.name)"}
+    }
+    let pipeline = (open $pipeline_path)
+    if $pipeline.name != $pipeline_name {
+        error make {msg: $"pipeline file ($pipeline_name) declares name ($pipeline.name)"}
+    }
+
+    let instructions = ($raw.stepInstructions? | default {})
+    let skills = ($pipeline.steps | get skill)
+    let stale = ($instructions | columns | where {|skill| $skill not-in $skills })
+    if ($stale | is-not-empty) {
+        let stale_list = ($stale | str join ", ")
+        error make {msg: $"command ($raw.name) has instructions for non-pipeline steps: ($stale_list)"}
+    }
+
+    let workflow = ($pipeline.steps | enumerate | each {|entry|
+        let step = $entry.item
+        let detail = ($instructions | get -o $step.skill | default "")
+        let qualifiers = ([
+            (if ($step.optional? | default false) { "optional" })
+            (if ($step.loop? | default null) == "per-task" { "repeat per task" })
+        ] | compact)
+        let qualifier = if ($qualifiers | is-empty) {
+            ""
+        } else {
+            let qualifier_list = ($qualifiers | str join ", ")
+            $" [($qualifier_list)]"
+        }
+        let suffix = if ($detail | str trim | is-empty) {
+            "."
+        } else {
+            $" — ($detail | str trim)"
+        }
+        $"($entry.index + 1). Run godmode:($step.skill)($qualifier)($suffix)"
+    } | str join "\n")
+
+    let composed = ([($raw.prompt | str trim) $"## Workflow — pipeline: ($pipeline_name)" $workflow] | str join "\n\n")
+    $"($composed)\n"
+}
 
 def render-frontmatter [command: record, target: string] {
     let fields = if $target == "claude" {
@@ -63,7 +110,7 @@ let yamls = (glob ($gm_dir | path join "*.yaml") | sort)
 let commands = ($yamls | each {|file|
     let raw = (open $file)
     let stem = ($file | path basename | str replace ".yaml" "")
-    let prompt = ($raw | get prompt)
+    let prompt = (compose-prompt $raw $repo_dir)
     let description = ($prompt | lines | where {|line| ($line | str trim) != "" } | first | str trim)
     let template = ($raw | get template | default null)
     let body = if $template != null {

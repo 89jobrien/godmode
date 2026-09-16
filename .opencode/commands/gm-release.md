@@ -1,5 +1,5 @@
 ---
-description: 'Workspace release pipeline: readiness check, impact analysis, version bumps, docs, commit, push.'
+description: Workspace release pipeline from health assessment through release notes and commit.
 subtask: false
 ---
 ## Rules
@@ -18,15 +18,15 @@ subtask: false
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
 
-Workspace release pipeline: readiness check, impact analysis, version bumps, docs, commit, push.
-1. Run godmode:release-readiness-check — verify tags, gates, affected crates, and target remote.
-   Abort if any check fails; surface what needs fixing.
-2. Run godmode:workspace-release-impact — identify which crates need version bumps from
-   the current change set. Report the impact list and wait for user confirmation.
-3. Run godmode:workspace-bump-commit — apply cargo set-version to affected crates,
-   stage manifests and lockfile, create release commit.
-4. Run godmode:changelog — update CHANGELOG.md.
-5. Run godmode:release-notes — produce human-facing release notes.
-6. Run godmode:cap — push the release commit.
-Never bump versions without a passing readiness check. Only bump crates identified
-by workspace-release-impact. Pause after step 2 for user confirmation before step 3.
+Workspace release pipeline from health assessment through release notes and commit.
+Abort when a required readiness or verification step fails; surface what needs fixing.
+
+## Workflow — pipeline: release
+
+1. Run godmode:health-score — Assess repository health and report release blockers.
+2. Run godmode:dep-audit — Audit dependency security, licenses, and maintenance risks.
+3. Run godmode:code-review — Review release changes across all severity levels in one pass.
+4. Run godmode:verification-before-completion — Require every project gate to pass before release work continues.
+5. Run godmode:changelog — Update the changelog from verified changes.
+6. Run godmode:release-notes — Produce human-facing release notes from the canonical change set.
+7. Run godmode:cap — Commit and push the release artifacts only after all prior steps pass.

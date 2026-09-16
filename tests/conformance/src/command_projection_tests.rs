@@ -33,6 +33,11 @@ fn copy_tree(source: &Path, destination: &Path) -> Result<()> {
     Ok(())
 }
 
+fn copy_generator_sources(root: &Path, destination: &Path) -> Result<()> {
+    copy_tree(&root.join("commands/gm"), &destination.join("commands/gm"))?;
+    copy_tree(&root.join("pipelines"), &destination.join("pipelines"))
+}
+
 fn markdown_files(directory: &Path) -> Result<BTreeMap<String, String>> {
     let entries = std::fs::read_dir(directory)
         .with_context(|| format!("read projection directory {}", directory.display()))?;
@@ -88,8 +93,7 @@ fn check_command_projections() -> Result<()> {
     let root = repo_root();
     let temporary = tempfile::tempdir()?;
     let generated_root = temporary.path();
-    let generated_source = generated_root.join("commands/gm");
-    copy_tree(&root.join("commands/gm"), &generated_source)?;
+    copy_generator_sources(&root, generated_root)?;
 
     let output = run_generator(generated_root)?;
     if !output.status.success() {
@@ -227,6 +231,63 @@ pub fn all() -> Vec<Box<dyn ConformanceTest>> {
 }
 
 #[test]
+fn pipeline_sequence_drives_generated_workflow_commands() -> Result<()> {
+    let root = repo_root();
+    let temporary = tempfile::tempdir()?;
+    let generated_root = temporary.path();
+    copy_generator_sources(&root, generated_root)?;
+
+    for (pipeline_name, sentinel) in [
+        ("feature", "feature-semantic-drift-sentinel"),
+        ("release", "release-semantic-drift-sentinel"),
+    ] {
+        let pipeline_path = generated_root.join(format!("pipelines/{pipeline_name}.yaml"));
+        let mut pipeline: serde_yaml::Value =
+            serde_yaml::from_str(&std::fs::read_to_string(&pipeline_path)?)?;
+        pipeline["steps"]
+            .as_sequence_mut()
+            .with_context(|| format!("{pipeline_name} pipeline steps must be a sequence"))?
+            .insert(1, serde_yaml::from_str(&format!("skill: {sentinel}"))?);
+        std::fs::write(&pipeline_path, serde_yaml::to_string(&pipeline)?)?;
+    }
+
+    let output = run_generator(generated_root)?;
+    assert!(
+        output.status.success(),
+        "generator failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    for (command, before, sentinel, after) in [
+        (
+            "feature",
+            "brainstorm",
+            "feature-semantic-drift-sentinel",
+            "context-map",
+        ),
+        (
+            "release",
+            "health-score",
+            "release-semantic-drift-sentinel",
+            "dep-audit",
+        ),
+    ] {
+        let projection =
+            std::fs::read_to_string(generated_root.join(format!("commands/gm-{command}.md")))?;
+        let before = projection
+            .find(&format!("godmode:{before}"))
+            .with_context(|| format!("{command} preceding step"))?;
+        let sentinel = projection
+            .find(&format!("godmode:{sentinel}"))
+            .with_context(|| format!("{command} pipeline-injected sentinel step"))?;
+        let after = projection
+            .find(&format!("godmode:{after}"))
+            .with_context(|| format!("{command} following step"))?;
+        assert!(before < sentinel && sentinel < after);
+    }
+    Ok(())
+}
+
+#[test]
 fn one_invocation_maintains_dual_command_projections() -> Result<()> {
     check_command_projections()
 }
@@ -246,10 +307,7 @@ fn failed_second_target_setup_leaves_both_projections_unchanged() -> Result<()> 
     let root = repo_root();
     let temporary = tempfile::tempdir()?;
     let generated_root = temporary.path();
-    copy_tree(
-        &root.join("commands/gm"),
-        &generated_root.join("commands/gm"),
-    )?;
+    copy_generator_sources(&root, generated_root)?;
     let sentinel = generated_root.join("commands/gm-sentinel.md");
     std::fs::write(&sentinel, "unchanged")?;
     std::fs::write(generated_root.join(".opencode"), "blocks output directory")?;
@@ -267,10 +325,7 @@ fn second_target_swap_failure_rolls_back_both_and_cleans_scratch() -> Result<()>
     let root = repo_root();
     let temporary = tempfile::tempdir()?;
     let generated_root = temporary.path();
-    copy_tree(
-        &root.join("commands/gm"),
-        &generated_root.join("commands/gm"),
-    )?;
+    copy_generator_sources(&root, generated_root)?;
     let claude_sentinel = generated_root.join("commands/gm-sentinel.md");
     std::fs::write(&claude_sentinel, "claude original")?;
 

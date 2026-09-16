@@ -26,14 +26,18 @@ max-turns: 50
 
 
 Full feature lifecycle from idea to committed code.
-1. Run godmode:brainstorm — explore context, ask clarifying questions one at a time,
-   propose 2-3 named approaches. Wait for explicit user approval before continuing.
-2. Run godmode:design — produce typed API sketch, data flow, and component ownership.
-   Requires brainstorm output. Present in sections, get feedback on each.
-3. Run godmode:writing-plans — scaffold the plan file, break into 2-5 minute tasks,
-   each with failing test → implement → verify GREEN → commit cycle.
-4. Run godmode:task-driven-development — execute the plan task by task.
-5. Run godmode:verification-before-completion — all gates green before shipping.
-6. Run godmode:cap — commit and push.
-Do NOT write any code until the user has approved the design from step 1.
-Pause for user confirmation before step 4. Report the plan file path after step 3.
+Do not write code until the user has approved the proposed approach. Pause before
+task-driven development and report the plan path first.
+
+## Workflow — pipeline: feature
+
+1. Run godmode:brainstorm [optional] — Explore context, ask clarifying questions one at a time, and propose 2-3 named approaches. Wait for explicit user approval before continuing.
+2. Run godmode:context-map — Map relevant files, dependencies, tests, reference patterns, and risks.
+3. Run godmode:writing-plans — Scaffold the plan file and break the work into 2-5 minute tasks with a failing test, implementation, GREEN verification, and commit cycle.
+4. Run godmode:task-management — Record the approved plan as an ordered task graph.
+5. Run godmode:task-driven-development [repeat per task] — Execute the plan task by task using strict RED/GREEN/refactor cycles.
+6. Run godmode:code-review — Review all severity levels in one pass and fix accepted findings.
+7. Run godmode:verification-before-completion — Require every project gate to pass before shipping.
+8. Run godmode:cap — Commit and push only after verification succeeds.
+9. Run godmode:pr-author [optional] — Create the pull request when requested.
+10. Run godmode:merge [optional] — Merge only after required checks and approvals pass.
