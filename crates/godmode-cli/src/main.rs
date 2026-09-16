@@ -435,7 +435,7 @@ enum TaskAction {
         #[arg(long, value_name = "high|normal|low")]
         priority: Option<model::Priority>,
         /// Freeform task tag. Repeat to add multiple tags.
-        #[arg(long = "tag")]
+        #[arg(long = "tag", value_name = "TAG")]
         tags: Vec<String>,
     },
 

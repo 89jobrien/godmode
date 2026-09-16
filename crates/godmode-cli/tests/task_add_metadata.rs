@@ -96,7 +96,20 @@ fn task_add_help_lists_metadata_options_and_priority_values() {
     for option in ["--notes", "--run", "--priority", "--tag"] {
         assert!(help.contains(option), "missing {option} in help:\n{help}");
     }
+    assert!(help.contains("--tag <TAG>"), "help: {help}");
     assert!(help.contains("high"), "help:\n{help}");
     assert!(help.contains("normal"), "help:\n{help}");
     assert!(help.contains("low"), "help:\n{help}");
+}
+
+#[test]
+fn task_add_rejects_unsupported_priority() {
+    let dir = tempfile::TempDir::new().expect("tempdir");
+    let output = run_godmode(
+        &dir,
+        &["task", "add", "Invalid priority", "--priority", "urgent"],
+    );
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("urgent"), "stderr: {stderr}");
 }
