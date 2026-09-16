@@ -1,13 +1,12 @@
 ---
 name: test-fix-commit
 allowed-tools:
-  - Edit
-  - Read
-  - Bash
-  - Write
+- Edit
+- Read
+- Bash
+- Write
 max-turns: 20
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -22,5 +21,6 @@ max-turns: 20
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
+
 
 Run cargo test in all workspace crates, fix any failures, and commit fixes

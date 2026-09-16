@@ -1,8 +1,7 @@
 ---
-description: tackle-issues
+description: Fetch open GitHub issues, group into independent units, and dispatch parallel agents.
 subtask: false
 ---
-
 ## Rules
 
 - Cap parallel subagents at 5 concurrent.
@@ -18,9 +17,9 @@ subtask: false
 - If `gh` auth fails, log to `.ctx/pending-manual.txt` and continue.
   Do NOT retry auth — tell the user to run `gh auth login`.
 
+
 Fetch open GitHub issues, group into independent units, and dispatch parallel agents.
 Follow godmode:tackle-issues exactly:
-
 1. Fetch issues: gh issue list --state open --limit 20 --json number,title,body,labels
 2. Classify each as independent or dependent (same crate + overlapping files = dependent).
 3. Present grouping (max 5 slots) and wait for go/no-go before proceeding.
@@ -28,5 +27,5 @@ Follow godmode:tackle-issues exactly:
 5. Dispatch one godmode-crate-agent per slot with a self-contained prompt (see SKILL.md).
 6. After agents complete, run skills/tackle-issues/helpers/integrate-branches.nu <issue-numbers...>
 7. Close issues with gh issue close <N> --comment "Implemented in <sha>."
-   Never dispatch two agents to the same crate simultaneously.
-   Never use --no-verify. Cap at 5 concurrent agents.
+Never dispatch two agents to the same crate simultaneously.
+Never use --no-verify. Cap at 5 concurrent agents.

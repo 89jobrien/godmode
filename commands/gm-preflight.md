@@ -1,14 +1,13 @@
 ---
 name: preflight
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Glob
+- Grep
 max-turns: 20
 ---
-
 ## Rules
 
 - Default to read-only. Do not modify files unless the command explicitly
@@ -18,6 +17,7 @@ max-turns: 20
 - Scratch dir is `.ctx/_WORKING_DIR/`.
 - Report findings in plain text. Flag any `agent.blocked` or `skill.error`
   events prominently.
+
 
 Run pre-flight checks before pushing or starting parallel issue resolution.
 

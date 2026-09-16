@@ -1,15 +1,14 @@
 ---
 name: feature
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 50
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,8 +24,8 @@ max-turns: 50
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Full feature lifecycle from idea to committed code.
 
+Full feature lifecycle from idea to committed code.
 1. Run godmode:brainstorm — explore context, ask clarifying questions one at a time,
    propose 2-3 named approaches. Wait for explicit user approval before continuing.
 2. Run godmode:design — produce typed API sketch, data flow, and component ownership.
@@ -36,5 +35,5 @@ Full feature lifecycle from idea to committed code.
 4. Run godmode:task-driven-development — execute the plan task by task.
 5. Run godmode:verification-before-completion — all gates green before shipping.
 6. Run godmode:cap — commit and push.
-   Do NOT write any code until the user has approved the design from step 1.
-   Pause for user confirmation before step 4. Report the plan file path after step 3.
+Do NOT write any code until the user has approved the design from step 1.
+Pause for user confirmation before step 4. Report the plan file path after step 3.

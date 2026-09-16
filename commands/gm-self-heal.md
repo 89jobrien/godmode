@@ -1,14 +1,13 @@
 ---
 name: self-heal
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Glob
+- Grep
 max-turns: 40
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -24,6 +23,7 @@ max-turns: 40
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
+
 Self-healing CI loop. Run cargo clippy + nextest + fmt, diagnose each failure, apply the
 minimal fix, re-run, repeat until all three pass clean. Do NOT commit until all green.
 
@@ -34,20 +34,16 @@ Arguments: $ARGUMENTS (optional: specific crate path or --workspace; default: --
 Repeat until all gates pass or 10 iterations reached:
 
 ### Gate 1: clippy
-
 Run: cargo clippy --workspace --all-targets -- -D warnings
 For each warning/error:
-
 - Identify the exact file and line
 - Apply the minimal fix (do not refactor surrounding code)
 - Re-run clippy immediately after each fix
 - Do not move to gate 2 until clippy is clean
 
 ### Gate 2: tests
-
 Run: cargo nextest run --workspace
 For each failure:
-
 - Read the full failure output — do NOT dismiss as flakiness
 - Check environment variables, recent changes, and actual error messages
 - Identify root cause before proposing any fix
@@ -55,7 +51,6 @@ For each failure:
 - Do not move to gate 3 until nextest is clean
 
 ### Gate 3: fmt
-
 Run: cargo fmt --all --check
 If it fails: run `cargo fmt --all` to fix, then re-check.
 

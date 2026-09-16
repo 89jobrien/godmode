@@ -1,15 +1,14 @@
 ---
 name: tdd
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 50
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,14 +24,14 @@ max-turns: 50
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
+
 Implement a feature or fix using strict test-driven development.
 Follow godmode:task-driven-development exactly:
-
 1. Write a FAILING test first. Run it — confirm it fails for the right reason.
 2. Write the minimum code to make it pass. Run cargo nextest — all green.
 3. Refactor: cargo clippy -p <crate> -- -D warnings, cargo fmt, cargo nextest (still green).
 4. Commit: git commit -m "feat(<crate>): <what it does>"
-   Repeat for each requirement.
-   Iron law: no production code without a prior failing test. If you wrote code before
-   the test, delete it and start over.
-   3-attempt rule: if a test is still failing after 3 attempts, stop and report.
+Repeat for each requirement.
+Iron law: no production code without a prior failing test. If you wrote code before
+the test, delete it and start over.
+3-attempt rule: if a test is still failing after 3 attempts, stop and report.

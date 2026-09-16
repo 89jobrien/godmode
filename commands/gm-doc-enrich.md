@@ -1,15 +1,14 @@
 ---
 name: doc-enrich
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 30
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,8 +24,8 @@ max-turns: 30
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Review, maintain, and sync all project documentation in one pass.
 
+Review, maintain, and sync all project documentation in one pass.
 1. Run godmode:doc-review — structured review of existing docs for accuracy,
    completeness, clarity, and navigability. Produce a PASS/FAIL verdict with
    Blocking / Suggestion / Nitpick findings.
@@ -36,5 +35,5 @@ Review, maintain, and sync all project documentation in one pass.
 3. Run godmode:doc-sync — verify all file paths, CLI flags, crate names, and
    cross-doc consistency. Confirm no drift remains after doc-maintainer fixes.
 4. Run godmode:cap — commit all documentation changes.
-   Fix Blocking findings from step 1 before proceeding to step 2.
-   Do not rewrite documents wholesale — use targeted edits only.
+Fix Blocking findings from step 1 before proceeding to step 2.
+Do not rewrite documents wholesale — use targeted edits only.

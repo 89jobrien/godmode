@@ -1,15 +1,14 @@
 ---
 name: ship
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 30
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,10 +24,10 @@ max-turns: 30
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Ship the current work slice: verify, document, commit, and push.
 
+Ship the current work slice: verify, document, commit, and push.
 1. Run godmode:verification-before-completion — all gates must be green before proceeding.
 2. Run godmode:changelog — update CHANGELOG.md from commits since last tag.
 3. Run godmode:release-notes — produce human-facing release notes from the changelog diff.
 4. Run godmode:cap — commit and push. Conventional commit derived from the diff.
-   Abort at any step if the gate fails. Report what failed and what needs fixing.
+Abort at any step if the gate fails. Report what failed and what needs fixing.

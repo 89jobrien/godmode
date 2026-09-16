@@ -1,8 +1,7 @@
 ---
-description: ideate
+description: Explore the repo for new feature ideas grounded in what the code already does and what it's missing.
 subtask: false
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -18,8 +17,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Explore the repo for new feature ideas grounded in what the code already does and what it's missing.
 
+Explore the repo for new feature ideas grounded in what the code already does and what it's missing.
 1. Scan the repo structure: README, CLAUDE.md, Cargo.toml workspace members, top-level dirs.
 2. Read entry points (lib.rs, main.rs, mod.rs) for each major component.
 3. Grep for TODO, FIXME, HACK, unimplemented!(), todo!() across the workspace.
@@ -32,5 +31,5 @@ Explore the repo for new feature ideas grounded in what the code already does an
    - Large: architectural or cross-cutting, worth planning carefully
 7. Present the list. Ask which idea to pursue. Hand off to godmode:brainstorm with the
    chosen idea and the evidence that motivated it.
-   Read code, do not invent. Every idea must trace to something observed in the repo.
-   Output is a prioritised idea list only — no implementation, no scaffolding, no code.
+Read code, do not invent. Every idea must trace to something observed in the repo.
+Output is a prioritised idea list only — no implementation, no scaffolding, no code.

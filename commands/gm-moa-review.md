@@ -1,16 +1,15 @@
 ---
 name: moa-review
 allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Edit
-  - Glob
-  - Grep
-  - Agent
+- Bash
+- Read
+- Write
+- Edit
+- Glob
+- Grep
+- Agent
 max-turns: 80
 ---
-
 ## Rules
 
 - Read the full diff before commenting. Never review partial context.
@@ -21,6 +20,7 @@ max-turns: 80
   `cargo nextest run --workspace`, `cargo fmt --all --check`.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
+
 
 Mixture-of-Agents architecture review pipeline. Analyze the current branch diff from five
 lenses in parallel, synthesize into a prioritized fix list, then dispatch TDD agents to
@@ -37,35 +37,30 @@ Dispatch 5 sub-agents in parallel, one per lens:
 
 **Lens 1 — API surface & backward compatibility**
 File: `.ctx/review/01-api-surface.md`
-
 - List every changed public function, struct, trait, and type alias
 - Flag any breaking changes (removed items, changed signatures)
 - Flag any semver violations
 
 **Lens 2 — Rust SOLID principles & module boundaries**
 File: `.ctx/review/02-solid-modules.md`
-
 - Single responsibility: do any modules/structs do too much?
 - Dependency inversion: are concrete types leaking through ports?
 - Module boundary violations: cross-crate coupling that should go through traits?
 
 **Lens 3 — Test coverage gaps**
 File: `.ctx/review/03-test-coverage.md`
-
 - For every touched file, find its corresponding test file
 - List public functions/methods with no test coverage
 - Identify untested error paths and edge cases
 
 **Lens 4 — Blast radius**
 File: `.ctx/review/04-blast-radius.md`
-
 - For every changed public function, list all callers across the workspace
 - Flag callers that may be broken by signature or behaviour changes
 - Run `cargo check --workspace` and capture any compilation errors
 
 **Lens 5 — Documentation accuracy**
 File: `.ctx/review/05-docs.md`
-
 - Compare doc comments against implementation for all changed items
 - Flag doc examples that won't compile or produce wrong output
 - Flag missing `# Examples` on public items
@@ -76,14 +71,14 @@ After all 5 agents complete, read all 5 `.ctx/review/` files.
 Produce `.ctx/review/00-synthesis.md` with a prioritized table:
 
 | Priority | Finding | Lens | File:Line | Fix |
-| -------- | ------- | ---- | --------- | --- |
-| HIGH     | ...     | ...  | ...       | ... |
-| MED      | ...     | ...  | ...       | ... |
-| LOW      | ...     | ...  | ...       | ... |
+|----------|---------|------|-----------|-----|
+| HIGH | ... | ... | ... | ... |
+| MED  | ... | ... | ... | ... |
+| LOW  | ... | ... | ... | ... |
 
 HIGH = breaking change, compilation error, security issue, missing test for error path
-MED = SOLID violation, missing test for happy path, stale doc
-LOW = nitpick, style, non-critical doc gap
+MED  = SOLID violation, missing test for happy path, stale doc
+LOW  = nitpick, style, non-critical doc gap
 
 Present the synthesis table to the user and ask for go/no-go before Phase 3.
 
@@ -91,7 +86,6 @@ Present the synthesis table to the user and ask for go/no-go before Phase 3.
 
 For each HIGH priority finding, dispatch one godmode:tdd-crate-agent (cap 5 concurrent).
 Each agent:
-
 1. Verifies branch with `git branch --show-current` before any commit
 2. Writes a failing test for the finding first
 3. Implements the fix to make the test pass

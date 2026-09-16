@@ -1,8 +1,7 @@
 ---
-description: issues
+description: Triage, work, and close GitHub issues end-to-end.
 subtask: false
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -18,8 +17,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Triage, work, and close GitHub issues end-to-end.
 
+Triage, work, and close GitHub issues end-to-end.
 1. Run godmode:issue-triage — fetch open issues, classify by type (bug/feature/chore),
    complexity (S/M/L), and priority (P1-P3). Present the triage table and wait for
    user confirmation on which issues to work.
@@ -28,5 +27,5 @@ Triage, work, and close GitHub issues end-to-end.
 3. Run godmode:todo-issue-sync — audit inline TODOs added or resolved during
    implementation; sync status back to GitHub issues.
 4. Run godmode:cap — push all branches and open PRs for completed issues.
-   Pause after step 1 for user confirmation on the triage list before dispatching.
-   Do not work P3 issues without explicit approval.
+Pause after step 1 for user confirmation on the triage list before dispatching.
+Do not work P3 issues without explicit approval.

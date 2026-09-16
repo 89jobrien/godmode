@@ -1,8 +1,7 @@
 ---
-description: handon
+description: Run session-start triage and orient to outstanding work.
 subtask: false
 ---
-
 ## Rules
 
 - Default to read-only. Do not modify files unless the command explicitly
@@ -13,8 +12,8 @@ subtask: false
 - Report findings in plain text. Flag any `agent.blocked` or `skill.error`
   events prominently.
 
-Run session-start triage and orient to outstanding work.
 
+Run session-start triage and orient to outstanding work.
 1. Run: godmode handon
 2. Run: godmode task next
 3. Check .ctx/godmode/traces/trace.jsonl for any skill.error or agent.blocked events from

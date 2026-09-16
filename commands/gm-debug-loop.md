@@ -1,15 +1,14 @@
 ---
 name: debug-loop
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 40
 ---
-
 ## Rules
 
 - Read the full error output before proposing any fix. Do not skim.
@@ -22,8 +21,8 @@ max-turns: 40
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
-Systematically debug a failure, verify the fix, and commit.
 
+Systematically debug a failure, verify the fix, and commit.
 1. Run godmode:systematic-debugging — read the full error, check recent changes,
    state one hypothesis before touching code, apply the minimal fix.
    3-attempt rule: if 3 sequential fixes all fail, write BLOCKED.md and stop.
@@ -31,5 +30,5 @@ Systematically debug a failure, verify the fix, and commit.
    cause was addressed, not just the symptom.
 3. Run godmode:verification-before-completion — all gates green before committing.
 4. Run godmode:cap — commit with message describing the root cause and fix.
-   Do not skip doublecheck even if systematic-debugging feels thorough — it catches
-   fixes that address the symptom but leave the root cause intact.
+Do not skip doublecheck even if systematic-debugging feels thorough — it catches
+fixes that address the symptom but leave the root cause intact.

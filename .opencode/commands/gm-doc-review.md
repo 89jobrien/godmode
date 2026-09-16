@@ -1,8 +1,7 @@
 ---
-description: doc-review
+description: Review documentation for accuracy, completeness, clarity, and navigability before publishing.
 subtask: false
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -18,9 +17,9 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
+
 Review documentation for accuracy, completeness, clarity, and navigability before publishing.
 Follow godmode:doc-review exactly:
-
 1. Accuracy: run every documented command, check every path, flag, type, and module name
    against actual source. Flag any unverifiable claim as Blocking.
 2. Completeness: confirm install/setup, CLI reference, and key concepts are fully covered.
@@ -29,12 +28,9 @@ Follow godmode:doc-review exactly:
    concrete (real commands, real output). Flag confusion as Suggestion or Nitpick.
 4. Navigability: check headings, TOC for long docs (>200 lines), and cross-reference links.
    Flag broken links as Blocking, missing TOC as Suggestion.
-   Report using the format:
-
-## Doc Review: <filename>
-
-### Blocking / Suggestion / Nitpick
-
-**Verdict**: PASS | FAIL
+Report using the format:
+  ## Doc Review: <filename>
+  ### Blocking / Suggestion / Nitpick
+  **Verdict**: PASS | FAIL
 PASS = no Blocking findings. On FAIL, hand back to godmode:doc-writer to fix.
 On PASS, hand off to godmode:cap to commit.

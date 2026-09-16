@@ -1,8 +1,7 @@
 ---
-description: fresh-branch
+description: Create a fresh branch from origin/main containing only the intended changes.
 subtask: false
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,6 +16,7 @@ subtask: false
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
+
 
 Create a fresh branch from origin/main containing only the intended changes.
 

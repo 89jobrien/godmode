@@ -1,18 +1,18 @@
 ---
 name: auth-fail-fast
 allowed-tools:
-  - Bash
-  - Read
-  - Write
+- Bash
+- Read
+- Write
 max-turns: 5
 ---
-
 ## Rules
 
 - Log failed actions to `.ctx/pending-manual.txt` with format:
   `[TIMESTAMP] FAILED: <command> — manual URL: <url>`
 - Move on to the next task immediately after logging. Do not retry.
 - Provide the manual URL and exact steps the user needs.
+
 
 If any gh or external CLI command (gh, jira, linear) fails with an auth or permission error:
 

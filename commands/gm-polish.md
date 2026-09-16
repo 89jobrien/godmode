@@ -1,15 +1,14 @@
 ---
 name: polish
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 50
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,8 +24,8 @@ max-turns: 50
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Pre-release code quality pass: refactor, test discipline, quality score, readiness check, changelog, commit.
 
+Pre-release code quality pass: refactor, test discipline, quality score, readiness check, changelog, commit.
 1. Run godmode:refactoring — identify and apply structural improvements without
    changing observable behaviour. Run cargo test after each change — must stay green.
 2. Run godmode:testing-philosophy — review test coverage and test types. Identify
@@ -37,5 +36,5 @@ Pre-release code quality pass: refactor, test discipline, quality score, readine
    CI status. Abort if any check fails.
 5. Run godmode:changelog — update CHANGELOG.md from commits since last tag.
 6. Run godmode:cap — commit the polished state.
-   Do not proceed past step 4 if readiness check fails — surface what needs fixing.
-   This is a quality pass, not a feature pass — scope is strictly improvement, not new behaviour.
+Do not proceed past step 4 if readiness check fails — surface what needs fixing.
+This is a quality pass, not a feature pass — scope is strictly improvement, not new behaviour.

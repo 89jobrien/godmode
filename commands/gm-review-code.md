@@ -1,14 +1,13 @@
 ---
 name: review-code
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Glob
+- Grep
 max-turns: 30
 ---
-
 ## Rules
 
 - Read the full diff before commenting. Never review partial context.
@@ -20,9 +19,9 @@ max-turns: 30
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
+
 Run a structured code review on the current diff or specified files.
 Follow godmode:code-review exactly:
-
 1. Run skills/code-review/helpers/run-review.nu (or cargo clippy + nextest + fmt manually).
 2. Read the full diff before commenting.
 3. Group findings as Blocking / Suggestions / Nitpicks.

@@ -1,15 +1,14 @@
 ---
 name: release
 allowed-tools:
-  - Bash
-  - Read
-  - Edit
-  - Write
-  - Glob
-  - Grep
+- Bash
+- Read
+- Edit
+- Write
+- Glob
+- Grep
 max-turns: 40
 ---
-
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -25,8 +24,8 @@ max-turns: 40
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-Workspace release pipeline: readiness check, impact analysis, version bumps, docs, commit, push.
 
+Workspace release pipeline: readiness check, impact analysis, version bumps, docs, commit, push.
 1. Run godmode:release-readiness-check — verify tags, gates, affected crates, and target remote.
    Abort if any check fails; surface what needs fixing.
 2. Run godmode:workspace-release-impact — identify which crates need version bumps from
@@ -36,5 +35,5 @@ Workspace release pipeline: readiness check, impact analysis, version bumps, doc
 4. Run godmode:changelog — update CHANGELOG.md.
 5. Run godmode:release-notes — produce human-facing release notes.
 6. Run godmode:cap — push the release commit.
-   Never bump versions without a passing readiness check. Only bump crates identified
-   by workspace-release-impact. Pause after step 2 for user confirmation before step 3.
+Never bump versions without a passing readiness check. Only bump crates identified
+by workspace-release-impact. Pause after step 2 for user confirmation before step 3.

@@ -1,8 +1,7 @@
 ---
-description: trace
+description: Query the observability trace for this session.
 subtask: false
 ---
-
 ## Rules
 
 - Default to read-only. Do not modify files unless the command explicitly
@@ -13,11 +12,11 @@ subtask: false
 - Report findings in plain text. Flag any `agent.blocked` or `skill.error`
   events prominently.
 
+
 Query the observability trace for this session.
 Run the appropriate helper based on what's needed:
-
-- Last N events: nu skills/observability-as-infrastructure/helpers/trace-tail.nu [--n 20]
-- Failures only: nu skills/observability-as-infrastructure/helpers/trace-failures.nu
+- Last N events:      nu skills/observability-as-infrastructure/helpers/trace-tail.nu [--n 20]
+- Failures only:      nu skills/observability-as-infrastructure/helpers/trace-failures.nu
 - Durations + agents: nu skills/observability-as-infrastructure/helpers/trace-stats.nu
-- Cross-session: nu skills/observability-as-infrastructure/helpers/session-summary.nu
-  Report findings in plain text. Flag any agent.blocked or skill.error events prominently.
+- Cross-session:      nu skills/observability-as-infrastructure/helpers/session-summary.nu
+Report findings in plain text. Flag any agent.blocked or skill.error events prominently.

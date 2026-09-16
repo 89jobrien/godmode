@@ -1,12 +1,11 @@
 ---
 name: handoff
 allowed-tools:
-  - Bash
-  - Read
-  - Glob
+- Bash
+- Read
+- Glob
 max-turns: 5
 ---
-
 ## Rules
 
 - Default to read-only. Do not modify files unless the command explicitly
@@ -17,8 +16,8 @@ max-turns: 5
 - Report findings in plain text. Flag any `agent.blocked` or `skill.error`
   events prominently.
 
-Run session-end validation and write a handoff record.
 
+Run session-end validation and write a handoff record.
 1. Run: godmode handoff
 2. Run skills/observability-as-infrastructure/helpers/trace-stats.nu to summarise
    skill durations, agent convergence, and decisions made this session.

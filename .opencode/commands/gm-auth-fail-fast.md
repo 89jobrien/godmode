@@ -1,14 +1,14 @@
 ---
-description: auth-fail-fast
+description: 'If any gh or external CLI command (gh, jira, linear) fails with an auth or permission error:'
 subtask: false
 ---
-
 ## Rules
 
 - Log failed actions to `.ctx/pending-manual.txt` with format:
   `[TIMESTAMP] FAILED: <command> — manual URL: <url>`
 - Move on to the next task immediately after logging. Do not retry.
 - Provide the manual URL and exact steps the user needs.
+
 
 If any gh or external CLI command (gh, jira, linear) fails with an auth or permission error:
 

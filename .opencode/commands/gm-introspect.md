@@ -1,8 +1,7 @@
 ---
-description: introspect
+description: Audit all godmode skills, agents, and plugin files for internal consistency.
 subtask: false
 ---
-
 ## Rules
 
 - Read the full diff before commenting. Never review partial context.
@@ -14,9 +13,9 @@ subtask: false
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
+
 Audit all godmode skills, agents, and plugin files for internal consistency.
 Follow godmode:introspection exactly:
-
 1. Run skills/introspection/helpers/audit.nu — fix any broken references or missing index entries.
 2. Cross-reference every godmode subcommand call against CLAUDE.md CLI reference.
 3. Check tool hygiene: flag cat/grep/find/cd&&git/--no-verify/gh run watch anti-patterns.
