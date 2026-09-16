@@ -1,146 +1,53 @@
 ---
 name: "godmode:todo-issue-sync"
 description: >
-  Ensure every inline TODO comment in the codebase has a corresponding GitHub or Linear issue.
-  Use when asked to "sync TODOs to issues", "make sure TODOs have issues", or "audit TODOs".
-  Scans for TODO markers, cross-references open issues, and creates missing ones.
+  Ensure every inline TODO comment has a corresponding GitHub issue using the native,
+  resumable godmode synchronizer.
 requires: []
 next: []
 ---
 
 # TODO → Issue Sync
 
-Scan the codebase for inline `TODO` markers and ensure each has a tracked issue in GitHub
-or Linear.
+Use the native command instead of invoking `gh issue list` or `gh issue create` directly.
+It scans source comments for `TODO`, `FIXME`, `HACK`, and `XXX`, excluding generated,
+vendored, build, worktree, and state directories.
 
-## Step 1: Collect TODOs
-
-Use the Grep tool to search the working tree for `TODO`, `FIXME`, `HACK`, and `XXX`
-markers. Limit the search to source file types such as `*.rs`, `*.go`, `*.nu`, `*.ts`,
-and `*.py`, and exclude generated or vendored paths such as `target/`, `.git/`,
-`node_modules/`, `vendor/`, and generated files.
-
-Deduplicate by file+line. Build a table:
-
-| File | Line | TODO text |
-| ---- | ---- | --------- |
-
-Count them. Never silently truncate — capture ALL.
-
-## Step 2: Check for existing issues
-
-### GitHub (default)
+## Preview
 
 ```bash
-gh issue list --state open --limit 100 --json number,title,body
+godmode issue sync-todos --preview [--repo owner/repo]
 ```
 
-Search titles and bodies for references to each TODO's file path or description.
-A TODO is **covered** if an open issue mentions the file path or the TODO text.
+Preview is the default. It reads all open GitHub issue pages, reports covered and missing
+markers, and performs no issue creation or state writes. Add `--json` for structured output.
+Review every missing marker before applying.
 
-### Linear (if the project uses Linear)
+Each marker receives a stable fingerprint derived from its path and normalized text rather
+than its line number. Existing issues are matched by the hidden fingerprint in their body;
+inline references such as `TODO(#42)` are already covered. If duplicate issues contain the
+same fingerprint, the lowest issue number wins deterministically.
 
-**Note:** Requires Linear MCP server — verify `mcp__claude_ai_Linear__*` tools are available
-before proceeding.
-
-Use the `mcp__claude_ai_Linear__list_issues` tool with a query matching the file name
-or TODO description. A TODO is covered if a matching non-completed issue exists.
-
-### Inline issue reference
-
-A TODO is also covered if the comment itself contains an issue number, e.g.:
-`// TODO(#42): fix this` or `// TODO: JOB-123 — implement`.
-
-## Step 3: Report gaps
-
-Present a table of uncovered TODOs:
-
-```
-Uncovered TODOs (N):
-  src/foo/bar.rs:42   TODO: implement rate limiting
-  crates/x/src/lib.rs:7  TODO: add error handling
-```
-
-Ask for confirmation before creating issues: "Create issues for all N uncovered TODOs?"
-
-## Step 4: On-demand task graph sync
-
-Before creating new issues, check for open GitHub issues created outside this session that
-may already cover some TODOs:
+## Apply
 
 ```bash
-gh issue list --state open --limit 100 --json number,title,body
+godmode issue sync-todos --apply [--repo owner/repo]
 ```
 
-Cross-reference the fresh list against uncovered TODOs from Step 3. A TODO is covered if
-any open issue mentions its file path or description. Re-check coverage before proceeding —
-a previously uncovered TODO may now be tracked.
+Apply creates only missing issues. Each issue body records the source location, TODO text,
+and fingerprint. Progress is atomically persisted after every creation in
+`.ctx/godmode/todo-issue-sync.json`, so rerunning the same command resumes after interruption.
+The synchronizer also refreshes all issue pages before creation, preventing duplicates when
+an issue was created but local progress was not saved.
 
-## Step 5: Create missing issues
+## Summary
 
-For each uncovered TODO, create an issue with:
-
-- **Title**: `fix/feat(<module>): <todo text>` — infer fix vs feat from context
-- **Body**: includes file path, line number, full TODO text, and surrounding context (±5 lines)
-- **Labels**: infer from directory (e.g. `crates/langchainx-tools/` → `tools`)
-- **Priority**: Normal (3) by default
-
-### GitHub
-
-```bash
-gh issue create \
-  --title "feat(<module>): <todo text>" \
-  --body "## Context\n\n\`<file>:<line>\` has an unresolved TODO.\n\n## TODO\n\n\`\`\`\n<todo text>\n\`\`\`\n\n## Action\n\nResolve or implement the TODO at \`<file>:<line>\`." \
-  --label "<label>"
-```
-
-Capture the issue number from the URL printed by `gh issue create` (last path segment).
-
-After each issue is created, add it to the godmode task graph immediately:
-
-```bash
-godmode task add gh-<N> "<title>"
-```
-
-Use `gh-<N>` as the task ID (e.g. `gh-42`) so it is traceable back to the GitHub issue.
-
-### Linear
-
-**Note:** Requires Linear MCP server — verify `mcp__claude_ai_Linear__*` tools are available
-before proceeding.
-
-Use `mcp__claude_ai_Linear__save_issue` with team inferred from repo/project context.
-After creating, add to the task graph:
-
-```bash
-godmode task add <linear-id> "<title>"
-```
-
-Use the Linear issue ID (e.g. `JOB-268`) as the task ID.
-
-## Step 6: Annotate (optional)
-
-If the user confirms, annotate each TODO comment with the new issue number:
-
-```
-// TODO(#<N>): implement rate limiting
-```
-
-Use the Edit tool for each file. Do not annotate if the user declines.
-
-## Step 7: Summary
-
-Report:
-
-- Total TODOs found
-- Already covered (with issue numbers)
-- Newly created issues (with URLs)
-- Any TODOs skipped (e.g. in legacy/deprecated paths)
+Report total, covered, missing, and created counts plus any command error. On failure, fix the
+GitHub CLI authentication or network issue and rerun the same apply command.
 
 ## Guardrails
 
-- Never create duplicate issues — search before creating.
-- Never modify TODO text, only append the issue reference in parentheses.
-- Skip TODOs in `target/`, `.git/`, `node_modules/`, `vendor/`, and generated files.
-- If a TODO is in a file marked for deletion (Wave N cleanup), note it but do not create an issue.
-- Cap issue creation at 20 per run — prompt for confirmation if more.
+- Preview before apply.
+- Never manually create issues for entries reported as covered.
+- Do not edit or annotate TODO comments during synchronization.
+- Use `--repo owner/repo` when the current directory does not identify the intended repository.

@@ -4,7 +4,7 @@ use anyhow::Result;
 
 use crate::*;
 
-pub fn handle(command: Cmd, _root: &Path, json: bool, _sarif: bool) -> Result<()> {
+pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Issue { action } => match action {
             IssueAction::List { repo, label } => {
@@ -37,6 +37,37 @@ pub fn handle(command: Cmd, _root: &Path, json: bool, _sarif: bool) -> Result<()
                     println!("{}", serde_json::json!({"ok": true, "number": number}));
                 } else {
                     println!("Issue #{} closed (commit {}).", number, commit);
+                }
+                Ok(())
+            }
+            IssueAction::SyncTodos {
+                repo,
+                preview,
+                apply,
+            } => {
+                let client = godmode_core::integrations::gh::GhIssueClient::new(repo.as_deref())?;
+                let mode = if apply && !preview {
+                    godmode_core::write_mode::WriteMode::Apply
+                } else {
+                    godmode_core::write_mode::WriteMode::Preview
+                };
+                let result = godmode_core::todo_issue_sync::sync(root, &client, mode)?;
+                if json {
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                } else {
+                    println!(
+                        "TODO sync ({}): {} total, {} covered, {} missing, {} created",
+                        result.mode, result.total, result.covered, result.missing, result.created
+                    );
+                    for item in &result.items {
+                        println!(
+                            "{}:{}  {}  {}",
+                            item.path, item.line, item.fingerprint, item.text
+                        );
+                    }
+                    if !apply && result.missing > 0 {
+                        println!("Re-run with --apply to create missing issues.");
+                    }
                 }
                 Ok(())
             }

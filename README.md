@@ -132,6 +132,16 @@ godmode task pull [--project <name>] # import pending doob todos as tasks
 godmode task push-done               # mark completed tasks done in doob
 ```
 
+### GitHub TODO synchronization
+
+```bash
+godmode issue sync-todos --preview [--repo owner/repo]          # preview only
+godmode issue sync-todos --apply [--repo owner/repo]  # create missing issues, resumably
+```
+
+The command fingerprints source TODO comments, checks every open issue page, and persists
+progress after each creation so interrupted apply runs can be resumed safely.
+
 ### Status
 
 ```bash
