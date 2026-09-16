@@ -41,6 +41,8 @@ Fields:
 
 ## Relationship to Commands
 
-`/gm:*` workflow commands implement the same sequences inline as Claude instructions.
-Pipelines are the machine-readable equivalent — used by the pipeline runner
+Pipeline YAML is canonical for shared workflow sequencing. Workflow command YAML references a
+pipeline by name and may attach command-specific instructions to its skills; `generate.nu` composes
+the ordered Claude/OpenCode prompt from the pipeline steps. Generated projection conformance rejects
+stale output whenever pipeline semantics change. Pipelines are also consumed by the runner
 (`godmode pipeline next`, `post-pipeline-step.nu`) for automated step advancement.

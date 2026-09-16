@@ -37,30 +37,31 @@ Single-skill wrappers for direct invocation.
 
 Multi-skill pipelines that chain skills in sequence.
 
-| Command               | Pipeline                                                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `/gm:brainstorm`      | `brainstorm` → `design`                                                                                                  |
-| `/gm:ideate`          | repo scan → gap analysis → `brainstorm`                                                                                  |
-| `/gm:feature`         | `brainstorm` → `design` → `writing-plans` → `tdd` → `verify` → `cap`                                                     |
-| `/gm:ship`            | `verification-before-completion` → `changelog` → `release-notes` → `cap`                                                 |
-| `/gm:release`         | `release-readiness-check` → `workspace-release-impact` → `workspace-bump-commit` → `changelog` → `release-notes` → `cap` |
-| `/gm:audit`           | `health-score` → `dead-code` → `dep-audit` → `mistake-tracker` → `repo-gap-backlog`                                      |
-| `/gm:pr`              | `code-review` → `doublecheck` → `pr-author` → `merge`                                                                    |
-| `/gm:review-incoming` | `receiving-review` → `verification-before-completion` → `cap`                                                            |
-| `/gm:deps`            | `dep-audit` → `dep-bump` → `cap`                                                                                         |
-| `/gm:session-end`     | `whatidid` → `self-reflect` → `mistake-tracker` → `memory-banking` → `session-wrap-commit-push`                          |
-| `/gm:improve-agent`   | `self-reflect` → `pattern-learner` → `agent-improvement-loop` → `agents-skill-save`                                      |
-| `/gm:context`         | `context-map` → `memory-banking` → `mini-context-graph`                                                                  |
-| `/gm:debug-loop`      | `systematic-debugging` → `doublecheck` → `verification-before-completion` → `cap`                                        |
-| `/gm:doc-enrich`      | `doc-review` → `doc-maintainer` → `doc-sync` → `cap`                                                                     |
-| `/gm:polish`          | `refactoring` → `testing-philosophy` → `rustqual` → `release-readiness-check` → `changelog` → `cap`                      |
-| `/gm:issues`          | `issue-triage` → `tackle-issues` → `todo-issue-sync` → `cap`                                                             |
-| `/gm:observe`         | `observability-as-infrastructure` → `health-score` → `issue-triage` (read-only)                                          |
+| Command               | Pipeline                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| `/gm:brainstorm`      | `brainstorm` → `design`                                                                             |
+| `/gm:ideate`          | repo scan → gap analysis → `brainstorm`                                                             |
+| `/gm:feature`         | Generated from `pipelines/feature.yaml`                                                             |
+| `/gm:ship`            | `verification-before-completion` → `changelog` → `release-notes` → `cap`                            |
+| `/gm:release`         | Generated from `pipelines/release.yaml`                                                             |
+| `/gm:audit`           | `health-score` → `dead-code` → `dep-audit` → `mistake-tracker` → `repo-gap-backlog`                 |
+| `/gm:pr`              | `code-review` → `doublecheck` → `pr-author` → `merge`                                               |
+| `/gm:review-incoming` | `receiving-review` → `verification-before-completion` → `cap`                                       |
+| `/gm:deps`            | `dep-audit` → `dep-bump` → `cap`                                                                    |
+| `/gm:session-end`     | `whatidid` → `self-reflect` → `mistake-tracker` → `memory-banking` → `session-wrap-commit-push`     |
+| `/gm:improve-agent`   | `self-reflect` → `pattern-learner` → `agent-improvement-loop` → `agents-skill-save`                 |
+| `/gm:context`         | `context-map` → `memory-banking` → `mini-context-graph`                                             |
+| `/gm:debug-loop`      | `systematic-debugging` → `doublecheck` → `verification-before-completion` → `cap`                   |
+| `/gm:doc-enrich`      | `doc-review` → `doc-maintainer` → `doc-sync` → `cap`                                                |
+| `/gm:polish`          | `refactoring` → `testing-philosophy` → `rustqual` → `release-readiness-check` → `changelog` → `cap` |
+| `/gm:issues`          | `issue-triage` → `tackle-issues` → `todo-issue-sync` → `cap`                                        |
+| `/gm:observe`         | `observability-as-infrastructure` → `health-score` → `issue-triage` (read-only)                     |
 
 ## Adding a Command
 
 1. Create `commands/gm/<name>.yaml` with fields: `name`, `template`, `prompt`,
-   `allowedTools`, `maxTurns`.
+   `allowedTools`, `maxTurns`. For a shared workflow, add `pipeline` and optional
+   `stepInstructions`; the pipeline owns step order and membership.
 2. Use `template: dev` for implementation commands, `template: debug` for diagnostic ones.
 3. Reference skills as `godmode:<skill-name>` in the prompt body.
 4. Run `nu commands/gm/generate.nu` to refresh both tracked projections.
