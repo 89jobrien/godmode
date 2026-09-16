@@ -11,7 +11,7 @@ prompt: |
      create and classify a GitHub issue. Prioritise: P1 for errors in production paths,
      P2 for regressions, P3 for trends worth watching.
   Read-only until step 3. Do not apply fixes here — this workflow surfaces issues for
-  the next gm:issues or gm:debug-loop cycle.
+  the next /gm:issues or /gm:debug-loop cycle.
   Output a one-paragraph health summary when done.
 allowedTools:
   - Bash
