@@ -47,6 +47,14 @@ const REQUIRED_TOOLS: &[&str] = &[
 
 /// Run all doctor checks against the given probe.
 pub fn run_doctor(probe: &dyn EnvironmentProbe) -> DoctorReport {
+    run_doctor_at(probe, None)
+}
+
+/// Run environment checks plus hook coverage when a plugin root is available.
+pub fn run_doctor_at(
+    probe: &dyn EnvironmentProbe,
+    plugin_root: Option<&std::path::Path>,
+) -> DoctorReport {
     let mut checks = Vec::new();
 
     // Tool checks
@@ -87,6 +95,43 @@ pub fn run_doctor(probe: &dyn EnvironmentProbe) -> DoctorReport {
             format!("stale: {}", stale.join(", "))
         },
     ));
+
+    if let Some(root) = plugin_root {
+        use crate::hooks::registry::{CoverageIssueKind, HookClient};
+        if root.join("hooks").is_dir() {
+            match crate::hooks::registry::diagnose_repository(root, HookClient::Claude) {
+                Ok(issues) => {
+                    for (name, kind) in [
+                        ("unregistered", CoverageIssueKind::Unregistered),
+                        ("missing", CoverageIssueKind::Missing),
+                        ("duplicate", CoverageIssueKind::Duplicate),
+                        ("superseded", CoverageIssueKind::Superseded),
+                    ] {
+                        let matching: Vec<_> =
+                            issues.iter().filter(|issue| issue.kind == kind).collect();
+                        checks.push(CheckResult::new(
+                            format!("hooks:{name}"),
+                            matching.is_empty(),
+                            if matching.is_empty() {
+                                "none".into()
+                            } else {
+                                matching
+                                    .iter()
+                                    .map(|issue| format!("{} ({})", issue.hook, issue.detail))
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            },
+                        ));
+                    }
+                }
+                Err(error) => checks.push(CheckResult::new(
+                    "hooks:missing".into(),
+                    false,
+                    format!("cannot inspect hook manifest: {error}"),
+                )),
+            }
+        }
+    }
 
     let all_passed = checks.iter().all(|c| c.passed);
     DoctorReport { checks, all_passed }
