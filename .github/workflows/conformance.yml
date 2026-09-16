@@ -45,3 +45,6 @@ jobs:
 
       - name: check skill index
         run: nu scripts/check-skill-index.nu
+
+      - name: check command projections
+        run: cargo test -p godmode-conformance
