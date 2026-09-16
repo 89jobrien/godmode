@@ -262,7 +262,7 @@ is unavailable.
 ```bash
 cargo fmt --all --check
 cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+cargo nextest run --workspace --all-features
 cargo check --workspace
 ```
 
