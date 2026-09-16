@@ -34,20 +34,21 @@ def render-content [command: record, target: string] {
     [$frontmatter $body] | str join ""
 }
 
-def stage-target [commands: list<record>, target: string, stage_dir: path] {
-    mkdir $stage_dir
+def render-target [commands: list<record>, target: string, out_dir: path] {
+    for stale in (glob ($out_dir | path join "gm-*.md") | sort) {
+        rm $stale
+    }
     for command in $commands {
-        let out_path = ($stage_dir | path join $command.out_name)
+        let out_path = ($out_dir | path join $command.out_name)
         render-content $command $target | save $out_path
     }
 }
 
-def install-target [stage_dir: path, out_dir: path] {
-    for stale in (glob ($out_dir | path join "gm-*.md") | sort) {
-        rm $stale
-    }
-    for generated in (glob ($stage_dir | path join "gm-*.md") | sort) {
-        mv $generated $out_dir
+def cleanup-scratch [paths: list<path>] {
+    for path in $paths {
+        if ($path | path exists) {
+            rm --recursive --force $path
+        }
     }
 }
 
@@ -85,19 +86,56 @@ let commands = ($yamls | each {|file|
     }
 })
 
-if ($stage_root | path exists) {
-    rm --recursive --force $stage_root
-}
+let backup_root = ($repo_dir | path join ".command-projection-backup")
 let claude_stage = ($stage_root | path join "claude")
 let opencode_stage = ($stage_root | path join "opencode")
-stage-target $commands "claude" $claude_stage
-stage-target $commands "opencode" $opencode_stage
+let claude_backup = ($backup_root | path join "claude")
+let opencode_backup = ($backup_root | path join "opencode")
+let opencode_had_target = ($opencode_dir | path exists)
 
-# Validate both destinations before replacing either projection.
-mkdir $commands_dir
-mkdir $opencode_dir
-install-target $claude_stage $commands_dir
-install-target $opencode_stage $opencode_dir
-rm --recursive --force $stage_root
+cleanup-scratch [$stage_root $backup_root]
+
+try {
+    mkdir $stage_root
+    cp --recursive $commands_dir $claude_stage
+    if $opencode_had_target {
+        cp --recursive $opencode_dir $opencode_stage
+    } else {
+        mkdir $opencode_stage
+    }
+    render-target $commands "claude" $claude_stage
+    render-target $commands "opencode" $opencode_stage
+
+    # Validate both destination parents before replacing either complete directory.
+    mkdir ($opencode_dir | path dirname)
+    mkdir $backup_root
+
+    mv $commands_dir $claude_backup
+    mv $claude_stage $commands_dir
+
+    if $opencode_had_target {
+        mv $opencode_dir $opencode_backup
+    }
+    mv $opencode_stage $opencode_dir
+
+    cleanup-scratch [$stage_root $backup_root]
+} catch {
+    if ($opencode_backup | path exists) {
+        if ($opencode_dir | path exists) {
+            rm --recursive --force $opencode_dir
+        }
+        mv $opencode_backup $opencode_dir
+    } else if not $opencode_had_target and ($opencode_dir | path exists) {
+        rm --recursive --force $opencode_dir
+    }
+    if ($claude_backup | path exists) {
+        if ($commands_dir | path exists) {
+            rm --recursive --force $commands_dir
+        }
+        mv $claude_backup $commands_dir
+    }
+    cleanup-scratch [$stage_root $backup_root]
+    error make {msg: "command projection install failed; restored previous projections"}
+}
 
 print $"($commands | length) commands projected to both targets"

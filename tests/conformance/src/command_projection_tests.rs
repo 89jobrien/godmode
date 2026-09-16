@@ -1,6 +1,8 @@
 //! Conformance tests for repository-local command projections.
 
 use std::collections::BTreeMap;
+#[cfg(test)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -95,6 +97,11 @@ fn check_command_projections() -> Result<()> {
             "generator failed: {}",
             String::from_utf8_lossy(&output.stderr).trim()
         );
+    }
+    if generated_root.join(".command-projection-stage").exists()
+        || generated_root.join(".command-projection-backup").exists()
+    {
+        bail!("generator left projection scratch directories after success");
     }
 
     let generated_claude = markdown_files(&generated_root.join("commands"))?;
@@ -250,7 +257,41 @@ fn failed_second_target_setup_leaves_both_projections_unchanged() -> Result<()> 
     let output = run_generator(generated_root)?;
     assert!(!output.status.success());
     assert_eq!(std::fs::read_to_string(sentinel)?, "unchanged");
-    assert_eq!(markdown_files(&generated_root.join("commands"))?.len(), 1);
+    assert!(!generated_root.join(".command-projection-stage").exists());
+    assert!(!generated_root.join(".command-projection-backup").exists());
+    Ok(())
+}
+
+#[test]
+fn second_target_swap_failure_rolls_back_both_and_cleans_scratch() -> Result<()> {
+    let root = repo_root();
+    let temporary = tempfile::tempdir()?;
+    let generated_root = temporary.path();
+    copy_tree(
+        &root.join("commands/gm"),
+        &generated_root.join("commands/gm"),
+    )?;
+    let claude_sentinel = generated_root.join("commands/gm-sentinel.md");
+    std::fs::write(&claude_sentinel, "claude original")?;
+
+    let opencode_parent = generated_root.join(".opencode");
+    let opencode_commands = opencode_parent.join("commands");
+    std::fs::create_dir_all(&opencode_commands)?;
+    let opencode_sentinel = opencode_commands.join("gm-sentinel.md");
+    std::fs::write(&opencode_sentinel, "opencode original")?;
+    std::fs::set_permissions(&opencode_parent, std::fs::Permissions::from_mode(0o555))?;
+
+    let output = run_generator(generated_root)?;
+    std::fs::set_permissions(&opencode_parent, std::fs::Permissions::from_mode(0o755))?;
+
+    assert!(!output.status.success());
+    assert_eq!(std::fs::read_to_string(claude_sentinel)?, "claude original");
+    assert_eq!(
+        std::fs::read_to_string(opencode_sentinel)?,
+        "opencode original"
+    );
+    assert!(!generated_root.join(".command-projection-stage").exists());
+    assert!(!generated_root.join(".command-projection-backup").exists());
     Ok(())
 }
 
