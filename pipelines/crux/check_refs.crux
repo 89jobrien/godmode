@@ -1,0 +1,14 @@
+pipeline: check_refs
+# Audits skill documentation for broken helper, reference, script, and asset links.
+budget: { steps: 1 }
+display:
+  title: Skill Reference Gate
+  output: auto
+  steps:
+    check_refs: Check skill references
+
+steps:
+  - step: check_refs
+    handler: shell::capture
+    args:
+      cmd: "nu scripts/check-refs.nu --root . --ci"

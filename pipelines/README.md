@@ -3,6 +3,8 @@
 Declarative skill pipelines — ordered sequences of skills with entry points and loop
 annotations. Consumed by the pipeline runner to orchestrate multi-step workflows.
 
+Executable validation gates using the separate Crux pipeline format live in [`crux/`](crux/).
+
 ## Format
 
 ```yaml
