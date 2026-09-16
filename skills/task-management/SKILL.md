@@ -42,7 +42,8 @@ Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**
 ### Add a task manually
 
 ```bash
-godmode task add <title> [--id <id>] [--depends-on t1,t2] [--crate-name <crate>]
+godmode task add <title> [--id <id>] [--depends-on t1,t2] [--crate-name <crate>] \
+  [--notes <text>] [--run <command>] [--priority high|normal|low] [--tag <tag>]...
 ```
 
 ### Start / complete / block / unblock

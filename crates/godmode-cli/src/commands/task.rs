@@ -45,6 +45,10 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
             title,
             depends_on,
             crate_name,
+            notes,
+            run,
+            priority,
+            tags,
         } => {
             let id = match id {
                 Some(id) => id,
@@ -53,6 +57,10 @@ pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()
             let mut task = model::Task::new(id.clone(), title);
             task.depends_on = depends_on;
             task.crate_name = crate_name;
+            task.notes = notes.unwrap_or_default();
+            task.run = run;
+            task.priority = priority.unwrap_or_default();
+            task.tags = tags;
             session.add_task(task)?;
             session.save()?;
             if json {

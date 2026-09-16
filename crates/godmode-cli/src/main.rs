@@ -415,7 +415,6 @@ enum TaskAction {
     },
 
     /// Add a new task. Omit ID to auto-assign the next available "tN" slot.
-    // TODO(#103): Accept notes, run command, priority, and tags when adding a task.
     Add {
         /// Task title (required).
         title: String,
@@ -426,6 +425,18 @@ enum TaskAction {
         depends_on: Vec<String>,
         #[arg(long)]
         crate_name: Option<String>,
+        /// Freeform task notes.
+        #[arg(long)]
+        notes: Option<String>,
+        /// Shell command to run for this task.
+        #[arg(long)]
+        run: Option<String>,
+        /// Scheduling priority.
+        #[arg(long, value_name = "high|normal|low")]
+        priority: Option<model::Priority>,
+        /// Freeform task tag. Repeat to add multiple tags.
+        #[arg(long = "tag", value_name = "TAG")]
+        tags: Vec<String>,
     },
 
     /// Mark a task as running.
