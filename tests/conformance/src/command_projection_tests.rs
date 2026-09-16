@@ -315,6 +315,44 @@ fn github_actions_audits_linux_and_macos_dependency_graphs() -> Result<()> {
 }
 
 #[test]
+fn github_actions_release_artifacts_follow_full_gates() -> Result<()> {
+    let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/release.yml"))?;
+
+    assert!(workflow.contains("tags:"));
+    assert!(workflow.contains("cargo xtask ci"));
+    assert!(workflow.contains("cargo deny check"));
+    assert!(workflow.contains("needs: gates"));
+    assert!(workflow.contains("cargo xtask dist"));
+    assert!(workflow.contains("SHA256SUMS"));
+    assert!(workflow.contains("actions/upload-artifact"));
+    assert!(workflow.contains("softprops/action-gh-release"));
+    Ok(())
+}
+
+#[test]
+fn github_actions_runs_every_fuzz_target_with_bounds_and_failure_artifacts() -> Result<()> {
+    let workflow = std::fs::read_to_string(repo_root().join(".github/workflows/fuzz.yml"))?;
+
+    assert!(workflow.contains("schedule:"));
+    assert!(workflow.contains("workflow_dispatch:"));
+    for target in [
+        "fuzz_plan_parse",
+        "fuzz_template_substitute",
+        "fuzz_yaml_roundtrip",
+        "fuzz_config_toml",
+        "fuzz_pipeline_parse",
+        "fuzz_pipeline_state",
+    ] {
+        assert!(workflow.contains(target), "missing fuzz target {target}");
+    }
+    assert!(workflow.contains("-max_total_time="));
+    assert!(workflow.contains("if: failure()"));
+    assert!(workflow.contains("fuzz/artifacts/"));
+    assert!(workflow.contains("fuzz-logs/"));
+    Ok(())
+}
+
+#[test]
 fn generated_projections_are_excluded_from_markdown_reformatting() -> Result<()> {
     let ignored = std::fs::read_to_string(repo_root().join(".prettierignore"))?;
     assert!(ignored.lines().any(|line| line == "commands/gm-*.md"));

@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  gates:
+    name: full release gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install CI tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-deny
+
+      - name: run full CI gate
+        run: cargo xtask ci
+
+      - name: audit dependency graph
+        run: cargo deny check
+
+  build:
+    name: build ${{ matrix.target }}
+    needs: gates
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runner: macos-14
+            target: aarch64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: build release CLI
+        run: cargo xtask dist
+
+      - name: package checksummed CLI
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p dist
+          archive="godmode-${GITHUB_REF_NAME}-${TARGET}.tar.gz"
+          tar -czf "dist/${archive}" -C target/release godmode
+          cd dist
+          shasum -a 256 "${archive}" > "${archive}.sha256"
+
+      - name: upload checksummed CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: godmode-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: upload tag assets
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: download CLI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: write aggregate checksums
+        run: cat artifacts/*.sha256 > artifacts/SHA256SUMS
+
+      - name: create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.tar.gz
+            artifacts/*.sha256
+            artifacts/SHA256SUMS
+          fail_on_unmatched_files: true
