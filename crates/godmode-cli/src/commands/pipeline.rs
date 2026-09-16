@@ -83,10 +83,10 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
 
             PipelineAction::Run {
                 name,
-                from: _from,
+                from,
                 fail_fast,
             } => {
-                let result = pipeline::run_tasks(root, &name, fail_fast)?;
+                let result = pipeline::run_tasks(root, &name, from.as_deref(), fail_fast)?;
                 if json {
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 } else {
