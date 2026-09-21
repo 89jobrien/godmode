@@ -47,7 +47,7 @@ crate but wrong in the workspace context.
 
 ### Symptom
 
-```
+```text
 DEAD_CODE  src/lib.rs:20  node_count  (testonly)
 DEAD_CODE  src/lib.rs:25  edge_count  (testonly)
 ```
@@ -60,7 +60,7 @@ tests in this crate calling them — hence `(testonly)`.
 Adding `// qual:allow(dry)` above the functions does NOT suppress DEAD_CODE. It
 suppresses duplicate/boilerplate DRY findings only. The result:
 
-```
+```text
 ORPHAN_SUPPRESSION  src/lib.rs:19  qual:allow(dry) has no matching finding
 ```
 
@@ -87,7 +87,7 @@ exclude_files = ["src/graph_api.rs"]  # pub API consumed by graph-cli crate
 
 ### Symptom
 
-```
+```text
 TQ_UNTESTED  src/main.rs:12  run
 TQ_UNTESTED  src/cli.rs:45  dispatch_command
 ```
@@ -150,7 +150,7 @@ things.
 
 ### Symptom
 
-```
+```text
 TQ_UNTESTED  src/lib.rs:88  parse_config
 TQ_UNTESTED  src/lib.rs:102  validate_schema
 ```
@@ -220,7 +220,7 @@ configs override the workspace config for that crate's scan.
 
 ## Decision Tree: Workspace Finding Triage
 
-```
+```text
 Finding: DEAD_CODE
   └─ Is the function pub?
        ├─ Yes → Is it used by another crate?

@@ -7,6 +7,7 @@ allowed-tools:
 - Grep
 max-turns: 20
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -22,8 +23,8 @@ max-turns: 20
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Post-release observability sweep: query traces, score health, triage surfaced issues.
+
 1. Run godmode:observability-as-infrastructure — query and tail the session trace log
    (.ctx/godmode/traces/trace.jsonl). Surface errors, slow operations, blocked tasks,
    and anomalies since the last release tag.

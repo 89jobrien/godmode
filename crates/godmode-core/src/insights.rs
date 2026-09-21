@@ -1,3 +1,5 @@
+//! Append-only insight capture, date filtering, and Markdown report rendering.
+
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -8,9 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::report_index::{JsonFileIndex, ReportIndexPort};
 
-// ---------------------------------------------------------------------------
 // Types
-// ---------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Insight {
@@ -21,9 +21,7 @@ pub struct Insight {
     pub ts: DateTime<Utc>,
 }
 
-// ---------------------------------------------------------------------------
 // File path helpers
-// ---------------------------------------------------------------------------
 
 fn insights_path(root: &Path) -> PathBuf {
     root.join(".ctx")
@@ -40,9 +38,7 @@ fn insights_md_path(root: &Path, date: &NaiveDate) -> PathBuf {
         .join(format!("insights-{}.md", date.format("%Y-%m-%d")))
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /// Return today's date (UTC).
 pub fn today() -> NaiveDate {
@@ -126,9 +122,7 @@ pub fn render_markdown(root: &Path, date: NaiveDate) -> Result<PathBuf> {
     Ok(path)
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

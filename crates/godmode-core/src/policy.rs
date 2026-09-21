@@ -45,6 +45,7 @@ pub enum GovernanceLevel {
 }
 
 impl GovernanceLevel {
+    /// Returns the lowercase governance-level name.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Open => "open",

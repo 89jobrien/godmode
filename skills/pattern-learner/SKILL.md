@@ -35,7 +35,7 @@ Identify which skills are invoked together in sessions:
 
 **Output**:
 
-```
+```text
 Skill co-occurrence: [skill-a, skill-b]
 Occurrences: 5/8 sessions
 Confidence: high
@@ -57,7 +57,7 @@ Identify which crates change together in commits:
 
 **Output**:
 
-```
+```text
 Crate coupling: crux-core ↔ devkit
 Occurrences: 5/8 recent commits
 Confidence: high
@@ -79,7 +79,7 @@ Identify recurring test failure → fix sequences:
 
 **Output**:
 
-```
+```text
 Failure-fix pair: clippy unsafe warnings
 Failure cause: Missing SAFETY comment on unsafe block
 Fix sequence: [1. Add SAFETY doc comment, 2. Run cargo clippy, 3. Commit]
@@ -103,7 +103,7 @@ Identify recurring naming, structure, and coding patterns:
 
 **Output**:
 
-```
+```text
 Naming convention: godmode:<domain>-<service>
 Examples: godmode:pattern-learner, godmode:code-review, godmode:introspection
 Frequency: 7/8 recent agent definitions
@@ -165,6 +165,6 @@ low`. Do not promote uncertain patterns to established knowledge.
 
 ## See Also
 
-- `.ctx/memory-bank/patterns.md` — main pattern repository
+- `.ctx/godmode/memory-bank/patterns.md` — main pattern repository
 - `skills/introspection/SKILL.md` — plugin and skill consistency auditing
 - `agents/pattern-learner-agent.md` — agent definition

@@ -2,6 +2,7 @@
 description: Detect drift between documentation and code. Read-only — report findings, do not fix.
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,9 +18,9 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Detect drift between documentation and code. Read-only — report findings, do not fix.
 Follow godmode:doc-sync exactly:
+
 1. Check CLI surface: run --help for each subcommand, compare against documented flags.
 2. Check crate/module surface: compare ls crates/, pub mod, pub fn/struct/enum/trait
    against CLAUDE.md and README tables.

@@ -68,7 +68,7 @@ Use the Glob tool with pattern `**/*.snap.new`, excluding `target/` matches, ins
 
 ## Output format
 
-```
+```text
 Session Briefing — devloop
 ==========================
 Branch:  main (+3 uncommitted files)

@@ -1,3 +1,5 @@
+//! Fuzzes split-coverage invariants over arbitrary newline-delimited paths.
+
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 
@@ -37,11 +39,8 @@ fn verify_coverage(source: &[String], splits: &[Vec<String>]) -> CoverageResult 
 }
 
 fuzz_target!(|data: &[u8]| {
-    // Interpret the fuzz input as a newline-delimited list of path strings.
-    // First line = number of "source" files (parsed as usize, clamped).
-    // Remaining lines alternate: file path tokens split by '|' into splits.
-    //
-    // We just need verify_coverage to not panic on any input shape.
+    // Treat each nonempty UTF-8 line as a source path, then partition the paths
+    // into two halves to exercise coverage validation without panicking.
     if let Ok(s) = std::str::from_utf8(data) {
         let lines: Vec<&str> = s.lines().collect();
         if lines.is_empty() {

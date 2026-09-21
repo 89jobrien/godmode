@@ -47,7 +47,7 @@ Never batch multiple changes before testing.
 
 Commit after each safe, verified step. Each commit message must name the pattern applied:
 
-```
+```text
 refactor(crate): extract <name> from <source>
 refactor(crate): rename <old> → <new>
 ```

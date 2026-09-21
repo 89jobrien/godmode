@@ -12,7 +12,7 @@ tools:
   - Grep
 skills:
   - verification-before-completion
-template: review
+template: ops
 category: qual
 prompt: null
 hooks: []

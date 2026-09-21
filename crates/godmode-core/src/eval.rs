@@ -32,6 +32,7 @@ pub struct EvalOutcome {
 }
 
 pub trait EvalExecutor {
+    /// Evaluates one case iteration with the remaining cost budget.
     fn evaluate(
         &mut self,
         case: &EvalCase,
@@ -97,6 +98,7 @@ pub const MAX_REPETITIONS: u32 = 10;
 
 static RUN_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
+/// Returns the evaluation-suite path for a skill.
 pub fn suite_path(root: &Path, skill: &str) -> PathBuf {
     root.join("skills").join(skill).join("evals/evals.json")
 }
@@ -120,6 +122,7 @@ fn baseline_path(root: &Path, skill: &str) -> Result<PathBuf> {
     Ok(state_dir(root, skill)?.join("baseline.json"))
 }
 
+/// Loads a skill's evaluation suite and rejects an empty suite.
 pub fn load_suite(root: &Path, skill: &str) -> Result<EvalSuite> {
     state_dir(root, skill)?;
     let path = suite_path(root, skill);
@@ -133,6 +136,7 @@ pub fn load_suite(root: &Path, skill: &str) -> Result<EvalSuite> {
     Ok(suite)
 }
 
+/// Runs the suite within the configured limits and persists its report.
 pub fn run<E: EvalExecutor>(
     root: &Path,
     skill: &str,
@@ -284,6 +288,7 @@ fn load_baseline(root: &Path, skill: &str) -> Result<Option<RunReport>> {
     }
 }
 
+/// Promotes the latest run to the baseline after enforcing the gate.
 pub fn promote(root: &Path, skill: &str, gate: Gate) -> Result<RunReport> {
     validate_gate(gate)?;
     let latest = latest_run(root, skill)?;
@@ -292,6 +297,7 @@ pub fn promote(root: &Path, skill: &str, gate: Gate) -> Result<RunReport> {
     Ok(latest)
 }
 
+/// Compares the latest run with the promoted baseline.
 pub fn compare(root: &Path, skill: &str) -> Result<Comparison> {
     let current = latest_run(root, skill)?;
     let baseline = load_baseline(root, skill)?
@@ -305,6 +311,7 @@ pub fn compare(root: &Path, skill: &str) -> Result<Comparison> {
     })
 }
 
+/// Summarizes stored runs and whether the latest run satisfies the gate.
 pub fn status(root: &Path, skill: &str, gate: Gate) -> Result<EvalStatus> {
     validate_gate(gate)?;
     let mut runs = stored_runs(root, skill)?;
@@ -358,6 +365,7 @@ pub struct FixtureExecutor {
 }
 
 impl FixtureExecutor {
+    /// Loads deterministic case outcomes from a JSON fixture file.
     pub fn load(path: &Path) -> Result<Self> {
         let raw = std::fs::read_to_string(path)
             .with_context(|| format!("reading fixture results {}", path.display()))?;

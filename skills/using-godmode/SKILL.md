@@ -49,7 +49,7 @@ After each ACT turn, default to VERIFY. Multiple ACT turns are fine.
 Before responding in any phase, check if a skill applies.
 1% chance it's relevant = invoke it.
 
-```
+```text
 Message received → skill applies? → YES: invoke Skill tool first → NO: respond
 ```
 
@@ -74,6 +74,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:writing-plans`                   | Multi-step task with a spec or requirements                  |
 | `godmode:verification-before-completion`  | Before claiming work is done                                 |
 | `godmode:task-management`                 | Creating, tracking, or executing a task graph                |
+| `godmode:ingest`                          | Loading one or more plans without task ID collisions         |
 | `godmode:parallel-agents`                 | 2+ independent tasks that can run concurrently               |
 | `godmode:cap`                             | "cap", "commit and push", "ship it"                          |
 | `godmode:ci-fix`                          | CI failing, "fix CI", broken pipeline                        |
@@ -95,7 +96,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:doublecheck`                     | Three-layer verification of factual claims                   |
 | `godmode:mini-context-graph`              | Persistent knowledge base with entity graph                  |
 | `godmode:agent-governance`                | Governance/safety patterns for AI agent systems              |
-| `godmode:memory-banking`                  | Generate/maintain .ctx/memory-bank/ context                  |
+| `godmode:memory-banking`                  | Generate/maintain .ctx/godmode/memory-bank/ context          |
 | `godmode:changelog`                       | Parse git history into structured changelogs                 |
 | `godmode:cross-issue`                     | Cross-repo issue coordination and linking                    |
 | `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs           |
@@ -232,7 +233,7 @@ godmode handon                          # session start triage
 godmode handoff                         # session end closeout
 godmode plan ingest <plan.md>           # ingest plan → task graph
 godmode task list [--json]              # all tasks
-godmode task next [--json]              # next runnable (exit 1 if none)
+godmode task next [--json]              # next runnable (exit 2 if none)
 godmode task add <title> [--id <id>] [opts]  # add task
 godmode task start <id>                 # mark running
 godmode task done <id> [--commit <sha>] # mark done

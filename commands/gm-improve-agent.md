@@ -9,6 +9,7 @@ allowed-tools:
 - Grep
 max-turns: 30
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -24,8 +25,8 @@ max-turns: 30
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Identify recurring agent behaviour patterns and codify improvements into skills or agents.
+
 1. Run godmode:self-reflect — review recent sessions for friction, repeated corrections,
    and process gaps.
 2. Run godmode:pattern-learner — extract recurring patterns from session traces and

@@ -23,7 +23,7 @@ in its prompt but no deterministic mechanism to walk steps automatically.
 
 ## Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │                   gm-orchestrator                    │
 │  Interactive sessions: reads SKILL.md, invokes       │
@@ -119,7 +119,7 @@ either — it calls `godmode task next` and works on whatever is runnable.
 
 ### State transitions
 
-```
+```text
 For each pipeline step:
   load graph -> runnable tasks -> execute run: fields
     -> mark done on success -> save graph
@@ -131,7 +131,7 @@ For each pipeline step:
 
 New `PipelineAction::Run` variant in `main.rs`.
 
-```
+```text
 godmode pipeline run <name> [--from <skill>] [--fail-fast]
 ```
 

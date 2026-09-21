@@ -2,6 +2,7 @@
 description: Systematically debug a failure, verify the fix, and commit.
 subtask: false
 ---
+
 ## Rules
 
 - Read the full error output before proposing any fix. Do not skim.
@@ -14,8 +15,8 @@ subtask: false
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
-
 Systematically debug a failure, verify the fix, and commit.
+
 1. Run godmode:systematic-debugging — read the full error, check recent changes,
    state one hypothesis before touching code, apply the minimal fix.
    3-attempt rule: if 3 sequential fixes all fail, write BLOCKED.md and stop.

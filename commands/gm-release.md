@@ -9,6 +9,7 @@ allowed-tools:
 - Grep
 max-turns: 40
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -23,7 +24,6 @@ max-turns: 40
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
-
 
 Workspace release pipeline from health assessment through release notes and commit.
 Abort when a required readiness or verification step fails; surface what needs fixing.

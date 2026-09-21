@@ -1,6 +1,6 @@
 # Simple Plan
 
-### Task 1: Write failing test
+## Task 1: Write failing test
 
 **Crate**: `godmode-core`
 

@@ -1,3 +1,5 @@
+//! External-tool adapters and session handon/handoff orchestration.
+
 pub mod coursers;
 pub mod crux;
 pub mod doob;
@@ -222,9 +224,7 @@ fn detect_dirty_files(root: &Path) -> Vec<String> {
     .unwrap_or_default()
 }
 
-// ---------------------------------------------------------------------------
 // Report formatters (pure string building — no I/O)
-// ---------------------------------------------------------------------------
 
 /// Format the handon (session-start) human-readable report.
 pub fn format_handon_report(

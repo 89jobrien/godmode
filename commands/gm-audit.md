@@ -7,6 +7,7 @@ allowed-tools:
 - Grep
 max-turns: 30
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -22,8 +23,8 @@ max-turns: 30
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Full repo health audit: quality, dead code, dependencies, recurring mistakes, and backlog gaps.
+
 1. Run godmode:health-score — overall quality signal and trend.
 2. Run godmode:dead-code — identify unused exports, types, and functions.
 3. Run godmode:dep-audit — flag outdated, yanked, or vulnerable dependencies.

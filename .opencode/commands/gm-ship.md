@@ -2,6 +2,7 @@
 description: 'Ship the current work slice: verify, document, commit, and push.'
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,8 +18,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Ship the current work slice: verify, document, commit, and push.
+
 1. Run godmode:verification-before-completion — all gates must be green before proceeding.
 2. Run godmode:changelog — update CHANGELOG.md from commits since last tag.
 3. Run godmode:release-notes — produce human-facing release notes from the changelog diff.

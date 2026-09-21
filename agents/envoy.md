@@ -41,7 +41,7 @@ Default first step when given a vague env problem:
 ```bash
 echo "=== direnv ===" && direnv status
 echo "=== op accounts ===" && op account list
-echo "=== conflicting vars ===" && env | grep -E "KEY|TOKEN|SECRET" | sort
+echo "=== conflicting vars ===" && env | rg "KEY|TOKEN|SECRET" | sort
 echo "=== op test ===" && op item list --account=my.1password.com --limit=1
 ```
 

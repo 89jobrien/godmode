@@ -34,10 +34,12 @@ pub struct TestSummary {
 }
 
 impl TestSummary {
+    /// Returns `true` when no tests failed.
     pub fn is_success(&self) -> bool {
         self.failed == 0
     }
 
+    /// Groups test results by crate name.
     pub fn by_crate(&self) -> HashMap<&str, Vec<&TestRunResult>> {
         let mut grouped: HashMap<&str, Vec<&TestRunResult>> = HashMap::new();
         for r in &self.results {
@@ -71,6 +73,7 @@ impl Default for TestRunner {
 }
 
 impl TestRunner {
+    /// Creates an empty runner configured for parallel execution.
     pub fn new() -> Self {
         Self {
             tests: Vec::new(),
@@ -81,10 +84,12 @@ impl TestRunner {
         }
     }
 
+    /// Adds one conformance test to the runner.
     pub fn add_test<T: ConformanceTest + 'static>(&mut self, test: T) {
         self.tests.push(Box::new(test));
     }
 
+    /// Adds an iterable of conformance tests to the runner.
     pub fn add_tests<I, T>(&mut self, tests: I)
     where
         I: IntoIterator<Item = T>,
@@ -100,30 +105,36 @@ impl TestRunner {
         self.tests.extend(tests);
     }
 
+    /// Restricts execution to tests for the named crate.
     pub fn filter_crate(mut self, crate_name: &str) -> Self {
         self.crate_filter = Some(crate_name.to_string());
         self
     }
 
+    /// Restricts execution to the selected test category.
     pub fn filter_category(mut self, category: TestCategory) -> Self {
         self.category_filter = Some(category);
         self
     }
 
+    /// Restricts execution to tests whose names contain the pattern.
     pub fn filter_name(mut self, pattern: &str) -> Self {
         self.name_filter = Some(pattern.to_string());
         self
     }
 
+    /// Enables or disables parallel test execution.
     pub fn parallel(mut self, enabled: bool) -> Self {
         self.parallel = enabled;
         self
     }
 
+    /// Returns the total number of registered tests.
     pub fn test_count(&self) -> usize {
         self.tests.len()
     }
 
+    /// Returns the number of registered tests matching all active filters.
     pub fn filtered_count(&self) -> usize {
         self.tests
             .iter()
@@ -183,6 +194,7 @@ impl TestRunner {
         s
     }
 
+    /// Runs matching tests and aggregates their results and duration.
     pub fn run(&self) -> TestSummary {
         let start = Instant::now();
         let filtered: Vec<_> = self
@@ -208,6 +220,7 @@ impl TestRunner {
 pub struct ReportGenerator;
 
 impl ReportGenerator {
+    /// Writes the configured human-readable conformance report.
     pub fn text<W: Write>(
         writer: &mut W,
         summary: &TestSummary,
@@ -279,6 +292,7 @@ impl ReportGenerator {
         Ok(())
     }
 
+    /// Writes a versioned JSON report containing the summary and test results.
     pub fn json<W: Write>(writer: &mut W, summary: &TestSummary) -> std::io::Result<()> {
         let report = serde_json::json!({
             "report_version": "1.0",
@@ -296,6 +310,7 @@ impl ReportGenerator {
         writeln!(writer, "{}", serde_json::to_string_pretty(&report).unwrap())
     }
 
+    /// Writes GitHub Actions annotations for failures and the final status.
     pub fn github_actions<W: Write>(writer: &mut W, summary: &TestSummary) -> std::io::Result<()> {
         for r in &summary.results {
             if let TestResult::Fail { reason } = &r.result {

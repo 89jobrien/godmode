@@ -1,9 +1,12 @@
+//! Produces the session-end handoff summary.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs handoff integrations and prints the resulting session summary.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Handoff => {

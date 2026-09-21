@@ -2,6 +2,7 @@
 description: Autonomous parallel issue resolution. Fetch all open GitHub issues, dispatch one agent per
 subtask: false
 ---
+
 ## Rules
 
 - Cap parallel subagents at 5 concurrent.
@@ -16,7 +17,6 @@ subtask: false
 - Never use `--no-verify` in subagent git operations.
 - If `gh` auth fails, log to `.ctx/pending-manual.txt` and continue.
   Do NOT retry auth — tell the user to run `gh auth login`.
-
 
 Autonomous parallel issue resolution. Fetch all open GitHub issues, dispatch one agent per
 independent slot (cap 5), merge sequentially, close issues with commit refs.
@@ -40,7 +40,7 @@ Present the grouping and wait for user go/no-go before proceeding.
 
 ## Step 3: Worktree setup
 
-```
+```text
 REPO_ROOT=$(git rev-parse --show-toplevel)
 grep -q '.worktrees/' "$REPO_ROOT/.gitignore" || echo '.worktrees/' >> "$REPO_ROOT/.gitignore"
 git fetch origin main
@@ -51,6 +51,7 @@ git worktree add "$REPO_ROOT/.worktrees/slot-N" -b "issue/slot-N"
 ## Step 4: Dispatch agents
 
 Spawn one godmode:tdd-crate-agent per slot (background). Each agent prompt must include:
+
 - Worktree absolute path
 - Branch name (verify with git branch --show-current before every commit)
 - Full issue body for each issue in the slot
@@ -62,6 +63,7 @@ Spawn one godmode:tdd-crate-agent per slot (background). Each agent prompt must 
 ## Step 5: Integrate results
 
 After each agent completes:
+
 1. Verify commit exists: `git -C "$REPO_ROOT/.worktrees/slot-N" log --oneline -3`
    If empty → escalate to user, skip this slot.
 2. Merge sequentially (never octopus):

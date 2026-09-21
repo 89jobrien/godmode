@@ -72,7 +72,7 @@ The reader can find what they need without reading the whole document.
 
 ## Output Format
 
-```
+```text
 ## Doc Review: <filename>
 
 ### Blocking

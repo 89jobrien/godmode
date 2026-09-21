@@ -18,7 +18,7 @@ constraints, and audit trails.
 
 ## How It Works
 
-```
+```text
 Agent Dispatch
   → hook.nu (PreToolUse/Agent)
     → detect-agent-name (from tool_input)
@@ -43,7 +43,7 @@ intersect, rate limits take minimum, human-approval lists union.
 
 ### Directory layout
 
-```
+```text
 policies/
   default.yaml                # baseline — Standard level
   by-category/

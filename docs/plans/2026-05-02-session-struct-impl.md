@@ -69,7 +69,7 @@ validation — resolving the `#36` TODO comments already in `graph.rs`.
 
 3. Verify:
 
-   ```
+   ```text
    cargo nextest run -p godmode-core    → all green
    cargo clippy -p godmode-core -- -D warnings  → zero warnings
    ```
@@ -182,7 +182,7 @@ script name. No `--json` flag exists.
 
 3. Verify:
 
-   ```
+   ```text
    cargo nextest run -p godmode-core    → all green
    cargo clippy -p godmode-core -- -D warnings  → zero warnings
    ```
@@ -531,7 +531,7 @@ struct. Keep `handon`/`handoff` as thin wrappers calling `Session` for backward 
 
 3. Verify:
 
-   ```
+   ```text
    cargo nextest run -p godmode-core    → all green
    cargo clippy -p godmode-core -- -D warnings  → zero warnings
    ```
@@ -580,7 +580,7 @@ struct. Keep `handon`/`handoff` as thin wrappers calling `Session` for backward 
 
 3. Verify:
 
-   ```
+   ```text
    cargo build --workspace             → clean build
    cargo nextest run --workspace       → all green
    cargo clippy --workspace -- -D warnings  → zero warnings
@@ -614,7 +614,7 @@ struct. Keep `handon`/`handoff` as thin wrappers calling `Session` for backward 
 
 3. Verify:
 
-   ```
+   ```text
    cargo build -p godmode-core    → clean build (no "unresolved import" errors)
    ```
 

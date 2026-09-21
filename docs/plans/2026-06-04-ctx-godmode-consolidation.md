@@ -16,7 +16,7 @@ reports, and memory-bank.
 
 ### Target directory tree
 
-```
+```text
 .ctx/godmode/
   tasks.yaml              # was GODMODE.tasks.yaml
   pipeline.yaml           # was GODMODE.pipeline.yaml
@@ -121,7 +121,7 @@ reports, and memory-bank.
 
 4. Verify:
 
-   ```
+   ```text
    cargo nextest run -p godmode-core -- graph  → all green
    cargo clippy -p godmode-core -- -D warnings → zero warnings
    ```
@@ -203,7 +203,6 @@ reports, and memory-bank.
    ```
 
 3. Update doc comments: `.ctx/insights.jsonl` → `.ctx/godmode/traces/insights.jsonl`
-
 4. Verify: `cargo nextest run -p godmode-core -- insight` → all green
 5. Commit: `feat(insights): migrate to .ctx/godmode/{traces,reports}/`
 
@@ -228,7 +227,6 @@ reports, and memory-bank.
    ```
 
 3. Update doc comment on `PipelineState`
-
 4. Verify: `cargo nextest run -p godmode-core -- pipeline` → all green
 5. Commit: `feat(pipeline): migrate state to .ctx/godmode/pipeline.yaml`
 
@@ -251,7 +249,6 @@ reports, and memory-bank.
    ```
 
 3. Update module-level doc comments
-
 4. Verify: `cargo nextest run -p godmode-core -- hook` → all green
 5. Commit: `feat(hooks): migrate log to .ctx/godmode/traces/hooks.log`
 
@@ -308,6 +305,7 @@ reports, and memory-bank.
 4. Update test helpers
 
 5. Verify: `cargo nextest run -p godmode-core -- session` → all green
+
 6. Commit: `feat(session): migrate traces to .ctx/godmode/sessions/`
 
 ### Task 8: Migrate `hooks/*.rs` path references
@@ -343,6 +341,7 @@ reports, and memory-bank.
 4. Update test helpers to create `.ctx/godmode/`
 
 5. Verify: `cargo nextest run -p godmode-core -- hook` → all green
+
 6. Commit: `feat(hooks): migrate Rust hooks to .ctx/godmode/ paths`
 
 ### Task 9: Migrate `memory_banking.rs`
@@ -367,6 +366,7 @@ reports, and memory-bank.
 3. Update test paths
 
 4. Verify: `cargo nextest run -p godmode-core -- memory` → all green
+
 5. Commit: `fix(memory-banking): migrate to .ctx/godmode/memory-bank/`
 
 ### Task 10: Migrate `init.rs` trace file path
@@ -397,7 +397,6 @@ reports, and memory-bank.
    ```
 
 2. Update test assertions to match new paths
-
 3. Verify: `cargo nextest run -p godmode-core -- init` → all green
 4. Commit: `feat(init): scaffold full .ctx/godmode/ directory tree`
 
@@ -747,7 +746,7 @@ Commit: `docs(skills): standardize all output paths to .ctx/godmode/`
 2. Run clippy
 3. Grep for any remaining stale `.ctx/GODMODE` references:
 
-   ```
+   ```text
    Grep: pattern="\.ctx/GODMODE" path=crates/
    Grep: pattern="\.ctx/GODMODE" path=skills/
    Grep: pattern="\.ctx/GODMODE" path=hooks/
@@ -757,7 +756,7 @@ Commit: `docs(skills): standardize all output paths to .ctx/godmode/`
 
 4. Grep for remaining `.ctx/memory-banking`:
 
-   ```
+   ```text
    Grep: pattern="\.ctx/memory-banking" path=.
    ```
 

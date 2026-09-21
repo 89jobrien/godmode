@@ -2,6 +2,7 @@
 description: Explore the repo for new feature ideas grounded in what the code already does and what it's missing.
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,8 +18,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Explore the repo for new feature ideas grounded in what the code already does and what it's missing.
+
 1. Scan the repo structure: README, CLAUDE.md, Cargo.toml workspace members, top-level dirs.
 2. Read entry points (lib.rs, main.rs, mod.rs) for each major component.
 3. Grep for TODO, FIXME, HACK, unimplemented!(), todo!() across the workspace.

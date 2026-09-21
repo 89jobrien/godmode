@@ -1,9 +1,12 @@
+//! Builds and displays the current Godmode session context.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Reports running, pending, blocked, and critical-path session state.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Context => {

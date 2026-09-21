@@ -2,6 +2,7 @@
 description: Implement a feature or fix using strict test-driven development.
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,9 +18,9 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Implement a feature or fix using strict test-driven development.
 Follow godmode:task-driven-development exactly:
+
 1. Write a FAILING test first. Run it — confirm it fails for the right reason.
 2. Write the minimum code to make it pass. Run cargo nextest — all green.
 3. Refactor: cargo clippy -p <crate> -- -D warnings, cargo fmt, cargo nextest (still green).

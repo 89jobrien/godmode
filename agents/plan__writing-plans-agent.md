@@ -24,13 +24,13 @@ into a populated godmode task graph.
 
 Use the Glob tool to find the most recent explicit spec:
 
-```
+```text
 Pattern: docs/specs/*.spec.md
 ```
 
 Fall back to legacy implicit design docs:
 
-```
+```text
 Pattern: docs/plans/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md
 ```
 
@@ -40,7 +40,7 @@ Read the resolved spec fully before doing anything else.
 
 **Output — write a plan.** Once you have extracted tasks, write an implementation plan to:
 
-```
+```text
 docs/plans/{YYYYMMDD}-{topic}.plan.md
 ```
 

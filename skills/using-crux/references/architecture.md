@@ -17,7 +17,7 @@ in `crux-runtime`; external concerns are injected via trait ports.
 
 ### Persistence Port
 
-```
+```text
 RegistryBackend (trait)
   ├── InMemoryBackend (default, always available)
   └── RedbBackend (behind `redb` feature flag)
@@ -25,7 +25,7 @@ RegistryBackend (trait)
 
 ### Safety Port
 
-```
+```text
 SafetyPolicy (trait) → Approved | Rejected | RequiresApproval
   └── ApprovalGate (trait) — called when RequiresApproval
         ├── AutoApproveGate
@@ -34,7 +34,7 @@ SafetyPolicy (trait) → Approved | Rejected | RequiresApproval
 
 ### Handler Port (crux-script)
 
-```
+```text
 HandlerRegistry
   ├── handler(name, fn) → HandlerOutput (with confidence)
   └── handler_value(name, fn) → Value (auto-wrapped, confidence = 1.0)
@@ -98,7 +98,7 @@ for testability. `Agent::run` takes `&mut CruxCtx` directly — use the
 `crux-script` interprets `.crux` YAML files against `CruxCtx` +
 `HandlerRegistry`.
 
-```
+```text
 PipelineDef (schema.rs)
   → Runner::run(pipeline, input) (runner.rs)
     → CruxCtx created with pipeline name

@@ -48,7 +48,7 @@ Use the Grep tool on the output (or pipe through `grep "warning\["`) to count li
 
 Use Grep to search for `TODO|FIXME` in `crates/` directory:
 
-```
+```text
 Pattern: TODO|FIXME
 Glob: crates/**/*.rs
 ```
@@ -60,7 +60,7 @@ thousand lines). Round to one decimal place.
 
 Use Grep to count `pub fn`, `pub struct`, `pub enum`, `pub trait` in `crates/*/src/`:
 
-```
+```text
 Pattern: ^\\s*pub\\s+(fn|struct|enum|trait)
 Glob: crates/**/src/**/*.rs
 ```

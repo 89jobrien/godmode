@@ -1,9 +1,12 @@
+//! Resolves, checks, lists, and audits agent governance policies.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes policy inspection, tool authorization, index listing, or audit reporting.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Policy { action } => {

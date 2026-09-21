@@ -9,6 +9,7 @@ allowed-tools:
 - Grep
 max-turns: 60
 ---
+
 ## Rules
 
 - Cap parallel subagents at 5 concurrent.
@@ -24,9 +25,9 @@ max-turns: 60
 - If `gh` auth fails, log to `.ctx/pending-manual.txt` and continue.
   Do NOT retry auth — tell the user to run `gh auth login`.
 
-
 Fetch open GitHub issues, group into independent units, and dispatch parallel agents.
 Follow godmode:tackle-issues exactly:
+
 1. Fetch issues: gh issue list --state open --limit 20 --json number,title,body,labels
 2. Classify each as independent or dependent (same crate + overlapping files = dependent).
 3. Present grouping (max 5 slots) and wait for go/no-go before proceeding.

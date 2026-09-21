@@ -1,3 +1,5 @@
+//! Tests GitHub issue parsing, filtering, and task import.
+
 mod fake_bin;
 use fake_bin::FakeBin;
 use godmode_core::integrations::gh;

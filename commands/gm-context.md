@@ -7,6 +7,7 @@ allowed-tools:
 - Grep
 max-turns: 20
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -22,8 +23,8 @@ max-turns: 20
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Build and refresh project context before starting a major task.
+
 1. Run godmode:context-map — scan the repo structure, entry points, crate boundaries,
    and public API surface. Produce a structured context map.
 2. Run godmode:memory-banking — update the memory bank at .ctx/godmode/memory-bank/

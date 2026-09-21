@@ -74,7 +74,7 @@ issues and leave suggestions for a follow-up — that creates noisy fix historie
 2. Group findings by severity
 3. Report as structured list:
 
-```
+```text
 ## Code Review — <file or feature>
 
 ### Blocking

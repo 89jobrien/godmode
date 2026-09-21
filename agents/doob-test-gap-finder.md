@@ -63,7 +63,7 @@ For each gap, propose a test with:
 
 ## Output Format
 
-```
+```text
 Gap: <module>::<function> — <scenario>
 Proposed test: `test_<name>` in `tests/<file>.rs`
 Assertion: <what to verify>

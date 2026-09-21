@@ -34,7 +34,7 @@ next: ["verification-before-completion"]
 
 ### Full Edge Map
 
-```
+```text
 brainstorm
   next: [writing-plans]
 
@@ -257,7 +257,7 @@ history:
 
 ### CLI
 
-```
+```text
 godmode pipeline list                           # show all pipelines
 godmode pipeline show <name>                    # show steps with current position
 godmode pipeline start <name> [--from <skill>]  # start and auto-invoke first step

@@ -2,6 +2,7 @@
 description: 'Pre-release code quality pass: refactor, test discipline, quality score, readiness check, changelog, commit.'
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,8 +18,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Pre-release code quality pass: refactor, test discipline, quality score, readiness check, changelog, commit.
+
 1. Run godmode:refactoring — identify and apply structural improvements without
    changing observable behaviour. Run cargo test after each change — must stay green.
 2. Run godmode:testing-philosophy — review test coverage and test types. Identify

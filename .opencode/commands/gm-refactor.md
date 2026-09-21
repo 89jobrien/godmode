@@ -2,6 +2,7 @@
 description: Refactor the specified code without changing observable behaviour.
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,9 +18,9 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Refactor the specified code without changing observable behaviour.
 Follow godmode:refactoring exactly:
+
 1. Run skills/refactoring/helpers/refactor-gate.nu to confirm green baseline.
    If red, stop — fix tests first.
 2. State scope: which file(s), what pattern (extract/rename/move/decouple), and why.

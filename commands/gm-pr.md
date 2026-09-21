@@ -9,6 +9,7 @@ allowed-tools:
 - Grep
 max-turns: 30
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -24,8 +25,8 @@ max-turns: 30
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Author and open a pull request from the current branch.
+
 1. Run godmode:code-review — review the branch diff for bugs, style, and correctness.
    Fix any blocking findings before continuing.
 2. Run godmode:doublecheck — independent second pass to catch anything missed.

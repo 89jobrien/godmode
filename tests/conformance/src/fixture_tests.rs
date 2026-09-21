@@ -115,6 +115,7 @@ impl ConformanceTest for FixturePlanParse {
     }
 }
 
+/// Returns the fixture-driven graph and plan conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![Box::new(FixtureGraphRunnable), Box::new(FixturePlanParse)]
 }

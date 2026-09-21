@@ -1,3 +1,5 @@
+//! Persistent parallel-agent wave state, concurrency, health, and retry tracking.
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -28,6 +30,7 @@ fn state_path(root: &Path) -> std::path::PathBuf {
     root.join(".ctx").join("godmode").join("wave-status.json")
 }
 
+/// Initializes pending agent slots and persists the new wave state.
 pub fn init(root: &Path, wave_n: u32, agents: &[&str]) -> Result<WaveState> {
     std::fs::create_dir_all(root.join(".ctx").join("godmode"))
         .context("failed to create .ctx/godmode directory")?;
@@ -51,6 +54,7 @@ pub fn init(root: &Path, wave_n: u32, agents: &[&str]) -> Result<WaveState> {
     Ok(state)
 }
 
+/// Loads the persisted wave state.
 pub fn load(root: &Path) -> Result<WaveState> {
     let path = state_path(root);
     let content = std::fs::read_to_string(&path)
@@ -58,12 +62,14 @@ pub fn load(root: &Path) -> Result<WaveState> {
     serde_json::from_str(&content).context("failed to deserialise wave state")
 }
 
+/// Persists the wave state as formatted JSON.
 pub fn save(root: &Path, state: &WaveState) -> Result<()> {
     let path = state_path(root);
     let json = serde_json::to_string_pretty(state).context("failed to serialise wave state")?;
     std::fs::write(&path, json).with_context(|| format!("failed to write {}", path.display()))
 }
 
+/// Marks an agent slot done, records its commits, and persists the state.
 pub fn mark_done(root: &Path, agent: &str, commits: Vec<String>) -> Result<()> {
     let mut state = load(root)?;
     let slot = state
@@ -75,6 +81,7 @@ pub fn mark_done(root: &Path, agent: &str, commits: Vec<String>) -> Result<()> {
     save(root, &state)
 }
 
+/// Marks an agent slot blocked and persists the state.
 pub fn mark_blocked(root: &Path, agent: &str) -> Result<()> {
     let mut state = load(root)?;
     let slot = state
@@ -98,9 +105,7 @@ pub fn all_done(state: &WaveState) -> bool {
     state.agents.values().all(|s| s.status == SlotStatus::Done)
 }
 
-// ---------------------------------------------------------------------------
 // WaveConfig — concurrency, health-check, and retry knobs
-// ---------------------------------------------------------------------------
 
 /// Configuration for parallel agent dispatch and health monitoring.
 #[derive(Debug, Clone)]
@@ -126,9 +131,7 @@ impl Default for WaveConfig {
     }
 }
 
-// ---------------------------------------------------------------------------
 // ConcurrencyTracker — in-process slot counter, independent of WaveState file
-// ---------------------------------------------------------------------------
 
 /// Lightweight in-process concurrency gate.
 #[derive(Debug)]
@@ -138,6 +141,7 @@ pub struct ConcurrencyTracker {
 }
 
 impl ConcurrencyTracker {
+    /// Creates a tracker with zero active slots and the given limit.
     pub fn new(max: usize) -> Self {
         Self { max, active: 0 }
     }
@@ -158,19 +162,19 @@ impl ConcurrencyTracker {
     }
 
     // qual:test_helper
+    /// Returns the number of currently acquired slots.
     pub fn active(&self) -> usize {
         self.active
     }
 
     // qual:test_helper
+    /// Returns the remaining slot capacity, saturating at zero.
     pub fn available(&self) -> usize {
         self.max.saturating_sub(self.active)
     }
 }
 
-// ---------------------------------------------------------------------------
 // SlotHealth — per-slot health and retry metadata
-// ---------------------------------------------------------------------------
 
 /// Extended per-slot metadata for health monitoring and retry tracking.
 #[derive(Debug, Clone)]

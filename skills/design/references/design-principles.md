@@ -6,7 +6,7 @@ External dependencies (storage, processes, network, clock) go behind a trait (po
 logic is generic over the port trait. Concrete implementations (adapters) live in a separate
 module or crate from the port definition.
 
-```
+```text
          ┌──────────────────────────────┐
          │         Domain Logic          │
          │   (generic over port traits) │

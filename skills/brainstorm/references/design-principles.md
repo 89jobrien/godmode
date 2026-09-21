@@ -5,7 +5,7 @@
 External dependencies belong behind a trait (port) in the domain layer. Implementations
 live in adapters (`infra/` or equivalent). Business logic is generic over trait bounds.
 
-```
+```text
 domain/
   ports/          ← trait definitions (interfaces)
   services/       ← business logic, generic over ports

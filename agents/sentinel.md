@@ -58,7 +58,7 @@ Also check manually:
 
 Always output in this exact structure:
 
-```
+```text
 ## Sentinel Review
 
 ### Blocking

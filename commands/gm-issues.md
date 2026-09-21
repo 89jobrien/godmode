@@ -9,6 +9,7 @@ allowed-tools:
 - Grep
 max-turns: 50
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -24,8 +25,8 @@ max-turns: 50
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Triage, work, and close GitHub issues end-to-end.
+
 1. Run godmode:issue-triage — fetch open issues, classify by type (bug/feature/chore),
    complexity (S/M/L), and priority (P1-P3). Present the triage table and wait for
    user confirmation on which issues to work.

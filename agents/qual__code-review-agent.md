@@ -54,7 +54,7 @@ Review all five dimensions in one pass:
 
 ### Step 4: Produce report
 
-```
+```text
 ## Code Review — <branch or feature name>
 
 ### Blocking

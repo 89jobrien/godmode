@@ -2,6 +2,7 @@
 description: Review, maintain, and sync all project documentation in one pass.
 subtask: false
 ---
+
 ## Rules
 
 - Always run `git branch --show-current` before any commit. If on main, STOP.
@@ -17,8 +18,8 @@ subtask: false
   user to unlock 1Password — do not change git config.
 - Scratch files go in `.ctx/_WORKING_DIR/`.
 
-
 Review, maintain, and sync all project documentation in one pass.
+
 1. Run godmode:doc-review — structured review of existing docs for accuracy,
    completeness, clarity, and navigability. Produce a PASS/FAIL verdict with
    Blocking / Suggestion / Nitpick findings.

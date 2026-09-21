@@ -41,7 +41,7 @@ Review staged files. If unrelated changes appear, report them and ask before con
 
 Derive from the staged diff. Use Conventional Commits:
 
-```
+```text
 <type>(<scope>): <summary>
 ```
 

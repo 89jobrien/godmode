@@ -57,10 +57,10 @@ Always produce:
 
 ## OPENAI_API_KEY
 
-`source ~/.secrets` doesn't export. Use:
+Read the configured 1Password field rather than parsing `~/.secrets`:
 
 ```bash
-export OPENAI_API_KEY=$(grep ^OPENAI_API_KEY ~/.secrets | cut -d= -f2)
+op read "op://<vault>/<item>/<field>"
 ```
 
 ## Output Format

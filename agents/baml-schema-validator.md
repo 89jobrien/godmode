@@ -32,22 +32,20 @@ Known footgun: `generators.baml` says `"0.220.0"` but Cargo.toml pins `baml = "0
 
 Check if baml_source_map.rs is older than any baml_src file:
 
-```bash
-find crates/baml/baml_src -name "*.baml" -newer crates/baml/baml_client/baml_source_map.rs 2>/dev/null
-```
+Use Glob with `crates/baml/baml_src/**/*.baml` and compare each result's mtime
+with `crates/baml/baml_client/baml_source_map.rs`.
 
 If any files are newer, the client is stale. Report which files changed and recommend:
 
-```
+```text
 Regenerate with: cd crates/baml && uvx --from baml-py@0.218.0 baml-cli generate
 (Temporarily set generators.baml version to "0.218.0" first, restore to "0.220.0" after)
 ```
 
 ### 3. Compile check
 
-```bash
-cd /path/to/repo && cargo check -p devloop-baml 2>&1 | grep -E "^error" | head -10
-```
+Run `cargo check -p devloop-baml` in the repository working directory, then use
+Grep on the captured output with pattern `^error`.
 
 Report any errors with file:line context.
 
@@ -55,13 +53,13 @@ Report any errors with file:line context.
 
 For each BAML function defined in baml_src/, verify there's a corresponding entry in baml_source_map.rs:
 
-Use the Grep tool to search for `^function ` in `crates/baml/baml_src/*.baml`, and for `fn ` in `crates/baml/baml_client/baml_source_map.rs` (ignore commented-out matches).
+Use the Grep tool to search for `^function` in `crates/baml/baml_src/*.baml`, and for `fn` in `crates/baml/baml_client/baml_source_map.rs` (ignore commented-out matches).
 
 Report missing or extra entries.
 
 ## Output Format
 
-```
+```text
 BAML Validation Report
 ======================
 ✓ Version parity: OK (both 0.218.0)
@@ -75,7 +73,7 @@ Action required: 1 issue found
 
 If everything passes:
 
-```
+```text
 BAML Validation: All checks passed ✓
 ```
 

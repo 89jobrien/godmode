@@ -66,7 +66,7 @@ RUST_LOG=debug cargo nextest run -- sync
 
 ## Report Format
 
-```
+```text
 Provider: <name>
 SyncError variant: <variant>
 Root cause: <one line>

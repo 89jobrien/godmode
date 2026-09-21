@@ -7,6 +7,7 @@ pub enum WriteMode {
 }
 
 impl WriteMode {
+    /// Returns `true` when mutations should be applied.
     pub fn is_apply(self) -> bool {
         matches!(self, Self::Apply)
     }

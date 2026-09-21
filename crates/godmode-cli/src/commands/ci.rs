@@ -1,9 +1,12 @@
+//! Triages GitHub Actions failures and reports likely fixes.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Classifies a CI failure and prints its diagnostic summary.
 pub fn handle(command: Cmd, _root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Ci { action } => match action {

@@ -1,3 +1,5 @@
+//! Git worktree creation and guarded cleanup under `.worktrees/`.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 

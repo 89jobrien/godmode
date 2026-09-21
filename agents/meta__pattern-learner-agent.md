@@ -66,7 +66,7 @@ Count occurrences:
 
 Document as:
 
-```
+```text
 Skill co-occurrence: [skill-a, skill-b] appears in 5/8 recent sessions
 Confidence: high
 Reasoning: <observed pattern>
@@ -82,7 +82,7 @@ From git history, identify which crates consistently change together:
 
 Document as:
 
-```
+```text
 Crate coupling: crate-x and crate-y co-change in 4/6 commits
 Confidence: high
 Reasoning: <observed pattern>
@@ -99,7 +99,7 @@ their solutions:
 
 Document as:
 
-```
+```text
 Failure pattern: clippy warnings on unsafe blocks
 Fix sequence: [audit unsafe usage, check SAFETY comments, run cargo clippy]
 Frequency: 3/10 recent sessions
@@ -118,7 +118,7 @@ structural conventions:
 
 Document as:
 
-```
+```text
 Naming convention: godmode:<domain>-<service>
 Examples: godmode:pattern-learner, godmode:code-review
 Frequency: 7/8 recent agents
