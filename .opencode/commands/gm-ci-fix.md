@@ -2,7 +2,6 @@
 description: Diagnose and fix the latest CI failure on the current branch.
 subtask: false
 ---
-
 ## Rules
 
 - Read the full error output before proposing any fix. Do not skim.
@@ -15,9 +14,9 @@ subtask: false
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
+
 Diagnose and fix the latest CI failure on the current branch.
 Follow godmode:ci-fix exactly:
-
 1. Run skills/ci-fix/helpers/fetch-failure.nu to get logs.
 2. Classify the root cause (compile_error, test_failure, clippy_warning, fmt_check,
    pre_commit_hook, runner_environment, false_positive, dependency_issue).

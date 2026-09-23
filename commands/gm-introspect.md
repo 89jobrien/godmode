@@ -9,21 +9,22 @@ allowed-tools:
 - Grep
 max-turns: 40
 ---
-
 ## Rules
 
 - Read the full diff before commenting. Never review partial context.
 - Group findings as Blocking / Suggestions / Nitpicks.
-- Apply ALL severity levels in one pass before committing. Do not commit after
-  fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- For audit-only requests, report findings without modifying files.
+- When remediation is requested, apply ALL severity levels in one pass before
+  committing. Do not commit after fixing only blocking issues.
+- After fixes, run `cargo clippy --workspace -- -D warnings`,
+  `cargo nextest run --workspace`, and `cargo fmt --all --check`.
+- After 3 failed fix attempts, write `BLOCKED.md` and stop.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
+
 Audit all godmode skills, agents, and plugin files for internal consistency.
 Follow godmode:introspection exactly:
-
 1. Run skills/introspection/helpers/audit.nu — fix any broken references or missing index entries.
 2. Cross-reference every godmode subcommand call against CLAUDE.md CLI reference.
 3. Check tool hygiene: flag cat/grep/find/cd&&git/--no-verify/gh run watch anti-patterns.

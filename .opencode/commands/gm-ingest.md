@@ -2,7 +2,6 @@
 description: Invoke godmode:ingest for the optional plan path in `$ARGUMENTS`.
 subtask: false
 ---
-
 ## Rules
 
 - Default to read-only. Do not modify files unless the command explicitly
@@ -12,6 +11,7 @@ subtask: false
 - Scratch dir is `.ctx/_WORKING_DIR/`.
 - Report findings in plain text. Flag any `agent.blocked` or `skill.error`
   events prominently.
+
 
 Invoke godmode:ingest for the optional plan path in `$ARGUMENTS`.
 Treat `$ARGUMENTS` as a literal file path, never as shell syntax.
