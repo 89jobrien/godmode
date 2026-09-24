@@ -60,7 +60,7 @@ For each match, record:
 
 Summarize all locations to be updated:
 
-```
+```text
 ## Dependency Bump Plan: <crate> <old-version> → <new-version>
 
 Affected repos:
@@ -112,7 +112,7 @@ Capture output and exit code.
 
 Create a summary table:
 
-```
+```text
 ## Propagation Results: <crate> <old-version> → <new-version>
 
 | Repository | Cargo.toml path | Status | Notes |

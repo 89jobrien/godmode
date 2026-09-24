@@ -1,3 +1,6 @@
+//! Provides a copy-paste test module scaffold with fixture, happy-path, edge-case, and
+//! trait-double examples.
+
 // Copy-paste starting point for a new test module.
 // Place inside the file under test (unit) or in tests/ (integration).
 

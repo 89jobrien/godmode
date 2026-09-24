@@ -16,7 +16,7 @@ for trend tracking not absolute accuracy.
 ### Step 1: Collect test count
 
 ```bash
-cargo nextest run --workspace 2>&1 | tail -1
+cargo nextest run --workspace
 ```
 
 Extract the number of tests from the summary line. If `cargo nextest` is not installed,
@@ -25,10 +25,11 @@ use `cargo test --no-run` and parse the binary count instead.
 ### Step 2: Collect clippy warning count
 
 ```bash
-cargo clippy --workspace 2>&1 | grep "warning\[" | wc -l
+cargo clippy --workspace
 ```
 
-Count only warnings, not notes. If clippy output is empty, the count is zero.
+Use the Grep tool on the captured output to count `warning[` lines. Count only warnings, not
+notes. If clippy output is empty, the count is zero.
 
 ### Step 3: Collect TODO/FIXME density
 
@@ -74,7 +75,7 @@ to check for `///` on the previous non-empty line.
 
 ### Step 8: Load previous scores
 
-Read `.ctx/memory-bank/health-history.jsonl`. Each line is a JSON object:
+Read `.ctx/godmode/memory-bank/health-history.jsonl`. Each line is a JSON object:
 
 ```json
 {
@@ -149,7 +150,8 @@ If TODO density > 2 per 1000 lines, subtract one grade.
 
 ### Step 11: Append to history
 
-Append the current metrics as a single JSON line to `.ctx/memory-bank/health-history.jsonl`:
+Append the current metrics as a single JSON line to
+`.ctx/godmode/memory-bank/health-history.jsonl`:
 
 ```json
 {"timestamp": "2026-06-02T14:35:22Z", "test_count": 272, ...}
@@ -169,7 +171,7 @@ the trend summary. Write the complete scorecard (including full history context)
 - Metrics are approximations for trend tracking, not absolute measurements. Flag any
   metric that could not be collected.
 - If `cargo clippy` or `cargo nextest` fail, report the failure and skip that metric.
-- If `.ctx/memory-bank/health-history.jsonl` is corrupt (unparseable JSON), log a
+- If `.ctx/godmode/memory-bank/health-history.jsonl` is corrupt (unparseable JSON), log a
   warning and continue with an empty history.
 - Do not spend more than 30 seconds on any single metric — timeout and skip rather
   than hang.

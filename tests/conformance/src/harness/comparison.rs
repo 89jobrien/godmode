@@ -12,6 +12,7 @@ pub enum CompareResult {
 }
 
 impl CompareResult {
+    /// Returns `true` only when the compared values differ.
     pub fn is_fail(&self) -> bool {
         matches!(self, CompareResult::Different(_))
     }
@@ -26,6 +27,7 @@ pub struct Diff {
 }
 
 impl Diff {
+    /// Formats either the unified diff or an expected-versus-actual message.
     pub fn describe(&self) -> String {
         if self.unified_diff.is_empty() {
             format!("expected {:?}, got {:?}", self.expected, self.actual)
@@ -39,10 +41,12 @@ impl Diff {
 pub struct OutputComparator;
 
 impl OutputComparator {
+    /// Creates a stateless output comparator.
     pub fn new() -> Self {
         Self
     }
 
+    /// Compares values and generates a diff from their debug representations.
     pub fn compare_debug<T: PartialEq + Debug>(&self, expected: &T, actual: &T) -> CompareResult {
         if expected == actual {
             CompareResult::Equal
@@ -57,6 +61,7 @@ impl OutputComparator {
         }
     }
 
+    /// Compares strings and generates a line-oriented diff when they differ.
     pub fn compare_str(&self, expected: &str, actual: &str) -> CompareResult {
         if expected == actual {
             CompareResult::Equal
@@ -69,6 +74,7 @@ impl OutputComparator {
         }
     }
 
+    /// Compares floating-point values within the supplied epsilon.
     pub fn compare_f64(&self, expected: f64, actual: f64, epsilon: f64) -> CompareResult {
         let delta = (expected - actual).abs();
         if delta <= epsilon {

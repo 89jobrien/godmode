@@ -153,7 +153,7 @@ crs history
 crs log --limit 50
 
 # Filter to a specific rule:
-crs log --limit 200 | grep "<rule-id>"
+crs log --limit 200 | rg "<rule-id>"
 ```
 
 Also export a full snapshot for offline analysis:

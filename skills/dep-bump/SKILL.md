@@ -118,7 +118,7 @@ For each updated repo:
 
 Create a table:
 
-```
+```text
 ## Propagation Results: <crate> <old-version> → <new-version>
 
 | Repository | Status | Notes |
@@ -140,7 +140,7 @@ No action needed. Repos are ready for commit and test.
 
 error: version `0.5.0` of `devkit` not found in registry
 
-```
+```text
 
 Next steps:
 - Verify the new version exists on crates.io

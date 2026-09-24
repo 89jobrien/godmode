@@ -1,3 +1,5 @@
+//! Tests priority filtering for `task list` and `task next` through the CLI.
+
 /// Integration tests for --priority filter on `task list` and `task next`.
 ///
 /// These tests build a temporary task graph on disk and invoke the compiled

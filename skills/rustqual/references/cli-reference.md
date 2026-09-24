@@ -2,7 +2,7 @@
 
 ## Usage
 
-```
+```text
 rustqual [OPTIONS] [PATH]
 ```
 

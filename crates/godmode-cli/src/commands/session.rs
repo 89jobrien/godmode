@@ -1,9 +1,12 @@
+//! Maintains persisted session trace files.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Previews or deletes session files older than the requested age.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Session { action } => match action {

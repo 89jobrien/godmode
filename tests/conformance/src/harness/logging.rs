@@ -23,6 +23,7 @@ enum LogLevel {
 }
 
 impl TestLogger {
+    /// Creates an empty, unindented test logger.
     pub fn new() -> Self {
         Self {
             entries: Vec::new(),
@@ -31,14 +32,17 @@ impl TestLogger {
         }
     }
 
+    /// Sets the current test name.
     pub fn set_test_name(&mut self, name: &str) {
         self.test_name = name.to_string();
     }
 
+    /// Clears the current test name.
     pub fn clear_test_name(&mut self) {
         self.test_name.clear();
     }
 
+    /// Appends an informational entry at the current indentation level.
     pub fn info(&mut self, msg: &str) {
         self.entries.push(LogEntry {
             level: LogLevel::Info,
@@ -47,6 +51,7 @@ impl TestLogger {
         });
     }
 
+    /// Appends an error entry at the current indentation level.
     pub fn error(&mut self, msg: &str) {
         self.entries.push(LogEntry {
             level: LogLevel::Error,
@@ -55,26 +60,32 @@ impl TestLogger {
         });
     }
 
+    /// Logs a named input using its debug representation.
     pub fn log_input<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("input  {}: {:?}", name, value));
     }
 
+    /// Logs a named expected value using its debug representation.
     pub fn log_expected<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("expect {}: {:?}", name, value));
     }
 
+    /// Logs a named actual value using its debug representation.
     pub fn log_actual<T: Debug>(&mut self, name: &str, value: &T) {
         self.info(&format!("actual {}: {:?}", name, value));
     }
 
+    /// Increases indentation by two spaces.
     pub fn indent(&mut self) {
         self.indent += 2;
     }
 
+    /// Decreases indentation by two spaces without underflowing.
     pub fn dedent(&mut self) {
         self.indent = self.indent.saturating_sub(2);
     }
 
+    /// Logs a section heading and indents entries produced by the callback.
     pub fn section<F>(&mut self, name: &str, f: F)
     where
         F: FnOnce(&mut Self),

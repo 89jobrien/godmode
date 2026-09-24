@@ -12,27 +12,25 @@ Filing 3+ related issues at once (e.g., refactor candidates, tech debt).
 
 ## Commands
 
-Chain all `gh issue create` calls in a single Bash invocation using `&&`:
+Run each `gh issue create` with a body-file HEREDOC:
 
 ```bash
 gh issue create -R OWNER/REPO --title "..." --label "LABEL" \
-  --body "$(cat <<'EOF'
+  --body-file - <<'EOF'
 Body here (markdown).
 EOF
-)" && \
 gh issue create -R OWNER/REPO --title "..." --label "LABEL" \
-  --body "$(cat <<'EOF'
+  --body-file - <<'EOF'
 Body here.
 EOF
-)"
 ```
 
 ## Rules
 
-- Always use HEREDOC for body (`$(cat <<'EOF' ... EOF)`)
+- Always pass HEREDOC bodies through `--body-file - <<'EOF'`.
 - Check available labels first: `gh label list -R OWNER/REPO`
 - Keep titles under 70 chars, prefix with type (`refactor:`, `feat:`, `fix:`)
-- Batch all creates in one Bash call to avoid repeated user approvals
+- Keep all creates in one Bash call when practical.
 
 ## Common Failures
 

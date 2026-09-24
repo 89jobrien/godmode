@@ -32,7 +32,7 @@ anything is installed.
    live file).
 4. Validate the merged set:
 
-   ```
+   ```text
    crs validate --rules .ctx/coursers/crs-merged-rules.json
    ```
 

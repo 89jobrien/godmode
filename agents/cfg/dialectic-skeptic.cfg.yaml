@@ -11,7 +11,8 @@ tools:
   - Glob
   - Grep
   - Bash
-skills: []
+skills:
+  - dialectic
 template: rule
 category: agent
 prompt: null

@@ -33,7 +33,7 @@ The orchestrator passes you the question and the path to write your synthesis to
 
 ## Output format
 
-```
+```text
 DISAGREEMENTS
 =============
 - <Point of contention>

@@ -31,7 +31,7 @@ fn real_adapter_conforms() { suite().assert_all(&RealAdapter); }
 fn mock_adapter_conforms() { suite().assert_all(&MockAdapter); }
 ```
 
-## assert_implements!
+## assert_implements
 
 Zero-cost compile-time trait-bound verification:
 

@@ -1,3 +1,5 @@
+//! Tests Doob parsing, task import, publishing, and provenance.
+
 mod fake_bin;
 use fake_bin::FakeBin;
 use godmode_core::integrations::doob;

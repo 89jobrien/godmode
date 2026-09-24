@@ -1,3 +1,5 @@
+//! Task, task-graph, status, priority, provenance, and summary data types.
+
 #![allow(clippy::items_after_test_module)]
 
 use chrono::{DateTime, NaiveDate, Utc};
@@ -54,6 +56,7 @@ pub enum Status {
 }
 
 impl Status {
+    /// Returns the lowercase status name.
     pub fn as_str(&self) -> &'static str {
         match self {
             Status::Pending => "pending",
@@ -128,6 +131,7 @@ pub struct Task {
 }
 
 impl Task {
+    /// Creates a pending task with normal priority and empty optional metadata.
     pub fn new(id: impl Into<String>, title: impl Into<String>) -> Self {
         Self {
             id: id.into(),
@@ -147,10 +151,12 @@ impl Task {
         }
     }
 
+    /// Returns the task's Doob identifier, if present.
     pub fn doob_id(&self) -> Option<&str> {
         self.provenance.doob.as_ref().map(|value| value.id.as_str())
     }
 
+    /// Associates the task with a Doob todo identifier.
     pub fn set_doob_id(&mut self, id: impl Into<String>) {
         self.provenance.doob = Some(DoobProvenance { id: id.into() });
     }
@@ -160,6 +166,9 @@ impl Task {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaskGraph {
     pub tasks: Vec<Task>,
+    /// Stable source-to-task-ID mappings for idempotent plan ingestion.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    plan_imports: Vec<PlanImport>,
     /// Cached set of task IDs with `Status::Done`. Invalidated on any state transition.
     #[serde(skip)]
     done_cache: std::cell::RefCell<Option<std::collections::HashSet<String>>>,
@@ -169,6 +178,7 @@ impl Default for TaskGraph {
     fn default() -> Self {
         Self {
             tasks: Vec::new(),
+            plan_imports: Vec::new(),
             done_cache: std::cell::RefCell::new(None),
         }
     }
@@ -178,12 +188,42 @@ impl Clone for TaskGraph {
     fn clone(&self) -> Self {
         Self {
             tasks: self.tasks.clone(),
+            plan_imports: self.plan_imports.clone(),
             done_cache: std::cell::RefCell::new(None),
         }
     }
 }
 
 impl TaskGraph {
+    pub(crate) fn plan_task_ids(&self, source: &str) -> Option<&[String]> {
+        self.plan_imports
+            .iter()
+            .find(|import| import.source == source)
+            .map(|import| import.task_ids.as_slice())
+    }
+
+    pub(crate) fn is_imported_plan_task(&self, id: &str) -> bool {
+        self.plan_imports
+            .iter()
+            .any(|import| import.task_ids.iter().any(|task_id| task_id == id))
+    }
+
+    pub(crate) fn record_plan_import(&mut self, source: String, task_ids: Vec<String>) {
+        if let Some(import) = self
+            .plan_imports
+            .iter_mut()
+            .find(|import| import.source == source)
+        {
+            import.task_ids = task_ids;
+        } else {
+            self.plan_imports.push(PlanImport { source, task_ids });
+        }
+    }
+
+    pub(crate) fn clear_plan_imports(&mut self) {
+        self.plan_imports.clear();
+    }
+
     /// Returns the cached done-ID set, rebuilding if invalidated.
     pub fn done_ids(&self) -> std::cell::Ref<'_, std::collections::HashSet<String>> {
         {
@@ -206,6 +246,12 @@ impl TaskGraph {
     pub fn invalidate_done_cache(&mut self) {
         *self.done_cache.get_mut() = None;
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PlanImport {
+    source: String,
+    task_ids: Vec<String>,
 }
 
 /// Summary counts for display.
@@ -336,6 +382,7 @@ mod tests {
 }
 
 impl TaskGraph {
+    /// Counts tasks by status.
     pub fn summary(&self) -> GraphSummary {
         let mut s = GraphSummary::default();
         for t in &self.tasks {

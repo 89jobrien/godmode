@@ -34,26 +34,31 @@ pub struct FakeBinBuilder {
 }
 
 impl FakeBinBuilder {
+    /// Sets the fake binary's standard output.
     pub fn stdout(mut self, s: &str) -> Self {
         self.stdout = s.to_string();
         self
     }
 
+    /// Sets the fake binary's standard error.
     pub fn stderr(mut self, s: &str) -> Self {
         self.stderr = s.to_string();
         self
     }
 
+    /// Sets the fake binary's process exit code.
     pub fn exit_code(mut self, code: i32) -> Self {
         self.exit_code = code;
         self
     }
 
+    /// Emits invocation arguments as JSON instead of fixed output.
     pub fn echo_argv(mut self) -> Self {
         self.echo_argv = true;
         self
     }
 
+    /// Creates an executable fake binary in a temporary directory.
     pub fn build(self) -> FakeBin {
         let dir = TempDir::new().expect("tempdir");
         let bin_path = dir.path().join(&self.name);
@@ -86,6 +91,7 @@ impl FakeBinBuilder {
 }
 
 impl FakeBin {
+    /// Starts a builder for a fake binary with the given name.
     pub fn new(name: &str) -> FakeBinBuilder {
         FakeBinBuilder {
             name: name.to_string(),

@@ -1,11 +1,11 @@
+//! Tests hj handon/handoff invocation and argument construction.
+
 use godmode_core::integrations::hj;
 
 mod fake_bin;
 use fake_bin::FakeBin;
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 /// Create a minimal temp dir with a Cargo.toml so `detect::package_name` works.
 fn make_fake_root(name: &str) -> tempfile::TempDir {
@@ -18,9 +18,7 @@ fn make_fake_root(name: &str) -> tempfile::TempDir {
     dir
 }
 
-// ---------------------------------------------------------------------------
 // Shell-out tests
-// ---------------------------------------------------------------------------
 
 #[test]
 fn handon_returns_stdout() {
@@ -76,9 +74,7 @@ fn handon_errors_when_hj_missing() {
     );
 }
 
-// ---------------------------------------------------------------------------
 // Pure-logic tests
-// ---------------------------------------------------------------------------
 
 #[test]
 fn build_handoff_args_contains_required_flags() {

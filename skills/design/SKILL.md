@@ -144,7 +144,7 @@ pub fn <name>(...) -> ...;
 - [ ] New external dependency: yes/no — if yes, name and justify
 - [ ] Feature flag required: yes/no
 
-```
+```text
 
 ### Step 6: Get user approval
 

@@ -1,9 +1,12 @@
+//! Renders the task graph as DOT or SVG.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Converts the task graph to the requested format and writes it to stdout or a file.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::VisualizeGraph { format, out } => {

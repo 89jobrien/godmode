@@ -14,7 +14,8 @@ tools:
   - Grep
   - Bash
   - Agent
-skills: []
+skills:
+  - dialectic
 template: rule
 category: agent
 prompt: null

@@ -1,3 +1,5 @@
+//! Lists, tests, migrates, logs, and invokes Godmode hooks.
+
 use anyhow::Result;
 use godmode_core::hooks;
 use godmode_core::integrations::hook_runner;
@@ -6,6 +8,7 @@ use std::path::Path;
 
 use crate::HookAction;
 
+/// Dispatches a hook subcommand to its listing, logging, testing, migration, or built-in runner.
 pub fn run_hook_action(root: &Path, json: bool, action: HookAction) -> Result<()> {
     match action {
         HookAction::List => list_hooks(root, json),

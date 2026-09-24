@@ -91,7 +91,7 @@ For each primary document, check:
 
 ### Step 3: Produce report
 
-```
+```text
 ## Documentation Audit — <date>
 
 ### Blocking

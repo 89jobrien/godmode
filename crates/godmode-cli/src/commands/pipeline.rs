@@ -1,9 +1,12 @@
+//! Lists, inspects, runs, and advances named skill pipelines.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes pipeline lifecycle and headless-run subcommands while persisting active state.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Pipeline { action } => match action {

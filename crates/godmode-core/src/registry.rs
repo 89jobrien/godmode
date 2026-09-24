@@ -1,3 +1,5 @@
+//! Persistent registry types for installed skills and agents.
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

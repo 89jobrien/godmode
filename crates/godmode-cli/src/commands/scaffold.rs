@@ -1,9 +1,12 @@
+//! Generates test scaffolds for a crate and testing dimension.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Parses the requested testing dimension and prints its generated scaffold.
 pub fn handle(command: Cmd, _root: &Path, _json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Scaffold {

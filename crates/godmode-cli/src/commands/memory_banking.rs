@@ -1,9 +1,12 @@
+//! Initializes, injects, reminds, and reports project memory-bank state.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Dispatches memory-banking subcommands to the core integration.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::MemoryBanking { action } => {

@@ -17,7 +17,8 @@ tools:
   - Agent
   - Task
   - Bash(godmode:*)
-skills: []
+skills:
+  - task-driven-development
 template: dev
 category: agent
 prompt: null

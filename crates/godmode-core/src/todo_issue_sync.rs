@@ -40,7 +40,9 @@ pub struct CreatedIssue {
 }
 
 pub trait GitHubIssuePort {
+    /// Lists one page of open GitHub issues using one-based pagination.
     fn list_open_issues_page(&self, page: usize, per_page: usize) -> Result<Vec<GitHubIssue>>;
+    /// Creates an issue and returns its assigned number and URL.
     fn create_issue(&self, issue: &NewIssue) -> Result<CreatedIssue>;
 }
 
@@ -87,6 +89,7 @@ struct CreatedRecord {
     url: String,
 }
 
+/// Scans source TODOs, matches open issues, and optionally creates missing issues.
 pub fn sync(root: &Path, github: &dyn GitHubIssuePort, mode: WriteMode) -> Result<SyncResult> {
     let todos = scan(root)?;
     let mut issues = fetch_all(github)?;

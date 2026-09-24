@@ -19,7 +19,7 @@ task list — the file is the ground truth. Move tasks forward; never skip phase
 Each unit of work is a task entry in `.ctx/godmode/tasks.yaml`:
 
 ```yaml
-# GODMODE.tasks.yaml
+# .ctx/godmode/tasks.yaml
 tasks:
   - id: t1
     title: "parser rejects empty input"
@@ -60,7 +60,7 @@ to exactly one test. Group related tasks into sequential chains using `depends_o
 rust-script skills/task-driven-development/helpers/task-runner.rs init "feat: parser" --crate godmode-core
 ```
 
-Or write `GODMODE.tasks.yaml` manually using the schema above.
+Or write `.ctx/godmode/tasks.yaml` manually using the schema above.
 
 ### 1. RED — write a failing test
 
@@ -109,7 +109,8 @@ Repeat from step 1 for each task in the list.
 
 ## 3-Attempt Rule
 
-If a test is still failing after 3 red→green attempts, mark the task `status: failed` and stop:
+If a test is still failing after 3 red→green attempts, write `BLOCKED.md`, mark the task
+`status: failed`, and stop:
 
 ```bash
 rust-script skills/task-driven-development/helpers/task-runner.rs fail t1 --reason "architecture needs redesign"

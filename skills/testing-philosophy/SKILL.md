@@ -18,7 +18,7 @@ wastes effort. Skipping a dimension leaves a gap that will surface later.
 
 ## The Seven Dimensions
 
-```
+```text
 Idea → Unit → Property → Fuzz → Model Check → Conformance → Integration → Regression
          ↑         ↑       ↑          ↑              ↑              ↑            ↑
       always   non-trivial |       arithmetic      new impl        wiring       bug fixed

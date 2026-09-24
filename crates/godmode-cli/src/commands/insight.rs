@@ -1,9 +1,12 @@
+//! Records, lists, and renders dated session insights.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes insight creation, date-filtered listing, or Markdown rendering.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Insight { action } => {

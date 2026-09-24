@@ -65,7 +65,7 @@ non-conventional.
 
 Build a structure like:
 
-```
+```text
 Features
   godmode-core
     - commit description 1

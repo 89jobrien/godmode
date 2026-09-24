@@ -23,7 +23,7 @@ in `godmode status`.
 
 Longest path in a DAG via dynamic programming (topological sort + DP).
 
-```
+```text
 depth[t] = 1 + max(depth[dep] for dep in t.depends_on if dep is active)
 ```
 
@@ -48,7 +48,7 @@ order).
 
 **`godmode dispatch --critical-path`**
 
-```
+```text
 === critical path (N tasks) ===
 [t1] First task
 [t3] Third task (depends on t1)
@@ -59,7 +59,7 @@ With `--json`: `{"critical_path":[{"id":"t1","title":"..."},...], "depth":N}`
 
 **`godmode status`** gains one new line in human output:
 
-```
+```text
 5 done  0 running  3 pending  0 blocked
   critical: 3 tasks deep
   next: [t1] First task
@@ -105,7 +105,7 @@ dispatch output is unaffected when `--critical-path` is absent.
 ### Task 7: Surface critical depth in `godmode status`
 
 In `Cmd::Status`, call `dispatch::critical_path` and include depth in both human and JSON
-output. Human: `  critical: N tasks deep`. JSON: add `"critical_depth": N` field.
+output. Human: `critical: N tasks deep`. JSON: add `"critical_depth": N` field.
 
 **Crate**: `godmode-cli`
 **Run**: `cargo nextest run --workspace`

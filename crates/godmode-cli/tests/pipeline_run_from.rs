@@ -1,3 +1,5 @@
+//! Tests pipeline entry-point validation, resumed execution, and optional-step skipping.
+
 use std::process::{Command, Output};
 
 use godmode_core::pipeline::{self, Pipeline, PipelineStep};

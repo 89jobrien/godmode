@@ -51,7 +51,7 @@ and whether any failed (exit_code != 0).
 
 Produce a structured timeline in this format:
 
-```
+```text
 Session <id> — <date>
   Tasks: <started> started, <completed> completed, <blocked> blocked
   Gaps (started, never done): <list>

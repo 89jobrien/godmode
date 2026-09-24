@@ -1,3 +1,5 @@
+//! Task-graph status snapshots for the Starship cache.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};

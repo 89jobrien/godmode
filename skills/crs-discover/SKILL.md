@@ -24,7 +24,7 @@ rule currently handles, and persist them as rule candidates.
 1. Ensure the output directory exists: `.ctx/coursers/`.
 2. Run the discovery scan (last 30 days, only commands seen 3+ times):
 
-   ```
+   ```text
    crs discover --format json --since 30 --min-count 3
    ```
 

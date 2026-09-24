@@ -12,7 +12,7 @@ rustqual <path>
 Read the summary. Note which dimensions are dragging the score down.
 A typical first run might look like:
 
-```
+```text
 Quality Score: 44.2%    38 findings
 
 IOSP:         72.0%  (4 violations)

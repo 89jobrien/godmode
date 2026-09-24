@@ -49,6 +49,7 @@ pub struct FixtureLoader {
 }
 
 impl FixtureLoader {
+    /// Loads fixtures from the manifest directory's `fixtures/expected` directory.
     pub fn new() -> Self {
         // Resolve relative to CARGO_MANIFEST_DIR at runtime if possible,
         // otherwise fall back to cwd-relative path.
@@ -60,6 +61,7 @@ impl FixtureLoader {
         }
     }
 
+    /// Creates a fixture loader rooted at the supplied directory.
     pub fn with_dir(dir: impl Into<PathBuf>) -> Self {
         Self {
             fixtures_dir: dir.into(),

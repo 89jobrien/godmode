@@ -1,9 +1,12 @@
+//! Removes the persisted repository-root pin.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Clears the active root pin and reports whether one existed.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Unpin => {

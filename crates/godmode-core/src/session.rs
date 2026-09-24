@@ -1,3 +1,5 @@
+//! Session-owned task transitions, persistence, tracing, and handoff summaries.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -8,11 +10,10 @@ use crate::config::Config;
 use crate::graph;
 use crate::integrations::{crux, rx};
 use crate::model::{GraphSummary, Status, Task, TaskGraph};
+use crate::plan::{self, IngestReport};
 use crate::templates;
 
-// ---------------------------------------------------------------------------
 // Public types
-// ---------------------------------------------------------------------------
 
 pub struct Session {
     root: PathBuf,
@@ -37,9 +38,7 @@ pub struct TaskTiming {
     pub duration_ms: u64,
 }
 
-// ---------------------------------------------------------------------------
 // Session impl
-// ---------------------------------------------------------------------------
 
 impl Session {
     /// Load (or create) a session rooted at `root`, using default config.
@@ -57,6 +56,7 @@ impl Session {
         })
     }
 
+    /// Returns the session's current task graph.
     pub fn graph(&self) -> &TaskGraph {
         &self.graph
     }
@@ -91,6 +91,17 @@ impl Session {
     /// Add a task to the graph.
     pub fn add_task(&mut self, task: Task) -> Result<()> {
         graph::add(&mut self.graph, task)
+    }
+
+    /// Import parsed plan tasks and persist the complete graph atomically from the caller's view.
+    pub fn ingest_plan(&mut self, tasks: Vec<Task>, source: &str) -> Result<IngestReport> {
+        let previous = self.graph.clone();
+        let report = plan::ingest(&mut self.graph, tasks, source)?;
+        if let Err(error) = self.save() {
+            self.graph = previous;
+            return Err(error);
+        }
+        Ok(report)
     }
 
     /// Remove a task from the graph.
@@ -224,9 +235,7 @@ impl Session {
         append_jsonl(&dir.join(format!("{date}-summary.jsonl")), summary)
     }
 
-    // -----------------------------------------------------------------------
     // Private helpers
-    // -----------------------------------------------------------------------
 
     /// Best-effort flush of graph state to disk after each transition.
     /// Errors are logged but never abort the caller.
@@ -243,9 +252,7 @@ impl Session {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Module-level helpers
-// ---------------------------------------------------------------------------
 
 /// Append a JSON-serialised value as a single line to a JSONL file.
 fn append_jsonl(path: &std::path::Path, value: &impl serde::Serialize) -> Result<()> {
@@ -261,9 +268,7 @@ fn append_jsonl(path: &std::path::Path, value: &impl serde::Serialize) -> Result
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
 // Backward-compat free functions (thin wrappers)
-// ---------------------------------------------------------------------------
 
 /// Print a triage summary to stdout. Called at session start.
 pub fn handon(root: &Path) -> Result<()> {
@@ -346,9 +351,7 @@ pub fn handoff(root: &Path) -> Result<GraphSummary> {
     Ok(graph.summary())
 }
 
-// ---------------------------------------------------------------------------
 // Session file pruning
-// ---------------------------------------------------------------------------
 
 /// Delete session JSONL files in `dir` that are older than `days` days.
 /// If `dry_run` is true, prints what would be deleted but makes no changes.

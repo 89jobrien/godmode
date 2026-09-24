@@ -9,9 +9,7 @@ use crate::detect;
 use crate::integrations::subprocess;
 use crate::model::Task;
 
-// ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
-// ---------------------------------------------------------------------------
 
 /// Parse raw JSON bytes from `doob todo list --json` into a Value.
 #[instrument(name = "doob::parse_todo_list", skip(raw))]
@@ -33,9 +31,7 @@ pub fn find_next_pending(value: &serde_json::Value) -> Option<serde_json::Value>
         })
 }
 
-// ---------------------------------------------------------------------------
 // Shell-out layer
-// ---------------------------------------------------------------------------
 
 /// Call `doob todo list -p <project> --json` and return the parsed JSON value.
 #[instrument(name = "doob::todo_list", fields(integration = "doob"))]
@@ -60,9 +56,7 @@ pub fn todo_next_for_root(root: &Path) -> Result<Option<serde_json::Value>> {
     todo_next(&project)
 }
 
-// ---------------------------------------------------------------------------
 // Write — pure arg builders (testable without shelling out)
-// ---------------------------------------------------------------------------
 
 /// Build argv for `doob todo complete <uuid>`.
 #[instrument(name = "doob::todo_done_args")]
@@ -85,6 +79,7 @@ pub fn todo_add_args(project: &str, title: &str) -> Vec<String> {
 
 /// Port used by task publication so domain synchronization can be tested without Doob.
 pub trait TodoPublisher {
+    /// Adds a todo to the project and returns its Doob identifier.
     fn publish(&mut self, project: &str, title: &str) -> Result<String>;
 }
 
@@ -153,9 +148,7 @@ pub fn todos_to_tasks(value: &serde_json::Value) -> Vec<Task> {
         .unwrap_or_default()
 }
 
-// ---------------------------------------------------------------------------
 // Write — shell-out layer
-// ---------------------------------------------------------------------------
 
 /// Add a todo and return the identifier emitted by Doob JSON output.
 #[instrument(name = "doob::todo_add", fields(integration = "doob"))]

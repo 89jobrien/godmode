@@ -148,6 +148,7 @@ impl ConformanceTest for WaveCheckHasBlocked {
     }
 }
 
+/// Returns the parallel-agent wave-state conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(WaveInitCreatesSlots),
