@@ -1,3 +1,5 @@
+//! Routes top-level CLI commands to their command-specific handlers.
+
 use std::path::Path;
 
 use anyhow::Result;
@@ -37,6 +39,7 @@ mod wave;
 mod workflow;
 mod worktree;
 
+/// Dispatches a parsed command with shared root and output-format options.
 pub fn dispatch(cmd: Cmd, root: &Path, json: bool, sarif: bool) -> Result<()> {
     match cmd {
         command @ Cmd::Handon { .. } => handon::handle(command, root, json, sarif),

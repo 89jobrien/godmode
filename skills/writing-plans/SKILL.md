@@ -31,7 +31,7 @@ Do not start writing tasks until the map is complete and reviewed.
 
 ## Plan Structure
 
-Save to: `docs/plans/YYYY-MM-DD-<feature-name>.md`
+Save to: `.ctx/godmode/plans/YYYY-MM-DD-<feature-name>.md`
 
 ````markdown
 # Plan: <Feature Name>
@@ -89,7 +89,7 @@ Expected: FAIL
 
 3. Verify:
 
-   ```
+   ```text
    cargo nextest run -p <crate>    → all green
    cargo clippy -p <crate> -- -D warnings  → zero warnings
    ```
@@ -98,9 +98,9 @@ Expected: FAIL
    Verify output matches the expected branch. Stop immediately if not.
    Commit: `git commit -m "feat(<crate>): <summary>"`
 
-### Task 2: ...
+### Task 2
 
-```
+```text
 
 ## Quality Rules
 
@@ -121,8 +121,7 @@ Check these before writing the file:
 
 ## After Writing
 
-Update `.ctx/godmode/tasks.yaml` with a task entry for each plan task.
-See `godmode:task-management` for the schema.
+Run `godmode:ingest` with the generated plan path. Never edit `.ctx/godmode/tasks.yaml` directly.
 
 ## Additional Resources
 

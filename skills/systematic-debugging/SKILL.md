@@ -60,6 +60,7 @@ Only after root cause is confirmed:
 1. Write a failing test that captures the bug (if one doesn't exist).
 2. Implement the single fix.
 3. Verify:
+
    ```bash
    cargo nextest run -p <crate>
    cargo clippy -p <crate> -- -D warnings

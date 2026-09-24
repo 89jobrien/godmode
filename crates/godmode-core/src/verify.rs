@@ -1,3 +1,5 @@
+//! Composable project verification gates and aggregate pass/fail reports.
+
 use std::path::Path;
 use std::process::Command;
 
@@ -34,9 +36,7 @@ pub trait VerifyStep {
     fn run(&self, root: &Path, crate_name: Option<&str>) -> Result<StepResult>;
 }
 
-// ---------------------------------------------------------------------------
 // Built-in steps
-// ---------------------------------------------------------------------------
 
 pub struct NextestStep;
 pub struct ClippyStep;
@@ -201,9 +201,7 @@ impl VerifyStep for CrsValidateStep {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Report
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, serde::Serialize)]
 pub struct VerifyReport {

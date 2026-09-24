@@ -22,7 +22,7 @@ You build and maintain integration-level golden tests for the `redact` CLI binar
 
 ## Fixture Directory Convention
 
-```
+```text
 tests/
   fixtures/
     inputs/          # Raw input files with known sensitive content
@@ -89,18 +89,13 @@ Repeat for each input file.
 
 Assert PII untouched at minimal:
 
-```bash
-# pii_sample.txt at minimal should NOT contain [REDACTED-PII-NAME] etc.
-# but SHOULD still contain "Jane Smith" literally
-grep "Jane Smith" tests/fixtures/expected/minimal/pii_sample.txt && echo "PASS: PII untouched at minimal"
-grep "REDACTED-PII" tests/fixtures/expected/minimal/pii_sample.txt && echo "FAIL: PII was redacted at minimal"
-```
+Use Grep on `tests/fixtures/expected/minimal/pii_sample.txt`: require a
+`Jane Smith` match and require no `REDACTED-PII` match.
 
 Assert PII redacted at standard:
 
-```bash
-grep "REDACTED-PII" tests/fixtures/expected/standard/pii_sample.txt && echo "PASS: PII redacted at standard"
-```
+Use Grep on `tests/fixtures/expected/standard/pii_sample.txt` and require a
+`REDACTED-PII` match.
 
 ## Step 5 — Generate test harness
 

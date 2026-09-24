@@ -8,9 +8,7 @@ use tracing::instrument;
 use crate::detect;
 use crate::integrations::subprocess;
 
-// ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
-// ---------------------------------------------------------------------------
 
 /// Build the argv for `hj handoff` (excluding the binary name itself).
 pub fn build_handoff_args(
@@ -38,9 +36,7 @@ pub fn build_handoff_args(
     args
 }
 
-// ---------------------------------------------------------------------------
 // Shell-out layer
-// ---------------------------------------------------------------------------
 
 /// Call `hj handon --project <name>` and return stdout.
 #[instrument(name = "hj::handon", fields(integration = "hj"), skip(root))]

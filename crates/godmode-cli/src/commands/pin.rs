@@ -1,9 +1,12 @@
+//! Persists an explicit repository root for later Godmode commands.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Pins the supplied path, or the current directory, as the active repository root.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Pin { path } => {

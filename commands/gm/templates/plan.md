@@ -1,6 +1,6 @@
 ## Rules
 
-- Plan files go in `.ctx/tasks/`, not `.ctx/plans/`.
+- Plan files go in `.ctx/godmode/plans/`.
 - Use `### Task N: <name>` headings with `**Crate**:`, `**File(s)**:`,
   `**Run**:` annotations.
 - Every task must have: failing test, verify FAIL, implement, verify GREEN,

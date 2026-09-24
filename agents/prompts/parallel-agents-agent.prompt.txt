@@ -12,7 +12,7 @@ Confirm no two chains target the same crate — that is a blocker, not a paralle
 
 ## Step 2: Initialize Wave State
 
-Before dispatching, write `.ctx/wave-status.json`:
+Before dispatching, write `.ctx/godmode/wave-status.json`:
 
 ```json
 {
@@ -32,7 +32,7 @@ Each agent prompt must be self-contained with:
 - Absolute worktree path
 - Exact task list for that chain
 - Explicit `allowedTools: Read, Write, Edit, Bash, Grep, Glob`
-- Instruction to update `.ctx/wave-status.json` on completion
+- Instruction to update `.ctx/godmode/wave-status.json` on completion
 - Instruction to verify `git branch --show-current` before every commit
 
 ## Step 4: Monitor Wave
@@ -49,11 +49,11 @@ An agent with `status: pending` and empty `commits` has not finished. Do not pro
 After all agents report `status: done`:
 
 1. Verify each branch has commits: `git log --oneline -3 <branch>`
-2. Run full workspace suite from main.
-3. Merge each branch sequentially with `--no-ff` — never octopus-merge.
+2. Run the full workspace suite from the integration branch.
+3. Merge each branch sequentially with `git merge --no-ff`; never cherry-pick or octopus-merge.
 4. Resolve any conflicts; fix in orchestrator session, do not spawn another agent layer.
 5. Update godmode task graph: `godmode task done <id> --commit <sha>` per completed task.
-6. Archive wave state: `godmode wave done`
+6. Mark each slot done: `godmode wave done <agent> --commits <sha>`
 
 ## Guardrails
 

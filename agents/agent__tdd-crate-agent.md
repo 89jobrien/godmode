@@ -28,22 +28,32 @@ For each task:
 1. Read only the crate's source files relevant to the task.
 2. Design the layer placement: domain trait, adapter, or domain service.
 3. Write a FAILING test. Run:
-   ```
+
+   ```text
    cargo nextest run -p <CRATE> -- <test_name>
    ```
+
    Confirm it fails for the right reason — not a compile error.
+
 4. Implement the minimum code to pass. Run:
-   ```
+
+   ```text
    cargo nextest run -p <CRATE>
    ```
+
    All tests must be green before proceeding.
+
 5. Refactor. Run:
-   ```
+
+   ```text
    cargo clippy -p <CRATE> -- -D warnings
    ```
+
    Zero warnings required.
+
 6. Commit:
-   ```
+
+   ```text
    git branch --show-current   # MUST verify — stop if output is "main"
    git commit -m "feat(<CRATE>): <summary>"
    ```

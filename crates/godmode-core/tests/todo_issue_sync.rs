@@ -1,3 +1,5 @@
+//! Tests TODO fingerprinting, issue matching, pagination, and resumable creation.
+
 use anyhow::{Result, bail};
 use godmode_core::todo_issue_sync::{
     CreatedIssue, GitHubIssue, GitHubIssuePort, NewIssue, SyncStatus, sync,

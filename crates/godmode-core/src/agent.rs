@@ -1,3 +1,5 @@
+//! Agent definitions, YAML persistence, Markdown generation, and frontmatter migration.
+
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};

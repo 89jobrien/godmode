@@ -2,7 +2,7 @@
 
 ## Full session pattern
 
-```
+```text
 # Start
 godmode handon
 
@@ -19,7 +19,7 @@ godmode handoff
 
 ## Ingest a plan then work
 
-```
+```text
 godmode plan ingest docs/plans/YYYY-MM-DD-feature.md
 godmode handon
 godmode task start t1
@@ -33,7 +33,7 @@ godmode handoff
 
 ## Parallel dispatch
 
-```
+```text
 godmode dispatch --json               # review chains
 godmode agent dispatch docs/plans/feature.md  # ingest + dispatch payload
 # paste chains into godmode:parallel-agents
@@ -41,12 +41,12 @@ godmode agent dispatch docs/plans/feature.md  # ingest + dispatch payload
 
 ## Mid-session state check
 
-```
+```text
 godmode status    # fast — no external calls
 ```
 
 ## Clear completed tasks between sessions
 
-```
+```text
 godmode task clear --done   # prune done tasks, keep pending/running/blocked
 ```

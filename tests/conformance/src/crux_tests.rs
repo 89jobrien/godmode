@@ -215,6 +215,7 @@ impl ConformanceTest for CruxSessionFail {
     }
 }
 
+/// Returns the Crux step and session-trace conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(CruxStepStartedIsOk),

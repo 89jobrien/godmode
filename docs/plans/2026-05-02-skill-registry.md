@@ -114,7 +114,7 @@ Mirrors `rx install`:
 
 Reads registry + plugin-local skills. Outputs table:
 
-```
+```text
 NAME                              SOURCE   VERSION  HOOK  AGENT
 godmode:brainstorm                local    1.1.1    yes   yes
 godmode:ci-fix                    local    1.1.1    yes   yes
@@ -127,7 +127,7 @@ godmode:my-custom-skill           global   0.1.0    no    yes
 
 Reads all `agents/*.yaml` files (plugin-local + global registry).
 
-```
+```text
 NAME                              TRIGGERS                    SKILLS
 godmode:brainstorm-agent          "let's build", "design X"   brainstorm
 godmode:tdd-agent                 "implement", "add feature"  test-driven-development

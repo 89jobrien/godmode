@@ -278,7 +278,7 @@ cargo clippy --workspace -- -D warnings
 cargo fmt --all --check
 ```
 
-````
+````text
 
 And replace branch-guard prose with:
 
@@ -289,7 +289,7 @@ Verify branch before committing (`guardrails.nu check-branch <expected>`):
 git branch --show-current   # must match expected branch — stop if not
 ````
 
-````
+````text
 
 After each edit: `just conformance` must still pass.
 
@@ -347,7 +347,7 @@ nu skills/_lib/dispatch.nu agent-prompt <repo_root> <issue> <title> <body>
 nu skills/_lib/dispatch.nu integrate-branches <repo_root> [<branch-list>]
 ```
 
-```
+```text
 
 In `tackle-issues`: same replacement for Steps 3, 4, and 5.
 

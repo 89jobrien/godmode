@@ -1,9 +1,12 @@
+//! Runs, compares, promotes, and evaluates stored skill evaluations.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes the requested skill-evaluation operation and enforces configured gates.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     let Cmd::Eval { action } = command else {
         unreachable!("dispatcher sent command to the wrong handler")

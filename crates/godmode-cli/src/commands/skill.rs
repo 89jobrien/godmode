@@ -1,9 +1,12 @@
+//! Lists local skills and manages the global skill registry.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Lists discovered skills or installs and removes registry entries.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Skill { action } => match action {

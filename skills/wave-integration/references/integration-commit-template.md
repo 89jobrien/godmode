@@ -2,7 +2,7 @@
 
 ## Standard wave integration commit
 
-```
+```text
 chore(integration): wave N integration — <N> branches merged
 
 Branches:
@@ -21,7 +21,7 @@ Skipped: feat/branch-d (test failures after rebase — escalated)
 
 ## Zero-conflict integration commit
 
-```
+```text
 chore(integration): wave N integration — <N> branches merged, no conflicts
 
 Branches:
@@ -33,7 +33,7 @@ Tests: cargo test --workspace — 488 passed, 0 failed
 
 ## Partial integration (some branches failed)
 
-```
+```text
 chore(integration): wave N partial integration — <M>/<N> branches merged
 
 Integrated:

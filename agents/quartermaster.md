@@ -104,7 +104,7 @@ If another repo in `/Users/joe/dev` depends on a bumped crate, surface that so f
 
 Always output in this exact structure. Empty sections must contain `None.` — do not skip sections.
 
-```
+```text
 ## Quartermaster Report
 
 ### Target

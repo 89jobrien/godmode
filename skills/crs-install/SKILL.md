@@ -32,7 +32,7 @@ Promote the validated merged ruleset to the live config at
    `course-correct-rules.json`. Never write the live file in place.
 4. Confirm health of the installed config:
 
-   ```
+   ```text
    crs validate
    ```
 

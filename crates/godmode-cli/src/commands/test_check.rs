@@ -1,9 +1,12 @@
+//! Checks whether a Rust source path has corresponding test coverage.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Evaluates test coverage for the requested path and exits nonzero when coverage is absent.
 pub fn handle(command: Cmd, _root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::TestCheck { path } => {

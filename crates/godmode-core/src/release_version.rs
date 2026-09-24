@@ -83,6 +83,7 @@ pub(crate) fn bump_patch(version: &str) -> Result<String> {
 
 // ── Cross-validation ────────────────────────────────────────────────
 
+/// Extracts the version from a Cargo manifest's `[workspace.package]` section.
 pub fn extract_cargo_workspace_version(content: &str) -> Option<String> {
     let mut in_workspace_package = false;
     for line in content.lines() {
@@ -100,6 +101,7 @@ pub fn extract_cargo_workspace_version(content: &str) -> Option<String> {
     None
 }
 
+/// Returns the nearest reachable Git tag without a leading `v`.
 pub fn latest_tag_version(root: &Path) -> Option<String> {
     let out = Command::new("git")
         .args([

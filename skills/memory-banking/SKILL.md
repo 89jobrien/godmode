@@ -24,7 +24,7 @@ actual code, not assumptions.
 
 ## Directory structure
 
-```
+```text
 .ctx/godmode/memory-bank/
   project-brief.md      # what, who, done-criteria
   product-context.md    # why it exists, UX principles

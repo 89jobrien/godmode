@@ -1,9 +1,12 @@
+//! Runs configured test, lint, formatting, and commit verification gates.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs verification for the workspace or selected crate and emits human, JSON, or SARIF results.
 pub fn handle(command: Cmd, root: &Path, json: bool, sarif: bool) -> Result<()> {
     match command {
         Cmd::Verify { crate_name } => {

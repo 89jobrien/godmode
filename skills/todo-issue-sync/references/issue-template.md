@@ -29,7 +29,7 @@
 
 Resolve or implement the TODO at `<file>:<line>`.
 
-````
+````text
 
 **Labels**: infer from directory path:
 - `crates/godmode-core/` → `core`

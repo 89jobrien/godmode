@@ -36,7 +36,7 @@ is persisted after every task addition.
 
 **Phase 1: Shape**
 
-```
+```text
 What's the next thing that needs to happen? (blank to finish)
 > implement model layer
 Which crate? (blank to skip)
@@ -53,7 +53,7 @@ What's the next thing that needs to happen? (blank to finish)
 
 For each task added in Phase 1:
 
-```
+```text
 Does anything need to be done before [t2] "write tests"? (comma-separated IDs, blank to skip)
 > t1
 Updated [t2] depends_on: [t1]

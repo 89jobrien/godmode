@@ -106,7 +106,7 @@ Behaviour:
 4. Call `dispatch::independent_chains(&g, 5)`
 5. Emit a structured handoff prompt to stdout:
 
-```
+```text
 === godmode agent dispatch ===
 Plan: <path>
 Chains: <N>

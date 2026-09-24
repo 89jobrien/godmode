@@ -22,7 +22,7 @@ fn compute_checksum(data: &[u8]) -> u32 {
 
 **Signal**: file > ~300 lines, or mixed concerns (parsing + I/O + domain logic in one file).
 
-```
+```text
 src/
   parser.rs     ← extracted from lib.rs
   formatter.rs  ← extracted from lib.rs

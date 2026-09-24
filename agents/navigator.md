@@ -28,7 +28,7 @@ You prime mental models. You read, summarize, and answer architecture questions.
 
 ## Briefing Format
 
-```
+```text
 ## Navigator Briefing: <repo>
 
 ### What it does

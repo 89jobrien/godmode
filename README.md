@@ -215,7 +215,7 @@ tasks:
 
 ## Workflow
 
-```
+```text
 brainstorm → writing-plans → plan ingest → handon
   → task next → task start → [tdd] → task done → task next → ...
   → dispatch (parallel chains) → parallel-agents

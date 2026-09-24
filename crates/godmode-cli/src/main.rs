@@ -1,3 +1,5 @@
+//! Parses top-level Godmode CLI options and dispatches subcommands.
+
 #![allow(clippy::items_after_test_module)]
 
 use anyhow::Result;

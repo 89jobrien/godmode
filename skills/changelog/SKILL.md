@@ -22,7 +22,7 @@ next: [release-notes]
 
 Commits should follow the pattern:
 
-```
+```text
 <type>(<scope>): <description>
 ```
 
@@ -33,7 +33,7 @@ Commits should follow the pattern:
 
 Examples:
 
-```
+```text
 feat(godmode-core): add changelog generator
 fix(godmode-cli): handle missing config file
 refactor: unify error handling in dispatch module
@@ -46,7 +46,7 @@ test: add property tests for graph cycles
 1. Extract type from the commit message prefix (word before `(` or `:`)
 2. If the type is not in the canonical list, mark as non-conventional
 3. Extract scope from parentheses, if present (e.g. `godmode-core`)
-4. Extract description from the text after `: ` or after the type
+4. Extract description from the text after `:` or after the type
 5. Group commits by type, then by scope/crate
 
 ## Output Format

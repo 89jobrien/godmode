@@ -7,7 +7,7 @@ root for workspace-level scans, or inside a crate directory for per-crate overri
 
 ## Shape 1: Single lib crate consumed by one binary
 
-```
+```text
 my-project/
 ├── Cargo.toml          # workspace root
 ├── rustqual.toml       # workspace-level config (this file)
@@ -52,7 +52,7 @@ architecture = 0.10
 
 ## Shape 2: Multi-crate workspace (core + adapters + CLI)
 
-```
+```text
 my-project/
 ├── Cargo.toml
 ├── rustqual.toml           # workspace root — permissive dead_code setting
@@ -127,7 +127,7 @@ architecture = 0.05
 
 ## Shape 3: Workspace with cfg-gated code (Kani proofs, testutil)
 
-```
+```text
 my-project/
 ├── Cargo.toml
 ├── rustqual.toml
@@ -179,7 +179,7 @@ architecture = 0.10
 
 ## Shape 4: Workspace with integration test binary
 
-```
+```text
 my-project/
 ├── Cargo.toml
 ├── rustqual.toml

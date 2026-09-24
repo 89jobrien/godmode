@@ -18,9 +18,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
 // Domain types
-// ---------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ReportIndex {
@@ -38,9 +36,7 @@ pub struct ReportCategory {
     pub items: Vec<String>,
 }
 
-// ---------------------------------------------------------------------------
 // Port (trait)
-// ---------------------------------------------------------------------------
 
 pub trait ReportIndexPort {
     /// Add a file entry under a category. Creates the category if absent.
@@ -56,9 +52,7 @@ pub trait ReportIndexPort {
     fn load(&self) -> Result<ReportIndex>;
 }
 
-// ---------------------------------------------------------------------------
 // Adapter: JSON file
-// ---------------------------------------------------------------------------
 
 /// Reports root directory (`.ctx/godmode/reports/`).
 pub struct JsonFileIndex {
@@ -66,6 +60,7 @@ pub struct JsonFileIndex {
 }
 
 impl JsonFileIndex {
+    /// Creates a JSON-backed index rooted at `.ctx/godmode/reports/`.
     pub fn new(project_root: &Path) -> Self {
         Self {
             reports_dir: project_root.join(".ctx").join("godmode").join("reports"),
@@ -225,9 +220,7 @@ impl ReportIndexPort for JsonFileIndex {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

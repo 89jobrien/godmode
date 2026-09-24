@@ -1,3 +1,5 @@
+//! Tests Crux step construction and session-trace persistence.
+
 use chrono::Utc;
 use crux_runtime::types::crux_value::Crux;
 use crux_runtime::types::error::CruxErr;

@@ -1,9 +1,12 @@
+//! Lists, indexes, generates, migrates, and dispatches agent definitions.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes an agent subcommand and renders its result.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Agent { action } => match action {
@@ -164,27 +167,24 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
 
             AgentAction::Dispatch { path, max } => {
                 let markdown = std::fs::read_to_string(&path)?;
-                let tasks = plan::parse(&markdown)?;
-                if tasks.is_empty() {
+                let parsed_tasks = plan::parse(&markdown)?;
+                if parsed_tasks.is_empty() {
                     anyhow::bail!("no tasks found in {}", path);
                 }
                 let mut session = Session::open(root)?;
-                let mut ingested = 0usize;
-                for task in tasks {
-                    match session.add_task(task) {
-                        Ok(()) => ingested += 1,
-                        Err(e) if e.to_string().contains("already exists") => {}
-                        Err(e) => return Err(e),
-                    }
-                }
-                session.save()?;
+                let source = Path::new(&path).canonicalize()?;
+                let source = source.to_string_lossy();
+                let report = session.ingest_plan(parsed_tasks, &source)?;
                 let chains = dispatch::independent_chains(session.graph(), max);
                 if json {
                     println!(
                         "{}",
                         serde_json::to_string_pretty(&serde_json::json!({
                             "plan": path,
-                            "ingested": ingested,
+                            "parsed": report.parsed,
+                            "ingested": report.added,
+                            "skipped": report.skipped,
+                            "ids": report.ids,
                             "chains": chains,
                         }))?
                     );

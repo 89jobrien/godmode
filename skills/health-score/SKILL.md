@@ -127,7 +127,7 @@ For each metric, compare current value to the most recent previous value:
 
 ## History Format
 
-File: `.ctx/memory-bank/health-history.jsonl`
+File: `.ctx/godmode/memory-bank/health-history.jsonl`
 
 Each line is a valid JSON object with timestamp and all seven metrics:
 

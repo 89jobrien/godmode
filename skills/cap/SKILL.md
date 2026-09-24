@@ -44,7 +44,7 @@ Review staged files. If unrelated changes are staged, report them and ask before
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<scope>): <summary>
 
 [optional body]

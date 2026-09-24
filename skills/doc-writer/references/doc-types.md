@@ -46,7 +46,7 @@
 
 **Format per export**:
 
-```
+```text
 ### `fn name(params) -> ReturnType`
 
 One-sentence purpose.

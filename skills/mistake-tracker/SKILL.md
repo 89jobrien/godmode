@@ -10,7 +10,7 @@ next: []
 
 # Mistake Tracker
 
-A persistent ledger at `.ctx/memory-bank/mistakes.md` that catalogs recurring error
+A persistent ledger at `.ctx/godmode/memory-bank/mistakes.md` that catalogs recurring error
 patterns, failure modes, and process mistakes. The ledger is grounded in actual session
 traces and git history — not assumptions.
 
@@ -35,7 +35,7 @@ commits. Indicates a pattern the codebase is prone to that needs either:
 
 Example:
 
-```
+```text
 Pattern: clippy::too_many_arguments
 Occurrences: 5 (sessions 2026-05-10, 2026-05-12, 2026-05-15)
 Affected: crates/godmode-core/src/session.rs
@@ -53,7 +53,7 @@ Same test failing across different branches or session runs. Indicates:
 
 Example:
 
-```
+```text
 Pattern: runnable_returns_tasks
 Occurrences: 3 (2026-05-08, 2026-05-11, 2026-05-14)
 Affected: godmode-core integration tests
@@ -71,7 +71,7 @@ Repeated mistakes in git/branch/merge workflow:
 
 Example:
 
-```
+```text
 Pattern: subagent commit to main
 Occurrences: 2 (commits abc123d, def456g)
 Prevention: Add git branch guard hook; require explicit confirmation for main commits
@@ -87,7 +87,7 @@ Same hook repeatedly blocking legitimate commits:
 
 Example:
 
-```
+```text
 Pattern: obfsck false positive on localhost IPs in test file
 Occurrences: 4 (added to allowlist 2026-05-01, 2026-05-06, 2026-05-12)
 Prevention: Consolidate allowlist entries; add per-line allow comments to tests
@@ -105,7 +105,7 @@ past initial review and testing. Root cause may be:
 
 Example:
 
-```
+```text
 Pattern: revert: godmode task start breaks on empty graph
 Occurrences: 1 (commit rev123, 2026-05-13)
 Prevention: Add integration test for empty graph; add guard in start() function
@@ -113,7 +113,7 @@ Prevention: Add integration test for empty graph; add guard in start() function
 
 ## Ledger Format
 
-The file `.ctx/memory-bank/mistakes.md` uses Markdown with frontmatter:
+The file `.ctx/godmode/memory-bank/mistakes.md` uses Markdown with frontmatter:
 
 ```yaml
 ---
@@ -204,7 +204,7 @@ Include mistake ledger review in conformance checks. Verify:
 
 When reporting findings to the user, use:
 
-```
+```text
 ## Recurring Mistakes Detected
 
 ### Clippy Lints (2 patterns)
@@ -223,7 +223,7 @@ When reporting findings to the user, use:
 ### Reverts (1 pattern)
 - task start breaks on empty graph (1 occurrence)
 
-**Next Steps**: Review `.ctx/memory-bank/mistakes.md` for prevention strategies and
+**Next Steps**: Review `.ctx/godmode/memory-bank/mistakes.md` for prevention strategies and
 see which can be implemented before the next release.
 ```
 

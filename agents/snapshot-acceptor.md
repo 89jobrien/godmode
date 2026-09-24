@@ -18,20 +18,14 @@ Stale `.snap.new` files (from a PREVIOUS test run that was never cleaned up) can
 
 ## Step 1 — Find and validate .snap.new files
 
-```bash
-# Find all .snap.new files
-find . -name "*.snap.new" -not -path "*/target/*"
-
-# Check their modification times vs the most recent test run
-# Use the target/ directory mtime as a proxy for "last test run"
-find . -name "*.snap.new" -not -path "*/target/*" -newer target/.rustc_info.json 2>/dev/null
-```
+Use Glob with `**/*.snap.new`, exclude paths under `target/`, then compare each
+file's modification time with `target/.rustc_info.json`.
 
 If no `.snap.new` files exist: report "No snapshots pending. Nothing to do."
 
 If `.snap.new` files exist but are OLDER than the last test run (i.e., stale):
 
-```
+```text
 ⚠ Warning: Found .snap.new files that predate the last test run.
   These may be stale leftovers from a previous session.
   Stale files: [list]
@@ -53,7 +47,7 @@ If the `.snap` file exists: show what changed. Label as `[CHANGED]`.
 
 ## Step 3 — Present summary
 
-```
+```text
 Snapshot Review
 ===============
 3 snapshots pending:
@@ -78,12 +72,8 @@ Wait for user confirmation before proceeding.
 
 On "yes" (bulk accept):
 
-```bash
-for f in $(find . -name "*.snap.new" -not -path "*/target/*"); do
-  mv "$f" "${f%.new}"
-done
-echo "Accepted N snapshots"
-```
+Use Glob with `**/*.snap.new`, exclude `target/`, then move each approved file
+to the same path without the `.new` suffix.
 
 On "selective": process each file individually, asking per-snapshot.
 

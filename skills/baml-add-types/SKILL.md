@@ -40,6 +40,7 @@ Adding new BAML functions or classes to `cruxx-agentic/baml_src/`.
    - Use `i64` for BAML `int`
 
 5. Verify cruxx-types compiles:
+
    ```bash
    cargo check -p cruxx-types
    ```

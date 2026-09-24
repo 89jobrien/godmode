@@ -11,7 +11,7 @@ next: [verification-before-completion]
 
 ## Core Rule
 
-```
+```text
 READ ALL FEEDBACK BEFORE FIXING ANYTHING
 ```
 
@@ -81,7 +81,7 @@ Then use `godmode:verification-before-completion` before marking done.
 
 When running sentinel, apply ALL severity levels in one pass. The workflow is:
 
-```
+```text
 sentinel run → triage all findings → fix all in one commit → re-run sentinel → done
 ```
 

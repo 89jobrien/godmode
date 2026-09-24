@@ -1,5 +1,5 @@
 #!/usr/bin/env nu
-# new-plan.nu — scaffold a new plan file at docs/plans/YYYY-MM-DD-<name>.md
+# new-plan.nu — scaffold a new plan file at .ctx/godmode/plans/YYYY-MM-DD-<name>.md
 # Usage: nu skills/writing-plans/helpers/new-plan.nu <feature-name>
 
 use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
@@ -15,7 +15,7 @@ def main [feature: string] {
     let tid = (trace-start "writing-plans" "new-plan.nu" $feature)
     let date = (date now | format date "%Y-%m-%d")
     let slug = ($feature | str replace --all " " "-" | str downcase)
-    let plan_dir = $"($root)/docs/plans"
+    let plan_dir = $"($root)/.ctx/godmode/plans"
     mkdir $plan_dir
     let out = $"($plan_dir)/($date)-($slug).md"
 

@@ -1,9 +1,12 @@
+//! Audits plugin, skill, and agent conformance.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs the selected conformance review and emits human, JSON, or SARIF output.
 pub fn handle(command: Cmd, root: &Path, json: bool, sarif: bool) -> Result<()> {
     match command {
         Cmd::Review { action } => {

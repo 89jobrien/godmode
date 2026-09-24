@@ -1,9 +1,12 @@
+//! Summarizes task graph state, runnable work, and the critical path.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Reports task counts, blocked details, runnable tasks, and critical-path depth.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Status { compact } => {
