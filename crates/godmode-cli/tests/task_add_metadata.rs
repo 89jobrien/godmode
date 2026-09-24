@@ -1,3 +1,5 @@
+//! Tests task metadata persistence, defaults, help text, and priority validation.
+
 use std::process::Command;
 
 fn godmode_bin() -> std::path::PathBuf {

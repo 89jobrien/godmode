@@ -87,7 +87,7 @@ Caches result to `cache/YYYY-MM-DD.json` — re-runs skip the API call.
 
 ### 4. Compute KPIs
 
-```
+```text
 total_human_hours  = sum(goal.human_hours for goal in goals)
 human_value        = total_human_hours × 72          # $72/hr blended rate
 seat_cost_per_mo   = 39                              # Claude Code Pro seat
@@ -103,7 +103,7 @@ Run `helpers/report.rs <digest.json> [YYYY-MM-DD]` via `rust-script`.
 
 Layout:
 
-```
+```text
 Header bar   — date, primary_focus, session count
 Narrative    — day_narrative (2 sentences from digest)
 KPI cards    — Hours | Human value | Leverage
@@ -114,7 +114,7 @@ Written to `/tmp/whatidid-YYYY-MM-DD.html`. Opened automatically via `open`.
 
 ### 6. Report to user
 
-```
+```text
 [1/3] harvesting sessions for 2026-05-17...
 [2/3] analyzing with Claude...
 [3/3] rendering report...

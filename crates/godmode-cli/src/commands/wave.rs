@@ -1,9 +1,12 @@
+//! Tracks the lifecycle of parallel-agent wave slots.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Initializes, inspects, updates, or checks completion of a parallel-agent wave.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Wave { action } => match action {

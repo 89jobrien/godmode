@@ -1,3 +1,5 @@
+//! Provides a `syn`-based test template for enforcing source-level type-boundary invariants.
+
 // Template: AST guardrail test
 //
 // Parse a source file with `syn` and assert structural invariants.

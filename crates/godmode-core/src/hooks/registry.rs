@@ -29,6 +29,7 @@ pub struct HookRegistration {
 }
 
 impl HookRegistration {
+    /// Creates an active client hook registration.
     pub const fn active(
         id: &'static str,
         client: HookClient,
@@ -48,6 +49,7 @@ impl HookRegistration {
             superseded_by: None,
         }
     }
+    /// Creates a retired registration that points to its replacement.
     pub const fn superseded(
         id: &'static str,
         superseded_by: &'static str,
@@ -64,6 +66,7 @@ impl HookRegistration {
             superseded_by: Some(superseded_by),
         }
     }
+    /// Creates a registration for a non-client-facing internal hook.
     pub const fn internal(id: &'static str, command: &'static str) -> Self {
         Self {
             id,
@@ -340,6 +343,7 @@ pub const REGISTRY: &[HookRegistration] = &[
     ),
 ];
 
+/// Builds a hook manifest from active registrations for the client.
 pub fn generate_manifest(client: HookClient) -> serde_json::Value {
     let mut events = serde_json::Map::new();
     for entry in REGISTRY
@@ -382,6 +386,7 @@ pub struct CoverageIssue {
     pub detail: String,
 }
 
+/// Reports manifest and script coverage issues against a hook registry.
 pub fn diagnose_coverage(
     root: &Path,
     client: HookClient,
@@ -470,6 +475,7 @@ pub fn diagnose_coverage(
     issues
 }
 
+/// Diagnoses `hooks/hooks.json` against the canonical registry.
 pub fn diagnose_repository(root: &Path, client: HookClient) -> anyhow::Result<Vec<CoverageIssue>> {
     let manifest: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(root.join("hooks/hooks.json"))?)?;

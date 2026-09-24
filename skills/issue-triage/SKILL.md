@@ -88,14 +88,14 @@ When converting triage to godmode tasks:
    - Feature → depend on related bugs or foundational tasks
    - Chore → usually no deps, or after related feature
 4. **Specify crate name** if applicable.
-5. **Set run: field** if the issue describes a test or script.
+5. **Use a plan plus `godmode plan ingest`** when tasks need `run:` metadata.
 
 **Example**:
 
 ```bash
 # Bug (P1) — no deps
 godmode task add "Fix panic on invalid UTF-8 input" \
-  --id t1 --crate-name parser --priority high
+  --id t1 --crate-name parser
 
 # Related feature — depends on bug fix
 godmode task add "Add YAML support" \
@@ -103,7 +103,7 @@ godmode task add "Add YAML support" \
 
 # Independent chore
 godmode task add "Update README with examples" \
-  --id t3 --priority normal
+  --id t3
 ```
 
 ## Integration with godmode Workflow
@@ -133,7 +133,7 @@ godmode dispatch               # emit parallel chains JSON
 
 Produce a table with these columns:
 
-```
+```text
 | # | Title | Type | Size | Priority | Group | Order | Notes |
 |---|-------|------|------|----------|-------|-------|-------|
 ```
@@ -151,7 +151,7 @@ Where:
 
 **Example**:
 
-```
+```text
 | 42  | Panic on UTF-8 input      | Bug     | S | P2 | Encoding    | 1 | User: @alice |
 | 51  | Add YAML support          | Feature | M | P3 | Parser      | 3 | Deferred     |
 | 63  | Update docs               | Chore   | S | P3 | Docs        | 4 |              |
@@ -187,7 +187,7 @@ gh issue list --repo <owner/repo> --state open \
 
 # Agent runs:
 for each P1/P2 issue:
-  godmode task add "<title>" --id t<N> --crate-name <crate> --priority high
+  godmode task add "<title>" --id t<N> --crate-name <crate>
 
 # User runs:
 godmode status          # see new tasks

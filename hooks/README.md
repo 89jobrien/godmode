@@ -7,7 +7,7 @@ Claude Code hook scripts and git hooks for the godmode plugin.
 Hook metadata is owned by `godmode_core::hooks::registry`. `hooks.json` is the generated Claude Code projection; conformance tests reject projection drift.
 Valid `godmode hook run` names (verified against the binary):
 
-```
+```text
 stop-guard, auto-block, pre-commit, pre-commit-gate, quality-gate,
 task-management, parallel-agents, moa, wave-integration, introspection,
 agent-governance, brainstorm, code-review, ci-fix

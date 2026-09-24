@@ -844,6 +844,7 @@ fn find_digit_word_pairs<'a>(text: &'a str, word: &str) -> Vec<(&'a str, &'a str
     results
 }
 
+/// Returns the plugin-structure conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(EverySkillHasSkillMd),

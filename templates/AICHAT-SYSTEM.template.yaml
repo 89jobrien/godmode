@@ -15,7 +15,7 @@ tasks:
     status: pending
     depends_on: []
     crate_name: "godmode"
-    run: "aichat --version && find aichat -maxdepth 4 -type f | sort"
+    run: "aichat --version && rg --files aichat"
     priority: high
     tags: ["aichat", "inspection"]
     notes: "Confirm the repo-local source pack exists before installing"

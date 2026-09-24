@@ -193,7 +193,7 @@ print $"[godmode] Active task context for this agent:\n($lines | str join "\n")"
 
 ## Implementation Order
 
-```
+```text
 1. Hook preamble library (unblocks 4, 5)
 2. `godmode context --json` (unblocks 5)
 3. Exit code semantics (independent)

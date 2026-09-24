@@ -251,7 +251,7 @@ primary output shown as the "AI Est." column. The AI uses these anchors:
 
 ### 4B. Deterministic Formula (transparency floor)
 
-```
+```text
 turns_h  = max(0,  −0.15 + 0.67 × ln(turns + 1))
 reqs_h   = max(0,  −0.10 + 0.45 × ln(reqs + 1))     ← fallback when turns = 0
 lines_h  = 0.40 × log₂(lines_logic ÷ 100 + 1)
@@ -288,7 +288,7 @@ analyses each day independently).
 > **Project:** Built a reporting tool — 22 substantive turns, +400 logic lines,
 > +800 boilerplate lines, 35 reads + 15 searches, 120 tool invocations
 
-```
+```text
 turns_h = max(0, −0.15 + 0.67 × ln(23)) = 1.95h
 lines_h = 0.40 × log₂(400 ÷ 100 + 1)   = 0.40 × 2.32 = 0.93h
 reads_h = 0.10 × log₂(50 + 1)           = 0.10 × 5.67 = 0.57h
@@ -370,27 +370,27 @@ caught an edge case the AI overlooked.
 
 1. Alaswad, M., et al. (2026). "Toward LLM-Aware Software Effort Estimation:
    A Conceptual Framework." _Frontiers in Artificial Intelligence._
-   https://www.frontiersin.org/journals/artificial-intelligence
+   <https://www.frontiersin.org/journals/artificial-intelligence>
 
 2. Boehm, B. (1981, 1995). _Software Engineering Economics_ and COCOMO II.
    University of Southern California.
 
 3. Cambon, J., et al. (2023). "Early LLM-based Tools for Enterprise Information
    Workers Likely Provide Meaningful Boosts to Productivity." Microsoft Research.
-   https://www.microsoft.com/en-us/research/publication/early-llm-based-tools/
+   <https://www.microsoft.com/en-us/research/publication/early-llm-based-tools/>
 
 4. Chen, O., Paas, F., & Sweller, J. (2023). "A Cognitive Load Theory Approach
    to Defining and Measuring Task Complexity." _Educational Psychology Review._
-   https://link.springer.com/article/10.1007/s10648-023-09782-w
+   <https://link.springer.com/article/10.1007/s10648-023-09782-w>
 
 5. Forsgren, N., Storey, M.-A., Maddila, C., Zimmermann, T., Houck, B., &
    Butler, J. (2021). "The SPACE of Developer Productivity."
    _Communications of the ACM_, 64(1), 99–106.
-   https://cacm.acm.org/magazines/2021/1/249459-the-space-of-developer-productivity
+   <https://cacm.acm.org/magazines/2021/1/249459-the-space-of-developer-productivity>
 
 6. Hao, Z., et al. (2023). "Towards Understanding the Measurement of Code
    Complexity: A Neuroscience-based Study." _Frontiers in Neuroscience._
-   https://www.frontiersin.org/journals/neuroscience
+   <https://www.frontiersin.org/journals/neuroscience>
 
 7. Lavazza, L., Morasca, S., & Tosi, D. (2024). "On the Role of Functional
    Complexity in Software Effort Estimation." _Information and Software Technology._
@@ -417,7 +417,7 @@ caught an edge case the AI overlooked.
 13. Ziegler, A., Kalliamvakou, E., Li, X. A., Rice, A., Rifkin, D., Simister, S.,
     Sittampalam, G., & Aftandilian, E. (2024). "Measuring GitHub Copilot's
     Impact on Productivity." _Communications of the ACM_, 67(3), 54–63.
-    https://cacm.acm.org/magazines/2024/3/measuring-github-copilots-impact
+    <https://cacm.acm.org/magazines/2024/3/measuring-github-copilots-impact>
 
 ---
 

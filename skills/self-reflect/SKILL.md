@@ -34,7 +34,7 @@ git diff --stat HEAD~1 HEAD
 
 Use the Glob tool to list any files in the working scratch dir:
 
-```
+```text
 Glob: pattern=".ctx/_WORKING_DIR/*"
 ```
 

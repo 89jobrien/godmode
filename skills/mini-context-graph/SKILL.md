@@ -178,4 +178,4 @@ graph, and answers with citations. `kgx` handles all bookkeeping.
 - `references/ingestion.md` — entity/relation extraction rules (read before every ingest)
 - `references/ontology.md` — type normalization rules
 - `references/lint.md` — wiki health-check workflow
-- Source: https://github.com/89jobrien/kgx
+- Source: <https://github.com/89jobrien/kgx>

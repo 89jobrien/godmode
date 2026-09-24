@@ -45,6 +45,7 @@ pub enum GovernanceLevel {
 }
 
 impl GovernanceLevel {
+    /// Returns the lowercase governance-level name.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::Open => "open",
@@ -231,11 +232,28 @@ subagent:
 "#,
         );
 
+        write_policy(
+            &policies,
+            "by-category/blocked.yaml",
+            r#"
+name: category-blocked
+category: blocked
+subagent:
+  max_concurrent: 0
+  max_retries_on_failure: 0
+"#,
+        );
+
         let cfg_dir = tmp.join("agents").join("cfg");
         std::fs::create_dir_all(&cfg_dir).unwrap();
         std::fs::write(
             cfg_dir.join("test-planner.cfg.yaml"),
             "name: test-planner\ncategory: plan\n",
+        )
+        .unwrap();
+        std::fs::write(
+            cfg_dir.join("blocked-agent.cfg.yaml"),
+            "name: blocked-agent\ncategory: blocked\n",
         )
         .unwrap();
     }
@@ -270,6 +288,8 @@ subagent:
         assert!(resolved.policy.blocked_tools.contains(&"Bash".to_string()));
         assert!(resolved.policy.blocked_tools.contains(&"Agent".to_string()));
         assert_eq!(resolved.policy.max_calls_per_dispatch, 150);
+        assert_eq!(resolved.policy.subagent.max_concurrent, 5);
+        assert_eq!(resolved.policy.subagent.max_retries_on_failure, 3);
     }
 
     #[test]
@@ -288,6 +308,17 @@ subagent:
                 .contains(&"Write".to_string())
         );
         assert_eq!(resolved.policy.max_calls_per_dispatch, 50);
+        assert_eq!(resolved.policy.subagent.max_concurrent, 2);
+        assert_eq!(resolved.policy.subagent.max_retries_on_failure, 1);
+    }
+
+    #[test]
+    fn resolve_preserves_explicit_zero_subagent_limits() {
+        let tmp = TempDir::new().unwrap();
+        setup_policies(tmp.path());
+        let resolved = resolve(tmp.path(), "blocked-agent", None).unwrap();
+        assert_eq!(resolved.policy.subagent.max_concurrent, 0);
+        assert_eq!(resolved.policy.subagent.max_retries_on_failure, 0);
     }
 
     #[test]

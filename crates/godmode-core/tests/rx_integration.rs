@@ -1,11 +1,11 @@
+//! Tests direct, shell, and rx-prefixed command resolution and execution.
+
 use godmode_core::integrations::rx;
 
 mod fake_bin;
 use fake_bin::FakeBin;
 
-// ---------------------------------------------------------------------------
 // Shell-out tests using fake binaries
-// ---------------------------------------------------------------------------
 
 #[test]
 fn direct_cmd_runs() {
@@ -54,9 +54,7 @@ fn nonzero_exit_propagated() {
     assert_eq!(status.code(), Some(2));
 }
 
-// ---------------------------------------------------------------------------
 // Pure-logic tests
-// ---------------------------------------------------------------------------
 
 #[test]
 fn resolve_cmd_direct_single_word() {
@@ -116,9 +114,7 @@ fn run_cmd_shell_metachar_executes_via_sh() {
     assert!(status.success());
 }
 
-// ---------------------------------------------------------------------------
 // resolve_cmd — metacharacter coverage
-// ---------------------------------------------------------------------------
 
 #[test]
 fn every_metacharacter_triggers_shell() {

@@ -1,9 +1,12 @@
+//! Manages Godmode versions, changelogs, tags, pushes, and release validation.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes the selected release operation and reports version consistency failures.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Release { action } => match action {

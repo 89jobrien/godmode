@@ -1,3 +1,5 @@
+//! Discovery of local skill directories containing `SKILL.md`.
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};

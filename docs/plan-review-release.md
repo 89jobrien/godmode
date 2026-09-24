@@ -73,13 +73,13 @@ pub fn check_agents(root: &Path) -> Result<ReviewReport>
 
 Human (default):
 
-```
+```text
 78 checks passed.
 ```
 
 or:
 
-```
+```text
 [cap] missing SKILL.md
 [brainstorm:12] unknown subcommand: godmode foo
 2 checks failed out of 78 total.
@@ -245,7 +245,7 @@ pub mod review;
 `tests/conformance/plugin-structure.nu` Check 8 (`canonical_subcommands` list)
 must be extended with the new subcommands:
 
-```
+```text
 "review self"
 "review skills"
 "review agents"
@@ -259,7 +259,7 @@ must be extended with the new subcommands:
 
 ## Execution order
 
-```
+```text
 t1  review module (godmode-core/src/review.rs) + unit tests
 t2  release module (godmode-core/src/release.rs) + unit tests   [independent of t1]
 t3  lib.rs exports                                               [depends: t1, t2]

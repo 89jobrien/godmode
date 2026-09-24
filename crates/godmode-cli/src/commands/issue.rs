@@ -1,9 +1,12 @@
+//! Lists and closes GitHub issues and synchronizes source TODOs with issues.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Executes issue listing, closure, or TODO synchronization in preview or apply mode.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Issue { action } => match action {

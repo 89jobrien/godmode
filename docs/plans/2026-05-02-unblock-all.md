@@ -31,7 +31,7 @@ pub fn unblock_all(graph: &mut TaskGraph) -> usize
 
 ### CLI subcommand
 
-```
+```text
 godmode task unblock-all
 ```
 

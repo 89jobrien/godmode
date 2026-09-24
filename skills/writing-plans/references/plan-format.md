@@ -2,9 +2,9 @@
 
 ## File Naming
 
-`docs/plans/YYYY-MM-DD-<feature-name>.md`
+`.ctx/godmode/plans/YYYY-MM-DD-<feature-name>.md`
 
-Example: `docs/plans/2026-05-01-task-clear-command.md`
+Example: `.ctx/godmode/plans/2026-05-01-task-clear-command.md`
 
 ## Task Heading Format
 
@@ -32,18 +32,27 @@ Shell metacharacters (`>`, `<`, `\|`, `&`, `;`, `$`, `` ` ``, `(`, `)`) trigger 
 
 ## Dependency Model
 
-Tasks are assigned sequential deps automatically: t2 depends on t1, t3 on t2, etc.
+Tasks are assigned sequential deps automatically. The parser starts with `t1`; ingestion preserves
+those IDs when unused or rewrites the whole plan into a deterministic file-stem namespace when they
+collide with another plan.
 
-To make a task independent (no deps), include "independent" in the title:
+To override the sequential dependency, add an explicit annotation:
 
 ```markdown
-### Task 3: Independent — add CI workflow
+### Task 3: Add CI workflow
+
+**Depends-on**: `graph:gh-42`
 ```
+
+Use `t1,t2` for dependencies on tasks inside the same plan. Use `graph:<id>` for existing graph
+tasks. Use an empty annotation, `**Depends-on**: ```, for an independent root task.
 
 ## Ingest Behaviour
 
-- `godmode plan ingest <file>` — idempotent; skips existing task IDs silently
-- `godmode agent <file>` — ingest + dispatch in one step (also idempotent)
+- `godmode plan ingest <file>` — collision-safe and idempotent for the same plan path
+- `godmode agent dispatch <file>` — uses the same collision-safe ingestion before dispatch
+- Plan-ingest JSON reports `parsed`, `added`, `skipped`, and assigned `ids`; agent-dispatch JSON
+  reports `parsed`, `ingested`, `skipped`, `ids`, and `chains`
 
 ## Quality Rules
 

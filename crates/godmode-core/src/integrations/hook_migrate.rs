@@ -1,3 +1,5 @@
+//! Discovery and execution of ordered Nushell hook migrations.
+
 use std::path::Path;
 use std::process::Command;
 

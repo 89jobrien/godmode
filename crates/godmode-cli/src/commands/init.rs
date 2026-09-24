@@ -1,9 +1,12 @@
+//! Initializes global configuration and project-local Godmode state.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Creates missing configuration and state files, updates `.gitignore`, and runs diagnostics.
 pub fn handle(command: Cmd, _root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Init => {

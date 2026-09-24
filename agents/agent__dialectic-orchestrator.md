@@ -66,7 +66,7 @@ Then check the cache:
 
 Output a framing block:
 
-```
+```text
 QUESTION: <the question being decided>
 HASH:     <hash>
 

@@ -1,3 +1,5 @@
+//! Task-graph persistence, dependency resolution, and state transitions.
+
 use anyhow::{Context, Result, bail};
 use chrono::Local;
 use std::path::{Path, PathBuf};
@@ -289,7 +291,7 @@ pub fn next_task_id(g: &TaskGraph) -> Result<String> {
     let used: std::collections::HashSet<&str> = g.tasks.iter().map(|t| t.id.as_str()).collect();
     for n in 1u64.. {
         let candidate = format!("t{}", n);
-        if !used.contains(candidate.as_str()) {
+        if !used.contains(candidate.as_str()) && !g.is_imported_plan_task(&candidate) {
             return Ok(candidate);
         }
     }
@@ -298,8 +300,19 @@ pub fn next_task_id(g: &TaskGraph) -> Result<String> {
 
 /// Add a new task to the graph.
 pub fn add(graph: &mut TaskGraph, task: Task) -> Result<()> {
+    add_inner(graph, task, false)
+}
+
+pub(crate) fn add_imported(graph: &mut TaskGraph, task: Task) -> Result<()> {
+    add_inner(graph, task, true)
+}
+
+fn add_inner(graph: &mut TaskGraph, task: Task, allow_reserved: bool) -> Result<()> {
     if graph.tasks.iter().any(|t| t.id == task.id) {
         bail!("task '{}' already exists", task.id);
+    }
+    if !allow_reserved && graph.is_imported_plan_task(&task.id) {
+        bail!("task '{}' is reserved by an imported plan", task.id);
     }
     if let Some(cycle_path) = would_create_cycle(graph, &task.id, &task.depends_on) {
         bail!("cycle detected: {}", cycle_path);
@@ -333,6 +346,7 @@ pub fn clear(graph: &mut TaskGraph, done_only: bool) -> usize {
         graph.tasks.retain(|t| t.status != Status::Done);
     } else {
         graph.tasks.clear();
+        graph.clear_plan_imports();
     }
     let removed = before - graph.tasks.len();
     if removed > 0 {
@@ -550,6 +564,16 @@ mod tests {
         assert_eq!(next_task_id(&g).unwrap(), "t2");
         add(&mut g, Task::new("t3", "C")).unwrap(); // gap at t2
         assert_eq!(next_task_id(&g).unwrap(), "t2");
+    }
+
+    #[test]
+    fn imported_plan_ids_remain_reserved_after_task_removal() {
+        let mut graph = TaskGraph::default();
+        graph.record_plan_import("/repo/plan.md".into(), vec!["t1".into()]);
+
+        assert_eq!(next_task_id(&graph).unwrap(), "t2");
+        let error = add(&mut graph, Task::new("t1", "Manual task")).unwrap_err();
+        assert!(error.to_string().contains("reserved"));
     }
 
     #[test]

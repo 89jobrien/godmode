@@ -93,7 +93,7 @@ For manual-only issues:
 
 ## Step 4 — Report
 
-```
+```text
 CI Triage: main (run #12345678)
 ================================
 ✗ clippy: 2 issues

@@ -46,7 +46,7 @@ a slot. Cap at **5 concurrent slots**.
 
 Present the grouping for confirmation before dispatching (example):
 
-```
+```text
 Slot 1 (independent): #7 session-start hook
 Slot 2 (independent): #8 pre-commit hook
 Slot 3 (independent): #9 task-done-sync hook
@@ -88,7 +88,7 @@ Spawn one `godmode:gm-crate` per slot. Each agent prompt must be self-contained:
 
 > (generate via `godmode agent dispatch <plan> --max N`)
 
-```
+```text
 You are implementing GitHub issue #<N>: <title>
 
 Worktree absolute path: <REPO_ROOT>/.worktrees/issue-<N>
@@ -128,7 +128,7 @@ Do NOT modify files outside <REPO_ROOT>/.worktrees/issue-<N>.
 
 Pass explicit tools — agents do NOT inherit permissions:
 
-```
+```text
 allowedTools: Read, Write, Edit, Bash, Grep, Glob
 ```
 

@@ -24,6 +24,7 @@ pub struct CiTriageResult {
     pub raw_snippet: String,
 }
 
+/// Classifies a failed CI log using known error signatures.
 pub fn classify_log(log: &str) -> CiFailureClass {
     if log.contains("error[E") {
         return CiFailureClass::CompileError;
@@ -55,6 +56,7 @@ pub fn classify_log(log: &str) -> CiFailureClass {
     CiFailureClass::Unknown
 }
 
+/// Returns the recommended remediation for a CI failure class.
 pub fn fix_hint(class: &CiFailureClass) -> &'static str {
     match class {
         CiFailureClass::CompileError => "Fix source error, run: cargo check --workspace",
@@ -77,6 +79,7 @@ pub fn fix_hint(class: &CiFailureClass) -> &'static str {
     }
 }
 
+/// Fetches an explicit or latest failed GitHub Actions run and classifies its log.
 pub fn ci_triage(run_id: Option<&str>) -> Result<CiTriageResult> {
     let id = match run_id {
         Some(id) => id.to_string(),

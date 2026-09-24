@@ -4,11 +4,34 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use serde::Deserialize;
 
 use crate::agent;
 use crate::policy::{
     AllowedToolsMode, GovernanceLevel, GovernancePolicy, PolicyIndex, ResolvedPolicy,
 };
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct GovernancePolicyOverlay {
+    allowed_tools: Vec<String>,
+    blocked_tools: Vec<String>,
+    blocked_patterns: Vec<String>,
+    max_calls_per_dispatch: Option<usize>,
+    require_human_approval: Vec<String>,
+    subagent: Option<SubagentConstraintsOverlay>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct SubagentConstraintsOverlay {
+    max_concurrent: Option<usize>,
+    must_verify_branch: bool,
+    no_commit_to_main: bool,
+    max_retries_on_failure: Option<usize>,
+    require_commit_before_done: bool,
+    blocked_flags: Vec<String>,
+}
 
 pub(crate) fn policies_dir(root: &Path) -> PathBuf {
     root.join("skills")
@@ -20,6 +43,13 @@ pub(crate) fn load_policy(path: &Path) -> Result<GovernancePolicy> {
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("reading policy {}", path.display()))?;
     serde_yaml::from_str(&raw).with_context(|| format!("parsing policy YAML {}", path.display()))
+}
+
+fn load_overlay(path: &Path) -> Result<GovernancePolicyOverlay> {
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("reading policy overlay {}", path.display()))?;
+    serde_yaml::from_str(&raw)
+        .with_context(|| format!("parsing policy overlay YAML {}", path.display()))
 }
 
 /// Look up the category for an agent from `agents/cfg/<name>.cfg.yaml`.
@@ -74,7 +104,7 @@ pub fn resolve(
     if !category.is_empty() {
         let cat_path = dir.join("by-category").join(format!("{category}.yaml"));
         if cat_path.exists() {
-            let cat_policy = load_policy(&cat_path)?;
+            let cat_policy = load_overlay(&cat_path)?;
             compose(&mut policy, &cat_policy, AllowedToolsMode::Replace);
             sources.push(format!("by-category/{category}.yaml"));
         }
@@ -92,7 +122,7 @@ pub fn resolve(
     };
     let level_path = dir.join("levels").join(format!("{effective_level}.yaml"));
     if level_path.exists() {
-        let level_policy = load_policy(&level_path)?;
+        let level_policy = load_overlay(&level_path)?;
         compose(&mut policy, &level_policy, AllowedToolsMode::Intersect);
         sources.push(format!("levels/{effective_level}.yaml"));
     }
@@ -162,11 +192,7 @@ pub fn list_policies(root: &Path) -> Result<PolicyIndex> {
 }
 
 /// Compose an overlay on top of a base policy.
-pub(crate) fn compose(
-    base: &mut GovernancePolicy,
-    overlay: &GovernancePolicy,
-    mode: AllowedToolsMode,
-) {
+fn compose(base: &mut GovernancePolicy, overlay: &GovernancePolicyOverlay, mode: AllowedToolsMode) {
     for tool in &overlay.blocked_tools {
         if !base.blocked_tools.contains(tool) {
             base.blocked_tools.push(tool.clone());
@@ -201,24 +227,25 @@ pub(crate) fn compose(
         }
     }
 
-    base.max_calls_per_dispatch = base
-        .max_calls_per_dispatch
-        .min(overlay.max_calls_per_dispatch);
+    if let Some(max_calls) = overlay.max_calls_per_dispatch {
+        base.max_calls_per_dispatch = base.max_calls_per_dispatch.min(max_calls);
+    }
 
-    base.subagent.max_concurrent = base
-        .subagent
-        .max_concurrent
-        .min(overlay.subagent.max_concurrent);
-    base.subagent.must_verify_branch |= overlay.subagent.must_verify_branch;
-    base.subagent.no_commit_to_main |= overlay.subagent.no_commit_to_main;
-    base.subagent.max_retries_on_failure = base
-        .subagent
-        .max_retries_on_failure
-        .min(overlay.subagent.max_retries_on_failure);
-    base.subagent.require_commit_before_done |= overlay.subagent.require_commit_before_done;
-    for flag in &overlay.subagent.blocked_flags {
-        if !base.subagent.blocked_flags.contains(flag) {
-            base.subagent.blocked_flags.push(flag.clone());
+    if let Some(subagent) = &overlay.subagent {
+        if let Some(max_concurrent) = subagent.max_concurrent {
+            base.subagent.max_concurrent = base.subagent.max_concurrent.min(max_concurrent);
+        }
+        base.subagent.must_verify_branch |= subagent.must_verify_branch;
+        base.subagent.no_commit_to_main |= subagent.no_commit_to_main;
+        if let Some(max_retries) = subagent.max_retries_on_failure {
+            base.subagent.max_retries_on_failure =
+                base.subagent.max_retries_on_failure.min(max_retries);
+        }
+        base.subagent.require_commit_before_done |= subagent.require_commit_before_done;
+        for flag in &subagent.blocked_flags {
+            if !base.subagent.blocked_flags.contains(flag) {
+                base.subagent.blocked_flags.push(flag.clone());
+            }
         }
     }
 }

@@ -1,3 +1,5 @@
+//! Verifies that publishing tasks to Doob is idempotent and persists remote provenance.
+
 use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
 

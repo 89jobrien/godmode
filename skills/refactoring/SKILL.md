@@ -11,7 +11,7 @@ next: [code-review]
 
 ## Core Rule
 
-```
+```text
 REFACTOR ONLY WHEN ALL TESTS PASS
 Never change behaviour and structure at the same time.
 ```

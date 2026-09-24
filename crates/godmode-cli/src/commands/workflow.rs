@@ -1,9 +1,12 @@
+//! Lists, executes, and reports agent workflow DAGs.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs an agent workflow or displays discovered workflows and persisted execution state.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Workflow { action } => match action {

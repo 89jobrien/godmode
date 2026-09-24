@@ -25,7 +25,7 @@ Before submitting any Rust code:
 
 ## Error Handling Decision Tree
 
-```
+```text
 Is this library code?
   YES → Return Result<T, E>, never panic
   NO → Is this a test?

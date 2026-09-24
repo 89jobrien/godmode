@@ -1,3 +1,5 @@
+//! Fuzzes path-to-concern classification against arbitrary UTF-8 input.
+
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 

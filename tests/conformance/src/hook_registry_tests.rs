@@ -42,6 +42,7 @@ impl ConformanceTest for HookManifestConformance {
     }
 }
 
+/// Returns the generated hook-manifest conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![Box::new(HookManifestConformance)]
 }

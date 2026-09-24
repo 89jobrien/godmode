@@ -14,7 +14,7 @@ next: []
 Connects observed agent behavior back to code changes through a structured seven-phase cycle.
 Human judgment enters at the feedback phase and compounds through every subsequent step.
 
-```
+```text
 SDK traces → Human+LLM feedback → Promptfoo evals → HALO diagnosis
     → Codex handoff → [Automation heartbeat] → Harness update
 ```
@@ -77,7 +77,7 @@ Goal: turn raw traces into labeled signal (good behavior / bad behavior / missin
 
 **LLM assist prompt (run inline):**
 
-```
+```text
 Given these agent trace samples, identify:
 1. Patterns that should be blocked but aren't
 2. Patterns that are blocked but shouldn't be (false positives)
@@ -154,7 +154,7 @@ HALO = **H**igh-impact, **A**ctionable, **L**ow-effort, **O**bservable.
 
 **Score each failing eval cluster:**
 
-```
+```text
 impact    = evidence_count × severity_weight  (P1=3, P2=2, P3=1)
 confidence = promptfoo pass rate on existing cases (0.0–1.0)
 effort     = estimated lines of change (1=<5, 2=5-20, 3=>20)
@@ -218,14 +218,14 @@ execute without further context.
 
 **Save to:**
 
-```
+```text
 .ctx/HANDOFF.agent-improvement.<agent-name>.yaml
 ```
 
 **Or use `hj` if available:**
 
 ```nu
-hj handoff --title "agent improvement loop: <agent>" --notes "$(cat .ctx/_WORKING_DIR/diagnosis.json)"
+Read `.ctx/_WORKING_DIR/diagnosis.json`, then pass its contents to `hj handoff --notes`.
 ```
 
 **Output of this phase:**
@@ -297,7 +297,7 @@ echo '{"tool_name":"Bash","tool_input":{"command":"<sample>"}}' | coursers pre [
 
 **On all green:**
 
-```
+```text
 git branch --show-current   # MUST verify — stop if output is "main"
 git add <changed files>
 git commit -m "fix(agent): <cluster_id> — <one-line diagnosis>"
@@ -335,7 +335,7 @@ confirmation before proceeding to the next phase.
 
 ### Loop invocation
 
-```
+```text
 /agent-improvement-loop [--agent <name>] [--since <days>] [--phase <N>] [--dry-run]
 ```
 
@@ -351,7 +351,7 @@ confirmation before proceeding to the next phase.
 ## Standalone implementation
 
 The loop is also available as a standalone Rust workspace: **updog** (`~/dev/updog`,
-https://github.com/89jobrien/updog).
+<https://github.com/89jobrien/updog>).
 
 - `agent-loop` crate — serializable types: `TraceRecord`, `FeedbackCluster`, `HaloScore`,
   `ChangeItem`, `Diagnosis`, `Handoff`

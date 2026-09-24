@@ -1,3 +1,5 @@
+//! Agent discovery, filtering, and Markdown index generation.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -6,9 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::agent;
 
-// ---------------------------------------------------------------------------
 // Data types
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentEntry {
@@ -20,9 +20,7 @@ pub struct AgentEntry {
     pub path: PathBuf,
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /// Walk `<root>/agents/*.md`, parse YAML frontmatter, return sorted entries.
 pub fn list_agents(root: &Path) -> Result<Vec<AgentEntry>> {
@@ -128,9 +126,7 @@ pub fn generate_agent_index(root: &Path, agents: &[AgentEntry]) -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
 // Internal helpers
-// ---------------------------------------------------------------------------
 
 /// Parse YAML frontmatter from a markdown file and return an AgentEntry.
 fn parse_agent(content: &str, path: PathBuf) -> Option<AgentEntry> {
@@ -232,9 +228,7 @@ fn first_line(s: &str) -> String {
         .to_string()
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

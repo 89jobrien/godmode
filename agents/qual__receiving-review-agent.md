@@ -54,7 +54,7 @@ For each fix, apply TDD discipline:
 
 All review fixes go in one commit:
 
-```
+```text
 fix(crate): address PR review — <brief summary>
 ```
 

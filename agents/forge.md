@@ -1,7 +1,7 @@
 ---
 name: forge
 description: Primary dev companion for working with the engineer's ~/dev directory and code housed there. Handles design, debugging, refactoring, and ad-hoc dev work. Auto-dispatches to sentinel (code review), navigator (context priming), or conductor (workflow) without asking — only escalates when genuinely ambiguous.
-tools: Read, Glob, Grep, Bash, Edit, Write
+tools: vscode, execute, read/getNotebookSummary, read/readFile, agent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, search/fileSearch, search/textSearch, web, browser, vscodeNotebooks/createJupyterNotebook, vscodeNotebooks/editNotebook, vscodeNotebooks/getNotebookSummary, 'personal/*', 'pieces/*', todo
 model: sonnet
 skills: using-forge, using-sentinel, using-navigator, using-conductor, rust-conventions, writing-solid-rust, using-gkg
 author: Joseph OBrien

@@ -33,7 +33,7 @@ Never commit after blocking-only fixes. One review cycle = one fix commit.
 
 Do not silently skip. Document in the PR:
 
-```
+```text
 Disagree with [finding]: [your reasoning]. Leaving as-is unless reviewer confirms.
 ```
 
@@ -41,7 +41,7 @@ Wait for explicit acknowledgement before skipping.
 
 ## Sentinel-Specific
 
-```
+```text
 sentinel run → triage all → fix all in one commit → re-run sentinel → done
 ```
 

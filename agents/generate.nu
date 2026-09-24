@@ -29,7 +29,6 @@ for file in $yamls {
     let prompt_path = ($prompts_dir | path join $"($stem).prompt.txt")
 
     # Build frontmatter
-    let tools_yaml = ($tools | each {|t| $"  - \"($t)\"" } | str join "\n")
     let skills_line = if ($skills | length) > 0 {
         ($skills | str join ", ")
     } else {
@@ -39,18 +38,13 @@ for file in $yamls {
     mut fm_lines = [
         "---"
         $"name: \"($name)\""
-        $"description: >"
+        $"description: ($description | to json)"
     ]
-
-    # Wrap description at ~95 chars with 2-space indent
-    let desc_lines = ($description | split row "\n" | each {|l| $"  ($l)" })
-    $fm_lines = ($fm_lines | append $desc_lines)
 
     $fm_lines = ($fm_lines | append [
         $"model: ($model)"
         $"color: ($color)"
-        "tools:"
-        $tools_yaml
+        $"tools: ($tools | to json)"
     ])
 
     if $skills_line != "" {

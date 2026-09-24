@@ -1,3 +1,5 @@
+//! Manages task lifecycle, execution, templates, and external synchronization.
+
 use anyhow::Result;
 use godmode_core::session::Session;
 use godmode_core::{config::Config, detect, graph, integrations, model, templates};
@@ -5,6 +7,7 @@ use std::path::Path;
 
 use crate::{TaskAction, exit_empty, filter_tasks};
 
+/// Executes a task subcommand through the session API and persists graph mutations.
 pub fn run_task_action(root: &Path, json: bool, action: TaskAction) -> Result<()> {
     let mut session = Session::open(root)?;
 
