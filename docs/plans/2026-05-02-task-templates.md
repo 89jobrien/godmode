@@ -89,7 +89,7 @@ No new external dependencies. Global dir resolved via `std::env::var("HOME")`.
 
 ### CLI subcommands
 
-```
+```text
 godmode task apply <name> [--var key=value]...
 godmode task list-templates
 ```

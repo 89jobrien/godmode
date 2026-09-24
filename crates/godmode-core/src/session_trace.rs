@@ -12,9 +12,7 @@ use crux_runtime::types::step::Step;
 use crate::graph;
 use crate::model::TaskGraph;
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /// Session-scoped trace writer.
 pub struct Session {
@@ -61,9 +59,7 @@ impl Session {
         self.write_session()
     }
 
-    // -----------------------------------------------------------------------
     // Private helpers
-    // -----------------------------------------------------------------------
 
     fn write_session(self) -> Result<PathBuf> {
         let dir = self.root.join(".ctx").join("godmode").join("sessions");
@@ -75,9 +71,7 @@ impl Session {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

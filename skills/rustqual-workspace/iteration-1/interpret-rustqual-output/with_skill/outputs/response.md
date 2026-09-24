@@ -2,7 +2,7 @@
 
 ## Current State
 
-```
+```text
 Quality Score: 62.3%    22 findings
 
 IOSP:         78.0%  (3 violations)

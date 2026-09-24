@@ -107,6 +107,7 @@ impl ConformanceTest for DispatchEmptyGraphEmptyChains {
     }
 }
 
+/// Returns the parallel-chain dispatch conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(DispatchIndependentTasksParallel),

@@ -1,3 +1,5 @@
+//! Tests Nushell session, pre-commit, and task-synchronization hooks.
+
 mod fake_bin;
 use fake_bin::FakeBin;
 
@@ -21,9 +23,7 @@ fn nu_bin() -> Option<std::path::PathBuf> {
     which::which("nu").ok()
 }
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 /// Run a nu script with optional stdin JSON and an optional PATH prefix.
 fn run_hook(
@@ -62,9 +62,7 @@ fn join_path_prefix(prefix: &str, base_path: &str) -> String {
     format!("{}:{}", prefix, base_path)
 }
 
-// ---------------------------------------------------------------------------
 // session-start.nu
-// ---------------------------------------------------------------------------
 
 #[test]
 fn session_start_noop_when_task_file_absent() {
@@ -172,9 +170,7 @@ fn session_start_degrades_gracefully_when_godmode_absent() {
     );
 }
 
-// ---------------------------------------------------------------------------
 // pre-commit.nu
-// ---------------------------------------------------------------------------
 
 #[test]
 fn pre_commit_exits_zero_when_no_running_tasks() {
@@ -246,9 +242,7 @@ fn pre_commit_degrades_gracefully_when_godmode_absent() {
     );
 }
 
-// ---------------------------------------------------------------------------
 // task-done-sync.nu
-// ---------------------------------------------------------------------------
 
 #[test]
 fn task_done_sync_noop_on_unrelated_command() {

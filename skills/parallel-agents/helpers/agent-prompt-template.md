@@ -26,6 +26,7 @@ You are implementing tasks for crate: **`<CRATE>`**
 4. If stuck after 3 attempts: write `BLOCKED.md` at repo root with crate, task, three
    attempts tried, exact error. STOP. Continue with remaining independent tasks if any.
 5. Final check:
+
    ```bash
    cargo nextest run -p <CRATE>
    cargo clippy -p <CRATE> -- -D warnings
@@ -40,7 +41,7 @@ You are implementing tasks for crate: **`<CRATE>`**
 
 ## Wave State Update
 
-On completion, update `.ctx/wave-status.json` for your entry:
+On completion, update `.ctx/godmode/wave-status.json` for your entry:
 
 ```bash
 # Read current state, then write your entry:

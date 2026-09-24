@@ -26,7 +26,7 @@ for the direct approach.
 
 ## Output format
 
-```
+```text
 ADVOCATE POSITION
 =================
 <Your full argument>

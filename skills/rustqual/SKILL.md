@@ -350,6 +350,7 @@ are invisible to rustqual's dead-code analysis. Two approaches:
    Use `#[path = "kani_proofs.rs"]` to keep the module relationship.
 
 2. **Disable dead code detection** if ALL dead-code findings are cfg-gated:
+
    ```toml
    [duplicates]
    detect_dead_code = false

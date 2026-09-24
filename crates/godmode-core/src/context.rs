@@ -1,3 +1,5 @@
+//! Session context assembly for hooks and subagents.
+
 use anyhow::Result;
 use serde::Serialize;
 use std::path::Path;

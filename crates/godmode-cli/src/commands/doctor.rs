@@ -1,9 +1,12 @@
+//! Checks the Godmode installation and plugin environment.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs environment diagnostics and reports each check's result.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Doctor => {

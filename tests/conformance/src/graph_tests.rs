@@ -14,9 +14,7 @@ fn graph_with_chain() -> TaskGraph {
     g
 }
 
-// ---------------------------------------------------------------------------
 // Runnable resolution
-// ---------------------------------------------------------------------------
 
 pub struct RunnableRootOnly;
 impl ConformanceTest for RunnableRootOnly {
@@ -68,9 +66,7 @@ impl ConformanceTest for RunnableUnlocksAfterDep {
     }
 }
 
-// ---------------------------------------------------------------------------
 // State transitions
-// ---------------------------------------------------------------------------
 
 pub struct StartFailsUnmetDeps;
 impl ConformanceTest for StartFailsUnmetDeps {
@@ -163,9 +159,7 @@ impl ConformanceTest for UnblockAllResetsBlocked {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Cycle detection
-// ---------------------------------------------------------------------------
 
 pub struct CycleDetectedSelfLoop;
 impl ConformanceTest for CycleDetectedSelfLoop {
@@ -241,9 +235,7 @@ impl ConformanceTest for DiamondDagNoCycle {
     }
 }
 
-// ---------------------------------------------------------------------------
 // ID generation
-// ---------------------------------------------------------------------------
 
 pub struct NextTaskIdSequential;
 impl ConformanceTest for NextTaskIdSequential {
@@ -267,9 +259,7 @@ impl ConformanceTest for NextTaskIdSequential {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Clear / remove
-// ---------------------------------------------------------------------------
 
 pub struct ClearDoneOnly;
 impl ConformanceTest for ClearDoneOnly {

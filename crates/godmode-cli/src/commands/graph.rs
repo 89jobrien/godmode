@@ -1,9 +1,12 @@
+//! Builds task graphs interactively or from template input.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Builds a task graph and reports added tasks, dependencies, and validation findings.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Graph { action } => match action {

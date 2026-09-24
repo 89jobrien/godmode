@@ -77,20 +77,20 @@ Report findings in three sections:
 
 ### Blocking (Security advisories, CVEs, license violations)
 
-```
+```text
 - <crate> <version> — <CVE-ID or advisory> — <description>
 - <crate> — <license> incompatible with <project license>
 ```
 
 ### Suggestions (Major version bumps, breaking changes available)
 
-```
+```text
 - <crate> <current> → <latest> — <reason or breaking change summary>
 ```
 
 ### Nitpicks (Minor/patch bumps available)
 
-```
+```text
 - <crate> <current> → <latest>
 ```
 
@@ -101,7 +101,7 @@ Omit sections with no findings.
 When a crate appears in multiple `Cargo.toml` files (workspace, sub-crates),
 note version mismatches:
 
-```
+```text
 - <crate> version mismatch: root uses X, crate-foo uses Y
 ```
 

@@ -6,9 +6,7 @@ use anyhow::{Context, Result};
 use tracing::instrument;
 use which::which;
 
-// ---------------------------------------------------------------------------
 // Pure logic — testable without shelling out
-// ---------------------------------------------------------------------------
 
 const SHELL_METACHARACTERS: &[char] = &['|', '>', '<', '&', ';', '$', '`', '(', ')'];
 
@@ -55,9 +53,7 @@ pub fn resolve_cmd(run: &str) -> (String, Vec<String>) {
     }
 }
 
-// ---------------------------------------------------------------------------
 // rx registry — list and validate
-// ---------------------------------------------------------------------------
 
 /// Parse the stdout of `rx list` into script names.
 /// Each line is: `name\t-\tbin_path\tsource_path`
@@ -114,9 +110,7 @@ pub fn validate_run(run: &str) -> Result<()> {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Shell-out layer
-// ---------------------------------------------------------------------------
 
 /// Run a task's `run:` command.
 ///

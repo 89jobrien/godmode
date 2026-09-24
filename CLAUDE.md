@@ -119,27 +119,29 @@ Plan markdown must use `### Task N: <title>` headings. Optionally annotate with:
 **Run**: `cargo nextest run -p crate-name`
 ```
 
-`plan::parse` builds sequential `depends_on` chains automatically. `graph::add` is idempotent —
-re-ingesting a plan skips existing task IDs silently.
+`plan::parse` builds sequential `depends_on` chains automatically. The CLI prepares parsed tasks
+against the current graph: the first plan keeps `tN` IDs, later collisions use a deterministic
+file-stem namespace, and full-path provenance keeps re-ingestion idempotent. Prefix an explicit
+existing-graph dependency with `graph:` so it is not remapped with internal plan dependencies.
 
 ### CLI subcommands
 
-```
+```text
 godmode handon                                  # session-start triage summary
 godmode handoff                                 # session-end validation
 godmode context [--json]                        # full session context for hooks/agents
 godmode status [--compact]                      # graph counts + next runnable tasks
 godmode task list [--priority high|normal|low]
 godmode task next [--priority high|normal|low]
-godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X] \
-  [--notes <text>] [--run <command>] [--priority high|normal|low] [--tag <tag>]...
+godmode task add <title> [--id t5] [--depends-on t1,t2] [--crate-name X]
 godmode task start <id>
 godmode task done <id> [--commit <sha>] [--notes <text>]
 godmode task block <id> <reason>
 godmode task unblock <id>
 godmode task unblock-all                        # reset all blocked tasks to pending
 godmode task remove <id>
-godmode task clear --done | --all
+godmode task clear --done
+godmode task clear --all
 godmode task run <id> [--auto-done]             # execute task's run: field via rx
 godmode task pull [--project <name>]            # import pending doob todos
 godmode task pull --github [--repo owner/repo] [--label <label>]
@@ -153,7 +155,10 @@ godmode pin [<path>]                            # pin session to a repo root
 godmode unpin                                   # remove the pinned root
 godmode init                                    # first-time setup: global config + state dirs
 godmode doctor                                  # validate environment: tools, 1Password, worktrees
-godmode memory-banking inject / remind / init / status  # persistent source-backed project context
+godmode memory-banking inject
+godmode memory-banking remind
+godmode memory-banking init
+godmode memory-banking status
 godmode agent list [--filter <kw>]              # list installed agents
 godmode agent index                             # regenerate agents/INDEX.md
 godmode agent dispatch <path> [--max N]         # plan ingest + dispatch in one shot
@@ -162,7 +167,10 @@ godmode agent migrate [<name>] [--all]          # migrate agent .md frontmatter 
 godmode graph build [--input <tmpl>] [--var k=v]
 godmode verify [--crate-name X]                 # nextest + clippy + fmt + commits
 godmode wave init --wave N --agents a,b,c
-godmode wave status / done <agent> / block <agent> / check
+godmode wave status
+godmode wave done <agent> [--commits <commits>]
+godmode wave block <agent> <reason>
+godmode wave check
 godmode worktree add <branch> [--issue N]
 godmode worktree remove <branch>
 godmode ci triage [--run-id <id>]
@@ -189,10 +197,31 @@ godmode policy resolve <agent> [--level L]      # effective policy for an agent
 godmode policy check <agent> <tool> [--input <text>] [--level L]  # check a tool call
 godmode policy list                             # list default/category/level policies
 godmode policy audit [--date YYYY-MM-DD]        # governance audit trail
-godmode hook list / log [--tail N] / test <script> / migrate / run <name>  # built-in hook: stop-guard, auto-block, pre-commit, quality-gate
-godmode skill list / install <path> / uninstall <name>
-godmode review self / skills / agents
-godmode release current / bump [--version X] / tag / push / changelog
+godmode hook list
+godmode hook log [--tail N]
+godmode hook test <script>
+godmode hook migrate
+godmode hook run <name>
+godmode skill list
+godmode skill install <path>
+godmode skill uninstall <name>
+godmode skill index [--check]
+godmode review self
+godmode review skills
+godmode review agents
+godmode release current
+godmode release bump [--version X]
+godmode release tag
+godmode release push
+godmode release changelog
+godmode release validate
+godmode trace tail [--n N] [--session ID|--current]
+godmode trace failures [--session ID|--current]
+godmode trace stats [--session ID|--current]
+godmode trace summary [--sessions N] [--previous]
+godmode command generate --target <claude|opencode>
+godmode command install-opencode [--dry-run]
+godmode agent install-opencode [--dry-run]
 godmode insight add <title> --body <text> [--tags t1,t2]
 godmode insight list [--date YYYY-MM-DD] [--json]
 godmode insight render [--date YYYY-MM-DD]
@@ -212,7 +241,7 @@ godmode test-check <path>                               # check if .rs file has 
 
 ### Pipeline
 
-```
+```text
 godmode pipeline list                           # show all pipelines
 godmode pipeline show <name>                    # show steps with current position
 godmode pipeline start <name> [--from <skill>]  # start and auto-invoke first step
@@ -239,7 +268,7 @@ Pipeline state persists in `.ctx/godmode/pipeline.yaml` (gitignored).
 
 This repo is also a Claude Code plugin installed via bazaar:
 
-```
+```text
 .claude-plugin/plugin.json   # name, version, author, description only — no extra fields
 skills/                      # discovered by directory scan, not declared in plugin.json
 agents/                      # top-level *.md are GENERATED — Claude discovers these
@@ -259,8 +288,8 @@ cause validation failure on `claude plugin install`.
 - `skills/introspection/helpers/audit.nu` checks skill-index completeness and cross-references
   subcommand calls; run it after editing any `skills/*/SKILL.md` or `agents/*.md`. Report lands in
   `.ctx/godmode/reports/introspection/` (gitignored).
-- `godmode plan ingest` skips tasks whose IDs already exist — plans reuse `t1`/`t2`/etc.
-  If ingesting multiple plans into one graph, add tasks manually with distinct IDs.
+- `godmode plan ingest` safely coexists with earlier plans. Colliding IDs are namespaced by the plan
+  filename, internal dependencies are rewritten, and JSON output reports actual added/skipped IDs.
 - `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
 - `dispatch --critical-path` shows the critical path tasks; `godmode status` also surfaces it.
@@ -286,14 +315,10 @@ cause validation failure on `claude plugin install`.
 
 ## CI
 
-Watch the latest run on main:
-
-```nu
-gh run watch (gh run list --branch (git branch --show-current) --limit 1 --json databaseId | from json | get 0.databaseId)
-```
+Inspect recent runs on the current branch without opening a TTY watcher:
 
 ```bash
-gh run watch $(gh run list --branch $(git branch --show-current) --limit 1 --json databaseId --jq '.[0].databaseId')
+gh run list --branch "$(git branch --show-current)" --limit 3
 ```
 
 ## Git Operations
@@ -310,14 +335,15 @@ When dispatching subagents:
 
 - Each subagent must run `git branch --show-current` immediately before every `git commit`.
   If the answer is `main`, STOP — do not commit to main directly.
-- Worktree subagents MUST merge their branch back and remove the worktree before reporting done.
-  An orphaned worktree means the task is incomplete.
+- Worktree subagents commit and report their branch/SHA without integrating or removing the
+  worktree. The orchestrator delegates integration and cleanup to wave integration.
 - After subagents complete, verify their changes were committed (`git log --oneline -3`).
   A HANDOFF with `commits: []` is incomplete.
-- Never use octopus merges across subagents — cherry-pick sequentially if branches diverge.
+- Merge parallel branches sequentially with `git merge --no-ff`; never cherry-pick or use an
+  octopus merge.
 - Cap parallel subagents at 5 concurrent to avoid API rate limits.
 - Never use `--no-verify` in subagent git operations.
-- If tests fail, debug and retry up to 3 times before escalating.
+- After 3 failed attempts, write `BLOCKED.md` and stop before escalating.
 
 ## Sentinel Reviews
 

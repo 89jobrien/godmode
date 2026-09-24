@@ -22,6 +22,7 @@ Single-skill wrappers for direct invocation.
 | `/gm:ci-fix`          | `godmode:ci-fix`                                                                 | Fix a failing CI pipeline                     |
 | `/gm:self-heal`       | `godmode:ci-fix` (loop)                                                          | Self-healing CI loop until all gates pass     |
 | `/gm:plan`            | `godmode:writing-plans`                                                          | Scaffold an implementation plan               |
+| `/gm:ingest`          | `godmode:ingest`                                                                 | Load plans without task ID collisions         |
 | `/gm:test-fix-commit` | —                                                                                | Test → fix → commit cycle                     |
 | `/gm:tackle-issues`   | `godmode:tackle-issues`                                                          | Work GitHub issues in parallel worktrees      |
 | `/gm:moa-review`      | `godmode:tdd-crate-agent` (dispatched directly, no `moa` skill call)             | Multi-lens review + parallel fix agents       |
@@ -62,7 +63,8 @@ Multi-skill pipelines that chain skills in sequence.
 1. Create `commands/gm/<name>.yaml` with fields: `name`, `template`, `prompt`,
    `allowedTools`, `maxTurns`. For a shared workflow, add `pipeline` and optional
    `stepInstructions`; the pipeline owns step order and membership.
-2. Use `template: dev` for implementation commands, `template: debug` for diagnostic ones.
+2. Use `template: dev` for implementation commands, `template: debug` for diagnostic ones, and
+   `template: ops` for task/session state operations.
 3. Reference skills as `godmode:<skill-name>` in the prompt body.
 4. Run `nu commands/gm/generate.nu` to refresh both tracked projections.
 5. Do not edit generated `.md` files in `commands/` or `.opencode/commands/` directly.

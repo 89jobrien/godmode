@@ -207,9 +207,7 @@ pub fn critical_path(graph: &TaskGraph) -> Vec<TaskRef> {
         .collect()
 }
 
-// ---------------------------------------------------------------------------
 // Gated dispatch — concurrency-limited chain execution simulation
-// ---------------------------------------------------------------------------
 
 /// Outcome for a single chain execution in `dispatch_with_config`.
 #[derive(Debug, PartialEq, Eq)]

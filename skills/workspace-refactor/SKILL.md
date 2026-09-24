@@ -33,7 +33,7 @@ Ask the user which crate changed and what changed:
 
 Example:
 
-```
+```text
 Crate: devkit
 Changes:
   - Renamed: AsyncExecutor → RuntimeExecutor
@@ -59,7 +59,7 @@ Tools:
 
 Record:
 
-```
+```text
 Dependents of devkit:
   - crux (direct dependency)
   - maestro (dev dependency)
@@ -85,7 +85,7 @@ For each dependent repo, use Grep to search for the changed symbols:
 
 Record each match:
 
-```
+```text
 crux/src/executor.rs:42
   Current: pub struct Executor(AsyncExecutor)
   Change: Rename AsyncExecutor to RuntimeExecutor
@@ -145,8 +145,9 @@ dependent repo:
 3. Subagent applies changes:
    - Edit files according to checklist
    - Run `cargo check` to verify
+   - Run `git branch --show-current`; stop if it is `main`
    - Commit with descriptive message (e.g., "refactor: migrate to RuntimeExecutor")
-   - Merge back to main and remove worktree
+   - Report the branch and SHA without merging or removing the worktree
 
 Cap concurrent subagents at 5 (per workspace guardrails).
 
@@ -180,8 +181,10 @@ Total: 2/3 automated, 1 requires manual review
 - **Never force-push or hard-reset.** Use normal merge workflows.
 - **Each subagent must check `git branch --show-current` before every commit.**
   Never commit to `main` directly.
-- **Verify subagent completion.** A subagent that leaves a worktree unmerged or
-  a commit uncommitted has not finished.
+- **Integrate centrally.** Delegate sequential `git merge --no-ff` and worktree
+  cleanup to wave integration; never cherry-pick parallel branches.
+- **Verify subagent completion.** A subagent with no commit SHA has not finished.
+- **Three attempts.** After 3 failed attempts, write `BLOCKED.md` and stop.
 - **If a dependent is not a Rust project,** ask the user how to detect its
   dependencies (e.g., package.json for Node, go.mod for Go).
 

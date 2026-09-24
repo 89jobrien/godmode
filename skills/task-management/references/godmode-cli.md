@@ -21,7 +21,7 @@ godmode task unblock <id>
 godmode task remove <id>
 godmode task clear --done               # prune completed tasks
 godmode task clear --all                # reset graph entirely
-godmode task next [--json]              # next runnable (exit 1 if none)
+godmode task next [--json]              # next runnable (exit 2 if none)
 godmode task run <id> [--auto-done]     # run task's run: field; --auto-done marks done on exit 0
 godmode task pull [--project <name>]    # import pending doob todos as tasks
 godmode task push-done                  # mark completed tasks done in doob
@@ -30,8 +30,8 @@ godmode task push-done                  # mark completed tasks done in doob
 ## Plan Ingestion
 
 ```bash
-godmode plan ingest <plan.md>           # idempotent — skips existing IDs
-godmode agent <plan.md> [--max 5]       # ingest + dispatch in one step
+godmode plan ingest <plan.md>           # collision-safe, same-plan idempotent
+godmode agent dispatch <plan.md> [--max 5]  # collision-safe ingest + dispatch
 ```
 
 ## Dispatch

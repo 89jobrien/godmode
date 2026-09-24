@@ -29,9 +29,7 @@ macro_rules! assert_implements {
 
 pub use assert_implements;
 
-// ---------------------------------------------------------------------------
 // DepAudit
-// ---------------------------------------------------------------------------
 
 /// Runtime check that a `Cargo.toml`'s `[dependencies]` section contains only
 /// names from a given allowlist.
@@ -99,9 +97,7 @@ impl DepAudit {
     }
 }
 
-// ---------------------------------------------------------------------------
 // SnapshotAudit
-// ---------------------------------------------------------------------------
 
 use anyhow::{Context, Result};
 use std::collections::BTreeMap;

@@ -114,7 +114,7 @@ Review the mechanical groupings with judgment:
 
 Show the full plan before doing anything. Format:
 
-```
+```text
 Decomposition plan for: <branch> (N files changed)
 
 Split 1: <name>
@@ -189,7 +189,7 @@ gh pr create \
   --base main \
   --head <split-branch> \
   --title "<conventional title for this split>" \
-  --body "$(cat <<'EOF'
+  --body-file - <<'EOF'
 ## Summary
 <rationale from plan>
 
@@ -205,7 +205,6 @@ Depends on: #<prior-split-PR> (if sequential dependency exists)
 - [ ] cargo nextest run --workspace passes
 - [ ] clippy clean
 EOF
-)"
 ```
 
 Print each PR URL as it's created.
@@ -214,7 +213,7 @@ Print each PR URL as it's created.
 
 ## Step 6 — Report
 
-```
+```text
 Decomposition complete: <source-branch> → N splits
 
 Split 1: <name> | <sha> | PR #<N> <url>

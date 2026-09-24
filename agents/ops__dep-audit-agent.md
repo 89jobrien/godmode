@@ -72,7 +72,7 @@ Create a unified list:
 
 ### Step 5: Produce tiered report
 
-```
+```text
 ## Dependency Audit
 
 ### Blocking (Security advisories / CVEs)

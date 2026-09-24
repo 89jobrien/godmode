@@ -51,7 +51,7 @@ section, get feedback, refine, then move to the next. Do not dump the entire des
 As soon as you have enough to summarise the explored options — even before a design is
 approved — write a lightweight idea capture to:
 
-```
+```text
 docs/ideas/{YYYYMMDD}-{topic}.idea.md
 ```
 
@@ -75,7 +75,7 @@ updated: YYYY-MM-DD
 
 Once the user explicitly approves a design, write the formal spec to:
 
-```
+```text
 docs/specs/{YYYYMMDD}-{topic}.spec.md
 ```
 

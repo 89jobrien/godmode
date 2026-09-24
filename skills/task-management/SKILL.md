@@ -4,7 +4,7 @@ description: >
   Use when creating a task graph for a session, tracking progress across tasks, executing
   the next unblocked task, or managing causal dependencies between work items. Triggers on
   "create tasks", "what's next", "mark done", "task graph", or at session start when
-  GODMODE.tasks.yaml exists.
+  `.ctx/godmode/tasks.yaml` exists.
 requires: []
 next: [task-driven-development, parallel-agents]
 ---
@@ -20,7 +20,7 @@ execution. Never edit the YAML directly — always use the CLI.
 ```bash
 godmode handon          # shows running, next runnable, blocked, next doob todo
 godmode task next       # show only the next runnable task(s)
-godmode task next --json  # machine-readable — exit 1 if empty
+godmode task next --json  # machine-readable — exit 2 if empty
 ```
 
 ## Session End
@@ -34,10 +34,14 @@ godmode handoff         # warns on running tasks, calls hj handoff
 ### Ingest from a plan doc
 
 ```bash
-godmode plan ingest docs/plans/YYYY-MM-DD-<feature>.md
+godmode plan ingest .ctx/godmode/plans/YYYY-MM-DD-<feature>.md
 ```
 
-Parses `### Task N: <title>` headings, optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential deps automatically.
+Parses `### Task N: <title>` headings and optional `**Crate**: \`name\``and`**Run**: \`cmd\`` annotations. Builds sequential dependencies automatically.
+
+Use `godmode:ingest` for the full preflight and verification workflow. `plan ingest` preserves
+short `tN` IDs for the first plan, namespaces later colliding plans by file stem, rewrites internal
+dependencies, and skips an identical plan on re-ingest.
 
 ### Add a task manually
 
@@ -66,7 +70,7 @@ godmode task remove <id>
 
 ```bash
 godmode task list           # human table
-godmode task list --json    # full JSON array — exit 1 if empty
+godmode task list --json    # full JSON array — exits 0 with [] when empty
 ```
 
 ## Rules
@@ -75,6 +79,8 @@ godmode task list --json    # full JSON array — exit 1 if empty
 - A task is **blocked** when a dependency is blocked — do not continue past it.
 - Only one task per causal chain runs at a time.
 - Independent chains (no shared deps) can run in parallel via `godmode:parallel-agents`.
+- Never clear an existing graph to make room for another plan; collision-safe ingestion assigns a
+  deterministic namespace.
 
 ## Parallel Dispatch
 
@@ -95,8 +101,8 @@ Executes the `run:` field on the task. Prefix with `rx:` to invoke via rx regist
 
 ## Example Workflow
 
-```
-godmode plan ingest docs/plans/2026-05-01-my-feature.md
+```text
+godmode plan ingest .ctx/godmode/plans/2026-05-01-my-feature.md
 godmode handon
 godmode task start t1
 # implement...

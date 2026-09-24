@@ -28,7 +28,7 @@
 
 ### Hexagonal structure (if applicable)
 
-```
+```text
 domain/        — pure business logic, traits (ports), domain types, zero deps
 infra/         — adapters per external system (DB, API, FS, CLI)
 main.rs        — composition root; creates adapters, injects into domain

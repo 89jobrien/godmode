@@ -78,7 +78,7 @@ One sentence. What does this implement and why.
 
 3. Verify:
 
-   ```
+   ```text
    cargo nextest run -p <crate>              → all green
    cargo clippy -p <crate> -- -D warnings   → zero warnings
    ```

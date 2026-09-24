@@ -1,3 +1,5 @@
+//! Tests DOT graph rendering, default formatting, and file output through the CLI.
+
 /// End-to-end tests for `godmode visualize-graph`.
 use std::process::Command;
 

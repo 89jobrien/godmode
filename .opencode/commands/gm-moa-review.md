@@ -6,10 +6,12 @@ subtask: false
 
 - Read the full diff before commenting. Never review partial context.
 - Group findings as Blocking / Suggestions / Nitpicks.
-- Apply ALL severity levels in one pass before committing. Do not commit after
-  fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- For audit-only requests, report findings without modifying files.
+- When remediation is requested, apply ALL severity levels in one pass before
+  committing. Do not commit after fixing only blocking issues.
+- After fixes, run `cargo clippy --workspace -- -D warnings`,
+  `cargo nextest run --workspace`, and `cargo fmt --all --check`.
+- After 3 failed fix attempts, write `BLOCKED.md` and stop.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 

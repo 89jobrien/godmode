@@ -1,9 +1,12 @@
+//! Creates and removes issue-linked Git worktrees.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Adds or removes a worktree for the requested branch.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Worktree { action } => match action {

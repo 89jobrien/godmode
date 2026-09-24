@@ -16,7 +16,7 @@ vendored, build, worktree, and state directories.
 ## Preview
 
 ```bash
-godmode issue sync-todos --preview [--repo owner/repo]
+Invoke the `godmode:todo-issue-sync` skill in preview mode.
 ```
 
 Preview is the default. It reads all open GitHub issue pages, reports covered and missing
@@ -31,7 +31,7 @@ same fingerprint, the lowest issue number wins deterministically.
 ## Apply
 
 ```bash
-godmode issue sync-todos --apply [--repo owner/repo]
+Invoke the `godmode:todo-issue-sync` skill in apply mode.
 ```
 
 Apply creates only missing issues. Each issue body records the source location, TODO text,

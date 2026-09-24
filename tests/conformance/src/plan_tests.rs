@@ -143,6 +143,7 @@ impl ConformanceTest for PlanIgnoresNonHeadings {
     }
 }
 
+/// Returns the Markdown plan-parser conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![
         Box::new(PlanParsesTaskHeadings),

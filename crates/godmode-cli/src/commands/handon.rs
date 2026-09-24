@@ -1,9 +1,12 @@
+//! Produces the session-start task and integration summary.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Runs handon integrations and prints full or compact graph state.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Handon { compact } => {

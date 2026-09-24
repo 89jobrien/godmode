@@ -49,7 +49,7 @@ or the problem solved:
 
 Grouped by crate, with bullet points per area:
 
-```
+```text
 ### Crate: godmode-core
 - model: add `depends_on` field to Task struct
 - graph: implement dependency resolution in `runnable()`
@@ -74,7 +74,7 @@ Always include at least one testing bullet point.
 
 If the branch addresses GitHub issues or godmode tasks:
 
-```
+```text
 Closes #42 (fix: task list not updating on status change)
 Relates to #38 (design: task dependency syntax)
 Completes godmode tasks: t1, t3, t5

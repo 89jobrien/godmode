@@ -13,7 +13,7 @@ cargo nextest run -p <crate> -- <test_name>
 
 ## Error Output (verbatim)
 
-```
+```text
 <paste full error here — do not summarise>
 ```
 

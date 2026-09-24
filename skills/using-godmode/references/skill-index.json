@@ -10,6 +10,7 @@
       "context-map"
     ],
     "ACT": [
+      "ingest",
       "task-driven-development",
       "parallel-agents",
       "systematic-debugging"
@@ -70,6 +71,11 @@
       "name": "task-management",
       "trigger": "Creating, tracking, or executing a task graph",
       "phase": "ORIENT"
+    },
+    {
+      "name": "ingest",
+      "trigger": "Loading one or more plans into an existing task graph without ID collisions",
+      "phase": "ACT"
     },
     {
       "name": "using-godmode",

@@ -172,7 +172,7 @@ git push -u origin $(git branch --show-current)
 
 gh pr create \
   --title "<conventional commit title>" \
-  --body "$(cat <<'EOF'
+  --body-file - <<'EOF'
 ## Summary
 - <bullet 1>
 - <bullet 2>
@@ -181,7 +181,6 @@ gh pr create \
 - [ ] cargo nextest run --workspace passes
 - [ ] clippy clean
 EOF
-)"
 ```
 
 Print the PR URL when done. Do not merge — leave that to the user or a subsequent `/merge` call.
@@ -246,7 +245,7 @@ If a godmode task is associated with this branch, mark it done:
 godmode task done <task-id> --commit $(git rev-parse HEAD) --notes "merged <branch> into main"
 ```
 
-If no task ID is known, check `GODMODE.tasks.yaml` for tasks in `running` state that match the
+If no task ID is known, check `.ctx/godmode/tasks.yaml` for tasks in `running` state that match the
 branch name or scope.
 
 ---
@@ -268,7 +267,7 @@ If `main..<branch>` is non-empty, the merge did not complete. Investigate before
 
 One-line summary when complete:
 
-```
+```text
 merged: <branch> -> main | <sha> | [conflicts: N files] [worktree: removed] [task: <id> done]
 ```
 

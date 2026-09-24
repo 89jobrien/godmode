@@ -32,7 +32,7 @@ tasks).
 
 ### Error message
 
-```
+```text
 cycle detected: t3 → t1 → t3
 ```
 

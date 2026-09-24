@@ -29,9 +29,7 @@ use std::{path::Path, process::Command};
 const TASK_FILE: &str = "tdd-tasks.yaml";
 const MAX_ATTEMPTS: u32 = 3;
 
-// ---------------------------------------------------------------------------
 // Schema
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -81,9 +79,7 @@ struct TaskFile {
     tasks: Vec<TaskRaw>,
 }
 
-// ---------------------------------------------------------------------------
 // CLI
-// ---------------------------------------------------------------------------
 
 #[derive(Parser)]
 #[command(name = "task-runner", about = "TDD task phase runner")]
@@ -120,9 +116,7 @@ enum Cmd {
     CloseIssues,
 }
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 fn load() -> Result<TaskFile> {
     if !Path::new(TASK_FILE).exists() {
@@ -169,9 +163,7 @@ fn run_cargo(args: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
-// ---------------------------------------------------------------------------
 // Commands
-// ---------------------------------------------------------------------------
 
 fn cmd_init(title: &str, crate_name: &str) -> Result<()> {
     if Path::new(TASK_FILE).exists() {
@@ -381,9 +373,7 @@ fn cmd_close_issues() -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
 // Main
-// ---------------------------------------------------------------------------
 
 fn main() -> Result<()> {
     let cli = Cli::parse();

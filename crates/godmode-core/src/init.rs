@@ -9,10 +9,15 @@ use crate::doctor::{DoctorReport, EnvironmentProbe};
 
 /// Port: filesystem operations needed by init.
 pub trait InitFs {
+    /// Returns whether the path is a directory.
     fn dir_exists(&self, path: &Path) -> bool;
+    /// Creates the directory and any missing parents.
     fn create_dir_all(&self, path: &Path) -> Result<()>;
+    /// Writes contents to a file.
     fn write_file(&self, path: &Path, contents: &str) -> Result<()>;
+    /// Reads a file as UTF-8 text.
     fn read_to_string(&self, path: &Path) -> Result<String>;
+    /// Returns whether the path is a regular file.
     fn file_exists(&self, path: &Path) -> bool;
 }
 

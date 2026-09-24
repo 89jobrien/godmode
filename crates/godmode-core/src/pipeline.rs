@@ -1,3 +1,5 @@
+//! Pipeline definitions, persisted run state, and deterministic step execution.
+
 use anyhow::{Context, Result, bail};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -6,9 +8,7 @@ use std::path::{Path, PathBuf};
 use crate::graph;
 use crate::integrations::rx;
 
-// ---------------------------------------------------------------------------
 // Types
-// ---------------------------------------------------------------------------
 
 /// A single step in a pipeline definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,6 +53,7 @@ pub enum StepStatus {
 }
 
 impl StepStatus {
+    /// Returns the lowercase step-status name.
     pub fn as_str(&self) -> &'static str {
         match self {
             StepStatus::Pending => "pending",
@@ -103,9 +104,7 @@ pub struct PipelineState {
     pub in_progress: Option<StepRecord>,
 }
 
-// ---------------------------------------------------------------------------
 // File paths
-// ---------------------------------------------------------------------------
 
 /// Directory containing pipeline definitions.
 pub fn pipelines_dir(root: &Path) -> PathBuf {
@@ -117,9 +116,7 @@ pub fn state_file(root: &Path) -> PathBuf {
     root.join(".ctx").join("godmode").join("pipeline.yaml")
 }
 
-// ---------------------------------------------------------------------------
 // Load / save
-// ---------------------------------------------------------------------------
 
 /// Load all pipeline definitions from `pipelines/*.yaml`.
 pub fn load_pipelines(root: &Path) -> Result<Vec<Pipeline>> {
@@ -192,9 +189,7 @@ pub fn clear_state(root: &Path) -> Result<()> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
 // State machine
-// ---------------------------------------------------------------------------
 
 /// Initialize a new pipeline run. Validates the pipeline name and optional
 /// `--from` entry point. Returns the initial state with `current_step` set
@@ -443,9 +438,7 @@ pub fn progress(state: &PipelineState, pipeline: &Pipeline) -> (usize, usize) {
     (state.current_step, pipeline.steps.len())
 }
 
-// ---------------------------------------------------------------------------
 // Deterministic execution
-// ---------------------------------------------------------------------------
 
 /// Result of executing one pipeline step's tasks.
 #[derive(Debug, Clone, Serialize)]
@@ -656,9 +649,7 @@ pub fn run_tasks(
     Ok(RunResult::complete(results, is_complete(&state, &p)))
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

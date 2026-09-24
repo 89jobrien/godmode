@@ -103,7 +103,7 @@ v0.4.0.
 
 ## Example Detection Workflow
 
-```
+```text
 1. List all pub exports in crates/foo/src/lib.rs
    → [Line 42] pub fn process_item(...)
    → [Line 18] pub struct Config { ... }

@@ -10,9 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::integrations::rx::resolve_cmd;
 
-// ---------------------------------------------------------------------------
 // Data model
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowDef {
@@ -61,9 +59,7 @@ pub struct StepStatus {
     pub exit_code: Option<i32>,
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /// Parse a workflow YAML file.
 pub fn load(path: &Path) -> Result<WorkflowDef> {
@@ -153,9 +149,7 @@ pub fn run(def: &WorkflowDef, root: &Path) -> Result<WorkflowState> {
     Ok(state)
 }
 
-// ---------------------------------------------------------------------------
 // Private helpers
-// ---------------------------------------------------------------------------
 
 fn load_or_init_state(def: &WorkflowDef, path: &Path) -> Result<WorkflowState> {
     if !path.exists() {
@@ -265,9 +259,7 @@ fn persist_state(state: &WorkflowState, path: &Path) -> Result<()> {
     std::fs::write(path, json).with_context(|| format!("writing workflow state {}", path.display()))
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

@@ -1,9 +1,12 @@
+//! Computes independent task chains and critical paths for dispatch.
+
 use std::path::Path;
 
 use anyhow::Result;
 
 use crate::*;
 
+/// Prints either the task graph's critical path or its independent execution chains.
 pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()> {
     match command {
         Cmd::Dispatch {

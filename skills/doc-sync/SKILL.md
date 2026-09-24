@@ -24,7 +24,7 @@ This skill is read-only — it detects and reports drift; it does not fix.
 
 ### CLI surface
 
-```
+```text
 <binary> --help                    → compare against documented subcommands
 <binary> <cmd> --help              → compare against documented flags per command
 ```
@@ -34,7 +34,7 @@ is documented (or explicitly marked internal).
 
 ### Crate / module surface
 
-```
+```text
 ls crates/                         → compare against documented crate list
 grep -r '^pub mod' src/lib.rs      → compare against module table in CLAUDE.md/README
 grep -r '^pub (fn|struct|enum|trait)' src/ → compare against API reference
@@ -42,7 +42,7 @@ grep -r '^pub (fn|struct|enum|trait)' src/ → compare against API reference
 
 ### Skills and agents
 
-```
+```text
 ls skills/*/SKILL.md               → compare against skill tables in README/CLAUDE.md
 ls agents/*.md                     → compare against agents/INDEX.md and README agents table
 ```

@@ -226,6 +226,7 @@ impl ConformanceTest for DualCommandProjection {
     }
 }
 
+/// Returns the repository command-projection conformance tests.
 pub fn all() -> Vec<Box<dyn ConformanceTest>> {
     vec![Box::new(DualCommandProjection)]
 }

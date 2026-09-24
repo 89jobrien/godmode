@@ -35,7 +35,7 @@ Document the ordering in each PR body: "Depends on #<prior-PR>".
 
 ## Naming convention
 
-```
+```text
 <source-branch>-split-<N>-<concern>[-<crate>]
 ```
 

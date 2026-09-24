@@ -1,3 +1,5 @@
+//! Conformance checks for skills, agents, plugin metadata, and library references.
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -54,9 +56,7 @@ impl ReviewReport {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 fn skills_dir(root: &Path) -> PathBuf {
     root.join("skills")
@@ -148,9 +148,7 @@ fn extract_fm_field<'a>(content: &'a str, field: &str) -> Option<&'a str> {
     None
 }
 
-// ---------------------------------------------------------------------------
 // Public API
-// ---------------------------------------------------------------------------
 
 /// Run all conformance checks (equivalent to `just conformance`).
 pub fn run_all(root: &Path) -> Result<ReviewReport> {
@@ -760,9 +758,7 @@ pub fn check_lib(root: &Path) -> Result<ReviewReport> {
     Ok(r)
 }
 
-// ---------------------------------------------------------------------------
 // Internal utilities
-// ---------------------------------------------------------------------------
 
 const CANONICAL_SUBCOMMANDS: &[&str] = &[
     "handon",
@@ -861,9 +857,7 @@ fn extract_backtick_path(line: &str, prefix: &str) -> Option<String> {
     None
 }
 
-// ---------------------------------------------------------------------------
 // Tests
-// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {

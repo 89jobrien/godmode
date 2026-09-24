@@ -2,7 +2,7 @@
 
 ## Data flow
 
-```
+```text
 ~/.copilot/session-state/<uuid>/events.jsonl
 ~/.copilot/session-state/<uuid>/workspace.yaml
            │
@@ -80,7 +80,7 @@ fallback pricing ($3.00/$15.00) is used. Update `_MODEL_PRICING` in `report.py` 
 
 ## Leverage metric
 
-```
+```text
 human_value    = total_human_hours × HOURLY_RATE   ($72/hr blended rate)
 seat_cost/mo   = $39/mo enterprise plan
 leverage       = human_value / seat_cost_per_month

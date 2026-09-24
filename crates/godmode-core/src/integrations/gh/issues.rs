@@ -74,6 +74,7 @@ pub fn pull_issues(repo: Option<&str>, label: Option<&str>) -> Result<Vec<Task>>
     Ok(issues_to_tasks(&value, label))
 }
 
+/// Closes an issue with a comment naming the implementing commit.
 pub fn issue_close(number: u64, repo: Option<&str>, commit_sha: &str) -> Result<()> {
     let number_str = number.to_string();
     let comment = format!("Implemented in {}.", commit_sha);
@@ -103,6 +104,7 @@ pub struct GhIssueClient {
 }
 
 impl GhIssueClient {
+    /// Creates a client for the repository, resolving the current repository when omitted.
     pub fn new(repo: Option<&str>) -> Result<Self> {
         let repo = match repo {
             Some(value) => value.to_string(),
