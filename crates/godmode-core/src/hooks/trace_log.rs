@@ -1,14 +1,28 @@
 //! Shared JSONL trace-event writer for hooks.
 //!
 //! Appends events to `.ctx/godmode/traces/trace.jsonl`, the file
-//! `trace-stats.nu` reads. Centralised here because `observability`,
+//! `trace_query` reads. Centralised here because `observability`,
 //! `agent_governance`, and `parallel_agents` all need to emit to the same
 //! file with the same session-id lookup.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use chrono::Utc;
 use serde_json::{Value, json};
+
+/// Repository root of the current working directory, if there is one.
+///
+/// Readers and writers must agree on which log they mean, so both go through
+/// here rather than each shelling out to git.
+pub fn discover_root() -> Option<PathBuf> {
+    let out = std::process::Command::new("git")
+        .args(["rev-parse", "--show-toplevel"])
+        .output()
+        .ok()
+        .filter(|out| out.status.success())?;
+    let root = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    (!root.is_empty()).then(|| PathBuf::from(root))
+}
 
 /// Append one event to the trace log. `fields` are merged into the event
 /// alongside `event`, `session_id`, and `ts`.

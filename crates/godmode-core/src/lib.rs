@@ -34,6 +34,7 @@ pub mod skill;
 pub mod templates;
 pub mod test_check;
 pub mod todo_issue_sync;
+pub mod trace_query;
 pub mod verify;
 pub mod wave;
 pub mod workflow;
