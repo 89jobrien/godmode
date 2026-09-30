@@ -222,6 +222,12 @@ enum Cmd {
         /// Path to the .rs file to check.
         path: String,
     },
+
+    /// Query the observability trace at .ctx/godmode/traces/trace.jsonl.
+    Trace {
+        #[command(subcommand)]
+        action: TraceAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -367,6 +373,37 @@ enum HookAction {
     Run {
         /// Hook name: stop-guard, auto-block, pre-commit, quality-gate.
         name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum TraceAction {
+    /// Print the most recent trace records.
+    Tail {
+        /// How many records to show.
+        #[arg(long, default_value = "20")]
+        n: usize,
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Print every failure: errored steps and blocked agents.
+    Failures {
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Freshness, durations, agent convergence, and decision counts.
+    Stats {
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Cross-session triage: what the last N sessions left behind.
+    Summary {
+        /// How many recent sessions to report.
+        #[arg(long, default_value = "3")]
+        sessions: usize,
     },
 }
 

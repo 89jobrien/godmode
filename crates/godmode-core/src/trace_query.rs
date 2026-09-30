@@ -32,6 +32,7 @@ use std::collections::{BTreeMap, HashSet};
 
 use chrono::{DateTime, FixedOffset, Local};
 use crux_runtime::types::step::{Step, StepKind, StepStatus};
+use serde::Serialize;
 use serde_json::Value;
 
 /// Which half of a lifecycle a line represents.
@@ -91,7 +92,7 @@ impl Record {
 }
 
 /// Per-skill duration rollup.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct SkillDuration {
     pub skill: String,
     pub runs: usize,
@@ -100,14 +101,14 @@ pub struct SkillDuration {
 }
 
 /// Per-tool call count.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ToolCount {
     pub tool: String,
     pub calls: usize,
 }
 
 /// Convergence status for one agent identity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum AgentStatus {
     Complete,
     Blocked,
@@ -469,6 +470,21 @@ pub fn stats(records: &[Record]) -> Stats {
         agents,
         decision_count: records.iter().filter(|r| r.is_decision()).count(),
         failure_count: failures(records).len(),
+    }
+}
+
+/// True when `ts` falls on today's local calendar date.
+///
+/// Freshness is domain logic, not presentation: it decides whether a log can be
+/// read as a description of the current session, and every renderer needs the
+/// same answer. Lives here so callers do not each pull in a date library.
+pub fn is_today(ts: &str) -> bool {
+    match DateTime::parse_from_rfc3339(ts) {
+        Err(_) => false,
+        Ok(parsed) => {
+            parsed.with_timezone(&Local).format("%Y-%m-%d").to_string()
+                == Local::now().format("%Y-%m-%d").to_string()
+        }
     }
 }
 
