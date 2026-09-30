@@ -52,8 +52,31 @@ export def trace-start [skill: string, helper: string, ...args: string] {
     let flags = ($args | each {|a| ["--args" $a] } | flatten)
     let argv = (["trace" "emit" "skill-start" "--skill" $skill "--helper" $helper] | append $flags)
     let out = (^$bin ...$argv | complete)
-    if ($out.exit_code != 0) { return "untraced" }
+    if ($out.exit_code != 0) {
+        if ($out.stderr | str contains "unrecognized subcommand") {
+            warn-unsupported
+        }
+        return "untraced"
+    }
     $out.stdout | str trim
+}
+
+# Warn that this godmode predates `trace emit`.
+#
+# `trace emit` is newer than the released CLI, so a skills checkout paired with
+# an older godmode would otherwise emit nothing and say nothing. Silence here
+# reads as "nothing happened", which is indistinguishable from a quiet day.
+#
+# Not rate-limited: an env var set inside a `def` does not outlive the call in
+# Nushell, so there is no cheap once-per-process guard. A helper calls
+# trace-start once, so this is one line per helper run, and the situation
+# disappears once the CLI and the plugin ship together.
+def warn-unsupported [] {
+    # Keep the literal free of parentheses, backticks, and quotes: inside an
+    # interpolated string Nushell treats those as command substitution.
+    let which = ($env.GODMODE_BIN? | default "godmode")
+    let msg = $"warning: ($which) has no trace-emit subcommand, so observability events are being dropped. Install a godmode build that has it."
+    print --stderr $msg
 }
 
 # Emit skill.complete.
