@@ -29,32 +29,16 @@
 //! place `Crux<T>` belongs.
 
 use std::collections::{BTreeMap, HashSet};
-use std::path::{Path, PathBuf};
 
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, Local};
 use crux_runtime::types::step::{Step, StepKind, StepStatus};
 use serde_json::Value;
 
-use crate::hooks::trace_log;
-
-/// Log location relative to a repository root.
-pub const TRACE_RELATIVE: &str = ".ctx/godmode/traces/trace.jsonl";
-
 /// Which half of a lifecycle a line represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Phase {
-    Start,
-    Terminal,
-}
-
-impl Phase {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Phase::Start => "start",
-            Phase::Terminal => "terminal",
-        }
-    }
-}
+///
+/// Owned by [`trace_log`](crate::hooks::trace_log) because the writer defines
+/// the vocabulary; this module only has to agree with it.
+pub use crate::hooks::trace_log::Phase;
 
 /// One trace line, normalised across both on-disk schemas.
 #[derive(Debug, Clone)]
@@ -94,11 +78,14 @@ impl Record {
         self.metadata.get(key).and_then(Value::as_str)
     }
 
-    fn is_agent(&self) -> bool {
+    /// True when the record describes a dispatched agent rather than a skill
+    /// or tool. crux spells this `Delegation`.
+    pub fn is_agent(&self) -> bool {
         self.kind == StepKind::Delegation
     }
 
-    fn is_decision(&self) -> bool {
+    /// True when the record is a branching decision. crux spells this `Branch`.
+    pub fn is_decision(&self) -> bool {
         self.kind == StepKind::Branch
     }
 }
@@ -166,25 +153,13 @@ pub struct SessionSummary {
     pub unresolved: Vec<String>,
 }
 
-/// Absolute path of the trace log for a repository root.
-pub fn trace_path(root: &Path) -> PathBuf {
-    root.join(TRACE_RELATIVE)
-}
-
-/// Read every line of the log, skipping blank and unparseable lines.
+/// Parse a log body into records, skipping blank and unparseable lines.
 ///
 /// A torn trailing line is expected whenever a writer is killed mid-append, so
 /// one bad line must not cost the caller the rest of the file.
-pub fn load(root: &Path) -> Vec<Record> {
-    let path = trace_path(root);
-    let Ok(body) = std::fs::read_to_string(&path) else {
-        return Vec::new();
-    };
-    parse(&body)
-}
-
-/// Parse a log body. Split out from [`load`] so it is testable without a
-/// repository on disk.
+///
+/// This module performs no I/O. Use [`trace_store::read_body`](crate::trace_store::read_body)
+/// to obtain the text, then hand it here.
 pub fn parse(body: &str) -> Vec<Record> {
     body.lines()
         .map(str::trim)
@@ -216,10 +191,20 @@ fn from_step(step: Step) -> Record {
         Some("start") => Phase::Start,
         _ => Phase::Terminal,
     };
+    // `phase` is authoritative over `status` for an open step. crux has no
+    // "pending" variant, so the writer fills `Ok` on a start line as a schema
+    // formality; treating that as an outcome would make a still-running skill
+    // indistinguishable from a finished one.
+    let status = if phase == Phase::Start {
+        None
+    } else {
+        Some(step.status)
+    };
+
     Record {
         name: step.name,
         kind: step.kind,
-        status: Some(step.status),
+        status,
         phase,
         started_at: Some(step.started_at.into()),
         duration_ms: Some(step.duration_ms),
@@ -487,18 +472,12 @@ pub fn stats(records: &[Record]) -> Stats {
     }
 }
 
-/// Repository root for the current directory, mirroring [`trace_log`]'s
-/// resolution so readers and writers agree on which log they mean.
-pub fn discover_root() -> Option<PathBuf> {
-    trace_log::discover_root()
-}
-
 /// Human-readable age of a timestamp, e.g. `7d old`.
 pub fn age(ts: &str) -> String {
     match DateTime::parse_from_rfc3339(ts) {
         Err(_) => "unparseable".to_string(),
         Ok(parsed) => {
-            let days = (chrono::Local::now() - parsed.with_timezone(&chrono::Local)).num_days();
+            let days = (Local::now() - parsed.with_timezone(&Local)).num_days();
             if days < 1 {
                 "< 1d old".to_string()
             } else {
