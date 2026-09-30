@@ -247,6 +247,32 @@ pub fn new_trace_id(skill: &str, helper: &str) -> String {
     format!("{skill}.{helper}#{millis}.{n}")
 }
 
+/// Recover `(skill, started_millis)` from a trace id.
+///
+/// The id is all a caller has to hand back when it closes a skill lifecycle, so
+/// the format must round-trip. Parsing lives here rather than in a caller so the
+/// Nushell shim never has to know the layout: if the format changes, this is the
+/// one place that has to change with it.
+pub fn parse_trace_id(tid: &str) -> Option<(String, u64)> {
+    let (head, tail) = tid.rsplit_once('#')?;
+    let skill = head.split('.').next()?.to_string();
+    // `#<millis>.<counter>`; the counter is only a uniqueness suffix.
+    let millis = tail.split('.').next()?;
+    if skill.is_empty() || millis.is_empty() {
+        return None;
+    }
+    Some((skill, millis.parse().ok()?))
+}
+
+/// Milliseconds since a trace id was minted. `0` for an unparseable id, so a
+/// malformed id costs duration accuracy rather than the record.
+pub fn elapsed_ms(tid: &str) -> u64 {
+    match parse_trace_id(tid) {
+        None => 0,
+        Some((_, started)) => (Utc::now().timestamp_millis().max(0) as u64).saturating_sub(started),
+    }
+}
+
 /// Open a skill lifecycle. Returns the trace id for the terminal call.
 pub fn skill_start(root: &Path, skill: &str, helper: &str, args: &[String]) -> String {
     let tid = new_trace_id(skill, helper);
@@ -721,5 +747,38 @@ mod tests {
         let b = new_trace_id("skill", "helper.nu");
         assert!(a.starts_with("skill.helper.nu#"));
         assert_ne!(a, b, "ids must be unique per call");
+    }
+
+    #[test]
+    fn trace_id_round_trips_through_parse() {
+        let (skill, started) = parse_trace_id(&new_trace_id("cron-refresh", "c.nu"))
+            .expect("a freshly minted id must parse");
+        assert_eq!(skill, "cron-refresh");
+        assert!(started > 0, "start millis must be recovered");
+    }
+
+    #[test]
+    fn parse_trace_id_tolerates_a_helper_name_containing_dots() {
+        // `helper` is a path like `cap.nu`, so a naive last-dot split would
+        // recover the wrong skill.
+        let tid = new_trace_id("godmode", "hooks/cap.nu");
+        assert_eq!(parse_trace_id(&tid).unwrap().0, "godmode");
+    }
+
+    #[test]
+    fn parse_trace_id_rejects_junk_instead_of_guessing() {
+        for bad in ["", "no-hash", "#123", "skill.#", "skill.helper#notanumber"] {
+            assert!(parse_trace_id(bad).is_none(), "must reject: {bad:?}");
+        }
+    }
+
+    #[test]
+    fn elapsed_ms_of_an_unparseable_id_is_zero_not_a_panic() {
+        assert_eq!(elapsed_ms("garbage"), 0);
+    }
+
+    #[test]
+    fn elapsed_ms_is_small_for_a_fresh_id() {
+        assert!(elapsed_ms(&new_trace_id("s", "h")) < 5_000);
     }
 }

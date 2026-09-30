@@ -8,14 +8,21 @@
 use std::path::Path;
 
 use anyhow::Result;
+use godmode_core::hooks::trace_log;
 use godmode_core::trace_query::{self, Record, Stats};
 use godmode_core::trace_store;
 use serde_json::json;
 
-use crate::TraceAction;
+use crate::{EmitAction, TraceAction};
 
 /// Dispatches a trace subcommand.
 pub fn run_trace_action(root: &Path, json: bool, action: TraceAction) -> Result<()> {
+    // Emission never needs a trace that already exists, and it must not print
+    // the "No trace file." path a query would.
+    if let TraceAction::Emit { action } = action {
+        return emit(root, action);
+    }
+
     let Some(body) = trace_store::read_body(root) else {
         if json {
             println!("[]");
@@ -31,7 +38,64 @@ pub fn run_trace_action(root: &Path, json: bool, action: TraceAction) -> Result<
         TraceAction::Failures { session } => failures(&records, json, session.as_deref()),
         TraceAction::Stats { session } => stats(&records, json, session.as_deref()),
         TraceAction::Summary { sessions } => summary(&records, json, sessions),
+        TraceAction::Emit { .. } => unreachable!("handled above"),
     }
+}
+
+/// Append one lifecycle event.
+///
+/// The skill name and duration are recovered from the trace id rather than
+/// passed in, so the shim that calls this never has to know the id layout.
+fn emit(root: &Path, action: EmitAction) -> Result<()> {
+    match action {
+        EmitAction::SkillStart {
+            skill,
+            helper,
+            args,
+        } => {
+            let tid = trace_log::skill_start(root, &skill, &helper, &args);
+            println!("{tid}");
+        }
+        EmitAction::SkillComplete { trace_id } => {
+            let skill = trace_log::parse_trace_id(&trace_id)
+                .map_or_else(|| "unknown".to_string(), |(s, _)| s);
+            let ms = trace_log::elapsed_ms(&trace_id);
+            trace_log::skill_complete(root, &skill, &trace_id, ms);
+        }
+        EmitAction::SkillError {
+            trace_id,
+            exit_code,
+            stderr_tail,
+        } => {
+            let skill = trace_log::parse_trace_id(&trace_id)
+                .map_or_else(|| "unknown".to_string(), |(s, _)| s);
+            let ms = trace_log::elapsed_ms(&trace_id);
+            trace_log::skill_error(root, &skill, &trace_id, exit_code, &stderr_tail, ms);
+        }
+        EmitAction::Decision {
+            skill,
+            helper,
+            kind,
+            value,
+        } => trace_log::decision(root, &skill, &helper, &kind, &value),
+        EmitAction::ToolUse { tool, failed } => trace_log::tool_use(root, &tool, failed),
+        EmitAction::AgentStart {
+            agent_id,
+            slot,
+            crate_name,
+        } => trace_log::agent_start(root, &agent_id, &slot, &crate_name),
+        EmitAction::AgentComplete {
+            agent_id,
+            slot,
+            commits,
+        } => trace_log::agent_complete(root, &agent_id, &slot, &commits),
+        EmitAction::AgentBlocked {
+            agent_id,
+            slot,
+            reason,
+        } => trace_log::agent_blocked(root, &agent_id, &slot, &reason),
+    }
+    Ok(())
 }
 
 /// Load, narrow to a session, and hand back an owned view.

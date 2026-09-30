@@ -1,159 +1,90 @@
 #!/usr/bin/env nu
-# _lib/trace.nu — shared observability primitives for godmode helpers.
+# _lib/trace.nu — thin Nushell facade over `godmode trace emit`.
 #
 # Source this module at the top of any helper:
 #   use (/path/to/skills/_lib/trace.nu) *
 #
-# Session identity is lazily initialised on first write and persisted to
-# .ctx/godmode/session.json so all helpers in a session share one session_id.
+# The event vocabulary, the session-id rotation, and the trace-id format all
+# live in `godmode-core` (`hooks::trace_log`). This file exists only so the 18
+# helpers that call `trace-start` and friends keep working unchanged; it holds
+# no logic of its own and must not grow any.
+#
+# Session identity is resolved by `godmode` and persisted to
+# .ctx/godmode/session.json, so every helper in a session shares one session_id
+# regardless of which process wrote an event.
 
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Internal
 # ---------------------------------------------------------------------------
 
-def repo-root [] {
-    let result = (run-external "git" "rev-parse" "--show-toplevel" | complete)
-    if $result.exit_code != 0 { return null }
-    let root = ($result.stdout | str trim)
-    if ($root | is-empty) { return null }
-    $root
-}
-
-def trace-file [] {
-    $"(repo-root)/.ctx/godmode/traces/trace.jsonl"
-}
-
-def session-file [] {
-    $"(repo-root)/.ctx/godmode/session.json"
-}
-
-def now-ms [] {
-    # date now | into int → nanoseconds; // 1_000_000 → milliseconds
-    date now | into int | $in // 1_000_000
-}
-
-# Resolve or create the current session_id.
-def session-id [] {
-    let root = (repo-root)
-    if ($root == null) { return "no-repo" }
-    let sf = (session-file)
-    if ($sf | path exists) {
-        (open $sf).session_id
+# Locate the godmode binary, honouring GODMODE_BIN for tests and for repos
+# that vendored a build rather than installing it.
+def godmode-bin [] {
+    if ($env.GODMODE_BIN? | default "") != "" {
+        $env.GODMODE_BIN
     } else {
-        let head = (run-external "git" "rev-parse" "--short" "HEAD" | complete).stdout | str trim
-        let id = $"($head)-(now-ms)"
-        try { mkdir ($sf | path dirname) }
-        { session_id: $id, started_at: (date now | format date "%+") } | to json | save --force $sf
-        $id
+        which godmode | get -o path | last
     }
 }
 
-# Append one JSON line to the trace file. Non-fatal — failures are silently swallowed.
-def append-event [record: record] {
-    let root = (repo-root)
-    if ($root == null) { return }
-    try { mkdir $"($root)/.ctx/godmode/traces" }
-    try { $record | to json --raw | $"($in)\n" | save --append (trace-file) }
+# Run `godmode trace emit`, swallowing failure. A trace write must never be
+# able to fail the helper that made the call, so the exit code is discarded.
+#
+# Takes an explicit list rather than rest args: a rest-arg call still goes
+# through flag parsing, so a passthrough `--trace-id` would be claimed by this
+# command instead of being forwarded.
+def emit-event [argv: list<string>] {
+    let bin = (try { godmode-bin } catch { return })
+    if ($bin == null) { return }
+    try { ^$bin ...$argv | complete | ignore } catch { null }
 }
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
-# Emit skill.start; returns a trace_id string for use with trace-end / trace-error.
+# Emit skill.start; returns a trace_id for use with trace-end / trace-error.
 export def trace-start [skill: string, helper: string, ...args: string] {
-    let tid = $"($skill).($helper)#(now-ms)"
-    append-event {
-        event:      "skill.start"
-        trace_id:   $tid
-        skill:      $skill
-        helper:     $helper
-        args:       $args
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
-    $tid
+    let bin = (try { godmode-bin } catch { return null })
+    # Without the binary there is no vocabulary to emit, so hand back a sentinel
+    # the closing calls will reject rather than invent an id godmode cannot read.
+    if ($bin == null) { return "untraced" }
+    let flags = ($args | each {|a| ["--args" $a] } | flatten)
+    let argv = (["trace" "emit" "skill-start" "--skill" $skill "--helper" $helper] | append $flags)
+    let out = (^$bin ...$argv | complete)
+    if ($out.exit_code != 0) { return "untraced" }
+    $out.stdout | str trim
 }
 
 # Emit skill.complete.
 export def trace-end [trace_id: string] {
-    let parts = ($trace_id | split row "#")
-    let started_ms = ($parts | last | into int)
-    let duration_ms = ((now-ms) - $started_ms)
-    let skill = ($parts | first | split row "." | first)
-    append-event {
-        event:      "skill.complete"
-        trace_id:   $trace_id
-        skill:      $skill
-        duration_ms: $duration_ms
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
+    emit-event ["trace" "emit" "skill-complete" "--trace-id" $trace_id]
 }
 
 # Emit skill.error.
 export def trace-error [trace_id: string, exit_code: int, stderr_tail: string] {
-    let parts = ($trace_id | split row "#")
-    let started_ms = ($parts | last | into int)
-    let duration_ms = ((now-ms) - $started_ms)
-    let skill = ($parts | first | split row "." | first)
-    append-event {
-        event:       "skill.error"
-        trace_id:    $trace_id
-        skill:       $skill
-        exit_code:   $exit_code
-        stderr_tail: ($stderr_tail | lines | last 10 | str join "\n")
-        duration_ms: $duration_ms
-        session_id:  (session-id)
-        ts:          (date now | format date "%+")
-    }
+    let tail = ($stderr_tail | lines | last 10 | str join "\n")
+    emit-event ["trace" "emit" "skill-error" "--trace-id" $trace_id "--exit-code" $"($exit_code)" "--stderr-tail" $tail]
 }
 
 # Emit a branching decision (CI classification, BLOCKED.md found, merge skipped, etc.).
 export def trace-decision [skill: string, helper: string, kind: string, value: string] {
-    append-event {
-        event:      "decision"
-        skill:      $skill
-        helper:     $helper
-        kind:       $kind
-        value:      $value
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
+    emit-event ["trace" "emit" "decision" "--skill" $skill "--helper" $helper "--kind" $kind "--value" $value]
 }
 
 # Emit agent.start (called by orchestrator before dispatching a subagent).
 export def trace-agent-start [agent_id: string, slot: string, crate: string] {
-    append-event {
-        event:      "agent.start"
-        agent_id:   $agent_id
-        slot:       $slot
-        crate:      $crate
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
+    emit-event ["trace" "emit" "agent-start" "--agent-id" $agent_id "--slot" $slot "--crate" $crate]
 }
 
 # Emit agent.complete.
 export def trace-agent-complete [agent_id: string, slot: string, commits: list<string>] {
-    append-event {
-        event:      "agent.complete"
-        agent_id:   $agent_id
-        slot:       $slot
-        commits:    $commits
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
+    let flags = ($commits | each {|c| ["--commits" $c] } | flatten)
+    let argv = (["trace" "emit" "agent-complete" "--agent-id" $agent_id "--slot" $slot] | append $flags)
+    emit-event $argv
 }
 
 # Emit agent.blocked.
 export def trace-agent-blocked [agent_id: string, slot: string, reason: string] {
-    append-event {
-        event:      "agent.blocked"
-        agent_id:   $agent_id
-        slot:       $slot
-        reason:     $reason
-        session_id: (session-id)
-        ts:         (date now | format date "%+")
-    }
+    emit-event ["trace" "emit" "agent-blocked" "--agent-id" $agent_id "--slot" $slot "--reason" $reason]
 }
