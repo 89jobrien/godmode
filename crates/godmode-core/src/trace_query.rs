@@ -89,6 +89,18 @@ impl Record {
     pub fn is_decision(&self) -> bool {
         self.kind == StepKind::Branch
     }
+
+    /// True when the record is a session lifecycle marker rather than an actor's step.
+    ///
+    /// Derived from `metadata["event"]`, which survives parsing because
+    /// `from_legacy` strips `event`, `session_id`, and `ts` into `known`, leaves
+    /// metadata empty, and reinserts `event` when the map comes back empty.
+    pub fn is_marker(&self) -> bool {
+        self.metadata
+            .get("event")
+            .and_then(Value::as_str)
+            .is_some_and(is_session_marker)
+    }
 }
 
 /// Per-skill duration rollup.
@@ -220,11 +232,18 @@ fn from_legacy(value: Value) -> Record {
     let event = string_at(&value, "event").unwrap_or_default();
     let status = status_for_event(&event, &value);
     let kind = kind_for_event(&event);
-    let name = string_at(&value, "skill")
-        .or_else(|| string_at(&value, "agent_id"))
-        .or_else(|| string_at(&value, "tool"))
-        .or_else(|| string_at(&value, "session_id"))
-        .unwrap_or_default();
+    // A session lifecycle marker has no actor. Naming it after its own
+    // `session_id` is what left `stats`' `name.is_empty()` marker test
+    // unreachable — every marker carried an id, so `name` was never empty.
+    let name = if is_session_marker(&event) {
+        String::new()
+    } else {
+        string_at(&value, "skill")
+            .or_else(|| string_at(&value, "agent_id"))
+            .or_else(|| string_at(&value, "tool"))
+            .or_else(|| string_at(&value, "session_id"))
+            .unwrap_or_default()
+    };
     let phase = if event.ends_with(".start") {
         Phase::Start
     } else {
@@ -272,6 +291,10 @@ fn from_legacy(value: Value) -> Record {
         metadata,
         error: string_at(&value, "reason"),
     }
+}
+
+fn is_session_marker(event: &str) -> bool {
+    matches!(event, "session.start" | "session.end")
 }
 
 fn kind_for_event(event: &str) -> StepKind {
@@ -571,6 +594,40 @@ mod tests {
         assert_eq!(ok.status, Some(StepStatus::Ok));
         assert_eq!(bad.status, Some(StepStatus::Err));
         assert!(bad.is_failure());
+    }
+
+    #[test]
+    fn legacy_session_start_is_a_nameless_marker() {
+        let r = rec(r#"{"event":"session.start","session_id":"s1","ts":"2026-09-30T09:00:00Z"}"#);
+        assert_eq!(r.name, "", "a marker has no actor to name it after");
+        assert!(r.is_open(), "session.start opens a lifecycle");
+        assert_eq!(
+            r.session_id.as_deref(),
+            Some("s1"),
+            "the id is still carried"
+        );
+    }
+
+    #[test]
+    fn legacy_session_end_is_a_nameless_marker_that_still_counts_as_an_end() {
+        let r = rec(r#"{"event":"session.end","session_id":"s1","ts":"2026-09-30T09:05:00Z"}"#);
+        assert_eq!(r.name, "");
+        assert!(r.is_marker());
+        assert_eq!(
+            r.status,
+            Some(StepStatus::Ok),
+            "stats' session_ends filter requires Ok on a nameless terminal record"
+        );
+    }
+
+    #[test]
+    fn a_nameless_non_marker_legacy_line_still_falls_back_to_session_id() {
+        let r = rec(r#"{"event":"hook.observed","session_id":"s1"}"#);
+        assert_eq!(
+            r.name, "s1",
+            "the session_id fallback must survive for everything that is not a marker"
+        );
+        assert!(!r.is_marker());
     }
 
     #[test]
