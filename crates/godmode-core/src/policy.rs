@@ -384,6 +384,77 @@ subagent:
     }
 
     #[test]
+    fn check_tool_command_approval_gates_on_content() {
+        // The regression this covers: approval entries are command strings, so
+        // comparing them against the tool name alone made every command-level
+        // entry in the shipped policies unreachable.
+        let policy = GovernancePolicy {
+            allowed_tools: vec!["Bash".to_string()],
+            require_human_approval: vec!["git push --force".to_string()],
+            ..Default::default()
+        };
+        let gated = check_tool(&policy, "Bash", Some("git push --force origin main"));
+        assert_eq!(gated.action, PolicyAction::Review);
+        assert!(gated.reason.contains("git push --force"));
+
+        let ungated = check_tool(&policy, "Bash", Some("git push origin main"));
+        assert_eq!(ungated.action, PolicyAction::Allow);
+    }
+
+    #[test]
+    fn check_tool_command_approval_without_content_is_ignored() {
+        // No tool input means there is no command to match; the entry must not
+        // accidentally gate every call.
+        let policy = GovernancePolicy {
+            allowed_tools: vec!["Bash".to_string()],
+            require_human_approval: vec!["git push --force".to_string()],
+            ..Default::default()
+        };
+        let result = check_tool(&policy, "Bash", None);
+        assert_eq!(result.action, PolicyAction::Allow);
+    }
+
+    #[test]
+    fn check_tool_approval_takes_precedence_over_blocked_pattern() {
+        // A command listed in require_human_approval must surface as Review even
+        // when a broader blocked pattern also matches it. Both shipped policy
+        // sets list e.g. `git push --force` in both lists.
+        let policy = GovernancePolicy {
+            allowed_tools: vec!["Bash".to_string()],
+            blocked_patterns: vec!["(?i)--force".to_string()],
+            require_human_approval: vec!["git push --force".to_string()],
+            ..Default::default()
+        };
+        let result = check_tool(&policy, "Bash", Some("git push --force"));
+        assert_eq!(result.action, PolicyAction::Review);
+    }
+
+    #[test]
+    fn check_tool_unlisted_command_still_denied_by_blocked_pattern() {
+        // Precedence is scoped to approval entries only — unrelated blocked
+        // patterns must keep hard-denying.
+        let policy = GovernancePolicy {
+            allowed_tools: vec!["Bash".to_string()],
+            blocked_patterns: vec!["(?i)--force".to_string()],
+            require_human_approval: vec!["git push --force".to_string()],
+            ..Default::default()
+        };
+        let result = check_tool(&policy, "Bash", Some("docker push --force"));
+        assert_eq!(result.action, PolicyAction::Deny);
+    }
+
+    #[test]
+    fn check_tool_wildcard_approval_beats_blocked_pattern() {
+        let policy = GovernancePolicy {
+            blocked_patterns: vec!["(?i)--no-verify".to_string()],
+            require_human_approval: vec!["*".to_string()],
+            ..Default::default()
+        };
+        let result = check_tool(&policy, "Bash", Some("git commit --no-verify"));
+        assert_eq!(result.action, PolicyAction::Review);
+    }
+
+    #[test]
     fn list_policies_finds_all() {
         let tmp = TempDir::new().unwrap();
         setup_policies(tmp.path());

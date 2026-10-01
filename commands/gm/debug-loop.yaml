@@ -2,8 +2,11 @@ name: debug-loop
 template: debug
 prompt: |
   Systematically debug a failure, verify the fix, and commit.
-  1. Run godmode:systematic-debugging — read the full error, check recent changes,
-     state one hypothesis before touching code, apply the minimal fix.
+  1. Run godmode:systematic-debugging — build a fast, deterministic feedback loop that
+     triggers the bug before anything else. Then read the full error, check environment and
+     recent changes, rank 3–5 falsifiable hypotheses, instrument one variable at a time, and
+     apply the minimal fix at the correct test seam.
+     Never hypothesise without a loop that triggers the bug.
      3-attempt rule: if 3 sequential fixes all fail, write BLOCKED.md and stop.
   2. Run godmode:doublecheck — independent verification of the fix; confirm the root
      cause was addressed, not just the symptom.
