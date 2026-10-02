@@ -175,7 +175,31 @@ pub fn prepare_for_ingest(
         bail!("plan namespace must contain at least one letter or digit");
     }
 
-    let existing_ids = graph.plan_task_ids(source);
+    // A live candidate recorded at the plan's former path wins, which is what makes relocation
+    // idempotent. It is content-checked because a stem match alone cannot separate a moved plan from
+    // a distinct plan that merely shares a file name; `depends_on` is excluded since parsed tasks
+    // hold pre-remap ids while graph tasks hold remapped ones.
+    //
+    // Otherwise fall back to the exact-path entry, unfiltered, so re-ingesting a plan in place keeps
+    // its reserved ids even after its tasks were removed, and edited content still reports a
+    // conflict rather than forking a new chain.
+    let existing_ids = graph
+        .relocated_plan_task_ids(source)
+        .filter(|ids| {
+            ids.len() == tasks.len()
+                && ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
+                    graph
+                        .tasks
+                        .iter()
+                        .find(|existing| &existing.id == id)
+                        .is_some_and(|existing| {
+                            existing.title == candidate.title
+                                && existing.crate_name == candidate.crate_name
+                                && existing.run == candidate.run
+                        })
+                })
+        })
+        .or_else(|| graph.plan_task_ids(source));
     if existing_ids.is_some_and(|ids| tasks.len() < ids.len()) {
         bail!(
             "plan now contains fewer tasks than its existing import; remove or reconcile old tasks explicitly"
@@ -446,6 +470,88 @@ Some description here.
         assert_eq!(report.added, 0);
         assert_eq!(report.skipped, 2);
         assert_eq!(report.ids, ["second-plan-t1", "second-plan-t2"]);
+    }
+
+    #[test]
+    fn relocated_plan_reuses_its_task_ids() {
+        let mut graph = TaskGraph::default();
+        let tasks = parse(SAMPLE).unwrap();
+        ingest(
+            &mut graph,
+            tasks.clone(),
+            "/repo/.ctx/godmode/plans/alpha.md",
+        )
+        .unwrap();
+
+        let report = ingest(&mut graph, tasks, "/repo/docs/plans/alpha.md").unwrap();
+
+        assert_eq!(report.added, 0);
+        assert_eq!(report.skipped, 3);
+        assert_eq!(graph.tasks.len(), 3);
+        assert!(graph.plan_task_ids("/repo/docs/plans/alpha.md").is_some());
+    }
+
+    #[test]
+    fn relocated_plan_rebinds_provenance_to_the_new_path() {
+        let mut graph = TaskGraph::default();
+        let tasks = parse(SAMPLE).unwrap();
+        ingest(&mut graph, tasks.clone(), "/repo/old/alpha.md").unwrap();
+
+        ingest(&mut graph, tasks, "/repo/new/alpha.md").unwrap();
+
+        assert!(graph.plan_task_ids("/repo/old/alpha.md").is_none());
+        assert_eq!(graph.plan_task_ids("/repo/new/alpha.md").unwrap().len(), 3);
+    }
+
+    #[test]
+    fn relocated_plan_with_changed_content_is_ingested_as_a_distinct_plan() {
+        let mut graph = TaskGraph::default();
+        ingest(&mut graph, parse(SAMPLE).unwrap(), "/repo/one/alpha.md").unwrap();
+        ingest(
+            &mut graph,
+            parse("### Task 1: Unrelated task\n### Task 2: Another task").unwrap(),
+            "/repo/two/alpha.md",
+        )
+        .unwrap();
+
+        let report = ingest(&mut graph, parse(SAMPLE).unwrap(), "/repo/three/alpha.md").unwrap();
+
+        // Same stem but different content: a distinct plan that must neither inherit the other
+        // plan's task ids nor collide with them.
+        assert_eq!(report.added, 3);
+        assert_eq!(report.skipped, 0);
+        assert_eq!(report.ids.len(), 3);
+        for id in &report.ids {
+            assert_ne!(id, "t1");
+            assert_ne!(id, "alpha-t1");
+        }
+        assert_eq!(
+            graph.plan_task_ids("/repo/one/alpha.md").unwrap(),
+            ["t1", "t2", "t3"]
+        );
+        assert_eq!(
+            graph.plan_task_ids("/repo/three/alpha.md").unwrap(),
+            report.ids
+        );
+    }
+
+    #[test]
+    fn relocated_plan_is_recognized_after_stale_provenance_loses_its_tasks() {
+        let mut graph = TaskGraph::default();
+        let tasks = parse(SAMPLE).unwrap();
+        ingest(&mut graph, tasks.clone(), "/repo/old/alpha.md").unwrap();
+        // Provenance outlives its tasks: a stale entry for the new path points at an id that no
+        // longer exists, exactly as `task remove` leaves behind.
+        graph.record_plan_import(
+            "/repo/new/alpha.md".to_string(),
+            vec!["alpha-stale-t1".to_string()],
+        );
+
+        let report = ingest(&mut graph, tasks, "/repo/new/alpha.md").unwrap();
+
+        assert_eq!(report.added, 0);
+        assert_eq!(report.skipped, 3);
+        assert_eq!(report.ids, ["t1", "t2", "t3"]);
     }
 
     #[test]

@@ -204,22 +204,50 @@ then quality gates (`verification-before-completion`, `code-review`).
 
 ## Session Ritual
 
-**Start:**
+`handon` and `handoff` are **status readouts, not state mutations**. Run the command, then report
+what it printed. Do not re-derive state, do not infer state the command did not print, and do not
+describe work as finished while a task is still `running`.
+
+**Start — where things stand:**
 
 ```bash
-godmode handon      # triage: running tasks, next runnable, next doob todo
+godmode handon      # graph counts, active pipeline + position, next runnable task, uncommitted files
 ```
 
-**End:**
+Report as a status update:
+
+- Current graph counts (done / running / pending / blocked).
+- The active pipeline and the step it is waiting on.
+- The single next runnable task, by ID and title.
+- Whether the tree is dirty. If it is, name the files.
+
+**End — where things ended:**
 
 ```bash
-godmode handoff     # warns on leaked running tasks, writes hj handoff
+godmode handoff     # session totals, warnings on still-running tasks, uncommitted files
 ```
+
+Report as a status update:
+
+- What completed this session.
+- Anything still `running` — always surface it, never silently drop it.
+- Tree state, by filename when dirty.
+- The single most useful next action.
+
+Neither command writes an external handoff record. `handoff` writes a tracked `HANDOFF.md` at the
+repository root — the durable, human-readable snapshot. Everything else lives in `.ctx/`:
+
+| Path                               | Contents                             |
+| ---------------------------------- | ------------------------------------ |
+| `HANDOFF.md`                       | Tracked session snapshot (repo root) |
+| `.ctx/godmode/tasks.yaml`          | Task graph — the source of truth     |
+| `.ctx/godmode/sessions/`           | Per-session event and summary traces |
+| `.ctx/HANDOFF.<project>.<id>.yaml` | Machine-readable handoff record      |
 
 Or with reflection:
 
 ```bash
-godmode handoff && godmode:self-reflect   # handoff + structured retrospective
+godmode handoff && godmode:self-reflect   # status update + structured retrospective
 ```
 
 ## Additional Resources

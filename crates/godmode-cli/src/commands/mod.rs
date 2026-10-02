@@ -32,6 +32,7 @@ mod skill;
 mod status;
 pub(crate) mod task;
 mod test_check;
+pub(crate) mod trace;
 mod unpin;
 mod verify;
 mod visualize_graph;
@@ -74,5 +75,6 @@ pub fn dispatch(cmd: Cmd, root: &Path, json: bool, sarif: bool) -> Result<()> {
         command @ Cmd::Doctor => doctor::handle(command, root, json, sarif),
         command @ Cmd::Scaffold { .. } => scaffold::handle(command, root, json, sarif),
         command @ Cmd::TestCheck { .. } => test_check::handle(command, root, json, sarif),
+        Cmd::Trace { action } => trace::run_trace_action(root, json, action),
     }
 }

@@ -24,7 +24,6 @@ chrono = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 miette = { workspace = true, features = ["derive"] }
-slashcrux = { workspace = true }
 crux-runtime = { workspace = true }
 regex = { workspace = true }
 toml = "1.1"

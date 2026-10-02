@@ -3,8 +3,8 @@
 ## Session
 
 ```bash
-godmode handon                          # triage: counts, running, next runnable, next doob todo
-godmode handoff                         # session end: warns on running tasks
+godmode handon                          # status: counts, pipeline position, next runnable, tree state
+godmode handoff                         # status: session totals, still-running tasks, tree state
 godmode status                          # fast mid-session check: counts + next runnable only
 ```
 
