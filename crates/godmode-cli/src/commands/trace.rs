@@ -270,7 +270,14 @@ fn stats(records: &[Record], as_json: bool, session: Option<&str>) -> Result<()>
     Ok(())
 }
 
-fn summary(records: &[Record], as_json: bool, sessions: usize) -> Result<()> {
+/// The per-session rows `summary` renders, in first-seen order.
+///
+/// A session whose records are all markers did no work, so it is not listed.
+///
+/// The rule lives here rather than in `trace_query` because the core query API
+/// deliberately stays free of session-filter variants: every query call operates
+/// on the same `&[Record]` shape, and each variant would need its own tests.
+fn summary_rows(records: &[Record], sessions: usize) -> Vec<trace_query::SessionSummary> {
     let ids = trace_query::session_ids(records);
     let start = ids.len().saturating_sub(sessions);
 
@@ -280,8 +287,16 @@ fn summary(records: &[Record], as_json: bool, sessions: usize) -> Result<()> {
             .iter()
             .filter(|r| r.session_id.as_deref() == Some(sid.as_str()))
             .collect();
+        if view.iter().all(|r| r.is_marker()) {
+            continue;
+        }
         out.push(trace_query::summarise_session(sid, &view));
     }
+    out
+}
+
+fn summary(records: &[Record], as_json: bool, sessions: usize) -> Result<()> {
+    let out = summary_rows(records, sessions);
 
     if as_json {
         let arr: Vec<_> = out
@@ -396,8 +411,51 @@ mod tests {
         "\n",
     );
 
+    const BARE_START_S1: &str =
+        r#"{"event":"session.start","session_id":"s1","ts":"2026-09-30T08:00:00Z"}"#;
+    const BARE_START_S2: &str =
+        r#"{"event":"session.start","session_id":"s2","ts":"2026-09-30T09:00:00Z"}"#;
+    const ERROR_S2: &str = r#"{"event":"skill.error","skill":"ci-fix","session_id":"s2","ts":"2026-09-30T09:00:01Z","duration_ms":1000,"reason":"helpers failed"}"#;
+
     fn parsed() -> Vec<Record> {
         trace_query::parse(LEGACY)
+    }
+
+    #[test]
+    fn summary_skips_a_session_that_only_ever_got_markers() {
+        // Rotation now mints a session.end for the id it displaces, so a
+        // session that recorded nothing and was rotated away now exists as one
+        // marker line. Without the skip it renders as an all-zero row,
+        // indistinguishable from a genuinely quiet session.
+        let body = format!("{}\n{}\n{}", BARE_START_S1, BARE_START_S2, ERROR_S2);
+        let records = trace_query::parse(&body);
+        let out = summary_rows(&records, 10);
+        assert_eq!(
+            out.iter()
+                .map(|s| s.session_id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["s2"],
+            "s1 recorded nothing but a marker, so it is not a work session"
+        );
+        assert_eq!(
+            out[0].errors, 1,
+            "the row that survives must keep its counts"
+        );
+    }
+
+    #[test]
+    fn summary_reports_a_started_timestamp_for_every_session_it_lists() {
+        // `started` comes from the first *open* record. A session with only
+        // terminal records would render `--- s1 @ `, so this pins that the
+        // rotation marker is what supplies it.
+        let body = format!("{}\n{}", BARE_START_S2, ERROR_S2);
+        let records = trace_query::parse(&body);
+        let out = summary_rows(&records, 10);
+        assert_eq!(out.len(), 1);
+        assert!(
+            !out[0].started.is_empty(),
+            "a listed session must never render an empty start timestamp"
+        );
     }
 
     #[test]
