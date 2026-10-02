@@ -284,7 +284,11 @@ pub fn new_trace_id(skill: &str, helper: &str) -> String {
     static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let n = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let millis = Utc::now().timestamp_millis().max(0) as u64;
-    format!("{skill}.{helper}#{millis}.{n}")
+    // `<skill>#<millis>.<n>#<helper>`: the skill is delimited by `#` on both
+    // sides so it can be recovered exactly. An earlier layout put the skill
+    // first and split on `.` to drop the helper, which silently truncated any
+    // skill whose name contains a dot -- see prop_trace.rs.
+    format!("{skill}#{millis}.{n}#{helper}")
 }
 
 /// Recover `(skill, started_millis)` from a trace id.
@@ -293,23 +297,39 @@ pub fn new_trace_id(skill: &str, helper: &str) -> String {
 /// the format must round-trip. Parsing lives here rather than in a caller so the
 /// Nushell shim never has to know the layout: if the format changes, this is the
 /// one place that has to change with it.
+///
+/// A skill name containing `#` cannot round-trip and is rejected; that boundary
+/// is pinned by `prop_trace_id_rejects_hash_names`.
 pub fn parse_trace_id(tid: &str) -> Option<(String, u64)> {
-    let (head, tail) = tid.rsplit_once('#')?;
-    let skill = head.split('.').next()?.to_string();
-    // `#<millis>.<counter>`; the counter is only a uniqueness suffix.
-    let millis = tail.split('.').next()?;
-    if skill.is_empty() || millis.is_empty() {
+    let (head, rest) = tid.split_once('#')?;
+    let (clock, _helper) = rest.split_once('#')?;
+    // `#<millis>.<n>`; the counter is only a uniqueness suffix.
+    let millis = clock.split('.').next()?;
+    if head.is_empty() || millis.is_empty() {
         return None;
     }
-    Some((skill, millis.parse().ok()?))
+    Some((head.to_string(), millis.parse().ok()?))
 }
 
-/// Milliseconds since a trace id was minted. `0` for an unparseable id, so a
-/// malformed id costs duration accuracy rather than the record.
+/// Upper bound on a plausible skill duration.
+///
+/// A hand-written id can carry a millis of 0, which would otherwise report a
+/// runtime of decades. Real helpers finish in seconds, so anything past a day is
+/// a malformed id rather than a slow one.
+const MAX_PLAUSIBLE_MS: u64 = 86_400_000;
+
+/// Milliseconds since a trace id was minted.
+///
+/// `0` for an unparseable or implausible id, so a bad id costs duration
+/// accuracy rather than poisoning the rollups.
 pub fn elapsed_ms(tid: &str) -> u64 {
     match parse_trace_id(tid) {
         None => 0,
-        Some((_, started)) => (Utc::now().timestamp_millis().max(0) as u64).saturating_sub(started),
+        Some((_, 0)) => 0,
+        Some((_, started)) => {
+            let ms = (Utc::now().timestamp_millis().max(0) as u64).saturating_sub(started);
+            if ms > MAX_PLAUSIBLE_MS { 0 } else { ms }
+        }
     }
 }
 
@@ -927,7 +947,7 @@ mod tests {
     fn new_trace_id_correlates_and_is_distinct() {
         let a = new_trace_id("skill", "helper.nu");
         let b = new_trace_id("skill", "helper.nu");
-        assert!(a.starts_with("skill.helper.nu#"));
+        assert!(a.starts_with("skill#"));
         assert_ne!(a, b, "ids must be unique per call");
     }
 
@@ -940,16 +960,16 @@ mod tests {
     }
 
     #[test]
-    fn parse_trace_id_tolerates_a_helper_name_containing_dots() {
-        // `helper` is a path like `cap.nu`, so a naive last-dot split would
-        // recover the wrong skill.
-        let tid = new_trace_id("godmode", "hooks/cap.nu");
-        assert_eq!(parse_trace_id(&tid).unwrap().0, "godmode");
+    fn parse_trace_id_recovers_a_skill_containing_dots() {
+        // Regression: the id used to split on `.` to drop the helper, which
+        // truncated a dotted skill name and misattributed its failures.
+        let tid = new_trace_id("my.skill.v2", "helpers/cap.nu");
+        assert_eq!(parse_trace_id(&tid).unwrap().0, "my.skill.v2");
     }
 
     #[test]
     fn parse_trace_id_rejects_junk_instead_of_guessing() {
-        for bad in ["", "no-hash", "#123", "skill.#", "skill.helper#notanumber"] {
+        for bad in ["", "no-hash", "#123", "skill#", "skill.helper#notanumber"] {
             assert!(parse_trace_id(bad).is_none(), "must reject: {bad:?}");
         }
     }
@@ -957,6 +977,14 @@ mod tests {
     #[test]
     fn elapsed_ms_of_an_unparseable_id_is_zero_not_a_panic() {
         assert_eq!(elapsed_ms("garbage"), 0);
+    }
+
+    #[test]
+    fn elapsed_ms_rejects_a_zero_millis_instead_of_reporting_decades() {
+        // Regression found by prop_elapsed_ms_is_bounded: the id "\0#0" parses,
+        // so a zero clock produced a ~55-year runtime.
+        assert_eq!(elapsed_ms("\0#0"), 0);
+        assert_eq!(elapsed_ms("s#0.0#h"), 0);
     }
 
     #[test]
