@@ -117,6 +117,20 @@ fn phase_of(r: &Record) -> &'static str {
     r.phase.as_str()
 }
 
+/// The `name` column value.
+///
+/// A marker has no actor, so it shows its event name. Its `Record::name` is
+/// deliberately empty, which is what keeps markers out of the `skill_durations`
+/// rollup and out of the `session_starts`/`session_ends` counters — so the
+/// renderer must supply the label rather than rely on it.
+fn display_name(r: &Record) -> String {
+    if r.is_marker() {
+        r.meta_str("event").unwrap_or_default().to_string()
+    } else {
+        r.name.clone()
+    }
+}
+
 fn status_of(r: &Record) -> String {
     match r.status {
         Some(s) => format!("{s:?}").to_lowercase(),
@@ -146,7 +160,7 @@ fn tail(records: &[Record], as_json: bool, n: usize, session: Option<&str>) -> R
                 r.started_at.map_or(String::new(), |t| t.to_rfc3339()),
                 phase_of(r).to_string(),
                 status_of(r),
-                r.name.clone(),
+                display_name(r),
                 r.session_id.clone().unwrap_or_default(),
                 r.duration_ms.map_or_else(String::new, |d| d.to_string()),
                 r.error.clone().unwrap_or_default(),
@@ -217,6 +231,7 @@ fn stats(records: &[Record], as_json: bool, session: Option<&str>) -> Result<()>
         println!("  This log does NOT describe the current session.");
     }
     println!("  sessions:      {} distinct", s.distinct_sessions);
+    println!("  active:        {} with recorded work", s.active_sessions);
 
     println!("\n=== skill durations (ms) ===");
     if s.skill_durations.is_empty() {
@@ -358,6 +373,7 @@ fn stats_json(s: &Stats) -> serde_json::Value {
     json!({
         "total_records": s.total_records,
         "distinct_sessions": s.distinct_sessions,
+        "active_sessions": s.active_sessions,
         "last_ts": s.last_ts,
         "session_starts": s.session_starts,
         "session_ends": s.session_ends,
@@ -455,6 +471,25 @@ mod tests {
         assert!(
             !out[0].started.is_empty(),
             "a listed session must never render an empty start timestamp"
+        );
+    }
+
+    #[test]
+    fn a_markers_name_column_shows_its_event_not_a_blank() {
+        let body = format!("{}\n{}", BARE_START_S1, LEGACY);
+        let records = trace_query::parse(&body);
+        let marker = records
+            .iter()
+            .find(|r| r.is_marker())
+            .expect("a marker parsed");
+        assert_eq!(
+            marker.name, "",
+            "the empty name is what the rollup relies on"
+        );
+        assert_eq!(
+            display_name(marker),
+            "session.start",
+            "a blank column is less useful than the event name"
         );
     }
 
