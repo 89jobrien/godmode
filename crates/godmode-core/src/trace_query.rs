@@ -28,7 +28,7 @@
 //! breaks the guarantee the hot path relies on. `session_trace` remains the
 //! place `Crux<T>` belongs.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use chrono::{DateTime, FixedOffset, Local};
 use crux_runtime::types::step::{Step, StepKind, StepStatus};
@@ -142,6 +142,12 @@ impl AgentStatus {
 pub struct Stats {
     pub total_records: usize,
     pub distinct_sessions: usize,
+    /// Distinct session ids that recorded at least one non-marker record.
+    ///
+    /// Distinct from [`Self::distinct_sessions`], which counts every id in the
+    /// log. A session opened and rotated away without recording work is a real
+    /// session but not an active one.
+    pub active_sessions: usize,
     pub session_starts: usize,
     pub session_ends: usize,
     pub last_ts: Option<String>,
@@ -453,6 +459,15 @@ pub fn stats(records: &[Record]) -> Stats {
         agents.push((id, status));
     }
 
+    let mut active: BTreeSet<&str> = BTreeSet::new();
+    for r in records {
+        if let Some(sid) = r.session_id.as_deref()
+            && !r.is_marker()
+        {
+            active.insert(sid);
+        }
+    }
+
     let last = records.last();
     let mut skill_durations: Vec<SkillDuration> = durations
         .into_iter()
@@ -478,13 +493,14 @@ pub fn stats(records: &[Record]) -> Stats {
     Stats {
         total_records: records.len(),
         distinct_sessions: session_ids(records).len(),
+        active_sessions: active.len(),
         session_starts: records
             .iter()
-            .filter(|r| r.is_open() && r.name.is_empty())
+            .filter(|r| r.is_open() && r.is_marker())
             .count(),
         session_ends: records
             .iter()
-            .filter(|r| !r.is_open() && r.status == Some(StepStatus::Ok) && r.name.is_empty())
+            .filter(|r| !r.is_open() && r.is_marker() && r.status == Some(StepStatus::Ok))
             .count(),
         last_ts: last.map(|r| r.started_at.map(|t| t.to_rfc3339()).unwrap_or_default()),
         last_at: last.and_then(|r| r.started_at),
@@ -628,6 +644,43 @@ mod tests {
             "the session_id fallback must survive for everything that is not a marker"
         );
         assert!(!r.is_marker());
+    }
+
+    #[test]
+    fn stats_counts_a_session_start_and_sees_the_session_as_active() {
+        let body = concat!(
+            r#"{"event":"session.start","session_id":"s1","ts":"2026-09-30T09:00:00Z"}"#,
+            "\n",
+            r#"{"event":"skill.error","skill":"ci-fix","session_id":"s1","ts":"2026-09-30T09:00:01Z","duration_ms":9}"#,
+        );
+        let s = stats(&parse(body));
+        assert_eq!(s.session_starts, 1, "the marker must now be counted");
+        assert_eq!(s.session_ends, 0);
+        assert_eq!(s.distinct_sessions, 1);
+        assert_eq!(
+            s.active_sessions, 1,
+            "s1 recorded a skill.error, so it did work"
+        );
+    }
+
+    #[test]
+    fn stats_excludes_a_marker_only_session_from_active_sessions() {
+        let body = concat!(
+            r#"{"event":"session.start","session_id":"s1","ts":"2026-09-30T09:00:00Z"}"#,
+            "\n",
+            r#"{"event":"session.start","session_id":"s2","ts":"2026-09-30T10:00:00Z"}"#,
+            "\n",
+            r#"{"event":"skill.error","skill":"ci-fix","session_id":"s2","ts":"2026-09-30T10:00:01Z","duration_ms":9}"#,
+        );
+        let s = stats(&parse(body));
+        assert_eq!(
+            s.distinct_sessions, 2,
+            "both ids appear in the log, so both are distinct sessions"
+        );
+        assert_eq!(
+            s.active_sessions, 1,
+            "only s2 recorded anything beyond a marker"
+        );
     }
 
     #[test]
