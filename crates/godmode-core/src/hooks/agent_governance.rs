@@ -38,16 +38,27 @@ impl GovernanceDecision {
 
 /// Run governance check. Returns a decision, and emits an `agent.start`
 /// (approved) or `agent.blocked` trace event keyed by the resolved agent name.
+///
+/// When no agent name resolves, the check is recorded as `agent.unresolved`
+/// instead. Emitting `agent.start` with `agent_id: "unknown"` created a phantom
+/// agent per PreToolUse check: `trace-stats.nu` then reported every one of them
+/// as still `running`, because no completion event would ever arrive. This is
+/// what produced 42 permanently-"running" agents in the trace.
 pub fn check(root: &Path, input: &Value) -> GovernanceDecision {
     let decision = check_inner(root, input);
     let agent_name = detect_agent_name_for_trace(root, input);
+
+    let event = if agent_name == "unknown" {
+        "agent.unresolved"
+    } else if decision.approved {
+        "agent.start"
+    } else {
+        "agent.blocked"
+    };
+
     trace_log::append(
         root,
-        if decision.approved {
-            "agent.start"
-        } else {
-            "agent.blocked"
-        },
+        event,
         json!({"agent_id": agent_name, "reason": decision.reason}),
     );
     decision

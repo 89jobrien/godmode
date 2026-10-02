@@ -24,20 +24,20 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 
 ## Core Commands
 
-| Action           | Command                                                        |
-| ---------------- | -------------------------------------------------------------- |
-| List tasks       | `godmode task list [--json]`                                   |
-| Add task         | `godmode task add "<title>" [--deps <id,...>] [--run "<cmd>"]` |
-| Start task       | `godmode task start <id>`                                      |
-| Complete task    | `godmode task done <id>`                                       |
-| Block task       | `godmode task block <id>`                                      |
-| Unblock task     | `godmode task unblock <id>`                                    |
-| Remove task      | `godmode task remove <id>`                                     |
-| Next runnable    | `godmode task next [--json]`                                   |
-| Run task command | `godmode task run <id>`                                        |
-| Session start    | `godmode handon`                                               |
-| Session end      | `godmode handoff`                                              |
-| JSON output      | append `--json` to any command                                 |
+| Action           | Command                                              |
+| ---------------- | ---------------------------------------------------- |
+| List tasks       | `godmode task list [--json]`                         |
+| Add task         | `godmode task add "<title>" [--depends-on <id,...>]` |
+| Start task       | `godmode task start <id>`                            |
+| Complete task    | `godmode task done <id>`                             |
+| Block task       | `godmode task block <id> "<reason>"`                 |
+| Unblock task     | `godmode task unblock <id>`                          |
+| Remove task      | `godmode task remove <id>`                           |
+| Next runnable    | `godmode task next [--json]`                         |
+| Run task command | `godmode task run <id>`                              |
+| Session start    | `godmode handon`                                     |
+| Session end      | `godmode handoff`                                    |
+| JSON output      | append `--json` to any command                       |
 
 ## Instructions
 
@@ -49,9 +49,9 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 
 ### When adding tasks
 
-1. Extract title, dependencies, and optional run command from context
-2. Use `--deps` to wire sequential dependencies when order matters
-3. Use `--run` to attach a shell command for `godmode task run <id>`
+1. Extract title and dependencies from context
+2. Use `--depends-on` to wire sequential dependencies when order matters
+3. Use a plan plus `godmode plan ingest` when `run:` metadata is required
 
 ### When completing tasks
 
@@ -66,7 +66,8 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 
 ### When syncing with doob
 
-- `godmode handon` surfaces pending doob todos alongside the task graph at session start
+- `godmode handon` reports task-graph state only; it does not query doob. Use `godmode task pull` or
+  `doob todo list` directly for pending todos.
 - `godmode task done <id> --commit <sha>` marks tasks done; doob sync happens via the
   integration layer automatically
 

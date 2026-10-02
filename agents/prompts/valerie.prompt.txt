@@ -56,7 +56,8 @@ session work using `godmode` — a Rust CLI that owns the `.ctx/godmode/tasks.ya
 
 ### When syncing with doob
 
-- `godmode handon` surfaces pending doob todos alongside the task graph at session start
+- `godmode handon` reports task-graph state only; it does not query doob. Use `godmode task pull` or
+  `doob todo list` directly for pending todos.
 - `godmode task done <id> --commit <sha>` marks tasks done; doob sync happens via the
   integration layer automatically
 

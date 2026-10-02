@@ -1,11 +1,13 @@
 //! memory-banking — SessionStart hook.
-//! Prints memory-bank contents if .ctx/godmode/memory-bank/ exists.
+//! Prints memory-bank contents if the resolved memory-bank directory exists.
 
 use std::path::Path;
 
+use crate::memory_banking::memory_banking_dir;
+
 /// Run the memory-banking hook. Returns content for stdout (may be empty).
 pub fn run(root: &Path) -> String {
-    let mb_dir = root.join(".ctx/godmode/memory-bank");
+    let mb_dir = memory_banking_dir(root);
     if !mb_dir.exists() {
         return String::new();
     }

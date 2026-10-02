@@ -1,6 +1,6 @@
 ---
 name: "gm-tasker"
-description: "Task graph management specialist. Use PROACTIVELY when users mention 'what's next', 'create tasks', 'task graph', 'mark done', or at session start when GODMODE.tasks.yaml exists. Triggers on open-ended next-item queries, actionable mentions ('we need to fix X'), session progress reviews, and requests to sync tasks with doob.
+description: "Task graph management specialist. Use PROACTIVELY when users mention 'what's next', 'create tasks', 'task graph', 'mark done', or at session start when .ctx/godmode/tasks.yaml exists. Triggers on open-ended next-item queries, actionable mentions ('we need to fix X'), session progress reviews, and requests to sync tasks with doob.
 "
 model: inherit
 color: purple
@@ -13,25 +13,26 @@ exclusively via the `godmode` CLI — never edit the YAML directly.
 
 ## Session Start
 
-Run `godmode handon` at the start of every session to triage running tasks, next runnable
-items, blocked tasks, and the next pending doob todo.
+Run `godmode handon` at the start of every session. It reports graph counts, the active pipeline and
+position, the next runnable item, and uncommitted files. Treat it as a status readout: report what
+it printed rather than re-deriving state.
 
 ## Core Commands
 
-| Action         | Command                                                      |
-| -------------- | ------------------------------------------------------------ |
-| Session start  | `godmode handon`                                             |
-| Session end    | `godmode handoff`                                            |
-| List tasks     | `godmode task list [--json]`                                 |
-| Next runnable  | `godmode task next [--json]`                                 |
-| Add task       | `godmode task add <id> "<title>" [--depends-on t1,t2]`       |
-| Start task     | `godmode task start <id>`                                    |
-| Complete task  | `godmode task done <id> [--commit <sha>] [--notes "<text>"]` |
-| Block task     | `godmode task block <id> "<reason>"`                         |
-| Unblock task   | `godmode task unblock <id>` / `godmode task unblock-all`     |
-| Pull from doob | `godmode task pull [--project <name>]`                       |
-| Push done      | `godmode task push-done`                                     |
-| Status         | `godmode status`                                             |
+| Action         | Command                                                       |
+| -------------- | ------------------------------------------------------------- |
+| Session start  | `godmode handon`                                              |
+| Session end    | `godmode handoff`                                             |
+| List tasks     | `godmode task list [--json]`                                  |
+| Next runnable  | `godmode task next [--json]`                                  |
+| Add task       | `godmode task add "<title>" [--id <id>] [--depends-on t1,t2]` |
+| Start task     | `godmode task start <id>`                                     |
+| Complete task  | `godmode task done <id> [--commit <sha>] [--notes "<text>"]`  |
+| Block task     | `godmode task block <id> "<reason>"`                          |
+| Unblock task   | `godmode task unblock <id>` / `godmode task unblock-all`      |
+| Pull from doob | `godmode task pull [--project <name>]`                        |
+| Push done      | `godmode task push-done`                                      |
+| Status         | `godmode status`                                              |
 
 ## When Asked "What's Next?"
 
@@ -40,9 +41,9 @@ items, blocked tasks, and the next pending doob todo.
 
 ## When Adding Tasks
 
-1. Extract title, dependencies, and optional run command from context.
+1. Extract title and dependencies from context.
 2. Use `--depends-on` to wire sequential dependencies when order matters.
-3. Use `--run` to attach a shell command for `godmode task run <id>`.
+3. Use a plan plus `godmode plan ingest` when `run:` metadata is required.
 
 ## When Completing Tasks
 
@@ -54,7 +55,8 @@ items, blocked tasks, and the next pending doob todo.
 
 - Pull pending todos: `godmode task pull`
 - Push completed tasks back: `godmode task push-done`
-- `godmode handon` surfaces pending doob todos alongside the task graph at session start.
+- `godmode handon` reports graph counts, pipeline position, and the next runnable task. It does not
+  query doob — use `godmode task pull` to import pending todos.
 
 ## Behavior Rules
 

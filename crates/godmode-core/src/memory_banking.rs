@@ -1,4 +1,4 @@
-//! Memory banking — persistent source-backed project context at `.ctx/godmode/memory-bank/`.
+//! Memory banking — persistent source-backed project context at `.ctx/memory-bank/`.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -19,18 +19,23 @@ const TEMPLATE_FILES: &[&str] = &[
 
 /// Resolved memory-bank directory for a git root.
 ///
-/// Prefers `.ctx/godmode/memory-bank/` (new layout). Falls back to the legacy
-/// `.ctx/memory-banking/` if it exists and the new path does not.
+/// Prefers the canonical `.ctx/memory-bank/`. Falls back to the intermediate
+/// `.ctx/godmode/memory-bank/` and then the original `.ctx/memory-banking/`
+/// so existing checkouts keep resolving until they are migrated.
 pub fn memory_banking_dir(git_root: &Path) -> PathBuf {
-    let new = git_root.join(".ctx").join("godmode").join("memory-bank");
-    if new.exists() {
-        return new;
+    let canonical = git_root.join(".ctx").join("memory-bank");
+    if canonical.exists() {
+        return canonical;
+    }
+    let intermediate = git_root.join(".ctx").join("godmode").join("memory-bank");
+    if intermediate.exists() {
+        return intermediate;
     }
     let legacy = git_root.join(".ctx").join("memory-banking");
     if legacy.exists() {
         return legacy;
     }
-    new
+    canonical
 }
 
 /// Returns true if the memory-bank directory exists and has at least one .md file.
@@ -134,7 +139,7 @@ pub fn inject(git_root: &Path, json: bool) -> Result<()> {
         });
         println!("{}", serde_json::to_string_pretty(&output)?);
     } else {
-        println!("[memory-banking] Injecting project context from .ctx/godmode/memory-bank/");
+        println!("[memory-banking] Injecting project context from .ctx/memory-bank/");
         for file in &files {
             let basename = file.file_name().unwrap_or_default().to_string_lossy();
             let content =
@@ -167,12 +172,12 @@ pub fn remind(git_root: &Path, json: bool) -> Result<()> {
         if json {
             let msg = serde_json::json!({
                 "reminder": true,
-                "message": "Session had commits. Update .ctx/godmode/memory-bank/active-context.md and progress.md before ending.",
+                "message": "Session had commits. Update .ctx/memory-bank/active-context.md and progress.md before ending.",
             });
             println!("{}", serde_json::to_string_pretty(&msg)?);
         } else {
             println!(
-                "[memory-banking] Session had commits. Update .ctx/godmode/memory-bank/active-context.md and progress.md before ending."
+                "[memory-banking] Session had commits. Update .ctx/memory-bank/active-context.md and progress.md before ending."
             );
         }
     }
@@ -180,7 +185,7 @@ pub fn remind(git_root: &Path, json: bool) -> Result<()> {
     Ok(())
 }
 
-/// Create `.ctx/godmode/memory-bank/` with empty template files.
+/// Create `.ctx/memory-bank/` with empty template files.
 pub fn init(git_root: &Path) -> Result<()> {
     let dir = memory_banking_dir(git_root);
     fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
@@ -198,7 +203,7 @@ pub fn init(git_root: &Path) -> Result<()> {
     }
 
     println!(
-        "[memory-banking] Initialized .ctx/godmode/memory-bank/ with {} template files.",
+        "[memory-banking] Initialized .ctx/memory-bank/ with {} template files.",
         TEMPLATE_FILES.len()
     );
     Ok(())
@@ -233,7 +238,7 @@ pub fn status(git_root: &Path, json: bool) -> Result<()> {
         println!("{}", serde_json::to_string_pretty(&output)?);
     } else {
         println!(
-            "[memory-banking] {} files in .ctx/godmode/memory-bank/",
+            "[memory-banking] {} files in .ctx/memory-bank/",
             files.len()
         );
         for file in &files {
@@ -303,7 +308,7 @@ mod tests {
         let p = Path::new("/some/project");
         assert_eq!(
             memory_banking_dir(p),
-            PathBuf::from("/some/project/.ctx/godmode/memory-bank")
+            PathBuf::from("/some/project/.ctx/memory-bank")
         );
     }
 

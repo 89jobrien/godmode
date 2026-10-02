@@ -36,8 +36,13 @@ answer questions about that skill.
 
 ## Session Ritual
 
-**Start:** `godmode handon` — triage running, next runnable, blocked, next doob todo.
-**End:** `godmode handoff` — warns on leaked running tasks, writes hj handoff.
+`handon` and `handoff` are status readouts, not state mutations. Report what they printed; do not
+infer state they did not print.
+
+**Start:** `godmode handon` — graph counts, active pipeline and position, next runnable task,
+uncommitted files.
+**End:** `godmode handoff` — session totals, tasks still running, uncommitted files. Never report
+the session as finished while a task is still `running`.
 
 ## Skill Recommendation Guide
 
@@ -61,7 +66,7 @@ godmode handoff                         # session end closeout
 godmode plan ingest <plan.md>           # ingest plan → task graph
 godmode task list [--json]              # all tasks
 godmode task next [--json]              # next runnable
-godmode task add <id> "<title>" [opts]  # add task
+godmode task add "<title>" [--id <id>] [opts]  # add task
 godmode task start <id>                 # mark running
 godmode task done <id> [--commit <sha>] # mark done
 godmode task block <id> "<reason>"      # mark blocked

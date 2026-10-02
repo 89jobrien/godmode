@@ -21,6 +21,16 @@ pub struct Config {
 }
 
 /// Which external tools godmode will call.
+///
+/// Unknown keys are accepted but reported. A stale integration name (e.g. the
+/// pre-rename `cruxx`) is otherwise indistinguishable from a deliberate opt-in, because
+/// `#[serde(default)]` leaves every unrecognized key at `false` with no diagnostic.
+/// Verified 2026-09-30: `cruxx = true` happens to set `crux` — toml key matching is
+/// prefix-based — so the stale key worked by accident. A genuinely misspelled key such as
+/// `cruss = true` silently resolves to `false`, which is the real hazard.
+///
+/// This is deliberately a warning rather than `deny_unknown_fields`: rejecting unknown
+/// keys outright would break any existing config that relies on the lenient behavior.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Integrations {
@@ -80,7 +90,9 @@ impl Config {
 
     fn from_file(path: &Path) -> Result<Config> {
         let raw = std::fs::read_to_string(path)?;
-        Ok(toml::from_str(&raw)?)
+        let cfg: Config = toml::from_str(&raw)?;
+        warn_unknown_integration_keys(path, &raw);
+        Ok(cfg)
     }
 
     /// Resolve the project name: config override > Cargo.toml > git remote > dir name.
@@ -98,6 +110,38 @@ impl Config {
             .and_then(|n| n.to_str())
             .unwrap_or("unknown")
             .to_string()
+    }
+}
+
+/// Integration toggle names recognized in config.
+///
+/// Used to report unrecognized keys under `[integrations]`. Kept in sync with the
+/// `Integrations` struct fields; `const` so it cannot drift without a compile error if a
+/// field is added there (see `known_integration_keys_match_fields`).
+const KNOWN_INTEGRATION_KEYS: &[&str] = &["doob", "hj", "crux", "rx", "crs"];
+
+/// Warn about `[integrations]` keys that match no known toggle.
+///
+/// A key that matches nothing (or matches only by prefix) silently resolves to `false`,
+/// so an integration looks deliberately disabled when it is really a typo. `cruxx` is the
+/// live example: toml's prefix matching binds it to `crux`, so it happened to work, but
+/// `cruss` would not.
+fn warn_unknown_integration_keys(path: &Path, raw: &str) {
+    let Ok(table) = raw.parse::<toml::Table>() else {
+        return;
+    };
+    let Some(integrations) = table.get("integrations").and_then(toml::Value::as_table) else {
+        return;
+    };
+    for key in integrations.keys() {
+        if !KNOWN_INTEGRATION_KEYS.contains(&key.as_str()) {
+            tracing::warn!(
+                path = %path.display(),
+                key = %key,
+                "unknown key under [integrations]; \
+                 this integration will be treated as disabled (no effect)"
+            );
+        }
     }
 }
 
@@ -205,5 +249,54 @@ max_commits = 5
         let cfg = Config::default();
         let name = cfg.project_name(Path::new("/tmp/my-project"));
         assert_eq!(name, "my-project");
+    }
+
+    /// `KNOWN_INTEGRATION_KEYS` must track the `Integrations` fields, otherwise a
+    /// legitimate toggle gets reported as a typo.
+    #[test]
+    fn known_integration_keys_match_fields() {
+        let all = Integrations {
+            doob: false,
+            hj: false,
+            crux: false,
+            rx: false,
+            crs: false,
+        };
+        let serialized = toml::to_string(&all).expect("serialize");
+        let parsed = serialized.parse::<toml::Table>().expect("parse");
+        let keys: Vec<&str> = parsed.keys().map(String::as_str).collect();
+        assert_eq!(
+            keys.len(),
+            KNOWN_INTEGRATION_KEYS.len(),
+            "KNOWN_INTEGRATION_KEYS is out of sync with the Integrations struct"
+        );
+        for key in &keys {
+            assert!(
+                KNOWN_INTEGRATION_KEYS.contains(key),
+                "field `{key}` missing from KNOWN_INTEGRATION_KEYS"
+            );
+        }
+    }
+
+    /// A genuinely misspelled key must still parse (lenient) but resolve to disabled —
+    /// the case that prompted the warning.
+    #[test]
+    fn misspelled_integration_key_resolves_disabled() {
+        let raw = "[integrations]\ncruss = true\ndoob = true\n";
+        let cfg: Config = toml::from_str(raw).expect("lenient parse should succeed");
+        assert!(cfg.integrations.doob, "known key still honored");
+        assert!(
+            !cfg.integrations.crs,
+            "misspelled key silently leaves the toggle off"
+        );
+    }
+
+    #[test]
+    fn stale_prefix_key_still_binds_to_crux() {
+        // Documented accident: toml prefix matching binds `cruxx` to `crux`, so the
+        // pre-rename key in ~/.config/godmode/config.toml happens to work.
+        let raw = "[integrations]\ncruxx = true\n";
+        let cfg: Config = toml::from_str(raw).expect("parse");
+        assert!(cfg.integrations.crux);
     }
 }

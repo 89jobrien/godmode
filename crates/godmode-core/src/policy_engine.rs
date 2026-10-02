@@ -7,6 +7,42 @@ use serde::{Deserialize, Serialize};
 
 use crate::policy::{CheckResult, GovernancePolicy, PolicyAction};
 
+/// Wildcard approval entry: every tool call requires human approval.
+const APPROVAL_WILDCARD: &str = "*";
+
+/// Determine which approval entry, if any, gates this tool call.
+///
+/// An entry matches in three ways:
+/// - `*` — every call is gated.
+/// - exact tool name (`Write`, `Edit`, `Bash`) — that tool is gated.
+/// - command substring (`git push --force`, `cargo publish`) — the tool input
+///   contains the listed command.
+///
+/// Approval entries are plain command strings, not patterns, so they are matched
+/// as literal substrings. Over-matching is safe here: a false positive yields
+/// Review (a human prompt), never Allow.
+fn approval_trigger(
+    approvals: &[String],
+    tool_name: &str,
+    content: Option<&str>,
+) -> Option<String> {
+    for entry in approvals {
+        if entry == APPROVAL_WILDCARD {
+            return Some(APPROVAL_WILDCARD.to_string());
+        }
+        if entry == tool_name {
+            return Some(entry.clone());
+        }
+    }
+
+    let text = content?;
+    approvals
+        .iter()
+        .filter(|e| !e.is_empty() && e.as_str() != APPROVAL_WILDCARD && e.as_str() != tool_name)
+        .find(|e| text.contains(e.as_str()))
+        .cloned()
+}
+
 /// Check if a tool call is allowed by a resolved policy.
 pub fn check_tool(
     policy: &GovernancePolicy,
@@ -29,15 +65,20 @@ pub fn check_tool(
         };
     }
 
-    // 3. Human approval
-    if policy
-        .require_human_approval
-        .iter()
-        .any(|a| a == "*" || a == tool_name)
-    {
+    // 3. Human approval.
+    //
+    // Checked before blocked patterns so an explicitly approval-gated command
+    // surfaces as Review rather than being hard-denied by an overlapping
+    // blocked pattern. Review still requires a human decision, so this trades
+    // a silent deny for a visible prompt — it does not auto-allow.
+    if let Some(trigger) = approval_trigger(&policy.require_human_approval, tool_name, content) {
         return CheckResult {
             action: PolicyAction::Review,
-            reason: format!("tool '{tool_name}' requires human approval"),
+            reason: if trigger == APPROVAL_WILDCARD {
+                format!("tool '{tool_name}' requires human approval")
+            } else {
+                format!("tool '{tool_name}' requires human approval: matches '{trigger}'")
+            },
         };
     }
 

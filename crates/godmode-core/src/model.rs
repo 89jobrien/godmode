@@ -194,12 +194,44 @@ impl Clone for TaskGraph {
     }
 }
 
+fn plan_file_stem(source: &str) -> &str {
+    let file_name = source.rsplit(['/', '\\']).next().unwrap_or(source);
+    file_name.strip_suffix(".md").unwrap_or(file_name)
+}
+
 impl TaskGraph {
     pub(crate) fn plan_task_ids(&self, source: &str) -> Option<&[String]> {
         self.plan_imports
             .iter()
             .find(|import| import.source == source)
             .map(|import| import.task_ids.as_slice())
+    }
+
+    /// Resolve an import's task ids for a plan whose recorded location no longer exists on disk.
+    ///
+    /// A relocated plan is the same plan, so it keeps its existing task ids instead of minting a
+    /// fresh namespaced chain. Relocation is inferred from the recorded path having disappeared: if
+    /// that file is gone, the recorded import is this plan under its old location. The stem must
+    /// also be unambiguous — if two recorded imports share it, `None` is returned.
+    ///
+    /// Provenance outlives its tasks, because `task remove` keeps ids reserved for their source. A
+    /// candidate therefore only counts when every id it records still exists in the graph.
+    pub(crate) fn relocated_plan_task_ids(&self, source: &str) -> Option<&[String]> {
+        let stem = plan_file_stem(source);
+        let mut matches = self.plan_imports.iter().filter(|import| {
+            plan_file_stem(&import.source) == stem
+                && !std::path::Path::new(&import.source).exists()
+                && self.plan_import_has_live_tasks(import)
+        });
+        let only = matches.next()?;
+        matches.next().is_none().then_some(only.task_ids.as_slice())
+    }
+
+    fn plan_import_has_live_tasks(&self, import: &PlanImport) -> bool {
+        import
+            .task_ids
+            .iter()
+            .all(|id| self.tasks.iter().any(|task| &task.id == id))
     }
 
     pub(crate) fn is_imported_plan_task(&self, id: &str) -> bool {
@@ -215,8 +247,17 @@ impl TaskGraph {
             .find(|import| import.source == source)
         {
             import.task_ids = task_ids;
-        } else {
-            self.plan_imports.push(PlanImport { source, task_ids });
+            return;
+        }
+        // A relocated plan keeps a single provenance entry, rebound to its new path. The entry is
+        // adopted only when it records the same task ids *and* its old file is gone; distinct plans
+        // that share a stem keep their own entries.
+        let relocated = self.plan_imports.iter().position(|import| {
+            import.task_ids == task_ids && !std::path::Path::new(&import.source).exists()
+        });
+        match relocated {
+            Some(index) => self.plan_imports[index] = PlanImport { source, task_ids },
+            None => self.plan_imports.push(PlanImport { source, task_ids }),
         }
     }
 

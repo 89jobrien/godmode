@@ -1,798 +1,120 @@
 project: godmode
 id: godmode
-updated: 2026-09-21
+updated: 2026-10-01
 items:
 - id: uncommitted-work
   name: uncommitted-work
   priority: P1
   status: open
-  title: Uncommitted changes (391 files)
+  title: Uncommitted changes (26 files)
   description: |-
     Working tree has uncommitted changes:
     .ctx/HANDOFF.godmode.godmode.yaml
-    .opencode/commands/gm-audit.md
-    .opencode/commands/gm-auth-fail-fast.md
-    .opencode/commands/gm-brainstorm.md
-    .opencode/commands/gm-cap.md
     .opencode/commands/gm-ci-fix.md
-    .opencode/commands/gm-context.md
     .opencode/commands/gm-debug-loop.md
     .opencode/commands/gm-debug.md
-    .opencode/commands/gm-deps.md
-    .opencode/commands/gm-dispatch-all.md
-    .opencode/commands/gm-doc-enrich.md
-    .opencode/commands/gm-doc-review.md
-    .opencode/commands/gm-doc-sync.md
-    .opencode/commands/gm-doc-writer.md
-    .opencode/commands/gm-feature.md
-    .opencode/commands/gm-fresh-branch.md
-    .opencode/commands/gm-handoff.md
-    .opencode/commands/gm-handon.md
-    .opencode/commands/gm-ideate.md
-    .opencode/commands/gm-improve-agent.md
-    .opencode/commands/gm-introspect.md
-    .opencode/commands/gm-issues.md
-    .opencode/commands/gm-moa-review.md
-    .opencode/commands/gm-observe.md
-    .opencode/commands/gm-plan.md
-    .opencode/commands/gm-polish.md
-    .opencode/commands/gm-pr.md
-    .opencode/commands/gm-preflight.md
-    .opencode/commands/gm-refactor.md
-    .opencode/commands/gm-release.md
-    .opencode/commands/gm-review-code.md
-    .opencode/commands/gm-review-incoming.md
-    .opencode/commands/gm-self-heal.md
-    .opencode/commands/gm-session-end.md
-    .opencode/commands/gm-ship.md
-    .opencode/commands/gm-tackle-issues.md
-    .opencode/commands/gm-tdd.md
-    .opencode/commands/gm-test-fix-commit.md
-    .opencode/commands/gm-trace.md
-    CLAUDE.md
-    README.md
-    agents/agent__dialectic-advocate.md
-    agents/agent__dialectic-alternative.md
-    agents/agent__dialectic-orchestrator.md
-    agents/agent__dialectic-skeptic.md
-    agents/agent__dialectic-synthesizer.md
-    agents/agent__moa-agent.md
-    agents/agent__tdd-crate-agent.md
-    agents/baml-schema-validator.md
-    agents/brainstorm-agent.md
-    agents/cap-agent.md
-    agents/cfg/code-review-agent.cfg.yaml
-    agents/cfg/dialectic-advocate.cfg.yaml
-    agents/cfg/dialectic-alternative.cfg.yaml
-    agents/cfg/dialectic-orchestrator.cfg.yaml
-    agents/cfg/dialectic-skeptic.cfg.yaml
-    agents/cfg/dialectic-synthesizer.cfg.yaml
-    agents/cfg/introspection-agent.cfg.yaml
-    agents/cfg/observability-as-infrastructure-agent.cfg.yaml
-    agents/cfg/task-management-agent.cfg.yaml
-    agents/cfg/tdd-crate-agent.cfg.yaml
-    agents/cfg/verification-before-completion-agent.cfg.yaml
-    agents/changelog-agent.md
-    agents/ci-failure-responder.md
+    agents/INDEX.md
+    agents/cfg/planner-agent.cfg.yaml
     agents/ci-fix-agent.md
-    agents/code-review-agent.md
-    agents/dead-code-agent.md
-    agents/dep-audit-agent.md
-    agents/dep-bump-propagator-agent.md
-    agents/devloop-session-primer.md
-    agents/doc-maintainer-agent.md
-    agents/doob-sync-debugger.md
-    agents/doob-test-gap-finder.md
-    agents/envoy.md
-    agents/forge.md
-    agents/generate.nu
-    agents/git__cap-agent.md
-    agents/gm-orchestrator.md
-    agents/gov__observability-as-infrastructure-agent.md
-    agents/health-score-agent.md
-    agents/herald.md
-    agents/introspection-agent.md
-    agents/issue-triage-agent.md
-    agents/issue__issue-triage-agent.md
-    agents/meta__pattern-learner-agent.md
-    agents/mistake-tracker-agent.md
-    agents/moa-agent.md
-    agents/navigator.md
-    agents/obfsck-test-harness.md
-    agents/observability-as-infrastructure-agent.md
-    agents/ops__changelog-agent.md
-    agents/ops__dep-audit-agent.md
-    agents/ops__dep-bump-propagator-agent.md
-    agents/parallel-agents-agent.md
-    agents/pattern-learner-agent.md
-    agents/plan__brainstorm-agent.md
-    agents/plan__writing-plans-agent.md
+    agents/dbg__systematic-debugging-agent.md
+    agents/plan__planner-agent.md
     agents/planner-agent.md
-    agents/pr-author-agent.md
-    agents/prompts/gm-orchestrator.prompt.txt
-    agents/prompts/health-score-agent.prompt.txt
-    agents/prompts/introspection-agent.prompt.txt
-    agents/prompts/mistake-tracker-agent.prompt.txt
-    agents/prompts/parallel-agents-agent.prompt.txt
-    agents/prompts/pattern-learner-agent.prompt.txt
-    agents/prompts/planner-agent.prompt.txt
-    agents/prompts/pr-author-agent.prompt.txt
-    agents/prompts/task-management-agent.prompt.txt
-    agents/prompts/testing-philosophy-agent.prompt.txt
-    agents/prompts/using-godmode-agent.prompt.txt
-    agents/prompts/valerie.prompt.txt
-    agents/prompts/wave-integration-agent.prompt.txt
-    agents/prompts/workspace-refactor-agent.prompt.txt
-    agents/prompts/writing-plans-agent.prompt.txt
-    agents/qual__code-review-agent.md
-    agents/qual__dead-code-agent.md
-    agents/qual__health-score-agent.md
-    agents/qual__receiving-review-agent.md
-    agents/quartermaster.md
-    agents/receiving-review-agent.md
-    agents/refac__doc-maintainer-agent.md
-    agents/refac__refactoring-agent.md
-    agents/refactoring-agent.md
-    agents/release-notes-agent.md
-    agents/sentinel.md
-    agents/snapshot-acceptor.md
+    agents/prompts/systematic-debugging-agent.prompt.txt
     agents/systematic-debugging-agent.md
-    agents/tackle-issues-agent.md
-    agents/task-management-agent.md
-    agents/tdd-crate-agent.md
-    agents/test-driven-development-agent.md
-    agents/testing-philosophy-agent.md
-    agents/using-godmode-agent.md
-    agents/valerie.md
-    agents/verification-before-completion-agent.md
-    agents/wave-integration-agent.md
-    agents/workspace-refactor-agent.md
-    agents/writing-plans-agent.md
-    commands/gm-audit.md
-    commands/gm-auth-fail-fast.md
-    commands/gm-brainstorm.md
-    commands/gm-cap.md
     commands/gm-ci-fix.md
-    commands/gm-context.md
     commands/gm-debug-loop.md
     commands/gm-debug.md
-    commands/gm-deps.md
-    commands/gm-dispatch-all.md
-    commands/gm-doc-enrich.md
-    commands/gm-doc-review.md
-    commands/gm-doc-sync.md
-    commands/gm-doc-writer.md
-    commands/gm-feature.md
-    commands/gm-fresh-branch.md
-    commands/gm-handoff.md
-    commands/gm-handon.md
-    commands/gm-ideate.md
-    commands/gm-improve-agent.md
-    commands/gm-introspect.md
-    commands/gm-issues.md
-    commands/gm-moa-review.md
-    commands/gm-observe.md
-    commands/gm-plan.md
-    commands/gm-polish.md
-    commands/gm-pr.md
-    commands/gm-preflight.md
-    commands/gm-refactor.md
-    commands/gm-release.md
-    commands/gm-review-code.md
-    commands/gm-review-incoming.md
-    commands/gm-self-heal.md
-    commands/gm-session-end.md
-    commands/gm-ship.md
-    commands/gm-tackle-issues.md
-    commands/gm-tdd.md
-    commands/gm-test-fix-commit.md
-    commands/gm-trace.md
-    commands/gm/README.md
-    commands/gm/templates/dev.md
-    commands/gm/templates/dispatch.md
-    commands/gm/templates/ops.md
-    commands/gm/templates/plan.md
-    commands/gm/templates/review.md
-    commands/gm/templates/rule.md
-    crates/godmode-cli/src/commands/agent.rs
-    crates/godmode-cli/src/commands/ci.rs
-    crates/godmode-cli/src/commands/context.rs
-    crates/godmode-cli/src/commands/dispatch.rs
-    crates/godmode-cli/src/commands/doctor.rs
-    crates/godmode-cli/src/commands/eval.rs
-    crates/godmode-cli/src/commands/graph.rs
-    crates/godmode-cli/src/commands/handoff.rs
-    crates/godmode-cli/src/commands/handon.rs
-    crates/godmode-cli/src/commands/hook.rs
-    crates/godmode-cli/src/commands/init.rs
-    crates/godmode-cli/src/commands/insight.rs
-    crates/godmode-cli/src/commands/issue.rs
-    crates/godmode-cli/src/commands/memory_banking.rs
-    crates/godmode-cli/src/commands/mod.rs
-    crates/godmode-cli/src/commands/pin.rs
-    crates/godmode-cli/src/commands/pipeline.rs
-    crates/godmode-cli/src/commands/plan.rs
-    crates/godmode-cli/src/commands/policy.rs
-    crates/godmode-cli/src/commands/release.rs
-    crates/godmode-cli/src/commands/review.rs
-    crates/godmode-cli/src/commands/scaffold.rs
-    crates/godmode-cli/src/commands/session.rs
-    crates/godmode-cli/src/commands/skill.rs
-    crates/godmode-cli/src/commands/status.rs
-    crates/godmode-cli/src/commands/task.rs
-    crates/godmode-cli/src/commands/test_check.rs
-    crates/godmode-cli/src/commands/unpin.rs
-    crates/godmode-cli/src/commands/verify.rs
-    crates/godmode-cli/src/commands/visualize_graph.rs
-    crates/godmode-cli/src/commands/wave.rs
-    crates/godmode-cli/src/commands/workflow.rs
-    crates/godmode-cli/src/commands/worktree.rs
-    crates/godmode-cli/src/main.rs
-    crates/godmode-cli/tests/doob_publish.rs
-    crates/godmode-cli/tests/pipeline_run_from.rs
-    crates/godmode-cli/tests/priority_filter.rs
-    crates/godmode-cli/tests/task_add_metadata.rs
-    crates/godmode-cli/tests/visualize_graph.rs
-    crates/godmode-core/src/agent.rs
-    crates/godmode-core/src/agent_index.rs
-    crates/godmode-core/src/cache.rs
-    crates/godmode-core/src/context.rs
-    crates/godmode-core/src/dispatch.rs
-    crates/godmode-core/src/eval.rs
-    crates/godmode-core/src/graph.rs
-    crates/godmode-core/src/hooks/registry.rs
-    crates/godmode-core/src/init.rs
-    crates/godmode-core/src/insights.rs
-    crates/godmode-core/src/integrations/doob.rs
-    crates/godmode-core/src/integrations/gh/ci.rs
-    crates/godmode-core/src/integrations/gh/issues.rs
-    crates/godmode-core/src/integrations/hj.rs
-    crates/godmode-core/src/integrations/hook_migrate.rs
-    crates/godmode-core/src/integrations/mod.rs
-    crates/godmode-core/src/integrations/rx.rs
-    crates/godmode-core/src/model.rs
-    crates/godmode-core/src/pipeline.rs
-    crates/godmode-core/src/plan.rs
+    commands/gm/debug-loop.yaml
+    commands/gm/debug.yaml
+    commands/gm/templates/debug.md
+    crates/godmode-core/src/hooks/memory_banking.rs
+    crates/godmode-core/src/memory_banking.rs
     crates/godmode-core/src/policy.rs
-    crates/godmode-core/src/registry.rs
-    crates/godmode-core/src/release_version.rs
-    crates/godmode-core/src/report_index.rs
-    crates/godmode-core/src/review.rs
-    crates/godmode-core/src/sarif.rs
-    crates/godmode-core/src/session.rs
-    crates/godmode-core/src/session_trace.rs
-    crates/godmode-core/src/skill.rs
-    crates/godmode-core/src/testing/audit.rs
-    crates/godmode-core/src/todo_issue_sync.rs
-    crates/godmode-core/src/verify.rs
-    crates/godmode-core/src/wave.rs
-    crates/godmode-core/src/workflow.rs
-    crates/godmode-core/src/worktree.rs
-    crates/godmode-core/src/write_mode.rs
-    crates/godmode-core/tests/crux_integration.rs
-    crates/godmode-core/tests/doob_integration.rs
-    crates/godmode-core/tests/fake_bin.rs
-    crates/godmode-core/tests/fixtures/simple-plan.md
-    crates/godmode-core/tests/gh_integration.rs
-    crates/godmode-core/tests/hj_integration.rs
-    crates/godmode-core/tests/hooks_integration.rs
-    crates/godmode-core/tests/rx_integration.rs
-    crates/godmode-core/tests/todo_issue_sync.rs
-    docs/plan-review-release.md
-    docs/plans/2026-05-01-plugin-tests-agent.md
-    docs/plans/2026-05-02-critical-path.md
-    docs/plans/2026-05-02-cycle-detection.md
-    docs/plans/2026-05-02-graph-build-command.md
-    docs/plans/2026-05-02-session-struct-impl.md
-    docs/plans/2026-05-02-skill-registry.md
-    docs/plans/2026-05-02-skills-lib-refactor.md
-    docs/plans/2026-05-02-task-templates.md
-    docs/plans/2026-05-02-unblock-all.md
-    docs/plans/2026-05-11-agent-ux-improvements.plan.md
-    docs/plans/2026-06-02-skill-pipelines.md
-    docs/plans/2026-06-04-ctx-godmode-consolidation.md
-    docs/plans/2026-06-04-deterministic-pipelines.md
-    hooks/README.md
-    skills/agent-governance/SKILL.md
-    skills/agent-improvement-loop/SKILL.md
-    skills/baml-add-types/SKILL.md
-    skills/brainstorm/references/design-principles.md
-    skills/cap/SKILL.md
-    skills/changelog/SKILL.md
-    skills/code-review/SKILL.md
-    skills/crs-discover/SKILL.md
-    skills/crs-hook-testing/SKILL.md
-    skills/crs-install/SKILL.md
-    skills/crs-validate/SKILL.md
-    skills/dead-code/SKILL.md
-    skills/decompose/SKILL.md
-    skills/decompose/helpers/fuzz/fuzz_targets/fuzz_classify_concern.rs
-    skills/decompose/helpers/fuzz/fuzz_targets/fuzz_verify_coverage.rs
-    skills/decompose/references/split-strategies.md
-    skills/dep-audit/SKILL.md
-    skills/dep-bump/SKILL.md
-    skills/design/SKILL.md
-    skills/design/references/design-principles.md
-    skills/doc-review/SKILL.md
-    skills/doc-sync/SKILL.md
-    skills/doc-writer/references/doc-types.md
-    skills/gh-bulk-issues/SKILL.md
-    skills/health-score/SKILL.md
-    skills/introspection/helpers/audit.nu
-    skills/issue-triage/SKILL.md
-    skills/memory-banking/SKILL.md
-    skills/memory-banking/references/system-patterns.md
-    skills/merge/SKILL.md
-    skills/mini-context-graph/SKILL.md
-    skills/mistake-tracker/SKILL.md
-    skills/parallel-agents/SKILL.md
-    skills/parallel-agents/helpers/agent-prompt-template.md
-    skills/pattern-learner/SKILL.md
-    skills/pr-author/SKILL.md
-    skills/receiving-review/SKILL.md
-    skills/receiving-review/references/triage-guide.md
-    skills/refactoring/SKILL.md
-    skills/refactoring/references/refactoring-patterns.md
-    skills/rust-conventions/references/quality-checklist.md
-    skills/rustqual-workspace/SKILL.md
-    skills/rustqual-workspace/iteration-1/interpret-rustqual-output/with_skill/outputs/response.md
-    skills/rustqual-workspace/references/workspace-toml-examples.md
-    skills/rustqual/SKILL.md
-    skills/rustqual/references/cli-reference.md
-    skills/rustqual/references/workflow.md
-    skills/self-reflect/SKILL.md
+    crates/godmode-core/src/policy_engine.rs
     skills/systematic-debugging/SKILL.md
     skills/systematic-debugging/helpers/repro-template.md
-    skills/systematic-debugging/references/rust-debug-checklist.md
-    skills/tackle-issues/SKILL.md
-    skills/task-driven-development/SKILL.md
-    skills/task-driven-development/helpers/task-runner.rs
-    skills/task-driven-development/helpers/test-stub.rs
-    skills/task-management/SKILL.md
-    skills/task-management/helpers/session-workflow.md
-    skills/task-management/references/godmode-cli.md
-    skills/testing-philosophy/SKILL.md
-    skills/testing-philosophy/helpers/ast-guardrail-template.rs
-    skills/testing-philosophy/references/testing-primitives.md
-    skills/todo-issue-sync/SKILL.md
-    skills/todo-issue-sync/references/issue-template.md
-    skills/using-crux/references/architecture.md
-    skills/using-godmode/SKILL.md
-    skills/using-godmode/references/skill-index.json
-    skills/wave-integration/SKILL.md
-    skills/wave-integration/references/integration-commit-template.md
-    skills/whatidid/SKILL.md
-    skills/whatidid/references/architecture.whatidid.md
-    skills/whatidid/references/effort-estimation.whatidid.md
-    skills/workspace-refactor/SKILL.md
-    skills/writing-plans/SKILL.md
-    skills/writing-plans/helpers/new-plan.nu
-    skills/writing-plans/helpers/plan-template.md
-    skills/writing-plans/references/plan-format.md
-    templates/AICHAT-SYSTEM.template.yaml
-    tests/conformance/src/command_projection_tests.rs
-    tests/conformance/src/crux_tests.rs
-    tests/conformance/src/dispatch_tests.rs
-    tests/conformance/src/fixture_tests.rs
-    tests/conformance/src/graph_tests.rs
-    tests/conformance/src/harness/comparison.rs
-    tests/conformance/src/harness/context.rs
-    tests/conformance/src/harness/fixtures.rs
-    tests/conformance/src/harness/logging.rs
-    tests/conformance/src/harness/runner.rs
-    tests/conformance/src/harness/traits.rs
-    tests/conformance/src/hook_registry_tests.rs
-    tests/conformance/src/plan_tests.rs
-    tests/conformance/src/plugin_structure_tests.rs
-    tests/conformance/src/wave_tests.rs
-    .opencode/commands/gm-ingest.md
-    agents/dialectic-advocate.md
-    agents/dialectic-alternative.md
-    agents/dialectic-orchestrator.md
-    agents/dialectic-skeptic.md
-    agents/dialectic-synthesizer.md
-    commands/gm-ingest.md
-    commands/gm/ingest.yaml
-    crates/godmode-cli/README.md
-    crates/godmode-cli/tests/plan_ingest.rs
-    crates/godmode-core/README.md
-    skills/ingest/
-    skills/writing-solid-rust/references/solid-principles-rust-research_2026-06-07.md
-    tests/conformance/README.md
-    xtask/README.md
+    .taskit/
+    skills/systematic-debugging/references/feedback-loops.md
   files:
   - .ctx/HANDOFF.godmode.godmode.yaml
-  - .opencode/commands/gm-audit.md
-  - .opencode/commands/gm-auth-fail-fast.md
-  - .opencode/commands/gm-brainstorm.md
-  - .opencode/commands/gm-cap.md
   - .opencode/commands/gm-ci-fix.md
-  - .opencode/commands/gm-context.md
   - .opencode/commands/gm-debug-loop.md
   - .opencode/commands/gm-debug.md
-  - .opencode/commands/gm-deps.md
-  - .opencode/commands/gm-dispatch-all.md
-  - .opencode/commands/gm-doc-enrich.md
-  - .opencode/commands/gm-doc-review.md
-  - .opencode/commands/gm-doc-sync.md
-  - .opencode/commands/gm-doc-writer.md
-  - .opencode/commands/gm-feature.md
-  - .opencode/commands/gm-fresh-branch.md
-  - .opencode/commands/gm-handoff.md
-  - .opencode/commands/gm-handon.md
-  - .opencode/commands/gm-ideate.md
-  - .opencode/commands/gm-improve-agent.md
-  - .opencode/commands/gm-introspect.md
-  - .opencode/commands/gm-issues.md
-  - .opencode/commands/gm-moa-review.md
-  - .opencode/commands/gm-observe.md
-  - .opencode/commands/gm-plan.md
-  - .opencode/commands/gm-polish.md
-  - .opencode/commands/gm-pr.md
-  - .opencode/commands/gm-preflight.md
-  - .opencode/commands/gm-refactor.md
-  - .opencode/commands/gm-release.md
-  - .opencode/commands/gm-review-code.md
-  - .opencode/commands/gm-review-incoming.md
-  - .opencode/commands/gm-self-heal.md
-  - .opencode/commands/gm-session-end.md
-  - .opencode/commands/gm-ship.md
-  - .opencode/commands/gm-tackle-issues.md
-  - .opencode/commands/gm-tdd.md
-  - .opencode/commands/gm-test-fix-commit.md
-  - .opencode/commands/gm-trace.md
-  - CLAUDE.md
-  - README.md
-  - agents/agent__dialectic-advocate.md
-  - agents/agent__dialectic-alternative.md
-  - agents/agent__dialectic-orchestrator.md
-  - agents/agent__dialectic-skeptic.md
-  - agents/agent__dialectic-synthesizer.md
-  - agents/agent__moa-agent.md
-  - agents/agent__tdd-crate-agent.md
-  - agents/baml-schema-validator.md
-  - agents/brainstorm-agent.md
-  - agents/cap-agent.md
-  - agents/cfg/code-review-agent.cfg.yaml
-  - agents/cfg/dialectic-advocate.cfg.yaml
-  - agents/cfg/dialectic-alternative.cfg.yaml
-  - agents/cfg/dialectic-orchestrator.cfg.yaml
-  - agents/cfg/dialectic-skeptic.cfg.yaml
-  - agents/cfg/dialectic-synthesizer.cfg.yaml
-  - agents/cfg/introspection-agent.cfg.yaml
-  - agents/cfg/observability-as-infrastructure-agent.cfg.yaml
-  - agents/cfg/task-management-agent.cfg.yaml
-  - agents/cfg/tdd-crate-agent.cfg.yaml
-  - agents/cfg/verification-before-completion-agent.cfg.yaml
-  - agents/changelog-agent.md
-  - agents/ci-failure-responder.md
+  - agents/INDEX.md
+  - agents/cfg/planner-agent.cfg.yaml
   - agents/ci-fix-agent.md
-  - agents/code-review-agent.md
-  - agents/dead-code-agent.md
-  - agents/dep-audit-agent.md
-  - agents/dep-bump-propagator-agent.md
-  - agents/devloop-session-primer.md
-  - agents/doc-maintainer-agent.md
-  - agents/doob-sync-debugger.md
-  - agents/doob-test-gap-finder.md
-  - agents/envoy.md
-  - agents/forge.md
-  - agents/generate.nu
-  - agents/git__cap-agent.md
-  - agents/gm-orchestrator.md
-  - agents/gov__observability-as-infrastructure-agent.md
-  - agents/health-score-agent.md
-  - agents/herald.md
-  - agents/introspection-agent.md
-  - agents/issue-triage-agent.md
-  - agents/issue__issue-triage-agent.md
-  - agents/meta__pattern-learner-agent.md
-  - agents/mistake-tracker-agent.md
-  - agents/moa-agent.md
-  - agents/navigator.md
-  - agents/obfsck-test-harness.md
-  - agents/observability-as-infrastructure-agent.md
-  - agents/ops__changelog-agent.md
-  - agents/ops__dep-audit-agent.md
-  - agents/ops__dep-bump-propagator-agent.md
-  - agents/parallel-agents-agent.md
-  - agents/pattern-learner-agent.md
-  - agents/plan__brainstorm-agent.md
-  - agents/plan__writing-plans-agent.md
+  - agents/dbg__systematic-debugging-agent.md
+  - agents/plan__planner-agent.md
   - agents/planner-agent.md
-  - agents/pr-author-agent.md
-  - agents/prompts/gm-orchestrator.prompt.txt
-  - agents/prompts/health-score-agent.prompt.txt
-  - agents/prompts/introspection-agent.prompt.txt
-  - agents/prompts/mistake-tracker-agent.prompt.txt
-  - agents/prompts/parallel-agents-agent.prompt.txt
-  - agents/prompts/pattern-learner-agent.prompt.txt
-  - agents/prompts/planner-agent.prompt.txt
-  - agents/prompts/pr-author-agent.prompt.txt
-  - agents/prompts/task-management-agent.prompt.txt
-  - agents/prompts/testing-philosophy-agent.prompt.txt
-  - agents/prompts/using-godmode-agent.prompt.txt
-  - agents/prompts/valerie.prompt.txt
-  - agents/prompts/wave-integration-agent.prompt.txt
-  - agents/prompts/workspace-refactor-agent.prompt.txt
-  - agents/prompts/writing-plans-agent.prompt.txt
-  - agents/qual__code-review-agent.md
-  - agents/qual__dead-code-agent.md
-  - agents/qual__health-score-agent.md
-  - agents/qual__receiving-review-agent.md
-  - agents/quartermaster.md
-  - agents/receiving-review-agent.md
-  - agents/refac__doc-maintainer-agent.md
-  - agents/refac__refactoring-agent.md
-  - agents/refactoring-agent.md
-  - agents/release-notes-agent.md
-  - agents/sentinel.md
-  - agents/snapshot-acceptor.md
+  - agents/prompts/systematic-debugging-agent.prompt.txt
   - agents/systematic-debugging-agent.md
-  - agents/tackle-issues-agent.md
-  - agents/task-management-agent.md
-  - agents/tdd-crate-agent.md
-  - agents/test-driven-development-agent.md
-  - agents/testing-philosophy-agent.md
-  - agents/using-godmode-agent.md
-  - agents/valerie.md
-  - agents/verification-before-completion-agent.md
-  - agents/wave-integration-agent.md
-  - agents/workspace-refactor-agent.md
-  - agents/writing-plans-agent.md
-  - commands/gm-audit.md
-  - commands/gm-auth-fail-fast.md
-  - commands/gm-brainstorm.md
-  - commands/gm-cap.md
   - commands/gm-ci-fix.md
-  - commands/gm-context.md
   - commands/gm-debug-loop.md
   - commands/gm-debug.md
-  - commands/gm-deps.md
-  - commands/gm-dispatch-all.md
-  - commands/gm-doc-enrich.md
-  - commands/gm-doc-review.md
-  - commands/gm-doc-sync.md
-  - commands/gm-doc-writer.md
-  - commands/gm-feature.md
-  - commands/gm-fresh-branch.md
-  - commands/gm-handoff.md
-  - commands/gm-handon.md
-  - commands/gm-ideate.md
-  - commands/gm-improve-agent.md
-  - commands/gm-introspect.md
-  - commands/gm-issues.md
-  - commands/gm-moa-review.md
-  - commands/gm-observe.md
-  - commands/gm-plan.md
-  - commands/gm-polish.md
-  - commands/gm-pr.md
-  - commands/gm-preflight.md
-  - commands/gm-refactor.md
-  - commands/gm-release.md
-  - commands/gm-review-code.md
-  - commands/gm-review-incoming.md
-  - commands/gm-self-heal.md
-  - commands/gm-session-end.md
-  - commands/gm-ship.md
-  - commands/gm-tackle-issues.md
-  - commands/gm-tdd.md
-  - commands/gm-test-fix-commit.md
-  - commands/gm-trace.md
-  - commands/gm/README.md
-  - commands/gm/templates/dev.md
-  - commands/gm/templates/dispatch.md
-  - commands/gm/templates/ops.md
-  - commands/gm/templates/plan.md
-  - commands/gm/templates/review.md
-  - commands/gm/templates/rule.md
-  - crates/godmode-cli/src/commands/agent.rs
-  - crates/godmode-cli/src/commands/ci.rs
-  - crates/godmode-cli/src/commands/context.rs
-  - crates/godmode-cli/src/commands/dispatch.rs
-  - crates/godmode-cli/src/commands/doctor.rs
-  - crates/godmode-cli/src/commands/eval.rs
-  - crates/godmode-cli/src/commands/graph.rs
-  - crates/godmode-cli/src/commands/handoff.rs
-  - crates/godmode-cli/src/commands/handon.rs
-  - crates/godmode-cli/src/commands/hook.rs
-  - crates/godmode-cli/src/commands/init.rs
-  - crates/godmode-cli/src/commands/insight.rs
-  - crates/godmode-cli/src/commands/issue.rs
-  - crates/godmode-cli/src/commands/memory_banking.rs
-  - crates/godmode-cli/src/commands/mod.rs
-  - crates/godmode-cli/src/commands/pin.rs
-  - crates/godmode-cli/src/commands/pipeline.rs
-  - crates/godmode-cli/src/commands/plan.rs
-  - crates/godmode-cli/src/commands/policy.rs
-  - crates/godmode-cli/src/commands/release.rs
-  - crates/godmode-cli/src/commands/review.rs
-  - crates/godmode-cli/src/commands/scaffold.rs
-  - crates/godmode-cli/src/commands/session.rs
-  - crates/godmode-cli/src/commands/skill.rs
-  - crates/godmode-cli/src/commands/status.rs
-  - crates/godmode-cli/src/commands/task.rs
-  - crates/godmode-cli/src/commands/test_check.rs
-  - crates/godmode-cli/src/commands/unpin.rs
-  - crates/godmode-cli/src/commands/verify.rs
-  - crates/godmode-cli/src/commands/visualize_graph.rs
-  - crates/godmode-cli/src/commands/wave.rs
-  - crates/godmode-cli/src/commands/workflow.rs
-  - crates/godmode-cli/src/commands/worktree.rs
-  - crates/godmode-cli/src/main.rs
-  - crates/godmode-cli/tests/doob_publish.rs
-  - crates/godmode-cli/tests/pipeline_run_from.rs
-  - crates/godmode-cli/tests/priority_filter.rs
-  - crates/godmode-cli/tests/task_add_metadata.rs
-  - crates/godmode-cli/tests/visualize_graph.rs
-  - crates/godmode-core/src/agent.rs
-  - crates/godmode-core/src/agent_index.rs
-  - crates/godmode-core/src/cache.rs
-  - crates/godmode-core/src/context.rs
-  - crates/godmode-core/src/dispatch.rs
-  - crates/godmode-core/src/eval.rs
-  - crates/godmode-core/src/graph.rs
-  - crates/godmode-core/src/hooks/registry.rs
-  - crates/godmode-core/src/init.rs
-  - crates/godmode-core/src/insights.rs
-  - crates/godmode-core/src/integrations/doob.rs
-  - crates/godmode-core/src/integrations/gh/ci.rs
-  - crates/godmode-core/src/integrations/gh/issues.rs
-  - crates/godmode-core/src/integrations/hj.rs
-  - crates/godmode-core/src/integrations/hook_migrate.rs
-  - crates/godmode-core/src/integrations/mod.rs
-  - crates/godmode-core/src/integrations/rx.rs
-  - crates/godmode-core/src/model.rs
-  - crates/godmode-core/src/pipeline.rs
-  - crates/godmode-core/src/plan.rs
+  - commands/gm/debug-loop.yaml
+  - commands/gm/debug.yaml
+  - commands/gm/templates/debug.md
+  - crates/godmode-core/src/hooks/memory_banking.rs
+  - crates/godmode-core/src/memory_banking.rs
   - crates/godmode-core/src/policy.rs
-  - crates/godmode-core/src/registry.rs
-  - crates/godmode-core/src/release_version.rs
-  - crates/godmode-core/src/report_index.rs
-  - crates/godmode-core/src/review.rs
-  - crates/godmode-core/src/sarif.rs
-  - crates/godmode-core/src/session.rs
-  - crates/godmode-core/src/session_trace.rs
-  - crates/godmode-core/src/skill.rs
-  - crates/godmode-core/src/testing/audit.rs
-  - crates/godmode-core/src/todo_issue_sync.rs
-  - crates/godmode-core/src/verify.rs
-  - crates/godmode-core/src/wave.rs
-  - crates/godmode-core/src/workflow.rs
-  - crates/godmode-core/src/worktree.rs
-  - crates/godmode-core/src/write_mode.rs
-  - crates/godmode-core/tests/crux_integration.rs
-  - crates/godmode-core/tests/doob_integration.rs
-  - crates/godmode-core/tests/fake_bin.rs
-  - crates/godmode-core/tests/fixtures/simple-plan.md
-  - crates/godmode-core/tests/gh_integration.rs
-  - crates/godmode-core/tests/hj_integration.rs
-  - crates/godmode-core/tests/hooks_integration.rs
-  - crates/godmode-core/tests/rx_integration.rs
-  - crates/godmode-core/tests/todo_issue_sync.rs
-  - docs/plan-review-release.md
-  - docs/plans/2026-05-01-plugin-tests-agent.md
-  - docs/plans/2026-05-02-critical-path.md
-  - docs/plans/2026-05-02-cycle-detection.md
-  - docs/plans/2026-05-02-graph-build-command.md
-  - docs/plans/2026-05-02-session-struct-impl.md
-  - docs/plans/2026-05-02-skill-registry.md
-  - docs/plans/2026-05-02-skills-lib-refactor.md
-  - docs/plans/2026-05-02-task-templates.md
-  - docs/plans/2026-05-02-unblock-all.md
-  - docs/plans/2026-05-11-agent-ux-improvements.plan.md
-  - docs/plans/2026-06-02-skill-pipelines.md
-  - docs/plans/2026-06-04-ctx-godmode-consolidation.md
-  - docs/plans/2026-06-04-deterministic-pipelines.md
-  - hooks/README.md
-  - skills/agent-governance/SKILL.md
-  - skills/agent-improvement-loop/SKILL.md
-  - skills/baml-add-types/SKILL.md
-  - skills/brainstorm/references/design-principles.md
-  - skills/cap/SKILL.md
-  - skills/changelog/SKILL.md
-  - skills/code-review/SKILL.md
-  - skills/crs-discover/SKILL.md
-  - skills/crs-hook-testing/SKILL.md
-  - skills/crs-install/SKILL.md
-  - skills/crs-validate/SKILL.md
-  - skills/dead-code/SKILL.md
-  - skills/decompose/SKILL.md
-  - skills/decompose/helpers/fuzz/fuzz_targets/fuzz_classify_concern.rs
-  - skills/decompose/helpers/fuzz/fuzz_targets/fuzz_verify_coverage.rs
-  - skills/decompose/references/split-strategies.md
-  - skills/dep-audit/SKILL.md
-  - skills/dep-bump/SKILL.md
-  - skills/design/SKILL.md
-  - skills/design/references/design-principles.md
-  - skills/doc-review/SKILL.md
-  - skills/doc-sync/SKILL.md
-  - skills/doc-writer/references/doc-types.md
-  - skills/gh-bulk-issues/SKILL.md
-  - skills/health-score/SKILL.md
-  - skills/introspection/helpers/audit.nu
-  - skills/issue-triage/SKILL.md
-  - skills/memory-banking/SKILL.md
-  - skills/memory-banking/references/system-patterns.md
-  - skills/merge/SKILL.md
-  - skills/mini-context-graph/SKILL.md
-  - skills/mistake-tracker/SKILL.md
-  - skills/parallel-agents/SKILL.md
-  - skills/parallel-agents/helpers/agent-prompt-template.md
-  - skills/pattern-learner/SKILL.md
-  - skills/pr-author/SKILL.md
-  - skills/receiving-review/SKILL.md
-  - skills/receiving-review/references/triage-guide.md
-  - skills/refactoring/SKILL.md
-  - skills/refactoring/references/refactoring-patterns.md
-  - skills/rust-conventions/references/quality-checklist.md
-  - skills/rustqual-workspace/SKILL.md
-  - skills/rustqual-workspace/iteration-1/interpret-rustqual-output/with_skill/outputs/response.md
-  - skills/rustqual-workspace/references/workspace-toml-examples.md
-  - skills/rustqual/SKILL.md
-  - skills/rustqual/references/cli-reference.md
-  - skills/rustqual/references/workflow.md
-  - skills/self-reflect/SKILL.md
+  - crates/godmode-core/src/policy_engine.rs
   - skills/systematic-debugging/SKILL.md
   - skills/systematic-debugging/helpers/repro-template.md
-  - skills/systematic-debugging/references/rust-debug-checklist.md
-  - skills/tackle-issues/SKILL.md
-  - skills/task-driven-development/SKILL.md
-  - skills/task-driven-development/helpers/task-runner.rs
-  - skills/task-driven-development/helpers/test-stub.rs
-  - skills/task-management/SKILL.md
-  - skills/task-management/helpers/session-workflow.md
-  - skills/task-management/references/godmode-cli.md
-  - skills/testing-philosophy/SKILL.md
-  - skills/testing-philosophy/helpers/ast-guardrail-template.rs
-  - skills/testing-philosophy/references/testing-primitives.md
-  - skills/todo-issue-sync/SKILL.md
-  - skills/todo-issue-sync/references/issue-template.md
-  - skills/using-crux/references/architecture.md
-  - skills/using-godmode/SKILL.md
-  - skills/using-godmode/references/skill-index.json
-  - skills/wave-integration/SKILL.md
-  - skills/wave-integration/references/integration-commit-template.md
-  - skills/whatidid/SKILL.md
-  - skills/whatidid/references/architecture.whatidid.md
-  - skills/whatidid/references/effort-estimation.whatidid.md
-  - skills/workspace-refactor/SKILL.md
-  - skills/writing-plans/SKILL.md
-  - skills/writing-plans/helpers/new-plan.nu
-  - skills/writing-plans/helpers/plan-template.md
-  - skills/writing-plans/references/plan-format.md
-  - templates/AICHAT-SYSTEM.template.yaml
-  - tests/conformance/src/command_projection_tests.rs
-  - tests/conformance/src/crux_tests.rs
-  - tests/conformance/src/dispatch_tests.rs
-  - tests/conformance/src/fixture_tests.rs
-  - tests/conformance/src/graph_tests.rs
-  - tests/conformance/src/harness/comparison.rs
-  - tests/conformance/src/harness/context.rs
-  - tests/conformance/src/harness/fixtures.rs
-  - tests/conformance/src/harness/logging.rs
-  - tests/conformance/src/harness/runner.rs
-  - tests/conformance/src/harness/traits.rs
-  - tests/conformance/src/hook_registry_tests.rs
-  - tests/conformance/src/plan_tests.rs
-  - tests/conformance/src/plugin_structure_tests.rs
-  - tests/conformance/src/wave_tests.rs
-  - .opencode/commands/gm-ingest.md
-  - agents/dialectic-advocate.md
-  - agents/dialectic-alternative.md
-  - agents/dialectic-orchestrator.md
-  - agents/dialectic-skeptic.md
-  - agents/dialectic-synthesizer.md
-  - commands/gm-ingest.md
-  - commands/gm/ingest.yaml
-  - crates/godmode-cli/README.md
-  - crates/godmode-cli/tests/plan_ingest.rs
-  - crates/godmode-core/README.md
-  - skills/ingest/
-  - skills/writing-solid-rust/references/solid-principles-rust-research_2026-06-07.md
-  - tests/conformance/README.md
-  - xtask/README.md
+  - .taskit/
+  - skills/systematic-debugging/references/feedback-loops.md
 log:
+- date: '20261001.013053'
+  summary: done=127 running=0 pending=0 blocked=0
+  commits:
+  - 62152f90d74945e430c79d5744aaf2c866d0dc9b
+  - 191bb9f57fd531b174784d5ca7415a17bb5b5e64
+  - 94696cf53dd5dc0f1c2603140b254ce8ad28bf26
+  - 80f3907f216d89d5fd55171bfb5027bbea6c47fc
+  - c9cfbefdc406a7c084bceb776f5fbce8bb695c76
+  - 2f7cffd9f40f67de132e52c36f3ed33d2afe9f87
+  - 63f92cd5dae2e673b802c2217af5d300b734ee45
+  - 1065bf689a74e5593cb8505786e7eb952882c024
+  - 64762d73d0d66d55b9873dc1a34c4c1eee858775
+  - 73ca7595bee0f78cd4b5afa50e2378bc4484fe04
+- date: '20260930.100318'
+  summary: done=127 running=0 pending=0 blocked=0
+  commits:
+  - 63f92cd5dae2e673b802c2217af5d300b734ee45
+  - 1065bf689a74e5593cb8505786e7eb952882c024
+  - 64762d73d0d66d55b9873dc1a34c4c1eee858775
+  - 73ca7595bee0f78cd4b5afa50e2378bc4484fe04
+  - ce701c3ee9a121197734cfa8e1c5a4fca566151d
+  - 29f3871d07b2b5d1c3291545abf410c82d5f892b
+  - 171681a6915db7c3f10b476dd6f6d4d1b7b86d8d
+  - e353d6dbea0820c2c532c058c1a6f54de4099333
+  - 59d84e0454ba52d66e45d91ec02e4a651e89fb71
+  - c7f001f8685c12937865271278353565664cfeb1
+- date: '20260928.090804'
+  summary: done=127 running=0 pending=0 blocked=0
+  commits:
+  - 1065bf689a74e5593cb8505786e7eb952882c024
+  - 64762d73d0d66d55b9873dc1a34c4c1eee858775
+  - 73ca7595bee0f78cd4b5afa50e2378bc4484fe04
+  - ce701c3ee9a121197734cfa8e1c5a4fca566151d
+  - 29f3871d07b2b5d1c3291545abf410c82d5f892b
+  - 171681a6915db7c3f10b476dd6f6d4d1b7b86d8d
+  - e353d6dbea0820c2c532c058c1a6f54de4099333
+  - 59d84e0454ba52d66e45d91ec02e4a651e89fb71
+  - c7f001f8685c12937865271278353565664cfeb1
+  - 443df1384ff2f2aaf51cbc9bdbf15ab629447e54
+- date: '20260928.074716'
+  summary: done=126 running=1 pending=0 blocked=0
+  commits:
+  - 1065bf689a74e5593cb8505786e7eb952882c024
+  - 64762d73d0d66d55b9873dc1a34c4c1eee858775
+  - 73ca7595bee0f78cd4b5afa50e2378bc4484fe04
+  - ce701c3ee9a121197734cfa8e1c5a4fca566151d
+  - 29f3871d07b2b5d1c3291545abf410c82d5f892b
+  - 171681a6915db7c3f10b476dd6f6d4d1b7b86d8d
+  - e353d6dbea0820c2c532c058c1a6f54de4099333
+  - 59d84e0454ba52d66e45d91ec02e4a651e89fb71
+  - c7f001f8685c12937865271278353565664cfeb1
+  - 443df1384ff2f2aaf51cbc9bdbf15ab629447e54
 - date: '20260921.195855'
   summary: done=99 running=0 pending=0 blocked=0
   commits:
