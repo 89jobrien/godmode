@@ -52,6 +52,10 @@ fn read_session_id(root: &Path) -> String {
 ///
 /// `pinned_root` is owned by `godmode pin` and is preserved across rotation.
 /// This must agree with `skills/_lib/trace.nu`, which writes the same file.
+///
+/// Rotating also mints the `session.start`/`session.end` markers for the ids on
+/// either side of the boundary, so every session that writes any event ends up
+/// visible to the query helpers even if no `handon`/`handoff` ever runs.
 fn session_id(root: &Path) -> Option<String> {
     let session_file = root.join(".ctx/godmode/session.json");
     let existing: Value = std::fs::read_to_string(&session_file)
@@ -59,7 +63,12 @@ fn session_id(root: &Path) -> Option<String> {
         .and_then(|raw| serde_json::from_str(&raw).ok())
         .unwrap_or(Value::Null);
 
-    let stored_id = existing.get("session_id").and_then(Value::as_str);
+    // Owned so the value outlives `existing`, which is consumed below when the
+    // rotated map is rebuilt.
+    let stored_id: Option<String> = existing
+        .get("session_id")
+        .and_then(Value::as_str)
+        .map(str::to_string);
     let stored_day = existing
         .get("started_at")
         .and_then(Value::as_str)
@@ -73,10 +82,11 @@ fn session_id(root: &Path) -> Option<String> {
     let today = Utc::now().format("%Y-%m-%d").to_string();
     let claude_id = std::env::var("CLAUDE_SESSION_ID").unwrap_or_default();
 
-    if let Some(id) =
-        stored_id.filter(|id| !id.is_empty() && stored_day == today && stored_claude == claude_id)
+    if let Some(id) = stored_id
+        .as_ref()
+        .filter(|id| !id.is_empty() && stored_day == today && stored_claude == claude_id)
     {
-        return Some(id.to_string());
+        return Some(id.clone());
     }
 
     // Rotate. Minting needs a git sha, which is best-effort: a repo with no HEAD
@@ -108,7 +118,37 @@ fn session_id(root: &Path) -> Option<String> {
         let _ = std::fs::write(&session_file, body);
     }
 
+    // Rotation is the session boundary, so it is also where the lifecycle
+    // markers are minted. Without this only `godmode handon`/`handoff` wrote
+    // them, and a session that merely ran helpers had no `session.start` at all
+    // — `trace.rs summary` grouped sessions by those markers and so reported
+    // `errors=0` for exactly the sessions that had a `skill.error` to report.
+    //
+    // Written straight to the log with an explicit id rather than via
+    // [`append`], which would re-enter `session_id` and recurse.
+    if let Some(prev) = stored_id.as_deref().filter(|id| !id.is_empty()) {
+        append_lifecycle(root, "session.end", prev);
+    }
+    append_lifecycle(root, "session.start", &fresh);
+
     Some(fresh)
+}
+
+/// Append one bare `session.*` marker carrying only its own id.
+///
+/// Bare because rotation cannot know the graph counts or dirty-file tally that
+/// `handon`/`handoff` attach. A session may therefore have more than one
+/// `session.start` and both a bare and a rich `session.end`; readers treat
+/// these markers as hints about which sessions exist, not as exactly-once facts.
+fn append_lifecycle(root: &Path, event_name: &str, id: &str) {
+    let line = json!({
+        "event": event_name,
+        "session_id": id,
+        "ts": Utc::now().to_rfc3339(),
+    });
+    if let Ok(body) = serde_json::to_string(&line) {
+        trace_store::append_line(root, &body);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -408,6 +448,109 @@ mod tests {
     /// flipping it would make this flaky.
     static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
+    /// Every `(event, session_id)` pair in the trace, in log order.
+    fn logged(dir: &TempDir) -> Vec<(String, String)> {
+        let body = crate::trace_store::read_body(dir.path()).unwrap_or_default();
+        body.lines()
+            .filter_map(|line| serde_json::from_str::<Value>(line).ok())
+            .filter_map(|ev| {
+                let name = ev.get("event")?.as_str()?.to_string();
+                let sid = ev.get("session_id")?.as_str()?.to_string();
+                Some((name, sid))
+            })
+            .collect()
+    }
+
+    #[test]
+    fn rotation_closes_the_previous_session_and_opens_the_next() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
+
+        let dir = TempDir::new().unwrap();
+        seed(
+            &dir,
+            json!({
+                "session_id": "stale",
+                "started_at": "2020-01-01T00:00:00Z",
+                "claude_session_id": "claude-A",
+            }),
+        );
+
+        let id = session_id(dir.path()).expect("an id must be minted");
+
+        let pairs = logged(&dir);
+        assert_eq!(
+            pairs,
+            vec![
+                ("session.end".to_string(), "stale".to_string()),
+                ("session.start".to_string(), id.clone()),
+            ],
+            "the boundary must close the old id before opening the new one"
+        );
+    }
+
+    #[test]
+    fn first_ever_session_opens_without_closing_a_predecessor() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
+
+        let dir = TempDir::new().unwrap();
+
+        let id = session_id(dir.path()).expect("an id must be minted");
+
+        // Nothing was stored, so there is no prior session to close.
+        assert_eq!(
+            logged(&dir),
+            vec![("session.start".to_string(), id.clone())],
+            "minting the first id must not invent a session.end"
+        );
+    }
+
+    #[test]
+    fn an_unchanged_session_emits_no_further_lifecycle_markers() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
+
+        let dir = TempDir::new().unwrap();
+        let first = session_id(dir.path()).expect("an id must be minted");
+        let after_first = logged(&dir).len();
+
+        let second = session_id(dir.path()).expect("the id must be reused");
+        assert_eq!(first, second, "same day and same claude id must not rotate");
+        assert_eq!(
+            logged(&dir).len(),
+            after_first,
+            "the steady-state path must stay silent"
+        );
+    }
+
+    #[test]
+    fn a_helper_that_never_runs_handon_is_still_visible_in_the_log() {
+        // The regression this guards: `trace.rs summary` grouped sessions by
+        // lifecycle markers, and only handon/handoff emitted them, so a session
+        // that just ran a helper had its skill.error invisible.
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
+
+        let dir = TempDir::new().unwrap();
+        let tid = skill_start(dir.path(), "ci-fix", "fetch-failure.nu", &[]);
+        assert_ne!(tid, "untraced", "the helper must have traced");
+        skill_error(dir.path(), "ci-fix", &tid, 1, "log not found", 120);
+
+        let id = read_session_id(dir.path());
+        assert!(
+            logged(&dir)
+                .iter()
+                .any(|(e, s)| e == "session.start" && *s == id),
+            "rotation must open the session, so it is discoverable without handon"
+        );
+        let records = read_back(&dir);
+        assert!(
+            records.iter().any(|r| r.is_failure()),
+            "the failure must survive the round-trip"
+        );
+    }
+
     #[test]
     fn reuses_id_within_same_session() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
@@ -542,7 +685,13 @@ mod tests {
 
         let raw =
             std::fs::read_to_string(dir.path().join(".ctx/godmode/traces/trace.jsonl")).unwrap();
-        let event: Value = serde_json::from_str(raw.lines().next().unwrap()).unwrap();
+        // Rotation writes the session.start ahead of this event, so select by
+        // name rather than taking the first line.
+        let event: Value = raw
+            .lines()
+            .filter_map(|line| serde_json::from_str::<Value>(line).ok())
+            .find(|ev| ev.get("event").and_then(Value::as_str) == Some("tool.use"))
+            .expect("the tool.use event must be in the log");
 
         let id = event.get("session_id").and_then(Value::as_str).unwrap();
         assert!(
@@ -560,11 +709,36 @@ mod tests {
     // helper script three repos away.
 
     /// Read the log back the way `godmode trace` does.
+    ///
+    /// Session lifecycle markers are filtered out. Rotation emits them ahead of
+    /// whatever event triggered the write, so they sit at the head of the log
+    /// and would otherwise shift every positional index below. They are covered
+    /// by their own tests above.
     fn read_back(dir: &TempDir) -> Vec<crate::trace_query::Record> {
         {
             let body = crate::trace_store::read_body(dir.path()).unwrap_or_default();
+            // Dropped before parsing, not after: a bare `session.*` line has no
+            // `skill`/`agent_id`/`tool` field, so `from_legacy` would name it
+            // after its own session_id and there would be nothing left to
+            // recognise it by.
+            let body: String = body
+                .lines()
+                .filter(|line| {
+                    serde_json::from_str::<Value>(line)
+                        .ok()
+                        .and_then(|ev| string_at_event(&ev))
+                        .is_none_or(|event| {
+                            !matches!(event.as_str(), "session.start" | "session.end")
+                        })
+                })
+                .collect::<Vec<_>>()
+                .join("\n");
             crate::trace_query::parse(&body)
         }
+    }
+
+    fn string_at_event(ev: &Value) -> Option<String> {
+        ev.get("event").and_then(Value::as_str).map(str::to_string)
     }
 
     /// Metadata holds arbitrary JSON, so numeric and array values are compared
@@ -718,7 +892,15 @@ mod tests {
         agent_start(dir.path(), "a", "1", "c");
         let raw =
             std::fs::read_to_string(dir.path().join(".ctx/godmode/traces/trace.jsonl")).unwrap();
-        let line: Value = serde_json::from_str(raw.lines().next().unwrap()).unwrap();
+        // Selected by schema, not position: rotation may have prepended the bare
+        // session.start, which is deliberately in the pre-0.7 `{event, ...}`
+        // vocabulary that handon/handoff still use. What is under test is that
+        // the crux event itself lands as a crux Step.
+        let line: Value = raw
+            .lines()
+            .filter_map(|l| serde_json::from_str::<Value>(l).ok())
+            .find(|v| v.get("kind").is_some())
+            .expect("the agent step must be on disk");
 
         assert!(line.get("name").is_some());
         assert_eq!(line.get("kind").and_then(Value::as_str), Some("delegation"));
