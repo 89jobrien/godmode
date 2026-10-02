@@ -1,10 +1,17 @@
 #!/usr/bin/env nu
-# post-commit.nu — restore .ctx/ after commit and emit trace
+# post-commit.nu — restore hook-written files after commit and emit trace
 #
-# Tools like godmode handoff, doob sync, and session traces update files in
-# .ctx/ during the pre-commit phase. These mutations show up as unstaged
-# changes and block `git push`. This hook discards those changes so the
-# working tree stays clean after a commit.
+# Tools like godmode handoff, doob sync, and session traces update files
+# during the pre-commit phase. These mutations show up as unstaged changes
+# and block `git push`. This hook discards those changes so the working tree
+# stays clean after a commit.
+#
+# Two locations need restoring:
+#   - .ctx/       session state, writes the traces and the handoff YAML record
+#   - HANDOFF.md  repo root, written by `godmode handoff` so it is tracked
+#
+# HANDOFF.md is restored only when tracked. In a repo where it is untracked or
+# ignored, `git checkout` has nothing to restore and the call is skipped.
 
 use lib/godmode-hook-lib.nu [emit-trace]
 
@@ -24,6 +31,18 @@ if ($ctx_dir | path exists) {
     }
 } else {
     $output = "no .ctx/ directory present"
+}
+
+# Restore the tracked root snapshot the pre-commit handoff check rewrote.
+let handoff_md = $"($git_root)/HANDOFF.md"
+let tracked = (run-external "git" "ls-files" "--error-unmatch" "--" "HANDOFF.md" | complete)
+if $tracked.exit_code == 0 {
+    let restore_md = (run-external "git" "checkout" "--" $handoff_md | complete)
+    if $restore_md.exit_code == 0 {
+        $output = $"($output); restored HANDOFF.md to committed state"
+    } else {
+        $output = $"($output); HANDOFF.md restore failed"
+    }
 }
 
 emit-trace --name "post-commit" --kind "hook" --status "ok" --output $output --hooks ["post-commit"]

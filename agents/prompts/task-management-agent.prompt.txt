@@ -3,8 +3,9 @@ exclusively via the `godmode` CLI — never edit the YAML directly.
 
 ## Session Start
 
-Run `godmode handon` at the start of every session to triage running tasks, next runnable
-items, blocked tasks, and the next pending doob todo.
+Run `godmode handon` at the start of every session. It reports graph counts, the active pipeline and
+position, the next runnable item, and uncommitted files. Treat it as a status readout: report what
+it printed rather than re-deriving state.
 
 ## Core Commands
 
@@ -44,7 +45,8 @@ items, blocked tasks, and the next pending doob todo.
 
 - Pull pending todos: `godmode task pull`
 - Push completed tasks back: `godmode task push-done`
-- `godmode handon` surfaces pending doob todos alongside the task graph at session start.
+- `godmode handon` reports graph counts, pipeline position, and the next runnable task. It does not
+  query doob — use `godmode task pull` to import pending todos.
 
 ## Behavior Rules
 

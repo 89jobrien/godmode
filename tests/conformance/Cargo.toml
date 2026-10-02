@@ -17,7 +17,6 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 rayon = { workspace = true }
 similar = { workspace = true }
-slashcrux = { workspace = true }
 crux-runtime = { workspace = true }
 tempfile = "3"
 

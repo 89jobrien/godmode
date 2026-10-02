@@ -222,6 +222,12 @@ enum Cmd {
         /// Path to the .rs file to check.
         path: String,
     },
+
+    /// Query the observability trace at .ctx/godmode/traces/trace.jsonl.
+    Trace {
+        #[command(subcommand)]
+        action: TraceAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -367,6 +373,124 @@ enum HookAction {
     Run {
         /// Hook name: stop-guard, auto-block, pre-commit, quality-gate.
         name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum TraceAction {
+    /// Print the most recent trace records.
+    Tail {
+        /// How many records to show.
+        #[arg(long, default_value = "20")]
+        n: usize,
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Print every failure: errored steps and blocked agents.
+    Failures {
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Freshness, durations, agent convergence, and decision counts.
+    Stats {
+        /// Restrict to one session id.
+        #[arg(long)]
+        session: Option<String>,
+    },
+    /// Cross-session triage: what the last N sessions left behind.
+    Summary {
+        /// How many recent sessions to report.
+        #[arg(long, default_value = "3")]
+        sessions: usize,
+    },
+    /// Append one lifecycle event. Used by the Nushell shim in _lib/trace.nu.
+    Emit {
+        #[command(subcommand)]
+        action: EmitAction,
+    },
+}
+
+#[derive(Subcommand)]
+enum EmitAction {
+    /// Open a skill lifecycle. Prints the trace id for the closing call.
+    SkillStart {
+        /// Skill name, e.g. cron-refresh.
+        #[arg(long)]
+        skill: String,
+        /// Helper that opened it, e.g. refresh-lib.nu.
+        #[arg(long)]
+        helper: String,
+        /// Arguments the helper was invoked with. Values may begin with `-`,
+        /// so hyphen values are allowed: a helper is routinely invoked as
+        /// `--json` or `--dry-run`.
+        #[arg(long, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+    /// Close a skill lifecycle successfully.
+    SkillComplete {
+        #[arg(long)]
+        trace_id: String,
+    },
+    /// Close a skill lifecycle with a failure.
+    SkillError {
+        #[arg(long)]
+        trace_id: String,
+        #[arg(long)]
+        exit_code: i64,
+        /// Tail of the helper's stderr, already truncated by the caller.
+        #[arg(long, default_value = "")]
+        stderr_tail: String,
+    },
+    /// Record a branching decision.
+    Decision {
+        #[arg(long)]
+        skill: String,
+        #[arg(long)]
+        helper: String,
+        /// What kind of decision, e.g. ci_class.
+        #[arg(long)]
+        kind: String,
+        /// The decision's value.
+        #[arg(long)]
+        value: String,
+    },
+    /// Record a tool invocation.
+    ToolUse {
+        #[arg(long)]
+        tool: String,
+        /// Whether the call failed.
+        #[arg(long, default_value_t = false)]
+        failed: bool,
+    },
+    /// Open an agent lifecycle.
+    AgentStart {
+        #[arg(long)]
+        agent_id: String,
+        #[arg(long, default_value = "")]
+        slot: String,
+        #[arg(long = "crate", default_value = "")]
+        crate_name: String,
+    },
+    /// Close an agent lifecycle successfully.
+    AgentComplete {
+        #[arg(long)]
+        agent_id: String,
+        #[arg(long, default_value = "")]
+        slot: String,
+        /// Commits the agent produced.
+        #[arg(long, allow_hyphen_values = true)]
+        commits: Vec<String>,
+    },
+    /// Close an agent lifecycle as blocked.
+    AgentBlocked {
+        #[arg(long)]
+        agent_id: String,
+        #[arg(long, default_value = "")]
+        slot: String,
+        #[arg(long, default_value = "")]
+        reason: String,
     },
 }
 

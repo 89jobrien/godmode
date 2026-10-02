@@ -179,7 +179,7 @@ fn build_handoff(root: &Path) -> Result<HandoffOutput> {
             summary.done, summary.running, summary.pending, summary.blocked
         );
         if let Ok((handoff_path, item_ids)) =
-            handoff_yaml::write_handoff(root, &g.tasks, &dirty_files, &session_summary, &cfg)
+            handoff_yaml::write_handoff(root, &g.tasks, &session_summary, &cfg)
             && cfg.handoff.doob_sync
             && cfg.integrations.doob
         {
