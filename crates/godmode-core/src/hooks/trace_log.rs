@@ -27,7 +27,7 @@ pub use crate::trace_store::discover_root;
 pub fn append(root: &Path, event_name: &str, fields: Value) {
     let mut event = json!({
         "event": event_name,
-        "session_id": read_session_id(root),
+        "session_id": read_session_id(root, &GitHeadSha),
         "ts": Utc::now().to_rfc3339(),
     });
     if let (Value::Object(base), Value::Object(extra)) = (&mut event, fields) {
@@ -38,8 +38,36 @@ pub fn append(root: &Path, event_name: &str, fields: Value) {
     }
 }
 
-fn read_session_id(root: &Path) -> String {
-    session_id(root).unwrap_or_else(|| "no-session".to_string())
+/// The one infrastructure fact session minting cannot compute itself.
+///
+/// Defined beside the domain logic that consumes it; `GitHeadSha` is the adapter.
+/// Single-method by intent: the trace writer needs a short HEAD sha from VCS and
+/// nothing else, so there is no second capability to split out.
+pub trait HeadSha {
+    /// Short HEAD sha for the repository at `root`, or `"unknown"` when there is
+    /// none. Never fails: a repo with no HEAD still gets a usable session id.
+    fn head_sha(&self, root: &Path) -> String;
+}
+
+/// Adapter: reads the short HEAD sha from git.
+pub struct GitHeadSha;
+
+impl HeadSha for GitHeadSha {
+    fn head_sha(&self, root: &Path) -> String {
+        std::process::Command::new("git")
+            .args(["rev-parse", "--short", "HEAD"])
+            .current_dir(root)
+            .output()
+            .ok()
+            .filter(|out| out.status.success())
+            .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
+            .filter(|sha| !sha.is_empty())
+            .unwrap_or_else(|| "unknown".to_string())
+    }
+}
+
+fn read_session_id<G: HeadSha>(root: &Path, git: &G) -> String {
+    session_id(root, git).unwrap_or_else(|| "no-session".to_string())
 }
 
 /// Resolve the current session id, rotating it when the session is stale.
@@ -56,7 +84,7 @@ fn read_session_id(root: &Path) -> String {
 /// Rotating also mints the `session.start`/`session.end` markers for the ids on
 /// either side of the boundary, so every session that writes any event ends up
 /// visible to the query helpers even if no `handon`/`handoff` ever runs.
-fn session_id(root: &Path) -> Option<String> {
+fn session_id<G: HeadSha>(root: &Path, git: &G) -> Option<String> {
     let session_file = root.join(".ctx/godmode/session.json");
     let existing: Value = std::fs::read_to_string(&session_file)
         .ok()
@@ -89,17 +117,9 @@ fn session_id(root: &Path) -> Option<String> {
         return Some(id.clone());
     }
 
-    // Rotate. Minting needs a git sha, which is best-effort: a repo with no HEAD
-    // still gets a usable id rather than an empty string.
-    let head = std::process::Command::new("git")
-        .args(["rev-parse", "--short", "HEAD"])
-        .current_dir(root)
-        .output()
-        .ok()
-        .filter(|out| out.status.success())
-        .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_string())
-        .filter(|sha| !sha.is_empty())
-        .unwrap_or_else(|| "unknown".to_string());
+    // Rotate. The sha comes from the port so the id format is testable; minting
+    // itself stays best-effort, since a repo with no HEAD still gets a usable id.
+    let head = git.head_sha(root);
 
     let fresh = format!("{head}-{}", Utc::now().timestamp_millis());
 
@@ -270,7 +290,7 @@ pub fn to_step(ev: NewEvent, session_id: &str) -> Step {
 
 /// Append one event to the log. Best-effort: never fails the caller.
 pub fn emit(root: &Path, ev: NewEvent) {
-    let step = to_step(ev, &read_session_id(root));
+    let step = to_step(ev, &read_session_id(root, &GitHeadSha));
     let _ = serde_json::to_string(&step).map(|line| trace_store::append_line(root, &line));
 }
 
@@ -481,6 +501,38 @@ mod tests {
             .collect()
     }
 
+    /// A `HeadSha` double, so a test can pin the sha half of a minted id.
+    struct FixedSha(&'static str);
+
+    impl super::HeadSha for FixedSha {
+        fn head_sha(&self, _root: &Path) -> String {
+            self.0.to_string()
+        }
+    }
+
+    #[test]
+    fn a_fixed_sha_produces_an_id_prefixed_with_it() {
+        let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
+
+        let dir = TempDir::new().unwrap();
+        let id = super::session_id(dir.path(), &FixedSha("deadbee")).expect("an id must be minted");
+        assert!(
+            id.starts_with("deadbee-"),
+            "the port supplies the sha half of the id, got {id}"
+        );
+    }
+
+    #[test]
+    fn git_head_sha_degrades_to_unknown_outside_a_repository() {
+        let dir = TempDir::new().unwrap();
+        assert_eq!(
+            super::GitHeadSha.head_sha(dir.path()),
+            "unknown",
+            "the trait promises a usable answer, never a failure"
+        );
+    }
+
     #[test]
     fn rotation_closes_the_previous_session_and_opens_the_next() {
         let _guard = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
@@ -496,7 +548,7 @@ mod tests {
             }),
         );
 
-        let id = session_id(dir.path()).expect("an id must be minted");
+        let id = session_id(dir.path(), &GitHeadSha).expect("an id must be minted");
 
         let pairs = logged(&dir);
         assert_eq!(
@@ -516,7 +568,7 @@ mod tests {
 
         let dir = TempDir::new().unwrap();
 
-        let id = session_id(dir.path()).expect("an id must be minted");
+        let id = session_id(dir.path(), &GitHeadSha).expect("an id must be minted");
 
         // Nothing was stored, so there is no prior session to close.
         assert_eq!(
@@ -532,10 +584,10 @@ mod tests {
         unsafe { std::env::set_var("CLAUDE_SESSION_ID", "claude-A") };
 
         let dir = TempDir::new().unwrap();
-        let first = session_id(dir.path()).expect("an id must be minted");
+        let first = session_id(dir.path(), &GitHeadSha).expect("an id must be minted");
         let after_first = logged(&dir).len();
 
-        let second = session_id(dir.path()).expect("the id must be reused");
+        let second = session_id(dir.path(), &GitHeadSha).expect("the id must be reused");
         assert_eq!(first, second, "same day and same claude id must not rotate");
         assert_eq!(
             logged(&dir).len(),
@@ -557,7 +609,7 @@ mod tests {
         assert_ne!(tid, "untraced", "the helper must have traced");
         skill_error(dir.path(), "ci-fix", &tid, 1, "log not found", 120);
 
-        let id = read_session_id(dir.path());
+        let id = read_session_id(dir.path(), &GitHeadSha);
         assert!(
             logged(&dir)
                 .iter()
@@ -587,7 +639,10 @@ mod tests {
             }),
         );
 
-        assert_eq!(session_id(dir.path()).as_deref(), Some("keep-me"));
+        assert_eq!(
+            session_id(dir.path(), &GitHeadSha).as_deref(),
+            Some("keep-me")
+        );
     }
 
     #[test]
@@ -605,7 +660,7 @@ mod tests {
             }),
         );
 
-        let id = session_id(dir.path()).expect("an id must be minted");
+        let id = session_id(dir.path(), &GitHeadSha).expect("an id must be minted");
         assert_ne!(id, "stale");
         assert!(id.contains('-'), "expected <sha>-<millis>, got {id}");
     }
@@ -626,7 +681,7 @@ mod tests {
         );
 
         assert_ne!(
-            session_id(dir.path()).as_deref(),
+            session_id(dir.path(), &GitHeadSha).as_deref(),
             Some("yesterday-same-day")
         );
     }
@@ -648,9 +703,9 @@ mod tests {
             }),
         );
 
-        let first = session_id(dir.path());
-        let second = session_id(dir.path());
-        let third = session_id(dir.path());
+        let first = session_id(dir.path(), &GitHeadSha);
+        let second = session_id(dir.path(), &GitHeadSha);
+        let third = session_id(dir.path(), &GitHeadSha);
         assert_eq!(first, second, "rotation must not fire again immediately");
         assert_eq!(second, third, "rotation must not fire again immediately");
     }
@@ -671,7 +726,7 @@ mod tests {
             }),
         );
 
-        session_id(dir.path());
+        session_id(dir.path(), &GitHeadSha);
         assert_eq!(
             session_json(&dir)
                 .get("pinned_root")
@@ -687,7 +742,7 @@ mod tests {
         unsafe { std::env::set_var("CLAUDE_SESSION_ID", "") };
 
         let dir = TempDir::new().unwrap();
-        let id = session_id(dir.path()).expect("an id must be minted");
+        let id = session_id(dir.path(), &GitHeadSha).expect("an id must be minted");
         assert!(
             !id.is_empty(),
             "an empty id breaks cross-session correlation"
