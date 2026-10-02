@@ -126,39 +126,6 @@ pub fn items_from_tasks(tasks: &[Task]) -> Vec<HandoffItem> {
     items
 }
 
-/// Build a dirty-files handoff item if there are uncommitted changes.
-pub fn dirty_files_item(dirty: &[String]) -> Option<HandoffItem> {
-    if dirty.is_empty() {
-        return None;
-    }
-    let file_list: Vec<String> = dirty
-        .iter()
-        .map(|l| {
-            // git status --porcelain lines start with 2-char status prefix
-            l.get(3..).unwrap_or(l).to_string()
-        })
-        .collect();
-    Some(HandoffItem {
-        id: "uncommitted-work".into(),
-        doob_uuid: None,
-        name: "uncommitted-work".into(),
-        priority: "P1".into(),
-        status: "open".into(),
-        title: format!(
-            "Uncommitted changes ({} file{})",
-            dirty.len(),
-            if dirty.len() == 1 { "" } else { "s" }
-        ),
-        description: format!(
-            "Working tree has uncommitted changes:\n{}",
-            file_list.join("\n")
-        ),
-        files: file_list,
-        completed: None,
-        extra: vec![],
-    })
-}
-
 /// Collect recent commits (since last tag or last 20).
 pub fn recent_commits(root: &Path) -> Vec<String> {
     let out = std::process::Command::new("git")
@@ -183,10 +150,13 @@ pub fn recent_commits(root: &Path) -> Vec<String> {
 
 /// Write the HANDOFF YAML file, merging with any existing content.
 /// Returns `(path, item_ids)` on success.
+///
+/// Items are derived from task state only. Working-tree dirt is deliberately excluded: it is a
+/// live query, not durable state, and embedding it in a tracked snapshot makes the file churn
+/// every time the tree changes. `handoff`'s stdout still reports it.
 pub fn write_handoff(
     root: &Path,
     tasks: &[Task],
-    dirty_files: &[String],
     summary_text: &str,
     cfg: &Config,
 ) -> Result<(PathBuf, Vec<String>)> {
@@ -198,10 +168,7 @@ pub fn write_handoff(
     let today = Utc::now().date_naive();
 
     // Build items from current state
-    let mut items = items_from_tasks(tasks);
-    if let Some(dirty_item) = dirty_files_item(dirty_files) {
-        items.push(dirty_item);
-    }
+    let items = items_from_tasks(tasks);
 
     // Build log entry
     let commits = recent_commits(root);
@@ -252,8 +219,12 @@ pub fn write_handoff(
 }
 
 /// Render `HANDOFF.md` from the handoff file as a human-readable summary.
+///
+/// The file is written to the repository root so it is tracked alongside the code it describes.
+/// Unlike the YAML record it is derived from, it is a point-in-time snapshot for a human or an
+/// agent picking the repo up cold — it is safe to regenerate at any time.
 pub fn write_handoff_md(root: &Path, handoff: &HandoffFile) -> Result<()> {
-    let path = root.join(".ctx").join("HANDOFF.md");
+    let path = root.join("HANDOFF.md");
     let mut md = format!("# Handoff — {} ({})\n\n", handoff.project, handoff.updated);
 
     // Items table
@@ -353,20 +324,6 @@ mod tests {
     }
 
     #[test]
-    fn dirty_files_item_none_when_empty() {
-        assert!(dirty_files_item(&[]).is_none());
-    }
-
-    #[test]
-    fn dirty_files_item_builds() {
-        let dirty = vec!["M  src/lib.rs".into(), "?? new.txt".into()];
-        let item = dirty_files_item(&dirty).unwrap();
-        assert_eq!(item.id, "uncommitted-work");
-        assert_eq!(item.files.len(), 2);
-        assert_eq!(item.files[0], "src/lib.rs");
-    }
-
-    #[test]
     fn slug_generation() {
         assert_eq!(slug("Fix the Bug"), "fix-the-bug");
         assert_eq!(slug("  spaces  "), "spaces");
@@ -387,8 +344,8 @@ mod tests {
         let cfg = Config::default();
         let summary = "done=1 running=0 pending=0 blocked=0";
 
-        write_handoff(root, &[], &[], summary, &cfg).unwrap();
-        write_handoff(root, &[], &[], summary, &cfg).unwrap();
+        write_handoff(root, &[], summary, &cfg).unwrap();
+        write_handoff(root, &[], summary, &cfg).unwrap();
 
         let path = root
             .join(".ctx")
@@ -414,5 +371,69 @@ mod tests {
         let yaml = serde_yaml::to_string(&hf).unwrap();
         let back: HandoffFile = serde_yaml::from_str(&yaml).unwrap();
         assert_eq!(back.project, "test");
+    }
+
+    #[test]
+    fn handoff_md_is_written_to_the_repository_root() {
+        use crate::config::Config;
+        use tempfile::TempDir;
+
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        let _ = std::process::Command::new("git")
+            .args(["init", root.to_str().unwrap()])
+            .output();
+
+        let cfg = Config::default();
+        let summary = "done=0 running=0 pending=0 blocked=0";
+        write_handoff(root, &[], summary, &cfg).unwrap();
+
+        // The tracked snapshot lives beside the code, not under .ctx/.
+        assert!(
+            root.join("HANDOFF.md").exists(),
+            "HANDOFF.md must be written to the repository root so it can be tracked"
+        );
+        assert!(
+            !root.join(".ctx").join("HANDOFF.md").exists(),
+            "HANDOFF.md must not also be written under .ctx/"
+        );
+
+        let md = std::fs::read_to_string(root.join("HANDOFF.md")).unwrap();
+        assert!(md.starts_with("# Handoff — "), "unexpected header: {md}");
+    }
+
+    #[test]
+    fn working_tree_state_is_not_recorded_as_a_handoff_item() {
+        use crate::config::Config;
+        use tempfile::TempDir;
+
+        let dir = TempDir::new().unwrap();
+        let root = dir.path();
+        let _ = std::process::Command::new("git")
+            .args(["init", root.to_str().unwrap()])
+            .output();
+
+        let cfg = Config::default();
+        let summary = "done=0 running=0 pending=1 blocked=0";
+        let mut task = Task::new("t1", "Pending work");
+        task.status = Status::Pending;
+        write_handoff(root, &[task], summary, &cfg).unwrap();
+
+        let path = root
+            .join(".ctx")
+            .join(format!("HANDOFF.{p}.{p}.yaml", p = cfg.project_name(root)));
+        let raw = std::fs::read_to_string(&path).unwrap();
+        let hf: HandoffFile = serde_yaml::from_str(&raw).unwrap();
+
+        assert!(
+            !hf.items.iter().any(|i| i.id == "uncommitted-work"),
+            "working-tree dirt is a live query and must not be persisted as a durable handoff item"
+        );
+        assert!(
+            !std::fs::read_to_string(root.join("HANDOFF.md"))
+                .unwrap()
+                .contains("Uncommitted changes"),
+            "HANDOFF.md must not embed a live uncommitted-file count"
+        );
     }
 }

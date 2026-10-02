@@ -17,9 +17,21 @@ max-turns: 5
   events prominently.
 
 
-Run session-start triage and orient to outstanding work.
+Produce a session-start status update. This command is a readout: report what the commands
+printed, and do not infer or reconstruct state they did not print.
+
 1. Run: godmode handon
 2. Run: godmode task next
-3. Check .ctx/godmode/traces/trace.jsonl for any skill.error or agent.blocked events from
-   the last session using skills/observability-as-infrastructure/helpers/session-summary.nu
-4. Report: running tasks, next runnable task(s), any unresolved failures from last session.
+3. Check .ctx/godmode/traces/trace.jsonl for skill.error or agent.blocked events left by the
+   previous session, using skills/observability-as-infrastructure/helpers/session-summary.nu
+
+Report with these sections. Omit a section only when nothing was printed for it.
+
+- State — done / running / pending / blocked counts.
+- Waiting on — the active pipeline and the step it is blocked at.
+- Next — the single next runnable task, by ID and title.
+- Unresolved — errors or blocked agents carried over from the last session.
+- Tree — dirty or clean, naming files when dirty.
+
+Note: `godmode handon` reports task-graph state only. It does not query doob — use
+`godmode task pull` or `doob todo list` for pending todos.

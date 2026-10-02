@@ -18,7 +18,7 @@ execution. Never edit the YAML directly — always use the CLI.
 ## Session Start
 
 ```bash
-godmode handon          # shows running, next runnable, blocked, next doob todo
+godmode handon          # status readout: counts, pipeline position, next runnable, tree state
 godmode task next       # show only the next runnable task(s)
 godmode task next --json  # machine-readable — exit 2 if empty
 ```
@@ -26,7 +26,7 @@ godmode task next --json  # machine-readable — exit 2 if empty
 ## Session End
 
 ```bash
-godmode handoff         # warns on running tasks, calls hj handoff
+godmode handoff         # status readout: totals, still-running tasks, tree state
 ```
 
 ## Task Operations

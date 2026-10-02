@@ -1,5 +1,5 @@
 ---
-description: Run session-end validation and write a handoff record.
+description: 'Produce a session-end status update. This command is a readout: report what the commands printed,'
 subtask: false
 ---
 ## Rules
@@ -13,9 +13,24 @@ subtask: false
   events prominently.
 
 
-Run session-end validation and write a handoff record.
+Produce a session-end status update. This command is a readout: report what the commands printed,
+and do not infer or reconstruct state they did not print.
+
 1. Run: godmode handoff
-2. Run skills/observability-as-infrastructure/helpers/trace-stats.nu to summarise
-   skill durations, agent convergence, and decisions made this session.
-3. If any tasks are still running, report them — do not silently ignore.
-4. Report: tasks completed, tasks blocked, any open issues requiring follow-up.
+2. Run skills/observability-as-infrastructure/helpers/trace-stats.nu to summarise skill
+   durations, agent convergence, and decisions made this session.
+3. Surface every task still `running` — never silently drop one.
+
+Report with these sections. Omit a section only when nothing was printed for it.
+
+- Completed — what finished this session.
+- Still running — every task left in `running`, by ID and title. Never report the session as
+  clean while this is non-empty.
+- Blocked — blocked tasks and the reason each is blocked.
+- Tree — dirty or clean, naming files when dirty.
+- Next — the single most useful next action.
+
+Do not claim the work is finished while a task is still `running`.
+
+`godmode handoff` writes a tracked `HANDOFF.md` at the repository root. It writes no external
+handoff record. Task state remains in `.ctx/godmode/tasks.yaml`.
