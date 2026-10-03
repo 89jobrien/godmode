@@ -46,14 +46,19 @@ const UNMAPPED: { id: string; event: string; command: string }[] = [
   }
 ]
 
+/** A Claude PreToolUse decision, as printed by the hook scripts. */
+type Decision = { decision: "approve" | "block"; reason?: string }
+
 /**
- * Run a godmode hook script with the OpenCode tool payload on stdin.
+ * Run a godmode hook script with the OpenCode tool payload on stdin and
+ * return its Claude-style decision.
  *
- * The scripts keep the Claude contract: JSON on stdin, advisory text on
- * stdout, exit code 0 to allow. Failures are reported but never block the
- * tool call, matching Claude's behaviour for the `godmode hook run` hooks.
+ * Scripts keep the Claude contract: JSON on stdin, a
+ * `{"decision": "approve" | "block", ...}` document on stdout. Unparseable
+ * or absent output is treated as approve, because a hook that cannot be
+ * understood must not wedge the tool.
  */
-async function run(command: string, timeout: number): Promise<void> {
+async function decide(command: string, timeout: number, payload: unknown): Promise<Decision | undefined> {
   const argv = command.replaceAll("$CLAUDE_PLUGIN_ROOT", PLUGIN_ROOT).split(" ")
   try {
     const proc = Bun.spawn(argv, {
@@ -62,17 +67,24 @@ async function run(command: string, timeout: number): Promise<void> {
       stderr: "pipe",
       env: { ...process.env, CLAUDE_PLUGIN_ROOT: PLUGIN_ROOT },
     })
-    proc.stdin.write(JSON.stringify(TOOL_PAYLOAD))
+    proc.stdin.write(JSON.stringify(payload))
     proc.stdin.end()
     const timer = setTimeout(() => proc.kill(), timeout * 1000)
-    await proc.exited
+    const [, stdout] = await Promise.all([proc.exited, new Response(proc.stdout).text()])
     clearTimeout(timer)
+    const verdict = stdout.match(/\{[^{}]*"decision"[^{}]*\}/)
+    if (!verdict) return undefined
+    return JSON.parse(verdict[0]) as Decision
   } catch (error) {
     console.error(`[godmode] hook failed: ${command} (${error})`)
+    return undefined
   }
 }
 
-let TOOL_PAYLOAD: unknown = {}
+/** PostToolUse hooks are advisory: they report, they never block. */
+async function run(command: string, timeout: number, payload: unknown): Promise<void> {
+  await decide(command, timeout, payload)
+}
 
 export const GodmodePlugin: Plugin = async () => {
   if (UNMAPPED.length > 0) {
@@ -83,50 +95,56 @@ export const GodmodePlugin: Plugin = async () => {
   }
 
   return {
-    "tool.execute.before": async (input) => {
-      TOOL_PAYLOAD = input
+    "tool.execute.before": async (input, output) => {
       const tool = input.tool
-    if (tool === "bash") {
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-bash-nag.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-commit-gate.nu", 30)
-      await run("godmode hook run moa", 10)
-    }
-    if (tool === "task") {
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-agent-task-context.nu", 10)
-      await run("godmode hook run agent-governance", 10)
-    }
-    if (tool === "write") {
-      await run("godmode hook run brainstorm", 10)
-    }
+      const payload = { ...input, ...output }
+      let verdict: Decision | undefined
+      if (tool === "bash") {
+        verdict ??= await decide("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-bash-nag.nu", 10, payload)
+        verdict ??= await decide("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-commit-gate.nu", 30, payload)
+        verdict ??= await decide("godmode hook run moa", 10, payload)
+      }
+      if (tool === "task") {
+        verdict ??= await decide("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/pre-agent-task-context.nu", 10, payload)
+        verdict ??= await decide("godmode hook run agent-governance", 10, payload)
+      }
+      if (tool === "write") {
+        verdict ??= await decide("godmode hook run brainstorm", 10, payload)
+      }
+      // A blocking PreToolUse hook (pre-commit-gate) denies the call by
+      // throwing, which is OpenCode's equivalent of Claude's block decision.
+      if (verdict?.decision === "block") {
+        throw new Error(verdict.reason ?? "[godmode] blocked by hook")
+      }
     },
-    "tool.execute.after": async (input) => {
-      TOOL_PAYLOAD = input
+    "tool.execute.after": async (input, output) => {
       const tool = input.tool
-    if (tool === "bash") {
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/task-done-sync.nu", 15)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-pipeline-step.nu", 10)
-      await run("godmode hook run auto-block", 10)
-      await run("godmode hook run ci-fix", 15)
-      await run("godmode hook run code-review", 10)
-      await run("godmode hook run wave-integration", 10)
-    }
-    if (tool === "edit") {
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu", 10)
-    }
-    if (tool === "task") {
-      await run("bash $CLAUDE_PLUGIN_ROOT/hooks/scripts/check-blocked.sh", 10)
-      await run("godmode hook run parallel-agents", 10)
-    }
-    if (tool === "write") {
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu", 10)
-      await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu", 10)
-      await run("rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-write-plan-ingest.rs", 15)
-    }
+      const payload = { ...input, ...output }
+      if (tool === "bash") {
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/task-done-sync.nu", 15, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-pipeline-step.nu", 10, payload)
+        await run("godmode hook run auto-block", 10, payload)
+        await run("godmode hook run ci-fix", 15, payload)
+        await run("godmode hook run code-review", 10, payload)
+        await run("godmode hook run wave-integration", 10, payload)
+      }
+      if (tool === "edit") {
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu", 10, payload)
+      }
+      if (tool === "task") {
+        await run("bash $CLAUDE_PLUGIN_ROOT/hooks/scripts/check-blocked.sh", 10, payload)
+        await run("godmode hook run parallel-agents", 10, payload)
+      }
+      if (tool === "write") {
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-json-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-toml-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-yaml-validate.nu", 10, payload)
+        await run("nu $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-nu-check.nu", 10, payload)
+        await run("rust-script $CLAUDE_PLUGIN_ROOT/hooks/scripts/post-write-plan-ingest.rs", 15, payload)
+      }
     },
   }
 }

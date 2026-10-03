@@ -640,7 +640,9 @@ pub fn generate_opencode_plugin() -> String {
         .expect("array")
         .sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
 
-    let render = |entries: &[&'static HookRegistration]| {
+    // `before` hooks may block, so each accumulates a decision; `after` hooks
+    // are advisory and just fire.
+    let render = |entries: &[&'static HookRegistration], blocking: bool| {
         let mut by_tool: BTreeMap<String, Vec<(&str, u64)>> = BTreeMap::new();
         for entry in entries {
             let tool = opencode_tool(entry.matcher.unwrap_or("*"));
@@ -651,11 +653,19 @@ pub fn generate_opencode_plugin() -> String {
         }
         let mut out = String::new();
         for (tool, hooks) in by_tool {
-            out.push_str(&format!("    if (tool === {tool:?}) {{\n"));
+            out.push_str(&format!("      if (tool === {tool:?}) {{\n"));
             for (command, timeout) in hooks {
-                out.push_str(&format!("      await run({command:?}, {timeout})\n"));
+                if blocking {
+                    out.push_str(&format!(
+                        "        verdict ??= await decide({command:?}, {timeout}, payload)\n"
+                    ));
+                } else {
+                    out.push_str(&format!(
+                        "        await run({command:?}, {timeout}, payload)\n"
+                    ));
+                }
             }
-            out.push_str("    }\n");
+            out.push_str("      }\n");
         }
         out
     };
@@ -678,14 +688,19 @@ const PLUGIN_ROOT =
 /** Claude hooks with no OpenCode lifecycle counterpart. */
 const UNMAPPED: {{ id: string; event: string; command: string }}[] = {unmapped}
 
+/** A Claude PreToolUse decision, as printed by the hook scripts. */
+type Decision = {{ decision: "approve" | "block"; reason?: string }}
+
 /**
- * Run a godmode hook script with the OpenCode tool payload on stdin.
+ * Run a godmode hook script with the OpenCode tool payload on stdin and
+ * return its Claude-style decision.
  *
- * The scripts keep the Claude contract: JSON on stdin, advisory text on
- * stdout, exit code 0 to allow. Failures are reported but never block the
- * tool call, matching Claude's behaviour for the `godmode hook run` hooks.
+ * Scripts keep the Claude contract: JSON on stdin, a
+ * `{{"decision": "approve" | "block", ...}}` document on stdout. Unparseable
+ * or absent output is treated as approve, because a hook that cannot be
+ * understood must not wedge the tool.
  */
-async function run(command: string, timeout: number): Promise<void> {{
+async function decide(command: string, timeout: number, payload: unknown): Promise<Decision | undefined> {{
   const argv = command.replaceAll("$CLAUDE_PLUGIN_ROOT", PLUGIN_ROOT).split(" ")
   try {{
     const proc = Bun.spawn(argv, {{
@@ -694,17 +709,24 @@ async function run(command: string, timeout: number): Promise<void> {{
       stderr: "pipe",
       env: {{ ...process.env, CLAUDE_PLUGIN_ROOT: PLUGIN_ROOT }},
     }})
-    proc.stdin.write(JSON.stringify(TOOL_PAYLOAD))
+    proc.stdin.write(JSON.stringify(payload))
     proc.stdin.end()
     const timer = setTimeout(() => proc.kill(), timeout * 1000)
-    await proc.exited
+    const [, stdout] = await Promise.all([proc.exited, new Response(proc.stdout).text()])
     clearTimeout(timer)
+    const verdict = stdout.match(/\{{[^{{}}]*"decision"[^{{}}]*\}}/)
+    if (!verdict) return undefined
+    return JSON.parse(verdict[0]) as Decision
   }} catch (error) {{
     console.error(`[godmode] hook failed: ${{command}} (${{error}})`)
+    return undefined
   }}
 }}
 
-let TOOL_PAYLOAD: unknown = {{}}
+/** PostToolUse hooks are advisory: they report, they never block. */
+async function run(command: string, timeout: number, payload: unknown): Promise<void> {{
+  await decide(command, timeout, payload)
+}}
 
 export const GodmodePlugin: Plugin = async () => {{
   if (UNMAPPED.length > 0) {{
@@ -715,20 +737,26 @@ export const GodmodePlugin: Plugin = async () => {{
   }}
 
   return {{
-    "tool.execute.before": async (input) => {{
-      TOOL_PAYLOAD = input
+    "tool.execute.before": async (input, output) => {{
       const tool = input.tool
-{before}    }},
-    "tool.execute.after": async (input) => {{
-      TOOL_PAYLOAD = input
+      const payload = {{ ...input, ...output }}
+      let verdict: Decision | undefined
+{before}      // A blocking PreToolUse hook (pre-commit-gate) denies the call by
+      // throwing, which is OpenCode's equivalent of Claude's block decision.
+      if (verdict?.decision === "block") {{
+        throw new Error(verdict.reason ?? "[godmode] blocked by hook")
+      }}
+    }},
+    "tool.execute.after": async (input, output) => {{
       const tool = input.tool
+      const payload = {{ ...input, ...output }}
 {after}    }},
   }}
 }}
 "#,
         unmapped = serde_json::to_string_pretty(&unmapped_json).unwrap_or_else(|_| "[]".into()),
-        before = render(&before),
-        after = render(&after),
+        before = render(&before, true),
+        after = render(&after, false),
     )
 }
 
@@ -930,8 +958,13 @@ mod opencode_tests {
         for event in ["tool.execute.before", "tool.execute.after"] {
             for entry in opencode_hooks(event) {
                 // A hook registered for two matchers (the validators run on
-                // both write and edit) emits one `run` call per tool branch.
-                let needle = format!("      await run({:?}, ", entry.command);
+                // both write and edit) emits one call per tool branch.
+                // Before-hooks accumulate a verdict; after-hooks just run.
+                let needle = if event == "tool.execute.before" {
+                    format!("decide({:?}, ", entry.command)
+                } else {
+                    format!("run({:?}, ", entry.command)
+                };
                 let expected = REGISTRY
                     .iter()
                     .filter(|other| {
@@ -944,7 +977,7 @@ mod opencode_tests {
                 assert_eq!(
                     ts.matches(&needle).count(),
                     expected,
-                    "hook '{}' should emit {expected} run call(s) in {event}",
+                    "hook '{}' should emit {expected} call(s) in {event}",
                     entry.id
                 );
             }
@@ -967,5 +1000,56 @@ mod opencode_tests {
         let ts = generate_opencode_plugin();
         assert!(!ts.contains("\"SessionStart\": ["));
         assert!(!ts.contains("\"Stop\": ["));
+    }
+
+    /// Claude PreToolUse hooks block by printing a decision document, not by
+    /// exit code. If the OpenCode projection drops stdout, every blocking
+    /// gate (notably pre-commit-gate) silently degrades to advisory.
+    #[test]
+    fn before_hooks_read_the_decision_document() {
+        let ts = generate_opencode_plugin();
+        assert!(
+            ts.contains("JSON.parse(verdict[0]) as Decision"),
+            "plugin must parse the hook decision document"
+        );
+        assert!(
+            ts.contains("stdout.match"),
+            "plugin must capture hook stdout"
+        );
+        assert!(
+            ts.contains("throw new Error(verdict.reason"),
+            "a block decision must deny the tool call"
+        );
+    }
+
+    #[test]
+    fn only_before_hooks_accumulate_a_verdict() {
+        let ts = generate_opencode_plugin();
+        let before_block = ts
+            .find("verdict ??= await decide")
+            .expect("before hooks use decide");
+        let after_section = ts
+            .find("\"tool.execute.after\": async")
+            .expect("after hook present");
+        assert!(
+            before_block < after_section,
+            "verdict accumulation belongs to the before hook only"
+        );
+        let after_body = &ts[after_section..];
+        assert!(
+            !after_body.contains("verdict ??="),
+            "PostToolUse hooks are advisory and must not block:\n{after_body}"
+        );
+    }
+
+    /// An unreadable decision must fall through to approve, or a malformed
+    /// script would wedge every tool call.
+    #[test]
+    fn undecidable_hook_falls_through_to_approve() {
+        let ts = generate_opencode_plugin();
+        assert!(
+            ts.contains("return undefined"),
+            "a hook that cannot be parsed must not block"
+        );
     }
 }
