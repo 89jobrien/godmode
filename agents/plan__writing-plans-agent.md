@@ -97,7 +97,10 @@ If the design doc uses `### Task N:` headings conforming to the godmode plan for
 godmode plan ingest docs/plans/<filename>.md
 ```
 
-Note: `plan ingest` is idempotent — it skips tasks whose IDs already exist.
+Note: `plan ingest` is idempotent, but not by ID existence. For each prepared task it looks up the
+task ID the plan was assigned and skips that task only when the graph task under that ID matches on
+title, crate, run, and dependencies. An ID that exists with different content is a conflict and
+fails ingestion rather than being skipped.
 
 ### 5. Confirm the graph
 

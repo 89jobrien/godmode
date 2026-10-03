@@ -54,10 +54,15 @@ The CLI allocates IDs as follows:
 - Internal dependencies are rewritten into the same namespace.
 - Prefix an explicit dependency with `graph:`, such as `graph:t1`, when it must reference an
   existing graph task instead of a task from the plan.
-- Plan identity uses the resolved full path. Generated IDs start with the sanitized file stem and
+- Plan identity is the recorded source path. Generated IDs start with the sanitized file stem and
   add a deterministic source hash when another plan already owns that namespace, so equal filenames
   in different directories remain distinct.
-- Re-ingesting the same plan returns the same IDs and skips existing tasks.
+- A recorded path that no longer exists on disk is treated as a relocation of the same plan, so
+  moving a plan file does not mint a second namespaced chain. The match requires an unambiguous
+  file stem plus recorded tasks that are still in the graph with matching title, crate, and run.
+  Two plan files that share a stem and both still exist remain distinct plans.
+- Re-ingesting the same plan returns the same IDs, whether it stayed at its path or moved, and skips
+  each task whose assigned ID is already in the graph with matching content.
 - Shortening an already imported plan fails rather than orphaning its removed tasks. Reconcile those
   tasks explicitly before retrying.
 - If a reserved ID contains different content, ingestion fails instead of silently dropping or
@@ -77,7 +82,8 @@ godmode task next --json
 ```
 
 Confirm every reported ID exists after ingestion and that each newly added dependency references
-the intended task. An idempotent re-ingest with `added = 0` and `skipped = parsed` is successful.
+the intended task. An idempotent re-ingest with `added = 0` and `skipped = parsed` is successful,
+including after the plan file has been moved.
 
 ## Report
 
