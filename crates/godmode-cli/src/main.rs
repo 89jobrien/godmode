@@ -264,6 +264,15 @@ enum AgentAction {
         #[arg(long)]
         all: bool,
     },
+    /// Render agents for a supported client.
+    GenerateOpencode {
+        /// Regenerate every agent, not just a single one.
+        #[arg(long)]
+        all: bool,
+        /// Print to stdout instead of writing files.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -373,6 +382,16 @@ enum HookAction {
     Run {
         /// Hook name: stop-guard, auto-block, pre-commit, quality-gate.
         name: String,
+    },
+    /// Render a hook manifest for a supported client.
+    Generate {
+        /// Target client. `claude` writes hooks/hooks.json; `opencode` writes
+        /// .opencode/plugins/godmode.ts.
+        #[arg(long, default_value = "claude")]
+        client: String,
+        /// Print to stdout instead of writing the file.
+        #[arg(long)]
+        dry_run: bool,
     },
 }
 

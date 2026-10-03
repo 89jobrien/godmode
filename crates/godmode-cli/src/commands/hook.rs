@@ -16,7 +16,68 @@ pub fn run_hook_action(root: &Path, json: bool, action: HookAction) -> Result<()
         HookAction::Test { script } => test_hook(root, json, &script),
         HookAction::Migrate => migrate_hooks(root, json),
         HookAction::Run { name } => run_builtin_hook(root, json, &name),
+        HookAction::Generate { client, dry_run } => generate_manifest(root, json, &client, dry_run),
     }
+}
+
+/// Renders a hook manifest for the requested client from the canonical registry.
+fn generate_manifest(root: &Path, json: bool, client: &str, dry_run: bool) -> Result<()> {
+    let (content, relative) = match client {
+        "opencode" => (
+            hooks::registry::generate_opencode_plugin(),
+            ".opencode/plugins/godmode.ts",
+        ),
+        "claude" => (
+            serde_json::to_string_pretty(&hooks::registry::generate_manifest(
+                hooks::registry::HookClient::Claude,
+            ))?,
+            "hooks/hooks.json",
+        ),
+        other => anyhow::bail!("unknown client '{other}': expected 'claude' or 'opencode'"),
+    };
+
+    let unmapped = hooks::registry::opencode_unmapped();
+    if client == "opencode" && !unmapped.is_empty() && !json {
+        eprintln!(
+            "note: {} Claude hook(s) have no OpenCode equivalent and are reported by the generated plugin:",
+            unmapped.len()
+        );
+        for (id, event, _) in &unmapped {
+            eprintln!("  - {id} ({event})");
+        }
+    }
+
+    let out_path = root.join(relative);
+    if dry_run {
+        if json {
+            println!(
+                "{}",
+                serde_json::json!({"ok": true, "client": client, "path": relative, "dry_run": true})
+            );
+        } else {
+            println!("{content}");
+        }
+        return Ok(());
+    }
+
+    if let Some(parent) = out_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(&out_path, format!("{content}\n"))?;
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({
+                "ok": true,
+                "client": client,
+                "path": relative,
+                "unmapped": unmapped.len(),
+            })
+        );
+    } else {
+        println!("Wrote {relative}");
+    }
+    Ok(())
 }
 
 fn list_hooks(root: &Path, json: bool) -> Result<()> {
