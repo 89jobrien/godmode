@@ -180,24 +180,28 @@ pub fn prepare_for_ingest(
     // a distinct plan that merely shares a file name; `depends_on` is excluded since parsed tasks
     // hold pre-remap ids while graph tasks hold remapped ones.
     //
+    // The check covers the id PREFIX rather than demanding equal lengths, so a plan that grew after
+    // the move keeps its existing ids and mints an id only for the task appended since. `zip`
+    // truncates at the shorter side, which is what lets a shorter plan reach the length guard below
+    // and be rejected instead of forking a namespaced duplicate chain.
+    //
     // Otherwise fall back to the exact-path entry, unfiltered, so re-ingesting a plan in place keeps
     // its reserved ids even after its tasks were removed, and edited content still reports a
     // conflict rather than forking a new chain.
     let existing_ids = graph
         .relocated_plan_task_ids(source)
         .filter(|ids| {
-            ids.len() == tasks.len()
-                && ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
-                    graph
-                        .tasks
-                        .iter()
-                        .find(|existing| &existing.id == id)
-                        .is_some_and(|existing| {
-                            existing.title == candidate.title
-                                && existing.crate_name == candidate.crate_name
-                                && existing.run == candidate.run
-                        })
-                })
+            ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
+                graph
+                    .tasks
+                    .iter()
+                    .find(|existing| &existing.id == id)
+                    .is_some_and(|existing| {
+                        existing.title == candidate.title
+                            && existing.crate_name == candidate.crate_name
+                            && existing.run == candidate.run
+                    })
+            })
         })
         .or_else(|| graph.plan_task_ids(source));
     if existing_ids.is_some_and(|ids| tasks.len() < ids.len()) {
@@ -552,6 +556,84 @@ Some description here.
         assert_eq!(report.added, 0);
         assert_eq!(report.skipped, 3);
         assert_eq!(report.ids, ["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn grown_relocated_plan_reuses_its_task_ids_and_appends_only_the_new_one() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/.ctx/godmode/plans/probe-alpha.md",
+        )
+        .unwrap();
+
+        let grown = parse(&format!("{SAMPLE}\n### Task 4: Announce the release\n")).unwrap();
+        let report = ingest(&mut graph, grown, "/repo/docs/plans/probe-alpha.md").unwrap();
+
+        assert_eq!(report.added, 1);
+        assert_eq!(report.skipped, 3);
+        assert_eq!(report.ids[0], "t1");
+        assert_eq!(report.ids[1], "t2");
+        assert_eq!(report.ids[2], "t3");
+        let ids: Vec<&str> = graph.tasks.iter().map(|task| task.id.as_str()).collect();
+        assert_eq!(ids.len(), 4, "relocation must not orphan the old chain");
+        for reused in ["t1", "t2", "t3"] {
+            assert!(ids.contains(&reused), "expected {reused} to be reused");
+            let forked = format!("probe-alpha-{reused}");
+            assert!(
+                !ids.contains(&forked.as_str()),
+                "forked a duplicate chain entry {forked}"
+            );
+        }
+    }
+
+    #[test]
+    fn shrunk_relocated_plan_is_rejected_instead_of_forking_a_chain() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/old/probe-alpha.md",
+        )
+        .unwrap();
+
+        // The surviving task matches the original verbatim, so the relocation prefix check accepts
+        // the candidate and the length guard is what rejects the edit.
+        let shrunk =
+            parse("### Task 1: Write failing test for FooAdapter\n**Crate**: `foo-core`").unwrap();
+        let before = serde_yaml::to_string(&graph).unwrap();
+        let error = ingest(&mut graph, shrunk, "/repo/new/probe-alpha.md").unwrap_err();
+
+        assert!(error.to_string().contains("fewer tasks"), "{error}");
+        assert_eq!(serde_yaml::to_string(&graph).unwrap(), before);
+    }
+
+    #[test]
+    fn a_plan_file_still_on_disk_prevents_relocation() {
+        let dir = tempfile::tempdir().unwrap();
+        let old = dir.path().join("old").join("probe-alpha.md");
+        let new = dir.path().join("new").join("probe-alpha.md");
+        std::fs::create_dir_all(old.parent().unwrap()).unwrap();
+        std::fs::create_dir_all(new.parent().unwrap()).unwrap();
+        std::fs::write(&old, SAMPLE).unwrap();
+        std::fs::write(&new, SAMPLE).unwrap();
+        let (old, new) = (old.to_str().unwrap(), new.to_str().unwrap());
+
+        let mut graph = TaskGraph::default();
+        ingest(&mut graph, parse(SAMPLE).unwrap(), old).unwrap();
+
+        // Both files are on disk, so the second is a copy of the plan, not a relocation of it.
+        let report = ingest(&mut graph, parse(SAMPLE).unwrap(), new).unwrap();
+
+        assert_eq!(report.added, 3);
+        assert_eq!(report.skipped, 0);
+        for id in &report.ids {
+            assert_ne!(id, "t1", "the original chain must not be inherited");
+        }
+        assert_eq!(graph.tasks.len(), 6);
+        assert_eq!(graph.plan_task_ids(old).unwrap(), ["t1", "t2", "t3"]);
+        assert_eq!(graph.plan_task_ids(new).unwrap(), report.ids);
     }
 
     #[test]
