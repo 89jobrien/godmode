@@ -68,7 +68,10 @@ If the design doc uses `### Task N:` headings conforming to the godmode plan for
 godmode plan ingest .ctx/godmode/plans/<filename>.md
 ```
 
-Note: `plan ingest` namespaces colliding plans and remains idempotent for the same plan source.
+Note: `plan ingest` namespaces colliding plans and remains idempotent for the same plan source,
+including after the plan file is moved. A plan whose recorded path no longer exists is matched as
+relocated by an unambiguous file stem plus a content match on its recorded tasks, which keeps its
+existing task IDs.
 
 ### 5. Confirm the graph
 
