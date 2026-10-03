@@ -123,12 +123,33 @@ pub struct IngestReport {
     pub ids: Vec<String>,
 }
 
+/// Decides whether a recorded plan path has disappeared from disk.
+///
+/// Injected into the graph's relocation queries rather than stat'd inside them, so the data model
+/// stays free of filesystem access and relocation stays testable without one.
+pub(crate) type SourceGone<'a> = &'a dyn Fn(&str) -> bool;
+
+/// Reports whether a plan source is absent from disk.
+fn plan_source_is_gone(source: &str) -> bool {
+    !std::path::Path::new(source).exists()
+}
+
 /// Import parsed plan tasks into an existing graph.
 pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<IngestReport> {
+    ingest_with(graph, tasks, source, &plan_source_is_gone)
+}
+
+/// Import parsed plan tasks, deciding relocation with the supplied probe.
+pub(crate) fn ingest_with(
+    graph: &mut TaskGraph,
+    tasks: Vec<Task>,
+    source: &str,
+    is_gone: SourceGone<'_>,
+) -> Result<IngestReport> {
     if tasks.is_empty() {
         bail!("no tasks found in plan");
     }
-    let tasks = prepare_for_ingest(tasks, graph, source)?;
+    let tasks = prepare_for_ingest_with(tasks, graph, source, is_gone)?;
     let parsed = tasks.len();
     let ids: Vec<String> = tasks.iter().map(|task| task.id.clone()).collect();
     let mut added = 0;
@@ -144,7 +165,15 @@ pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<I
         }
     }
 
-    updated.record_plan_import(source.to_string(), ids.clone());
+    // Rebinding a relocated plan moves its existing entry onto the new path rather than leaving the
+    // old provenance behind. Both halves of that decision are evaluated here so the model stays
+    // free of filesystem access.
+    let rebound = updated.adopt_relocated_plan_import(source, ids.clone(), |old, old_ids| {
+        old_ids == ids.as_slice() && is_gone(old)
+    });
+    if !rebound {
+        updated.record_plan_import(source.to_string(), ids.clone());
+    }
     *graph = updated;
 
     Ok(IngestReport {
@@ -160,10 +189,16 @@ pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<I
 /// Tasks keep short `tN` IDs when those IDs are unused. Colliding plans use a deterministic
 /// namespace. Graph-level plan provenance makes repeated ingestion idempotent even when distinct
 /// plans contain identical task content.
-pub fn prepare_for_ingest(
+pub fn prepare_for_ingest(tasks: Vec<Task>, graph: &TaskGraph, source: &str) -> Result<Vec<Task>> {
+    prepare_for_ingest_with(tasks, graph, source, &plan_source_is_gone)
+}
+
+/// Prepare parsed tasks, deciding relocation with the supplied probe.
+pub(crate) fn prepare_for_ingest_with(
     mut tasks: Vec<Task>,
     graph: &TaskGraph,
     source: &str,
+    is_gone: SourceGone<'_>,
 ) -> Result<Vec<Task>> {
     let namespace = source
         .rsplit(['/', '\\'])
@@ -189,7 +224,7 @@ pub fn prepare_for_ingest(
     // its reserved ids even after its tasks were removed, and edited content still reports a
     // conflict rather than forking a new chain.
     let existing_ids = graph
-        .relocated_plan_task_ids(source)
+        .relocated_plan_task_ids(source, is_gone)
         .filter(|ids| {
             ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
                 graph
@@ -634,6 +669,37 @@ Some description here.
         assert_eq!(graph.tasks.len(), 6);
         assert_eq!(graph.plan_task_ids(old).unwrap(), ["t1", "t2", "t3"]);
         assert_eq!(graph.plan_task_ids(new).unwrap(), report.ids);
+    }
+
+    #[test]
+    fn relocation_is_decided_by_the_injected_probe_not_the_filesystem() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/old/probe-alpha.md",
+        )
+        .unwrap();
+
+        // No path here exists on disk, so only the probe can decide these two outcomes.
+        let blocked = prepare_for_ingest_with(
+            parse(SAMPLE).unwrap(),
+            &graph,
+            "/repo/new/probe-alpha.md",
+            &|_| false,
+        )
+        .unwrap();
+        assert_eq!(blocked[0].id, "probe-alpha-t1");
+
+        let relocated = prepare_for_ingest_with(
+            parse(SAMPLE).unwrap(),
+            &graph,
+            "/repo/new/probe-alpha.md",
+            &|_| true,
+        )
+        .unwrap();
+        assert_eq!(relocated[0].id, "t1");
+        assert_eq!(relocated[1].depends_on, vec!["t1"]);
     }
 
     #[test]
