@@ -2,8 +2,8 @@
 # new-plan.nu — scaffold a new plan file at .ctx/godmode/plans/YYYY-MM-DD-<name>.md
 # Usage: nu skills/writing-plans/helpers/new-plan.nu <feature-name>
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [feature: string] {
     if ($feature | is-empty) {
