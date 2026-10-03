@@ -1,3 +1,21 @@
+## [0.8.0] - 2026-10-03
+
+### Features
+
+- _(crates)_ First publish of `godmode-core` and `godmode-cli` to crates.io
+
+### Bug Fixes
+
+- _(plan)_ Match relocated plans on task-id prefix; tighten relocation guards and dedupe the stem helper
+- _(plan)_ Document relocated-plan identity and skip mechanism
+- _(model)_ Move the plan-source existence check out of the data model
+- _(godmode-core)_ Record pending tasks in the handoff snapshot
+- _(skills)_ Repair Nushell parse errors in three helper scripts
+
+### Misc
+
+- _(plugin)_ Route generated agent/skill content through taskit instead of direct cargo
+
 ## [0.7.0] - 2026-10-02
 
 ### Features

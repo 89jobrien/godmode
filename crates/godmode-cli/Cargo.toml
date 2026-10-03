@@ -1,9 +1,15 @@
 [package]
 name = "godmode-cli"
+description = "CLI for godmode: task graph management, parallel agent dispatch, session handoff, and release automation."
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/godmode-cli"
+readme = "README.md"
+keywords = ["task-graph", "agent", "workflow", "cli", "automation"]
+categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
 name = "godmode"
