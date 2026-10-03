@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core guide</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html">Overview</a>
+      <a href="guide.html" aria-current="page">Guide</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="features.html">Features</a>
+      <a href="cli.html">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="guide" class="reveal">
+        <h2>Guide</h2>
+        <p class="note">
+          Carried over from <code>README.md</code>. Edit the README, not this
+          page.
+        </p>
+        <h3 id="overview">Overview</h3>
+<p>Godmode combines a Claude Code skill set with a CLI-backed task graph. The binary owns all
+stateful operations — skills are thin wrappers that call <code>godmode</code> and act on the output.
+Tasks persist in <code>.ctx/godmode/tasks.yaml</code> (gitignored) across sessions via causal
+<code>depends_on</code> chains.</p>
+
+        <h3 id="install">Install</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">cargo build --release -p godmode-cli &amp;&amp; cp target/release/godmode...</span></div>
+  <pre><span class="prompt">$</span> cargo build --release -p godmode-cli &amp;&amp; cp target/release/godmode ~/.cargo/bin/godmode
+claude plugin install godmode@bazaar
+</pre>
+</div>
+
+        <h3 id="pre-commit-hook">Pre-commit hook</h3>
+<p>Install the godmode pre-commit hook into any git repo to block commits when tasks are
+still running and to run cargo gates (fmt-check, clippy, nextest):</p>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">nu /path/to/godmode/hooks/install.nu</span></div>
+  <pre><span class="cmt"># From the repo root where you want the hook installed:</span>
+<span class="prompt">$</span> nu /path/to/godmode/hooks/install.nu
+
+<span class="cmt"># Or, if godmode is installed as a plugin and $CLAUDE_PLUGIN_ROOT is set:</span>
+nu &quot;$CLAUDE_PLUGIN_ROOT/hooks/install.nu&quot;
+</pre>
+</div>
+<p>The hook:
+
+1. Runs <code>godmode handoff --json</code> — exits non-zero if any task is in <code>running</code> state,
+   printing the offending task IDs.
+2. Runs <code>cargo fmt --all --check</code>, <code>cargo clippy --workspace -- -D warnings</code>, and
+   <code>cargo nextest run --workspace</code>.
+3. Blocks the commit on any failure with a clear message.
+
+If <code>godmode</code> is not on PATH, the task-state check is skipped gracefully and only the
+cargo gates run.</p>
+
+        <h3 id="skills">Skills</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Skill</th><th>When</th></tr>
+</thead>
+<tbody>
+<tr><td><code>godmode:using-godmode</code></td><td>Session orientation, available skills, rules</td></tr>
+<tr><td><code>godmode:task-driven-development</code></td><td>Implementing any feature or fix (TDD + YAML task list)</td></tr>
+<tr><td><code>godmode:systematic-debugging</code></td><td>Any bug, test failure, unexpected behavior</td></tr>
+<tr><td><code>godmode:brainstorm</code></td><td>Before any creative or design work</td></tr>
+<tr><td><code>godmode:writing-plans</code></td><td>Multi-step task with a spec or requirements</td></tr>
+<tr><td><code>godmode:verification-before-completion</code></td><td>Before claiming work is done</td></tr>
+<tr><td><code>godmode:task-management</code></td><td>Creating, tracking, executing a task graph</td></tr>
+<tr><td><code>godmode:parallel-agents</code></td><td>2+ independent tasks to run concurrently</td></tr>
+<tr><td><code>godmode:code-review</code></td><td>Quality pass before merge</td></tr>
+<tr><td><code>godmode:refactoring</code></td><td>Restructure code without changing behaviour</td></tr>
+<tr><td><code>godmode:receiving-review</code></td><td>Process incoming review feedback</td></tr>
+<tr><td><code>godmode:cap</code></td><td>Commit and push with validation</td></tr>
+<tr><td><code>godmode:ci-fix</code></td><td>Fix a failing CI pipeline</td></tr>
+<tr><td><code>godmode:tackle-issues</code></td><td>Work GitHub issues in parallel worktrees</td></tr>
+<tr><td><code>godmode:testing-philosophy</code></td><td>Choose the right test type for the situation</td></tr>
+<tr><td><code>godmode:introspection</code></td><td>Audit skills and plugin files for consistency</td></tr>
+<tr><td><code>godmode:observability-as-infrastructure</code></td><td>Query and tail the session trace log</td></tr>
+<tr><td><code>godmode:wave-integration</code></td><td>Merge parallel agent branches into one commit</td></tr>
+<tr><td><code>godmode:moa</code></td><td>Multi-model reasoning via mixture of agents</td></tr>
+<tr><td><code>godmode:todo-issue-sync</code></td><td>Audit inline TODOs and sync to GitHub issues</td></tr>
+<tr><td><code>godmode:self-reflect</code></td><td>Session retrospective — patterns and surprises</td></tr>
+<tr><td><code>godmode:decompose</code></td><td>Break a large diff/PR into smaller independent PRs</td></tr>
+<tr><td><code>godmode:merge</code></td><td>Merge branches, resolve conflicts, create PRs</td></tr>
+<tr><td><code>godmode:agent-governance</code></td><td>Governance and trust controls for AI agent systems</td></tr>
+<tr><td><code>godmode:context-map</code></td><td>Map all files relevant to a task before changes</td></tr>
+<tr><td><code>godmode:doublecheck</code></td><td>Three-layer verification of AI-generated output</td></tr>
+<tr><td><code>godmode:rust-conventions</code></td><td>Rust coding conventions and best practices</td></tr>
+<tr><td><code>godmode:mini-context-graph</code></td><td>Persistent knowledge graph for codebase exploration</td></tr>
+<tr><td><code>godmode:memory-banking</code></td><td>Generate and maintain .ctx/memory-bank/ context</td></tr>
+<tr><td><code>godmode:crs-hook-testing</code></td><td>Coursers rule lifecycle: author → validate → probe → observe → refine</td></tr>
+</tbody>
+</table>
+</div>
+
+        <h3 id="agents">Agents</h3>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Agent</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>gm-crate</code></td><td>TDD implementation in a single Rust crate</td></tr>
+<tr><td><code>gm-tdd-helper</code></td><td>Strict TDD — failing test before implementation</td></tr>
+<tr><td><code>gm-dispatch</code></td><td>Parallel dispatch of independent task chains</td></tr>
+<tr><td><code>gm-wave</code></td><td>Merge parallel agent branches into main</td></tr>
+<tr><td><code>gm-debug</code></td><td>Systematic debugging — root cause before fix</td></tr>
+<tr><td><code>gm-brainstorm</code></td><td>Design and architecture specialist</td></tr>
+<tr><td><code>gm-planner</code></td><td>Convert approved designs into implementation plans</td></tr>
+<tr><td><code>gm-orchestrator</code></td><td>Planning and TDD workflow orchestrator</td></tr>
+<tr><td><code>gm-tasker</code></td><td>Task graph management and session progress</td></tr>
+<tr><td><code>gm-verify</code></td><td>Verification gate before completion claims</td></tr>
+<tr><td><code>gm-refactor</code></td><td>Refactoring with strict test discipline</td></tr>
+<tr><td><code>gm-review</code></td><td>Process incoming code review feedback</td></tr>
+<tr><td><code>gm-code-review</code></td><td>Structured quality pass before merge</td></tr>
+<tr><td><code>gm-cap</code></td><td>Commit and push with cargo gates</td></tr>
+<tr><td><code>gm-ci-fix</code></td><td>CI failure diagnosis and repair</td></tr>
+<tr><td><code>gm-issues</code></td><td>Dispatch GitHub issues to parallel agents</td></tr>
+<tr><td><code>gm-orient</code></td><td>Godmode orientation and help</td></tr>
+<tr><td><code>gm-testing</code></td><td>Test strategy advisor (read-only)</td></tr>
+<tr><td><code>gm-trace</code></td><td>Session trace analysis (read-only)</td></tr>
+<tr><td><code>gm-introspection</code></td><td>Plugin audit and conformance checks</td></tr>
+<tr><td><code>gm-moa</code></td><td>Mixture-of-Agents synthesis</td></tr>
+<tr><td><code>valerie</code></td><td>Task and todo management specialist</td></tr>
+</tbody>
+</table>
+</div>
+
+        <h3 id="session">Session</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode handon      # triage at session start — prints running, n...</span></div>
+  <pre><span class="prompt">$</span> godmode handon      # triage at session start — prints running, next, blocked
+godmode handoff     # validate at session end — warns on tasks left running
+</pre>
+</div>
+
+        <h3 id="task-graph">Task graph</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode task list</span></div>
+  <pre><span class="prompt">$</span> godmode task list
+godmode task add &lt;title&gt; [--id &lt;id&gt;] [--depends-on t1,t2] [--crate-name &lt;crate&gt;] \
+  [--notes &lt;text&gt;] [--run &lt;command&gt;] [--priority high|normal|low] [--tag &lt;tag&gt;]...
+godmode task start &lt;id&gt;
+godmode task done &lt;id&gt; [--commit &lt;sha&gt;] [--notes &lt;text&gt;]
+godmode task block &lt;id&gt; &lt;reason&gt;
+godmode task unblock &lt;id&gt;
+godmode task remove &lt;id&gt;
+godmode task clear --done           # prune completed tasks
+godmode task clear --all            # reset graph entirely
+godmode task next                   # show next runnable task(s)
+godmode task run &lt;id&gt; [--auto-done] # run task's run: command; --auto-done marks done on exit 0
+godmode task pull [--project &lt;name&gt;] # import pending doob todos as tasks
+godmode task push-done               # mark completed tasks done in doob
+</pre>
+</div>
+
+        <h3 id="github-todo-synchronization">GitHub TODO synchronization</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode issue sync-todos --preview [--repo owner/repo]          #...</span></div>
+  <pre><span class="prompt">$</span> godmode issue sync-todos --preview [--repo owner/repo]          # preview only
+godmode issue sync-todos --apply [--repo owner/repo]  # create missing issues, resumably
+</pre>
+</div>
+<p>The command fingerprints source TODO comments, checks every open issue page, and persists
+progress after each creation so interrupted apply runs can be resumed safely.</p>
+
+        <h3 id="skill-evaluations">Skill evaluations</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode eval run &lt;skill&gt; --results &lt;fixture.json&gt; [--repeat 3] [-...</span></div>
+  <pre><span class="prompt">$</span> godmode eval run &lt;skill&gt; --results &lt;fixture.json&gt; [--repeat 3] \
+  [--max-cases 100] [--max-cost-usd 1.0]
+godmode eval compare &lt;skill&gt;
+godmode eval promote &lt;skill&gt; [--min-pass-rate 0.8] [--max-cost-usd 1.0]
+godmode eval status &lt;skill&gt; [--min-pass-rate 0.8] [--max-cost-usd 1.0]
+</pre>
+</div>
+<p>Runs are stored under <code>.ctx/godmode/evaluations/</code>; promotion records the latest gated run as
+the baseline. Model-backed adapters implement the core <code>EvalExecutor</code> port; the bundled fixture
+executor is deterministic and incurs no network or model cost.</p>
+
+        <h3 id="status">Status</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode status                      # counts + next runnable, no ...</span></div>
+  <pre><span class="prompt">$</span> godmode status                      # counts + next runnable, no external calls
+</pre>
+</div>
+
+        <h3 id="plan-ingestion">Plan ingestion</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode plan ingest docs/plans/2026-05-01-my-feature.md</span></div>
+  <pre><span class="prompt">$</span> godmode plan ingest docs/plans/2026-05-01-my-feature.md
+</pre>
+</div>
+<p>Parses <code>### Task N: &lt;title&gt;</code> headings, optional **Crate**: <code>name</code> and **Run**: <code>cmd</code> annotations. Builds sequential deps automatically. Idempotent —
+re-running a plan skips existing task IDs silently.</p>
+
+        <h3 id="parallel-dispatch">Parallel dispatch</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode dispatch [--max 5]</span></div>
+  <pre><span class="prompt">$</span> godmode dispatch [--max 5]
+</pre>
+</div>
+<p>Emits a JSON array of independent task chains for parallel agent dispatch. Each chain
+targets one crate. Cap defaults to 5 (API rate limit). Feed this output to
+<code>godmode:parallel-agents</code>.
+
+Example output:</p>
+<pre><code>[
+  { &quot;crate_name&quot;: &quot;godmode-core&quot;, &quot;tasks&quot;: [&quot;t1&quot;, &quot;t2&quot;] },
+  { &quot;crate_name&quot;: &quot;godmode-cli&quot;, &quot;tasks&quot;: [&quot;t3&quot;] }
+]
+</code></pre>
+
+        <h3 id="task-file">Task File</h3>
+<p><code>.ctx/godmode/tasks.yaml</code> — ephemeral, gitignored. Schema:</p>
+<pre><code>tasks:
+  - id: t1
+    title: &quot;Write failing test for FooAdapter&quot;
+    status: done # pending | running | done | blocked
+    depends_on: []
+    crate_name: foo-core
+    commit: abc1234
+    notes: &quot;test confirmed failing then green&quot;
+    completed: 2026-05-01
+
+  - id: t2
+    title: &quot;Implement FooAdapter&quot;
+    status: pending
+    depends_on: [t1]
+    crate_name: foo-core
+    notes: &quot;&quot;
+</code></pre>
+
+        <h3 id="workflow">Workflow</h3>
+<pre><code>brainstorm → writing-plans → plan ingest → handon
+  → task next → task start → [tdd] → task done → task next → ...
+  → dispatch (parallel chains) → parallel-agents
+  → verification-before-completion → handoff
+</code></pre>
+
+        <h3 id="commands">Commands</h3>
+<p>Slash commands live in <code>commands/gm/</code> and map to skills or multi-skill workflows. Invoked
+from the Claude Code command palette (e.g. <code>/gm:cap</code>, <code>/gm:tdd</code>, <code>/gm:feature</code>).
+
+**Atomic** (single skill): <code>cap</code>, <code>tdd</code>, <code>debug</code>, <code>refactor</code>, <code>review-code</code>, <code>ci-fix</code>,
+<code>self-heal</code>, <code>plan</code>, <code>tackle-issues</code>, <code>moa-review</code>, <code>preflight</code>, <code>handon</code>, <code>handoff</code>,
+<code>fresh-branch</code>, <code>introspect</code>, <code>dispatch-all</code>, <code>auth-fail-fast</code>, <code>test-fix-commit</code>, <code>trace</code>
+
+**Workflow** (multi-skill pipelines):</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Command</th><th>Pipeline</th></tr>
+</thead>
+<tbody>
+<tr><td><code>brainstorm</code></td><td>brainstorm → design</td></tr>
+<tr><td><code>ideate</code></td><td>repo scan → gap analysis → brainstorm</td></tr>
+<tr><td><code>feature</code></td><td>brainstorm → design → writing-plans → tdd → verify → cap</td></tr>
+<tr><td><code>ship</code></td><td>verification → changelog → release-notes → cap</td></tr>
+<tr><td><code>release</code></td><td>readiness-check → impact → bump → changelog → release-notes → cap</td></tr>
+<tr><td><code>audit</code></td><td>health-score → dead-code → dep-audit → mistake-tracker → repo-gap-backlog</td></tr>
+<tr><td><code>pr</code></td><td>code-review → doublecheck → pr-author → merge</td></tr>
+<tr><td><code>review-incoming</code></td><td>receiving-review → verify → cap</td></tr>
+<tr><td><code>deps</code></td><td>dep-audit → dep-bump → cap</td></tr>
+<tr><td><code>session-end</code></td><td>whatidid → self-reflect → mistake-tracker → memory-banking → session-wrap</td></tr>
+<tr><td><code>improve-agent</code></td><td>self-reflect → pattern-learner → agent-improvement-loop → agents-skill-save</td></tr>
+<tr><td><code>context</code></td><td>context-map → memory-banking → mini-context-graph</td></tr>
+</tbody>
+</table>
+</div>
+<p>See <code>commands/gm/README.md</code> for the full reference.</p>
+
+        <h3 id="helpers">Helpers</h3>
+<p>Helper scripts live in <code>skills/&lt;skill&gt;/helpers/</code>. Shared utilities are in <code>skills/_lib/</code>:</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Module</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>helpers.nu</code></td><td><code>repo-root</code>, <code>run-checked</code>, <code>cargo-gate</code>, <code>assert-not-main</code></td></tr>
+<tr><td><code>trace.nu</code></td><td>Structured JSONL trace events (skill.start/complete/error)</td></tr>
+</tbody>
+</table>
+</div>
+<p>The <code>task-driven-development</code> skill ships a standalone <code>rust-script</code> helper:</p>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Script</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>skills/task-driven-development/helpers/task-runner.rs</code></td><td>Phase runner: init / red / green / refactor / next / status / fail / close-issues</td></tr>
+</tbody>
+</table>
+</div>
+<p>Trace output lands in <code>.ctx/godmode/traces/trace.jsonl</code>. Use <code>godmode:observability-as-infrastructure</code>
+to query it.</p>
+
+        <h3 id="session-tracing">Session tracing</h3>
+<p>Two hooks emit session lifecycle events automatically:
+
+- <code>hooks/scripts/session-start.nu</code> (SessionStart) — writes <code>session.start</code> to the trace
+- <code>hooks/scripts/stop-guard.nu</code> (Stop) — writes <code>session.end</code> on clean exit
+
+Both delegate to <code>hooks/scripts/godmode-trace.rs</code> (a <code>rust-script</code> binary) which owns all
+trace I/O. A fresh <code>session_id</code> (<code>&lt;git-sha&gt;-&lt;epoch-ms&gt;</code>) is generated each session and
+persisted to <code>.ctx/godmode/session.json</code>. The session file is read by <code>session.end</code> to
+correlate the pair. Both hooks degrade silently if not in a git repo or if <code>rust-script</code>
+is unavailable.</p>
+
+        <h3 id="development">Development</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">cargo fmt --all --check</span></div>
+  <pre><span class="prompt">$</span> cargo fmt --all --check
+cargo clippy --workspace -- -D warnings
+cargo nextest run --workspace --all-features
+cargo check --workspace
+</pre>
+</div>
+
+        <h3 id="license">License</h3>
+<p>MIT OR Apache-2.0</p>
+
+        <h3 id="further-reading">Further reading</h3>
+        <ul>
+          <li><code>docs/aichat-system.md</code></li>
+          <li><code>docs/plan-review-release.md</code></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

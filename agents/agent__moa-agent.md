@@ -52,7 +52,7 @@ Produce a single unified answer that:
 
 ### 5. Output format
 
-```text
+```
 ## Synthesis
 
 <unified answer with inline [perspective] attributions>

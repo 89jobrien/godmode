@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html" aria-current="page">Overview</a>
+      <a href="guide.html">Guide</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="features.html">Features</a>
+      <a href="cli.html">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="overview" class="reveal">
+        <h2>Overview</h2>
+        <p>Self-contained Rust-native development methodology plugin for Claude Code.</p>
+        <div class="stat-strip">
+          <div class="stat">
+            <span class="n">4</span>
+            <span class="d">workspace crates</span>
+          </div>
+          <div class="stat">
+            <span class="n">3</span>
+            <span class="d">binaries</span>
+          </div>
+          <div class="stat">
+            <span class="n">2</span>
+            <span class="d">libraries</span>
+          </div>
+          <div class="stat">
+            <span class="n">5</span>
+            <span class="d">cargo features</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Crate</th><th>Version</th><th>Targets</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>godmode-core</code></td>
+                <td>0.7.0</td>
+                <td>lib `godmode_core`</td>
+              </tr>
+              <tr>
+                <td><code>godmode-cli</code></td>
+                <td>0.7.0</td>
+                <td>`godmode`</td>
+              </tr>
+              <tr>
+                <td><code>godmode-conformance</code></td>
+                <td>0.7.0</td>
+                <td>`run-conformance`, lib `godmode_conformance`</td>
+              </tr>
+              <tr>
+                <td><code>xtask</code></td>
+                <td>0.1.0</td>
+                <td>`xtask`</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">
+          Every figure on this site is read from <code>cargo metadata</code> at
+          build time, so it cannot drift from the workspace.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

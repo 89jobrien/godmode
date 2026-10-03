@@ -7,19 +7,41 @@ Read local memory: @`.claude.local.md`
 
 ## Build & Test
 
-```bash
-cargo run -p godmode-conformance --bin run-conformance -- --verbose  # run conformance suite
-cargo test -p godmode-conformance                                     # property tests
-cargo bench -p godmode-conformance                                    # criterion benchmarks
-cargo build --workspace
-cargo check --workspace
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace          # preferred
-cargo test --workspace                 # fallback
-cargo fmt --all --check                # format check
-just conformance                       # plugin structure + subcommand + consistency checks
+All gates go through `taskit` — never invoke `cargo` directly.
 
-# Run a single test
+```bash
+taskit check quick                          # fast loop: fmt-check + lint + affected-crate tests
+taskit check ci                             # full local CI, summary table
+taskit check lint                           # clippy, -D warnings, all targets
+taskit check lint --crate-name godmode-core # one crate
+taskit check fmt --check                    # format check
+taskit check fmt                            # format
+taskit check compile                        # compile test binaries without running
+taskit test run                             # nextest, workspace
+taskit test run --crate-name godmode-core   # one crate
+taskit test coverage                        # coverage with threshold
+taskit test proptest --crate-name godmode-conformance
+taskit test bench --crate-name godmode-conformance
+taskit protocol audit                       # cargo-deny: advisories, licenses, bans
+taskit protocol freshness                   # outdated dependency check
+taskit check pre-commit                     # what the pre-commit hook runs
+
+just conformance                            # plugin structure + subcommand + consistency checks
+```
+
+`taskit` auto-discovers the workspace from `Cargo.toml`, so no `taskit.toml` is required.
+This table is a reference for ad-hoc runs — do not run these before committing or pushing,
+because the global git hooks already gate format, clippy, and tests.
+
+### Commands with no taskit equivalent
+
+Keep `cargo` for these — taskit exposes no wrapper, and neither is a quality gate:
+
+```bash
+# Binary execution
+cargo run -p godmode-conformance --bin run-conformance -- --verbose   # conformance suite
+
+# Single-test filter (no passthrough on `taskit test run`)
 cargo nextest run -E 'test(runnable_returns_tasks)'
 cargo test -p godmode-core runnable_returns_tasks
 ```
@@ -27,7 +49,7 @@ cargo test -p godmode-core runnable_returns_tasks
 ## Install the CLI
 
 ```bash
-cargo build --release -p godmode-cli && cp target/release/godmode ~/.cargo/bin/godmode
+taskit dev build --release && cp target/release/godmode ~/.cargo/bin/godmode
 ```
 
 Note: `which godmode` resolves to `~/.cargo/bin/`, not `~/.local/bin/`. Always copy to
@@ -298,11 +320,11 @@ cause validation failure on `claude plugin install`.
 - `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
 - `dispatch --critical-path` shows the critical path tasks; `godmode status` also surfaces it.
-- Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.
+- Pre-commit hook runs `taskit check fmt --check` and fails the commit on drift — it checks but
+  does not fix. A PostToolUse hook runs fmt on edited `.rs` files but does NOT auto-stage; run
+  `taskit check fmt` then `git add` the reformatted files, or the pre-commit check still fails.
 - `plan::parse` returns `Result<Vec<Task>>`, not `Vec<Task>` — always match/unwrap the Result.
 - `dispatch::independent_chains(graph, max)` returns `Vec<Chain>` — not `build_slots`.
-- `cargo fmt` PostToolUse hook runs automatically but does NOT auto-stage; run `cargo fmt --all`
-  then `git add` again before committing or the pre-commit check will still fail.
 - `tests/conformance/` is a workspace member (`-p godmode-conformance`); add new test modules
   in `src/`, register in `lib.rs::all_tests()`, and add `pub mod` to `lib.rs`.
 - `Task::started_at` is set by `Session::start_task`, not `graph::start` — duration tracking
@@ -312,9 +334,12 @@ cause validation failure on `claude plugin install`.
 
 ## Rust Conventions
 
-- Run `cargo check --workspace` before committing.
-- Fix clippy warnings proactively — treat `-D warnings` as the standard.
-- Run `cargo test` (or `cargo nextest run`) if test files were modified.
+- Gates go through `taskit` — never invoke `cargo` directly.
+- Do NOT run gates by hand before committing or pushing. The global git hooks run format
+  check, clippy on affected crates, tests, and the secret scan. Fix what a hook reports.
+- A format failure is the one case the hook detects but does not fix: run `taskit check fmt`
+  then `git add` the reformatted files.
+- Clippy runs with `-D warnings`; fix warnings proactively rather than suppressing them.
 - Do not investigate rust-analyzer or IDE diagnostics unless explicitly asked — they are often
   stale.
 

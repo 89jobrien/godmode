@@ -73,15 +73,15 @@ is `crux`. Use `use crux::prelude::*;` in downstream code.
 
 ```bash
 just ci              # Full gate: fmt + clippy + nextest
-just test            # cargo nextest run
-just lint            # cargo clippy --all-targets -- -D warnings
-just fmt             # cargo fmt --all -- --check
-just fix             # cargo fmt --all (in-place)
+just test            # taskit test run
+just lint            # taskit check lint
+just fmt             # taskit check fmt --check
+just fix             # taskit check fmt (in-place)
 just build           # cargo build --all-targets
 just check-baml      # Validate BAML version parity
 ```
 
-Always use `cargo nextest run` instead of `cargo test`.
+Always use `taskit test run` instead of `taskit test run`.
 
 ## Adding Crux as a Dependency
 

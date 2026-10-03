@@ -36,7 +36,7 @@ Parse the log output and categorize each failure:
 
 ### Clippy failures
 
-Pattern: `error[E...]` or `error: ...` from `cargo clippy`
+Pattern: `error[E...]` or `error: ...` from `taskit check lint`
 
 Common auto-fixable:
 
@@ -47,13 +47,13 @@ Common auto-fixable:
 
 Run: `cargo clippy --fix --allow-dirty --workspace -- -D warnings`
 
-Then verify: `cargo clippy --workspace -- -D warnings`
+Then verify: `taskit check lint`
 
 ### Format failures
 
 Pattern: `cargo fmt -- --check` failed
 
-Fix: `cargo fmt --all`
+Fix: `taskit check fmt`
 
 ### Test failures
 
@@ -77,7 +77,7 @@ These require manual investigation. Read the error, find the file, explain what'
 For auto-fixable issues:
 
 1. Run the fix command
-2. Verify with `cargo clippy --workspace -- -D warnings` or `cargo fmt --all --check`
+2. Verify with `taskit check lint` or `taskit check fmt --check`
 3. Stage the changes: `git add -A`
 
 For snapshot issues:
@@ -109,7 +109,7 @@ CI Triage: main (run #12345678)
 ## Known devloop-specific issues
 
 - `collapsible_if` in Rust edition 2024: use let-chain syntax, not nested `if let`
-- `_DEVLOOP_OP_WRAPPED=1` must prefix `cargo nextest` to avoid 1Password prompts
+- `_DEVLOOP_OP_WRAPPED=1` must prefix `taskit test run` to avoid 1Password prompts
 - Snapshot tests in `.worktrees/` paths always fail — do NOT add to nextest exclusions
 - BAML client drift: if `baml_source_map.rs` compile errors, regenerate client
 

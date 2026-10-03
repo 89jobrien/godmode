@@ -81,4 +81,4 @@ Never combine two patterns in one step:
 2. Extract → verify green → decouple
 3. Decouple → verify green → add trait
 
-Each step = one commit, one `cargo nextest run`.
+Each step = one commit, one `taskit test run`.

@@ -26,7 +26,7 @@ the strongest possible case for caution, rejection, or constraint.
 
 ## Output format
 
-```text
+```
 SKEPTIC POSITION
 ================
 <Your full critique>

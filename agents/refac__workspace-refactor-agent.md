@@ -107,7 +107,7 @@ If the user asks you to execute the migration across all repos:
 3. Each subagent:
    - Clones the repo (or ensures fresh state)
    - Applies the migration according to the checklist
-   - Runs `cargo check` to verify no build errors
+   - Runs `taskit check compile` to verify no build errors
    - Commits the change with a descriptive message
    - Reports success or failure back to you
 
@@ -150,3 +150,6 @@ After all subagents finish:
   dispatching any subagents.
 - **Collect results.** A subagent that leaves a worktree unmerged or a commit
   uncommitted has not completed its task.
+  Never dispatch more than 5 subagents concurrently. Worktree agents commit and report their
+  branch/SHA; they do not merge or remove worktrees. Delegate sequential `git merge --no-ff`
+  integration and cleanup to wave integration.

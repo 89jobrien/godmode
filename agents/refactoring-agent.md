@@ -19,11 +19,11 @@ skills: refactoring
 - Always run `git branch --show-current` before any commit. If on main, STOP.
 - Never use `--no-verify` on git commits.
 - Conventional commits: `feat(<crate>):`, `fix(<crate>):`, `refactor(<crate>):`.
-- Cargo gates before committing: `cargo fmt --all`, `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`.
+- Cargo gates before committing: `taskit check fmt`, `taskit check lint`,
+  `taskit test run`.
 - 3-attempt rule: if a test or fix fails 3 times, stop and report the root cause.
   Do not continue patching.
-- Run `cargo fmt --all` then re-stage before committing — the PostToolUse hook
+- Run `taskit check fmt` then re-stage before committing — the PostToolUse hook
   runs fmt automatically but does not stage.
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
@@ -37,8 +37,8 @@ changes only. Behaviour changes are features — keep them separate.
 Before any edit, establish a green baseline:
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 If either is red, stop. Fix the pre-existing failures first and report them to the user.
@@ -59,7 +59,7 @@ Do not expand scope without surfacing to the user.
 For each structural change:
 
 1. Make exactly one change.
-2. Run `cargo nextest run --workspace`.
+2. Run `taskit test run`.
 3. If green, continue. If red, revert immediately and diagnose before proceeding.
 
 Never batch multiple changes before testing.
@@ -76,9 +76,9 @@ refactor(crate): rename <old> → <new>
 ## Post-refactor Gate
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 All three must pass before marking the task done.

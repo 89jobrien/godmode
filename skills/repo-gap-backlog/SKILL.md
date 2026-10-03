@@ -20,7 +20,7 @@ ls -la
 rg -n "TODO|FIXME|WIP|TBD|XXX|not implemented|unimplemented!|panic!\(|todo!\(" . --glob '!target' --glob '!.git'
 
 # 2. Read the product surface and verify the code actually works
-cargo test
+taskit test run
 ./target/debug/<bin-name> --help
 ./target/debug/<bin-name> <subcommand> --help
 

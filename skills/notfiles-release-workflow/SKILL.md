@@ -20,9 +20,9 @@ Use this after `rust-release-workflow-author` when the target repo is `notfiles`
 - Test-only workspace member to exclude from version bumps:
   - `integration`
 - Validation gates expected before tag push:
-  - `cargo fmt --all --check`
-  - `cargo clippy --workspace --all-targets -- -D warnings`
-  - `cargo nextest run --workspace`
+  - `taskit check fmt --check`
+  - `taskit check lint`
+  - `taskit test run`
 
 ## Commands
 

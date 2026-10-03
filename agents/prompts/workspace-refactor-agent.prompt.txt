@@ -94,7 +94,7 @@ If the user asks you to execute the migration across all repos:
 3. Each subagent:
    - Clones the repo (or ensures fresh state)
    - Applies the migration according to the checklist
-   - Runs `cargo check` to verify no build errors
+   - Runs `taskit check compile` to verify no build errors
    - Commits the change with a descriptive message
    - Reports success or failure back to you
 

@@ -14,9 +14,9 @@ All four must pass. Do not claim done until they do.
 ## Workspace Gate
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit test run
+taskit check lint
+taskit check fmt --check
 ```
 
 ## Subagent Verification
@@ -25,7 +25,7 @@ Never trust a subagent's self-report. After any subagent claims completion:
 
 ```bash
 git log --oneline -5          # commits must exist
-cargo nextest run --workspace # must pass independently
+taskit test run # must pass independently
 ```
 
 Empty commit log = subagent did not finish.
@@ -35,7 +35,7 @@ Empty commit log = subagent did not finish.
 | Claim            | What to verify                               |
 | ---------------- | -------------------------------------------- |
 | "Tests pass"     | Run them now — not earlier, not cached       |
-| "Clippy clean"   | Run `cargo clippy -- -D warnings`            |
+| "Clippy clean"   | Run `taskit check lint`                      |
 | "It's committed" | Run `git log --oneline -3`                   |
 | "Fix is in"      | Read the diff — is the change actually there |
 | "Should work"    | Run it and confirm the output                |
@@ -45,5 +45,5 @@ Empty commit log = subagent did not finish.
 A command that exits 0 is not sufficient evidence. Check:
 
 - Did it actually run the test suite? (0 tests = 0 failures ≠ passing)
-- Did `cargo check` succeed but `cargo test` wasn't run?
+- Did `taskit check compile` succeed but `taskit test run` wasn't run?
 - Is the crate filter correct (`-p <crate>`)?

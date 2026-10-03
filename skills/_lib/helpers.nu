@@ -56,11 +56,18 @@ export def cargo-gate [trace_id: string, --crate: string = ""] {
     }
 }
 
-# Run only cargo check + nextest (lighter gate — no fmt/clippy).
+# Lighter gate: compile + tests, no fmt/clippy. Used where a full gate is not wanted.
+# Workspace form maps 1:1 onto taskit. The crate-scoped compile check has no taskit
+# equivalent (`taskit check compile` is workspace-wide with no --crate-name), so that
+# one branch still shells out to cargo.
 export def cargo-test-gate [trace_id: string, --crate: string = ""] {
-    let pkg = if ($crate | is-empty) { ["--workspace"] } else { ["-p" $crate] }
-    run-checked $trace_id "cargo" "check" ...$pkg
-    run-checked $trace_id "cargo" "nextest" "run" ...$pkg
+    if ($crate | is-empty) {
+        run-checked $trace_id "taskit" "check" "compile"
+        run-checked $trace_id "taskit" "test" "run"
+    } else {
+        run-checked $trace_id "cargo" "check" "-p" $crate
+        run-checked $trace_id "taskit" "test" "run" "--crate-name" $crate
+    }
 }
 
 # ---------------------------------------------------------------------------

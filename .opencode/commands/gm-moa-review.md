@@ -9,8 +9,8 @@ subtask: false
 - For audit-only requests, report findings without modifying files.
 - When remediation is requested, apply ALL severity levels in one pass before
   committing. Do not commit after fixing only blocking issues.
-- After fixes, run `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, and `cargo fmt --all --check`.
+- After fixes, run `taskit check lint`,
+  `taskit test run`, and `taskit check fmt --check`.
 - After 3 failed fix attempts, write `BLOCKED.md` and stop.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
@@ -51,7 +51,7 @@ File: `.ctx/review/03-test-coverage.md`
 File: `.ctx/review/04-blast-radius.md`
 - For every changed public function, list all callers across the workspace
 - Flag callers that may be broken by signature or behaviour changes
-- Run `cargo check --workspace` and capture any compilation errors
+- Run `taskit check compile` and capture any compilation errors
 
 **Lens 5 — Documentation accuracy**
 File: `.ctx/review/05-docs.md`
@@ -83,7 +83,7 @@ Each agent:
 1. Verifies branch with `git branch --show-current` before any commit
 2. Writes a failing test for the finding first
 3. Implements the fix to make the test pass
-4. Runs `cargo clippy --workspace -- -D warnings` — zero warnings
+4. Runs `taskit check lint` — zero warnings
 5. Commits: `fix(<crate>): <finding summary> [moa-review]`
 6. Reports commit SHA and test name
 

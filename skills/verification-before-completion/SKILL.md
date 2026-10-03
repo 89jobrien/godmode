@@ -31,15 +31,15 @@ Before saying any task is done:
 ```bash
 cargo nextest run -p <crate>              # all tests green
 cargo clippy -p <crate> -- -D warnings   # zero warnings
-cargo fmt --check                         # no formatting diff
+taskit check fmt --check                         # no formatting diff
 git log --oneline -3                      # commits present
 ```
 
 For workspace-level completion:
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 ## Red Flags — You Are About to Lie

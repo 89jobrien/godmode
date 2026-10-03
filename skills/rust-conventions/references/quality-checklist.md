@@ -8,9 +8,9 @@ Before submitting any Rust code:
 - [ ] All public items have `///` rustdoc with at least one sentence
 - [ ] Tests cover the happy path and at least one failure/edge case
 - [ ] No `unsafe` without a `// SAFETY:` comment explaining the invariant
-- [ ] `cargo fmt --all` — no format diff
-- [ ] `cargo clippy -- -D warnings` — zero warnings
-- [ ] `cargo nextest run` — all green
+- [ ] `taskit check fmt` — no format diff
+- [ ] `taskit check lint` — zero warnings
+- [ ] `taskit test run` — all green
 - [ ] No dead code, unused imports, or commented-out blocks
 
 ## Common Clippy Lints to Watch

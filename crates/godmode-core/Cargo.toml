@@ -1,9 +1,15 @@
 [package]
 name = "godmode-core"
+description = "Core library for godmode: task graphs, session state, dispatch, and Claude Code plugin integrations."
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/godmode-core"
+readme = "README.md"
+keywords = ["task-graph", "agent", "workflow", "claude", "automation"]
+categories = ["development-tools"]
 
 [lib]
 name = "godmode_core"

@@ -4,8 +4,8 @@ Use this before and after every refactoring pass.
 
 ## Before Starting
 
-- [ ] `cargo nextest run --workspace` — baseline is green
-- [ ] `cargo clippy --workspace -- -D warnings` — baseline is clean
+- [ ] `taskit test run` — baseline is green
+- [ ] `taskit check lint` — baseline is clean
 - [ ] Scope stated: which file(s), which pattern, why
 - [ ] No behaviour changes smuggled in
 
@@ -14,14 +14,14 @@ Use this before and after every refactoring pass.
 For each structural change:
 
 - [ ] Edit code
-- [ ] `cargo nextest run --workspace` — still green
+- [ ] `taskit test run` — still green
 - [ ] If red: revert immediately, diagnose, then retry
 
 ## After
 
 - [ ] All tests still pass with identical outcomes
 - [ ] No new public API surface unless explicitly approved
-- [ ] `cargo fmt --all --check` — no formatting diff
+- [ ] `taskit check fmt --check` — no formatting diff
 - [ ] `godmode:code-review` run on your own diff
 - [ ] One commit per logical change (not one giant refactor commit)
 

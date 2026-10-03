@@ -4,25 +4,25 @@
 
 print "[rust-conventions] Running quality gate..."
 
-let fmt = do { cargo fmt --all --check } | complete
+let fmt = do { taskit check fmt --check } | complete
 if $fmt.exit_code != 0 {
-    print "[FAIL] cargo fmt — run `cargo fmt --all` to fix"
+    print "[FAIL] taskit check fmt --check — run `taskit check fmt` to fix"
     exit 1
 }
-print "[PASS] cargo fmt"
+print "[PASS] taskit check fmt"
 
-let clippy = do { cargo clippy --workspace -- -D warnings } | complete
+let clippy = do { taskit check lint } | complete
 if $clippy.exit_code != 0 {
-    print $"[FAIL] cargo clippy:\n($clippy.stderr)"
+    print $"[FAIL] taskit check lint:\n($clippy.stderr)"
     exit 1
 }
-print "[PASS] cargo clippy"
+print "[PASS] taskit check lint"
 
-let test = do { cargo nextest run --workspace } | complete
+let test = do { taskit test run } | complete
 if $test.exit_code != 0 {
-    print $"[FAIL] cargo nextest:\n($test.stdout)"
+    print $"[FAIL] taskit test run:\n($test.stdout)"
     exit 1
 }
-print "[PASS] cargo nextest"
+print "[PASS] taskit test run"
 
 print "[rust-conventions] All checks passed."

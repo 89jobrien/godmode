@@ -3,7 +3,7 @@ version: 1.0.0
 description: |
   Shared dependency bump propagator. Use when a workspace crate version is
   bumped and downstream repos need updating. Finds all Cargo.toml files across
-  ~/dev/ that pin the old version, updates them, runs cargo check, and reports
+  ~/dev/ that pin the old version, updates them, runs taskit check compile, and reports
   pass/fail per repo.
 triggers: []
 model: inherit

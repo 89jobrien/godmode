@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # split-branch.nu — Creates a split branch from a source branch, stages the specified files,
-# verifies with cargo check + nextest, and commits.
+# verifies with taskit check compile + nextest, and commits.
 #
 # Usage:
 #   nu split-branch.nu \
@@ -64,20 +64,20 @@ def main [
         }
     }
 
-    # Verify: cargo check
-    let check = do { cargo check --workspace } | complete
+    # Verify: taskit check compile
+    let check = do { taskit check compile } | complete
     if $check.exit_code != 0 {
         git checkout $base
         git branch -D $branch
-        error make { msg: $"cargo check failed for split ($split_id):\n($check.stderr)" }
+        error make { msg: $"taskit check compile failed for split ($split_id):\n($check.stderr)" }
     }
 
     # Verify: nextest (scoped to affected crates if possible)
-    let test = do { cargo nextest run --workspace } | complete
+    let test = do { taskit test run } | complete
     if $test.exit_code != 0 {
         git checkout $base
         git branch -D $branch
-        error make { msg: $"cargo nextest failed for split ($split_id):\n($test.stderr)" }
+        error make { msg: $"taskit test run failed for split ($split_id):\n($test.stderr)" }
     }
 
     # Commit

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core crates</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html">Overview</a>
+      <a href="guide.html">Guide</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html" aria-current="page">Crates</a>
+      <a href="features.html">Features</a>
+      <a href="cli.html">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="crates" class="reveal">
+        <h2>Crates</h2>
+        <p>Every package in the workspace, with what it depends on inside it.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Crate</th><th>Version</th><th>Workspace deps</th><th>External deps</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>godmode-core</code></td>
+                <td>0.7.0</td>
+                <td>&mdash;</td>
+                <td>22</td>
+              </tr>
+              <tr>
+                <td><code>godmode-cli</code></td>
+                <td>0.7.0</td>
+                <td><code>godmode-core</code></td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td><code>godmode-conformance</code></td>
+                <td>0.7.0</td>
+                <td><code>godmode-core</code></td>
+                <td>13</td>
+              </tr>
+              <tr>
+                <td><code>xtask</code></td>
+                <td>0.1.0</td>
+                <td>&mdash;</td>
+                <td>1</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

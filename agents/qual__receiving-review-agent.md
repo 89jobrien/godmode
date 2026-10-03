@@ -35,7 +35,7 @@ Classify each comment as:
 ## Step 3: Green baseline
 
 ```bash
-cargo nextest run --workspace
+taskit test run
 ```
 
 If red before your changes, fix and flag pre-existing failures separately.
@@ -54,7 +54,7 @@ For each fix, apply TDD discipline:
 
 All review fixes go in one commit:
 
-```text
+```
 fix(crate): address PR review — <brief summary>
 ```
 
@@ -63,9 +63,9 @@ Do not commit after blocking items only and leave suggestions for later.
 ## Step 6: Verify and close
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 Then mark the review task done via `godmode task done <id>`.

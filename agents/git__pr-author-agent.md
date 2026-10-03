@@ -66,7 +66,7 @@ Read each commit message. Identify:
 
 ### Step 5: Read task context
 
-Read `.ctx/godmode/tasks.yaml`.
+Use the Read tool on `.ctx/godmode/tasks.yaml`.
 
 Identify which tasks have `status: done` on this branch. Note their titles and
 IDs — these become part of the "linked issues" section.
@@ -110,7 +110,7 @@ support for...", "Fixes incorrect behavior...", "Refactors...").>
 ## Test Plan
 
 <Describe what was tested:>
-- <Ran test suite with `cargo nextest run`>
+- <Ran test suite with `taskit test run`>
 - <Verified behavior with manual test: <describe>>
 - <Added new tests in `tests/` for <feature>>
 

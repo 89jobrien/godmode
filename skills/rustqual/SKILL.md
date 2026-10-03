@@ -292,7 +292,7 @@ Iterative improvement loop. Each iteration:
    - Multiply count x category weight to rank impact
    - Prefer categories with real fixes over suppression-only categories
 3. Fix up to 5 instances of that category
-4. Run `cargo nextest run` — if tests fail, revert and try next category
+4. Run `taskit test run` — if tests fail, revert and try next category
 5. Re-run `rustqual . --no-fail` — confirm score improved
 6. If score >= target OR 10 iterations reached, transition to VERIFY
 

@@ -25,7 +25,7 @@ max_calls_per_dispatch: 300
 
 require_human_approval: []
 
-# Refac-specific: must run cargo check after every Edit.
+# Refac-specific: must run taskit check compile after every Edit.
 # Enforced by the post-edit-cargo-check hook, not this policy.
 # This policy ensures the agent can't bypass that by using
 # Write instead of Edit to avoid the hook.
