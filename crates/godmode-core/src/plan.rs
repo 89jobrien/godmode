@@ -22,7 +22,7 @@ use anyhow::{Result, bail};
 use serde::Serialize;
 
 use crate::graph;
-use crate::model::{Task, TaskGraph};
+use crate::model::{Task, TaskGraph, plan_file_stem};
 
 /// Parse tasks from a plan markdown string.
 pub fn parse(markdown: &str) -> Result<Vec<Task>> {
@@ -123,12 +123,58 @@ pub struct IngestReport {
     pub ids: Vec<String>,
 }
 
+/// Decides whether a recorded plan path has disappeared from disk.
+///
+/// Injected into the graph's relocation queries rather than stat'd inside them, so the data model
+/// stays free of filesystem access and relocation stays testable without one.
+pub(crate) type SourceGone<'a> = &'a dyn Fn(&str) -> bool;
+
+/// Reports whether a plan source is absent from disk.
+///
+/// Only an explicit `NotFound` counts as deletion. `Path::exists` answers `false` for *any* stat
+/// error, including `PermissionDenied` on an unreadable parent directory, and treating that as proof
+/// a plan was moved would hand its provenance to an unrelated file.
+fn plan_source_is_gone(source: &str) -> bool {
+    matches!(
+        std::fs::metadata(source),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound
+    )
+}
+
+/// Reports whether a recorded import describes this plan at its former path.
+///
+/// Mirrors `TaskGraph::relocated_plan_task_ids`, which requires the same stem, the same live task
+/// ids, and a path that has disappeared. Repeating the stem conjunct here matters because the write
+/// side *replaces* the entry it selects: matching on task ids alone would let a plan absorb a
+/// look-alike entry and destroy its provenance.
+fn is_relocated_entry(
+    source: &str,
+    task_ids: &[String],
+    candidate_source: &str,
+    candidate_ids: &[String],
+    is_gone: SourceGone<'_>,
+) -> bool {
+    plan_file_stem(candidate_source) == plan_file_stem(source)
+        && candidate_ids == task_ids
+        && is_gone(candidate_source)
+}
+
 /// Import parsed plan tasks into an existing graph.
 pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<IngestReport> {
+    ingest_with(graph, tasks, source, &plan_source_is_gone)
+}
+
+/// Import parsed plan tasks, deciding relocation with the supplied probe.
+pub(crate) fn ingest_with(
+    graph: &mut TaskGraph,
+    tasks: Vec<Task>,
+    source: &str,
+    is_gone: SourceGone<'_>,
+) -> Result<IngestReport> {
     if tasks.is_empty() {
         bail!("no tasks found in plan");
     }
-    let tasks = prepare_for_ingest(tasks, graph, source)?;
+    let tasks = prepare_for_ingest_with(tasks, graph, source, is_gone)?;
     let parsed = tasks.len();
     let ids: Vec<String> = tasks.iter().map(|task| task.id.clone()).collect();
     let mut added = 0;
@@ -144,7 +190,15 @@ pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<I
         }
     }
 
-    updated.record_plan_import(source.to_string(), ids.clone());
+    // Rebinding a relocated plan moves its existing entry onto the new path rather than leaving the
+    // old provenance behind. Both halves of that decision are evaluated here so the model stays
+    // free of filesystem access.
+    let rebound = updated.adopt_relocated_plan_import(source, ids.clone(), |old, old_ids| {
+        is_relocated_entry(source, &ids, old, old_ids, is_gone)
+    });
+    if !rebound {
+        updated.record_plan_import(source.to_string(), ids.clone());
+    }
     *graph = updated;
 
     Ok(IngestReport {
@@ -160,17 +214,20 @@ pub fn ingest(graph: &mut TaskGraph, tasks: Vec<Task>, source: &str) -> Result<I
 /// Tasks keep short `tN` IDs when those IDs are unused. Colliding plans use a deterministic
 /// namespace. Graph-level plan provenance makes repeated ingestion idempotent even when distinct
 /// plans contain identical task content.
-pub fn prepare_for_ingest(
+pub fn prepare_for_ingest(tasks: Vec<Task>, graph: &TaskGraph, source: &str) -> Result<Vec<Task>> {
+    prepare_for_ingest_with(tasks, graph, source, &plan_source_is_gone)
+}
+
+/// Prepare parsed tasks, deciding relocation with the supplied probe.
+pub(crate) fn prepare_for_ingest_with(
     mut tasks: Vec<Task>,
     graph: &TaskGraph,
     source: &str,
+    is_gone: SourceGone<'_>,
 ) -> Result<Vec<Task>> {
-    let namespace = source
-        .rsplit(['/', '\\'])
-        .next()
-        .map(|name| name.strip_suffix(".md").unwrap_or(name))
-        .map(normalize_namespace)
-        .unwrap_or_default();
+    // The namespace must come from the same stem the relocation match uses, so a plan's id prefix and
+    // its identity cannot disagree about what a plan file is called.
+    let namespace = normalize_namespace(plan_file_stem(source));
     if namespace.is_empty() {
         bail!("plan namespace must contain at least one letter or digit");
     }
@@ -180,24 +237,28 @@ pub fn prepare_for_ingest(
     // a distinct plan that merely shares a file name; `depends_on` is excluded since parsed tasks
     // hold pre-remap ids while graph tasks hold remapped ones.
     //
+    // The check covers the id PREFIX rather than demanding equal lengths, so a plan that grew after
+    // the move keeps its existing ids and mints an id only for the task appended since. `zip`
+    // truncates at the shorter side, which is what lets a shorter plan reach the length guard below
+    // and be rejected instead of forking a namespaced duplicate chain.
+    //
     // Otherwise fall back to the exact-path entry, unfiltered, so re-ingesting a plan in place keeps
     // its reserved ids even after its tasks were removed, and edited content still reports a
     // conflict rather than forking a new chain.
     let existing_ids = graph
-        .relocated_plan_task_ids(source)
+        .relocated_plan_task_ids(source, is_gone)
         .filter(|ids| {
-            ids.len() == tasks.len()
-                && ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
-                    graph
-                        .tasks
-                        .iter()
-                        .find(|existing| &existing.id == id)
-                        .is_some_and(|existing| {
-                            existing.title == candidate.title
-                                && existing.crate_name == candidate.crate_name
-                                && existing.run == candidate.run
-                        })
-                })
+            ids.iter().zip(tasks.iter()).all(|(id, candidate)| {
+                graph
+                    .tasks
+                    .iter()
+                    .find(|existing| &existing.id == id)
+                    .is_some_and(|existing| {
+                        existing.title == candidate.title
+                            && existing.crate_name == candidate.crate_name
+                            && existing.run == candidate.run
+                    })
+            })
         })
         .or_else(|| graph.plan_task_ids(source));
     if existing_ids.is_some_and(|ids| tasks.len() < ids.len()) {
@@ -552,6 +613,176 @@ Some description here.
         assert_eq!(report.added, 0);
         assert_eq!(report.skipped, 3);
         assert_eq!(report.ids, ["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn grown_relocated_plan_reuses_its_task_ids_and_appends_only_the_new_one() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/.ctx/godmode/plans/probe-alpha.md",
+        )
+        .unwrap();
+
+        let grown = parse(&format!("{SAMPLE}\n### Task 4: Announce the release\n")).unwrap();
+        let report = ingest(&mut graph, grown, "/repo/docs/plans/probe-alpha.md").unwrap();
+
+        assert_eq!(report.added, 1);
+        assert_eq!(report.skipped, 3);
+        assert_eq!(report.ids[0], "t1");
+        assert_eq!(report.ids[1], "t2");
+        assert_eq!(report.ids[2], "t3");
+        let ids: Vec<&str> = graph.tasks.iter().map(|task| task.id.as_str()).collect();
+        assert_eq!(ids.len(), 4, "relocation must not orphan the old chain");
+        for reused in ["t1", "t2", "t3"] {
+            assert!(ids.contains(&reused), "expected {reused} to be reused");
+            let forked = format!("probe-alpha-{reused}");
+            assert!(
+                !ids.contains(&forked.as_str()),
+                "forked a duplicate chain entry {forked}"
+            );
+        }
+    }
+
+    #[test]
+    fn shrunk_relocated_plan_is_rejected_instead_of_forking_a_chain() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/old/probe-alpha.md",
+        )
+        .unwrap();
+
+        // The surviving task matches the original verbatim, so the relocation prefix check accepts
+        // the candidate and the length guard is what rejects the edit.
+        let shrunk =
+            parse("### Task 1: Write failing test for FooAdapter\n**Crate**: `foo-core`").unwrap();
+        let before = serde_yaml::to_string(&graph).unwrap();
+        let error = ingest(&mut graph, shrunk, "/repo/new/probe-alpha.md").unwrap_err();
+
+        assert!(error.to_string().contains("fewer tasks"), "{error}");
+        assert_eq!(serde_yaml::to_string(&graph).unwrap(), before);
+    }
+
+    #[test]
+    fn a_plan_file_still_on_disk_prevents_relocation() {
+        let dir = tempfile::tempdir().unwrap();
+        let old = dir.path().join("old").join("probe-alpha.md");
+        let new = dir.path().join("new").join("probe-alpha.md");
+        std::fs::create_dir_all(old.parent().unwrap()).unwrap();
+        std::fs::create_dir_all(new.parent().unwrap()).unwrap();
+        std::fs::write(&old, SAMPLE).unwrap();
+        std::fs::write(&new, SAMPLE).unwrap();
+        let (old, new) = (old.to_str().unwrap(), new.to_str().unwrap());
+
+        let mut graph = TaskGraph::default();
+        ingest(&mut graph, parse(SAMPLE).unwrap(), old).unwrap();
+
+        // Both files are on disk, so the second is a copy of the plan, not a relocation of it.
+        let report = ingest(&mut graph, parse(SAMPLE).unwrap(), new).unwrap();
+
+        assert_eq!(report.added, 3);
+        assert_eq!(report.skipped, 0);
+        for id in &report.ids {
+            assert_ne!(id, "t1", "the original chain must not be inherited");
+        }
+        assert_eq!(graph.tasks.len(), 6);
+        assert_eq!(graph.plan_task_ids(old).unwrap(), ["t1", "t2", "t3"]);
+        assert_eq!(graph.plan_task_ids(new).unwrap(), report.ids);
+    }
+
+    #[test]
+    fn relocation_requires_stem_task_ids_and_an_absent_old_path() {
+        let ids = vec!["t1".to_string()];
+        let other_ids = vec!["t9".to_string()];
+        let gone: &dyn Fn(&str) -> bool = &|_| true;
+
+        assert!(is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            gone
+        ));
+        // A different stem is a different plan, even when the ids coincide: the write side replaces
+        // the entry it picks, so a wrong pick would destroy the other plan's provenance.
+        assert!(!is_relocated_entry(
+            "/new/omega.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            gone
+        ));
+        assert!(!is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &other_ids,
+            gone
+        ));
+        assert!(!is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            &|_| false
+        ));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unstattable_path_is_not_treated_as_deleted() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let locked = dir.path().join("locked");
+        std::fs::create_dir_all(&locked).unwrap();
+        let plan = locked.join("probe-alpha.md");
+        std::fs::write(&plan, SAMPLE).unwrap();
+
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000)).unwrap();
+        let unstattable = plan_source_is_gone(plan.to_str().unwrap());
+        let missing = plan_source_is_gone("/definitely/absent/probe-alpha.md");
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o700)).unwrap();
+
+        assert!(
+            !unstattable,
+            "an unreadable parent must not read as proof the plan was deleted"
+        );
+        assert!(missing, "a genuinely absent path must read as deleted");
+    }
+
+    #[test]
+    fn relocation_is_decided_by_the_injected_probe_not_the_filesystem() {
+        let mut graph = TaskGraph::default();
+        ingest(
+            &mut graph,
+            parse(SAMPLE).unwrap(),
+            "/repo/old/probe-alpha.md",
+        )
+        .unwrap();
+
+        // No path here exists on disk, so only the probe can decide these two outcomes.
+        let blocked = prepare_for_ingest_with(
+            parse(SAMPLE).unwrap(),
+            &graph,
+            "/repo/new/probe-alpha.md",
+            &|_| false,
+        )
+        .unwrap();
+        assert_eq!(blocked[0].id, "probe-alpha-t1");
+
+        let relocated = prepare_for_ingest_with(
+            parse(SAMPLE).unwrap(),
+            &graph,
+            "/repo/new/probe-alpha.md",
+            &|_| true,
+        )
+        .unwrap();
+        assert_eq!(relocated[0].id, "t1");
+        assert_eq!(relocated[1].depends_on, vec!["t1"]);
     }
 
     #[test]
