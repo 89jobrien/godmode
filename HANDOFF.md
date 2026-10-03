@@ -1,11 +1,17 @@
-# Handoff — godmode (2026-10-02)
+# Handoff — godmode (2026-10-03)
 
-No outstanding items.
+| ID                                       | P   | Status  | Title                                         |
+| ---------------------------------------- | --- | ------- | --------------------------------------------- |
+| 2026-10-01-session-lifecycle-markers-t6  | P2  | pending | Thread the port through the whole writer path |
+| 2026-10-01-session-lifecycle-markers-t7  | P2  | pending | Do not mint an id that was never persisted    |
+| 2026-10-01-session-lifecycle-markers-t8  | P2  | pending | A close names the session being closed        |
+| 2026-10-01-session-lifecycle-markers-t9  | P2  | pending | Correct the rotation rationale comment        |
+| 2026-10-01-session-lifecycle-markers-t10 | P2  | pending | Final gates                                   |
 
 ## Log
 
-- 20261002.041600: done=132 running=0 pending=5 blocked=0 [f258235, 1ee62e7, 695dbb1, 1659a56, 54b1da9, 7c99893, 68aad31, c330630, 0242bd9, 6a1ec41]
-- 20261002.041126: done=131 running=1 pending=5 blocked=0 [1ee62e7, 695dbb1, 1659a56, 54b1da9, 7c99893, 68aad31, c330630, 0242bd9, 6a1ec41, 62152f9]
-- 20261002.025600: done=128 running=1 pending=8 blocked=0 [7c99893, 68aad31, c330630, 0242bd9, 6a1ec41, 62152f9, 191bb9f, 94696cf, 80f3907, c9cfbef]
-- 20261001.133557: done=127 running=1 pending=9 blocked=0 [c330630, 0242bd9, 6a1ec41, 62152f9, 191bb9f, 94696cf, 80f3907, c9cfbef, 2f7cffd, 63f92cd]
+- 20261003.044224: done=132 running=0 pending=5 blocked=0 [3530dd7, 51a8bca, da9d2bf, ea9f152, 137fb4c, f258235, 1ee62e7, 695dbb1, 1659a56, 54b1da9]
+- 20261002.205329: done=132 running=0 pending=5 blocked=0 [3530dd7, 51a8bca, da9d2bf, ea9f152, 137fb4c, f258235, 1ee62e7, 695dbb1, 1659a56, 54b1da9]
 - 20261001.013053: done=127 running=0 pending=0 blocked=0 [62152f9, 191bb9f, 94696cf, 80f3907, c9cfbef, 2f7cffd, 63f92cd, 1065bf6, 64762d7, 73ca759]
+- 20260930.100318: done=127 running=0 pending=0 blocked=0 [63f92cd, 1065bf6, 64762d7, 73ca759, ce701c3, 29f3871, 171681a, e353d6d, 59d84e0, c7f001f]
+- 20260928.090804: done=127 running=0 pending=0 blocked=0 [1065bf6, 64762d7, 73ca759, ce701c3, 29f3871, 171681a, e353d6d, 59d84e0, c7f001f, 443df13]
