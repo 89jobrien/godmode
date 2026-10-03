@@ -22,7 +22,7 @@ use anyhow::{Result, bail};
 use serde::Serialize;
 
 use crate::graph;
-use crate::model::{Task, TaskGraph};
+use crate::model::{Task, TaskGraph, plan_file_stem};
 
 /// Parse tasks from a plan markdown string.
 pub fn parse(markdown: &str) -> Result<Vec<Task>> {
@@ -130,8 +130,33 @@ pub struct IngestReport {
 pub(crate) type SourceGone<'a> = &'a dyn Fn(&str) -> bool;
 
 /// Reports whether a plan source is absent from disk.
+///
+/// Only an explicit `NotFound` counts as deletion. `Path::exists` answers `false` for *any* stat
+/// error, including `PermissionDenied` on an unreadable parent directory, and treating that as proof
+/// a plan was moved would hand its provenance to an unrelated file.
 fn plan_source_is_gone(source: &str) -> bool {
-    !std::path::Path::new(source).exists()
+    matches!(
+        std::fs::metadata(source),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound
+    )
+}
+
+/// Reports whether a recorded import describes this plan at its former path.
+///
+/// Mirrors `TaskGraph::relocated_plan_task_ids`, which requires the same stem, the same live task
+/// ids, and a path that has disappeared. Repeating the stem conjunct here matters because the write
+/// side *replaces* the entry it selects: matching on task ids alone would let a plan absorb a
+/// look-alike entry and destroy its provenance.
+fn is_relocated_entry(
+    source: &str,
+    task_ids: &[String],
+    candidate_source: &str,
+    candidate_ids: &[String],
+    is_gone: SourceGone<'_>,
+) -> bool {
+    plan_file_stem(candidate_source) == plan_file_stem(source)
+        && candidate_ids == task_ids
+        && is_gone(candidate_source)
 }
 
 /// Import parsed plan tasks into an existing graph.
@@ -169,7 +194,7 @@ pub(crate) fn ingest_with(
     // old provenance behind. Both halves of that decision are evaluated here so the model stays
     // free of filesystem access.
     let rebound = updated.adopt_relocated_plan_import(source, ids.clone(), |old, old_ids| {
-        old_ids == ids.as_slice() && is_gone(old)
+        is_relocated_entry(source, &ids, old, old_ids, is_gone)
     });
     if !rebound {
         updated.record_plan_import(source.to_string(), ids.clone());
@@ -200,12 +225,9 @@ pub(crate) fn prepare_for_ingest_with(
     source: &str,
     is_gone: SourceGone<'_>,
 ) -> Result<Vec<Task>> {
-    let namespace = source
-        .rsplit(['/', '\\'])
-        .next()
-        .map(|name| name.strip_suffix(".md").unwrap_or(name))
-        .map(normalize_namespace)
-        .unwrap_or_default();
+    // The namespace must come from the same stem the relocation match uses, so a plan's id prefix and
+    // its identity cannot disagree about what a plan file is called.
+    let namespace = normalize_namespace(plan_file_stem(source));
     if namespace.is_empty() {
         bail!("plan namespace must contain at least one letter or digit");
     }
@@ -669,6 +691,67 @@ Some description here.
         assert_eq!(graph.tasks.len(), 6);
         assert_eq!(graph.plan_task_ids(old).unwrap(), ["t1", "t2", "t3"]);
         assert_eq!(graph.plan_task_ids(new).unwrap(), report.ids);
+    }
+
+    #[test]
+    fn relocation_requires_stem_task_ids_and_an_absent_old_path() {
+        let ids = vec!["t1".to_string()];
+        let other_ids = vec!["t9".to_string()];
+        let gone: &dyn Fn(&str) -> bool = &|_| true;
+
+        assert!(is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            gone
+        ));
+        // A different stem is a different plan, even when the ids coincide: the write side replaces
+        // the entry it picks, so a wrong pick would destroy the other plan's provenance.
+        assert!(!is_relocated_entry(
+            "/new/omega.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            gone
+        ));
+        assert!(!is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &other_ids,
+            gone
+        ));
+        assert!(!is_relocated_entry(
+            "/new/alpha.md",
+            &ids,
+            "/old/alpha.md",
+            &ids,
+            &|_| false
+        ));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unstattable_path_is_not_treated_as_deleted() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = tempfile::tempdir().unwrap();
+        let locked = dir.path().join("locked");
+        std::fs::create_dir_all(&locked).unwrap();
+        let plan = locked.join("probe-alpha.md");
+        std::fs::write(&plan, SAMPLE).unwrap();
+
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000)).unwrap();
+        let unstattable = plan_source_is_gone(plan.to_str().unwrap());
+        let missing = plan_source_is_gone("/definitely/absent/probe-alpha.md");
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o700)).unwrap();
+
+        assert!(
+            !unstattable,
+            "an unreadable parent must not read as proof the plan was deleted"
+        );
+        assert!(missing, "a genuinely absent path must read as deleted");
     }
 
     #[test]

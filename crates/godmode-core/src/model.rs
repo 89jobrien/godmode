@@ -194,7 +194,11 @@ impl Clone for TaskGraph {
     }
 }
 
-fn plan_file_stem(source: &str) -> &str {
+/// Returns a plan source's file stem: its final path segment without the `.md` suffix.
+///
+/// This is a plan's identity across directories, and the single definition used both to match a
+/// relocated plan and to derive the id namespace in `plan`, so the two cannot drift apart.
+pub(crate) fn plan_file_stem(source: &str) -> &str {
     let file_name = source.rsplit(['/', '\\']).next().unwrap_or(source);
     file_name.strip_suffix(".md").unwrap_or(file_name)
 }
