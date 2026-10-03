@@ -3,7 +3,7 @@
 # Usage: wave-integrate [--branches "feat/a feat/b feat/c"] [--base main] [--dry-run]
 #
 # Reads branches from --branches (space-separated) or from stdin (one per line).
-# Rebases each onto --base, runs cargo test --workspace, then merges to base.
+# Rebases each onto --base, runs taskit test run, then merges to base.
 # Writes conflict-resolution-log.md to repo root on completion.
 
 set -euo pipefail
@@ -144,8 +144,8 @@ for BRANCH in "${BRANCH_LIST[@]}"; do
     ok "Rebase clean"
 
     # Run tests
-    step "Running cargo nextest run --workspace"
-    if ! cargo nextest run --workspace; then
+    step "Running taskit test run"
+    if ! taskit test run; then
         fail "Tests failed after rebase"
         warn "Fix tests on this branch before continuing"
         FAILED+=("$BRANCH")
@@ -179,7 +179,7 @@ done
 # ── final test run on base ────────────────────────────────────────────────────
 if [[ $DRY_RUN -eq 0 && ${#INTEGRATED[@]} -gt 0 ]]; then
     step "Final test run on ${BASE}"
-    if ! cargo nextest run --workspace; then
+    if ! taskit test run; then
         fail "Final tests failed on integration branch — do not proceed"
         exit 1
     fi

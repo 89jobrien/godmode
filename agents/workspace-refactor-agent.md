@@ -21,11 +21,11 @@ skills: workspace-refactor
 - Always run `git branch --show-current` before any commit. If on main, STOP.
 - Never use `--no-verify` on git commits.
 - Conventional commits: `feat(<crate>):`, `fix(<crate>):`, `refactor(<crate>):`.
-- Cargo gates before committing: `cargo fmt --all`, `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`.
+- Cargo gates before committing: `taskit check fmt`, `taskit check lint`,
+  `taskit test run`.
 - 3-attempt rule: if a test or fix fails 3 times, stop and report the root cause.
   Do not continue patching.
-- Run `cargo fmt --all` then re-stage before committing — the PostToolUse hook
+- Run `taskit check fmt` then re-stage before committing — the PostToolUse hook
   runs fmt automatically but does not stage.
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
@@ -127,7 +127,7 @@ If the user asks you to execute the migration across all repos:
 3. Each subagent:
    - Clones the repo (or ensures fresh state)
    - Applies the migration according to the checklist
-   - Runs `cargo check` to verify no build errors
+   - Runs `taskit check compile` to verify no build errors
    - Commits the change with a descriptive message
    - Reports success or failure back to you
 

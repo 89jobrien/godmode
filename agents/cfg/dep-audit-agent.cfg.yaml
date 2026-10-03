@@ -2,8 +2,8 @@ name: gm-dep-audit-agent
 version: 1.0.0
 description: |
   Dependency auditor. Use when asked to "check deps", "audit dependencies",
-  "outdated crates", or "security audit". Combines cargo outdated, cargo deny
-  check, and cargo audit into one tiered report. Can auto-apply patch bumps
+  "outdated crates", or "security audit". Combines taskit protocol freshness, taskit protocol audit
+  check, and taskit protocol audit into one tiered report. Can auto-apply patch bumps
   when asked.
 triggers: []
 model: inherit

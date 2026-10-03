@@ -55,7 +55,7 @@ For each branch confirm it compiles before touching it:
 
 ```bash
 git checkout <branch>
-cargo check --workspace
+taskit check compile
 ```
 
 ### 2. Rebase each branch onto current main (in dependency order)
@@ -84,7 +84,7 @@ git rebase main
 ### 3. Test after each rebase
 
 ```bash
-cargo nextest run --workspace
+taskit test run
 ```
 
 - If tests fail: debug and fix on the branch before proceeding to the next branch.
@@ -119,7 +119,7 @@ One row per file per conflict. Be specific about intent, not just "kept both".
 
 ### 6. Final integration commit
 
-After all branches are merged and `cargo nextest run --workspace` passes:
+After all branches are merged and `taskit test run` passes:
 
 ```bash
 git commit --allow-empty -m "chore(integration): wave N integration

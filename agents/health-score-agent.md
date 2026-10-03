@@ -22,8 +22,8 @@ skills: health-score
 - Group findings as Blocking / Suggestions / Nitpicks.
 - Apply ALL severity levels in one pass before committing. Do not commit after
   fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- Run verification after fixes: `taskit check lint`,
+  `taskit test run`, `taskit check fmt --check`.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
@@ -45,16 +45,16 @@ for trend tracking not absolute accuracy.
 ### Step 1: Collect test count
 
 ```bash
-cargo nextest run --workspace 2>&1 | tail -1
+taskit test run 2>&1 | tail -1
 ```
 
-Extract the number of tests from the summary line. If `cargo nextest` is not installed,
+Extract the number of tests from the summary line. If `taskit test run` is not installed,
 use `cargo test --no-run` and parse the binary count instead.
 
 ### Step 2: Collect clippy warning count
 
 ```bash
-cargo clippy --workspace 2>&1 | grep "warning\[" | wc -l
+taskit check lint 2>&1 | grep "warning\[" | wc -l
 ```
 
 Count only warnings, not notes. If clippy output is empty, the count is zero.
@@ -197,7 +197,7 @@ the trend summary. Write the complete scorecard (including full history context)
 - Never modify source code.
 - Metrics are approximations for trend tracking, not absolute measurements. Flag any
   metric that could not be collected.
-- If `cargo clippy` or `cargo nextest` fail, report the failure and skip that metric.
+- If `taskit check lint` or `taskit test run` fail, report the failure and skip that metric.
 - If `.ctx/memory-bank/health-history.jsonl` is corrupt (unparseable JSON), log a
   warning and continue with an empty history.
 - Do not spend more than 30 seconds on any single metric — timeout and skip rather

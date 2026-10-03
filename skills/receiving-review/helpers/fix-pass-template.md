@@ -31,9 +31,9 @@ Order: blocking → suggestions → nitpicks. List each fix one line:
 ## Verification After Fixes
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit test run
+taskit check lint
+taskit check fmt --check
 ```
 
 - [ ] All pass

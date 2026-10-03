@@ -184,4 +184,4 @@ it may interact with the IOSP refactoring.
   split when you'll also add a test for the extracted function.
 - **Rounds 2 and 3 give the most points per hour of effort** — configuration changes are
   zero-risk and resolve 10 findings immediately.
-- Run `cargo test && cargo clippy` between rounds. Refactoring can break things.
+- Run `taskit test run && taskit check lint` between rounds. Refactoring can break things.

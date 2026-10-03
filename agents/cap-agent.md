@@ -1,7 +1,7 @@
 ---
 name: "gm-cap-agent"
 description: >
-  Commit and push workflow. Use when the user says "cap", "commit and push", "ship it", or "ready to push". Runs cargo fmt + clippy + nextest, stages changes, generates a conventional commit message from the diff, commits (letting pre-commit hooks run), and pushes. Diagnoses and fixes pre-commit hook failures before retrying. Never uses --no-verify.
+  Commit and push workflow. Use when the user says "cap", "commit and push", "ship it", or "ready to push". Runs taskit check fmt + clippy + nextest, stages changes, generates a conventional commit message from the diff, commits (letting pre-commit hooks run), and pushes. Diagnoses and fixes pre-commit hook failures before retrying. Never uses --no-verify.
 model: inherit
 color: yellow
 tools:
@@ -19,11 +19,11 @@ skills: cap, verification-before-completion
 - Always run `git branch --show-current` before any commit. If on main, STOP.
 - Never use `--no-verify` on git commits.
 - Conventional commits: `feat(<crate>):`, `fix(<crate>):`, `refactor(<crate>):`.
-- Cargo gates before committing: `cargo fmt --all`, `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`.
+- Cargo gates before committing: `taskit check fmt`, `taskit check lint`,
+  `taskit test run`.
 - 3-attempt rule: if a test or fix fails 3 times, stop and report the root cause.
   Do not continue patching.
-- Run `cargo fmt --all` then re-stage before committing — the PostToolUse hook
+- Run `taskit check fmt` then re-stage before committing — the PostToolUse hook
   runs fmt automatically but does not stage.
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
@@ -37,15 +37,15 @@ Never use `--no-verify`. Never force-push without explicit instruction.
 ### Step 1: Validate
 
 ```bash
-cargo check --workspace
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit check compile
+taskit test run
+taskit check lint
+taskit check fmt --check
 ```
 
-If `cargo check` or `cargo nextest` fail — stop and report. Do not commit broken code.
+If `taskit check compile` or `taskit test run` fail — stop and report. Do not commit broken code.
 
-If `cargo fmt --check` fails — run `cargo fmt --all` to fix, then re-validate.
+If `taskit check fmt --check` fails — run `taskit check fmt` to fix, then re-validate.
 
 If clippy has warnings — fix them before proceeding.
 

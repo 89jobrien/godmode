@@ -116,7 +116,7 @@ Document as:
 
 ```text
 Failure pattern: clippy warnings on unsafe blocks
-Fix sequence: [audit unsafe usage, check SAFETY comments, run cargo clippy]
+Fix sequence: [audit unsafe usage, check SAFETY comments, run taskit check lint]
 Frequency: 3/10 recent sessions
 Confidence: medium
 ```

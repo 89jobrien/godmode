@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core features</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html">Overview</a>
+      <a href="guide.html">Guide</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="features.html" aria-current="page">Features</a>
+      <a href="cli.html">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="features" class="reveal">
+        <h2>Features</h2>
+        <p>
+          Cargo features as declared, not as intended. A feature listed here
+          with no enables clause is a flag nothing currently reads.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Feature</th><th>Crate</th><th>Enables</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>default</code></td>
+                <td><code>godmode-core</code></td>
+                <td>&mdash;</td>
+              </tr>
+              <tr>
+                <td><code>test-utils</code></td>
+                <td><code>godmode-core</code></td>
+                <td>testing</td>
+              </tr>
+              <tr>
+                <td><code>testing</code></td>
+                <td><code>godmode-core</code></td>
+                <td>dep:proptest, dep:tempfile</td>
+              </tr>
+              <tr>
+                <td><code>default</code></td>
+                <td><code>godmode-cli</code></td>
+                <td>&mdash;</td>
+              </tr>
+              <tr>
+                <td><code>test-utils</code></td>
+                <td><code>godmode-cli</code></td>
+                <td>&mdash;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -10,7 +10,7 @@ Single-skill wrappers for direct invocation.
 
 | Command               | Skill                                                                            | Purpose                                       |
 | --------------------- | -------------------------------------------------------------------------------- | --------------------------------------------- |
-| `/gm:cap`             | `godmode:cap`                                                                    | Commit and push with cargo gates              |
+| `/gm:cap`             | `godmode:cap`                                                                    | Commit and push, gated by the git hooks       |
 | `/gm:tdd`             | `godmode:task-driven-development`                                                | Strict TDD — failing test before code         |
 | `/gm:debug`           | `godmode:systematic-debugging`                                                   | Root cause before fix                         |
 | `/gm:trace`           | `godmode:observability-as-infrastructure`                                        | Query session trace log                       |

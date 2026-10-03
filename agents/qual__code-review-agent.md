@@ -1,10 +1,10 @@
 ---
 name: "gm-code-review-agent"
-description: "Structured code review before merge. Use when asked to 'review this', 'code review', 'check my changes', or 'quality pass'. Analyzes changes across correctness, safety, architecture, tests, and style. Produces a prioritized finding list. Read-only — never edits code.
+description: "Structured code review before merge. Use when asked to 'review this', 'code review', 'check my changes', or 'quality pass'. Reports prioritized findings and applies all severities when remediation is requested.
 "
 model: inherit
 color: orange
-tools: ["Read", "Bash", "Glob", "Grep"]
+tools: ["Read", "Edit", "Bash", "Glob", "Grep"]
 skills: code-review
 ---
 
@@ -54,7 +54,7 @@ Review all five dimensions in one pass:
 
 ### Step 4: Produce report
 
-```text
+```
 ## Code Review — <branch or feature name>
 
 ### Blocking
@@ -76,7 +76,7 @@ State the total finding count by severity. If there are no blocking issues, say 
 ## Guardrails
 
 - Never edit source files.
-- Never run `cargo fmt --all` or any fix command.
+- Never run `taskit check fmt` or any fix command.
 - Apply ALL severity levels in one pass — do not defer nitpicks.
 - Read the full diff before filing any finding — partial review is not review.
 - If the diff is empty, report: "No changes found relative to main."

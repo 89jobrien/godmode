@@ -69,7 +69,7 @@ Prefix with `rx:` to invoke a script from the rx registry: `**Run**: rx:my-scrip
 
 Commands containing shell metacharacters (`>`, `|`, `&`, `;`) are automatically run via
 `sh -c`, so redirects and pipes work as expected:
-`**Run**: cargo test 2>&1 | tee /tmp/results.txt`
+`**Run**: taskit test run 2>&1 | tee /tmp/results.txt`
 
 1. Write failing test:
    ```rust

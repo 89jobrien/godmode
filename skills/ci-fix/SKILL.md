@@ -34,10 +34,10 @@ Read the full failure output. Identify the first error — that's usually the ro
 
 | Class                      | Symptoms                                          | Fix                                   |
 | -------------------------- | ------------------------------------------------- | ------------------------------------- |
-| `compile_error`            | `error[E...]`, missing match arm, wrong import    | Fix source, `cargo check`             |
-| `test_failure`             | `FAILED`, assertion mismatch, panic               | Fix impl or test, `cargo nextest run` |
-| `clippy_warning`           | `error: ...`, `-D warnings` gate                  | Fix all warnings, `cargo clippy`      |
-| `fmt_check`                | `Diff in ...`                                     | Run `cargo fmt --all`                 |
+| `compile_error`            | `error[E...]`, missing match arm, wrong import    | Fix source, `taskit check compile`    |
+| `test_failure`             | `FAILED`, assertion mismatch, panic               | Fix impl or test, `taskit test run`   |
+| `clippy_warning`           | `error: ...`, `-D warnings` gate                  | Fix all warnings, `taskit check lint` |
+| `fmt_check`                | `Diff in ...`                                     | Run `taskit check fmt`                |
 | `pre_commit_hook`          | gitleaks, obfsck, coursers block                  | Add allowlist entry                   |
 | `runner_environment`       | missing tool, wrong Xcode, wrong target           | Update workflow YAML                  |
 | `false_positive_detection` | secret scanner flags test/doc content             | Add `.gitleaksignore` entry           |
@@ -55,10 +55,10 @@ Verify locally before pushing:
 
 ```bash
 # compile_error / test_failure / clippy_warning / fmt_check
-cargo check --workspace
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit check compile
+taskit test run
+taskit check lint
+taskit check fmt --check
 
 # runner_environment — read the workflow file first (use Read tool, not cat)
 # Read: .github/workflows/<file>.yml

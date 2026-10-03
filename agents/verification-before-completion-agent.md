@@ -18,8 +18,8 @@ skills: verification-before-completion
 - Group findings as Blocking / Suggestions / Nitpicks.
 - Apply ALL severity levels in one pass before committing. Do not commit after
   fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- Run verification after fixes: `taskit check lint`,
+  `taskit test run`, `taskit check fmt --check`.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
@@ -53,9 +53,9 @@ godmode verify
 If `godmode` is not on PATH, fall back to the manual gate:
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit test run
+taskit check lint
+taskit check fmt --check
 git log --oneline -3
 ```
 
@@ -70,6 +70,6 @@ Do not attempt to fix. Report: "Gate failed — fix required before this can be 
 ## Guardrails
 
 - Never edit source files.
-- Never run `cargo fmt --all` (fix mode) — only `--check`.
+- Never run `taskit check fmt` (fix mode) — only `--check`.
 - Never claim pass without seeing the actual exit-code-0 output from the gate.
 - If `godmode verify` exits non-zero, the session is not done.

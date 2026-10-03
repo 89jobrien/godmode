@@ -214,7 +214,7 @@ fn main() {
         let parsed = parse_branches(s);
         println!("parse({s:?}) -> {parsed:?}");
     }
-    println!("All parse samples OK. Run with `cargo test` for property tests.");
+    println!("All parse samples OK. Run with `taskit test run` for property tests.");
 }
 
 #[cfg(test)]

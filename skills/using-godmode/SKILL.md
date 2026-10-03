@@ -34,7 +34,11 @@ Edit files, run commands, dispatch subagents. Enter on user approval.
 </godmode-phase>
 
 <godmode-phase name="VERIFY" mode="read + test" response-header="# Phase: VERIFY" skills="verification-before-completion">
-Run tests and quality gates. Return to ACT if failures. Ask to SHIP when green.
+Run the project's canonical gate, not a generic approximation. Prefer the repo's
+own task runner (`cargo xtask verify`, `make check`, `npm test`) over assembling
+bare tool invocations by hand: the project gate usually covers steps the bare
+commands miss (feature/arch matrices, lint configs, fixtures). Never prescribe a
+generic gate the repo does not use. Return to ACT if failures. Ask to SHIP when green.
 </godmode-phase>
 
 <godmode-phase name="SHIP" mode="commit/push" response-header="# Phase: SHIP" skills="cap, session-wrap-commit-push">
@@ -100,7 +104,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 | `godmode:changelog`                       | Parse git history into structured changelogs                 |
 | `godmode:cross-issue`                     | Cross-repo issue coordination and linking                    |
 | `godmode:dead-code`                       | Find unused public API, orphaned tests, stale refs           |
-| `godmode:dep-audit`                       | Audit deps via cargo outdated/deny/audit                     |
+| `godmode:dep-audit`                       | Audit deps via taskit protocol freshness/audit               |
 | `godmode:dep-bump`                        | Propagate workspace crate version bumps downstream           |
 | `godmode:doc-maintainer`                  | Audit docs against source code for drift                     |
 | `godmode:health-score`                    | Measure codebase health across seven metrics                 |
@@ -195,7 +199,7 @@ then quality gates (`verification-before-completion`, `code-review`).
 - **Commit signing**: SSH key via 1Password agent. Unlock 1Password and retry on failure.
 - **Shell**: Nushell (`nu`) primary. No bash-isms (`&&`, `$()`, `export VAR=`) in `.nu` files.
 - **Git in other repos**: `git -C <path>` not `cd <path> && git`.
-- **Rust**: `cargo check` + `cargo clippy` after every change. `cargo nextest` over `cargo test`.
+- **Rust**: `taskit check compile` + `taskit check lint` after every change, `taskit test run` for tests.
   Fix all clippy warnings before committing.
 - **Secrets**: Never pass raw `op://` URIs. Use `op read` or `op run`.
 - **Scope**: Touch only files within the explicitly requested scope.

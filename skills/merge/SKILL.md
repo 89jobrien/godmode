@@ -116,7 +116,7 @@ showing the user what would be lost.
 ### 5. Test
 
 ```bash
-cargo nextest run --workspace
+taskit test run
 ```
 
 Fix failures (up to 3 attempts) before pushing. Escalate if not resolved.
@@ -178,7 +178,7 @@ gh pr create \
 - <bullet 2>
 
 ## Test plan
-- [ ] cargo nextest run --workspace passes
+- [ ] taskit test run passes
 - [ ] clippy clean
 EOF
 ```

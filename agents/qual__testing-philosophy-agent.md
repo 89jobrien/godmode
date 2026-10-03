@@ -24,20 +24,10 @@ Ask the user which crate to analyse if not already clear. Then locate:
 
 ### 2. Inventory existing tests
 
-For each `src/*.rs` file, check:
-
-Use the Grep tool for each check:
-
-- Inline tests: search `#\[cfg(test)\]` in `crates/<crate>/src/`
-- Property tests: search `proptest` in `crates/<crate>/`
-- Kani model-check proofs: search `#\[kani::proof\]` in `crates/<crate>/src/`
-- Snapshot tests: search `insta|expect_test` in `crates/<crate>/`
-- Trait conformance tests: search `fn assert_.*contract|fn.*satisfies` in `crates/<crate>/`
-
-Use the Glob tool to check for:
-
-- Integration tests: `crates/<crate>/tests/`
-- Fuzz targets: `crates/<crate>/fuzz/fuzz_targets/`
+For each `src/*.rs` file, use the Grep tool to search for inline tests (`#[cfg(test)]`), property
+tests (`proptest`), Kani proofs (`#[kani::proof]`), snapshots (`insta|expect_test`), and trait
+conformance tests (`fn assert_.*contract|fn.*satisfies`). Use the Glob tool to inventory
+`crates/<crate>/tests/` and `crates/<crate>/fuzz/fuzz_targets/`.
 
 ### 3. Score each dimension
 

@@ -29,26 +29,26 @@ for trend tracking not absolute accuracy.
 ### Step 1: Collect test count
 
 ```bash
-cargo nextest run --workspace 2>&1 | tail -1
+taskit test run
 ```
 
-Extract the number of tests from the summary line. If `cargo nextest` is not installed,
+Extract the number of tests from the summary line. If `taskit test run` is not installed,
 use `cargo test --no-run` and parse the binary count instead.
 
 ### Step 2: Collect clippy warning count
 
 ```bash
-cargo clippy --workspace 2>&1
+taskit check lint
 ```
 
-Use the Grep tool on the output (or pipe through `grep "warning\["`) to count lines matching
-`warning\[`. Count only warnings, not notes. If clippy output is empty, the count is zero.
+Use the Grep tool on the captured output to count `warning[` lines. Count only warnings, not
+notes. If clippy output is empty, the count is zero.
 
 ### Step 3: Collect TODO/FIXME density
 
 Use Grep to search for `TODO|FIXME` in `crates/` directory:
 
-```text
+```
 Pattern: TODO|FIXME
 Glob: crates/**/*.rs
 ```
@@ -60,7 +60,7 @@ thousand lines). Round to one decimal place.
 
 Use Grep to count `pub fn`, `pub struct`, `pub enum`, `pub trait` in `crates/*/src/`:
 
-```text
+```
 Pattern: ^\\s*pub\\s+(fn|struct|enum|trait)
 Glob: crates/**/src/**/*.rs
 ```
@@ -88,7 +88,7 @@ to check for `///` on the previous non-empty line.
 
 ### Step 8: Load previous scores
 
-Read `.ctx/memory-bank/health-history.jsonl`. Each line is a JSON object:
+Read `.ctx/godmode/memory-bank/health-history.jsonl`. Each line is a JSON object:
 
 ```json
 {
@@ -163,7 +163,8 @@ If TODO density > 2 per 1000 lines, subtract one grade.
 
 ### Step 11: Append to history
 
-Append the current metrics as a single JSON line to `.ctx/memory-bank/health-history.jsonl`:
+Append the current metrics as a single JSON line to
+`.ctx/godmode/memory-bank/health-history.jsonl`:
 
 ```json
 {"timestamp": "2026-06-02T14:35:22Z", "test_count": 272, ...}
@@ -182,8 +183,8 @@ the trend summary. Write the complete scorecard (including full history context)
 - Never modify source code.
 - Metrics are approximations for trend tracking, not absolute measurements. Flag any
   metric that could not be collected.
-- If `cargo clippy` or `cargo nextest` fail, report the failure and skip that metric.
-- If `.ctx/memory-bank/health-history.jsonl` is corrupt (unparseable JSON), log a
+- If `taskit check lint` or `taskit test run` fail, report the failure and skip that metric.
+- If `.ctx/godmode/memory-bank/health-history.jsonl` is corrupt (unparseable JSON), log a
   warning and continue with an empty history.
 - Do not spend more than 30 seconds on any single metric — timeout and skip rather
   than hang.
