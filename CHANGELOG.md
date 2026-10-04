@@ -1,3 +1,16 @@
+## [0.8.1] - 2026-10-03
+
+### Features
+
+- _(opencode)_ Generate `.opencode/agents/` from `agents/cfg/`, deny-by-default
+- _(opencode)_ Generate `.opencode/plugins/godmode.ts` from the hook registry
+- _(hooks)_ Add `godmode hook generate --client <claude|opencode>`
+- _(cli)_ Add `godmode agent generate-opencode --all`
+
+### Bug Fixes
+
+- _(opencode)_ Honour the block decision in PreToolUse hooks
+
 ## [0.8.0] - 2026-10-03
 
 ### Features
