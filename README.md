@@ -168,8 +168,7 @@ godmode status                      # counts + next runnable, no external calls
 godmode plan ingest docs/plans/2026-05-01-my-feature.md
 ```
 
-Parses `### Task N: <title>` headings, optional **Crate**: `name` and **Run**: `cmd` annotations. Builds sequential deps automatically. Idempotent —
-re-running a plan skips existing task IDs silently.
+Parses `### Task N: <title>` headings, optional **Crate**: `name` and **Run**: `cmd` annotations. Builds sequential deps automatically. Idempotent, but not by ID existence — for each prepared task it looks up the task ID the plan was assigned and skips it only when the graph task under that ID matches on title, crate, run, and dependencies; an ID that exists with different content is a conflict and fails ingestion. Idempotence also survives a move: a plan whose recorded path no longer exists is matched as relocated by an unambiguous file stem plus a content match, keeping its existing task IDs.
 
 ### Parallel dispatch
 
