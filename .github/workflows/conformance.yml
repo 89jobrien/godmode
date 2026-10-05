@@ -41,6 +41,32 @@ jobs:
       - name: audit dependency graph
         run: cargo deny check
 
+  conformance-opencode:
+    name: opencode projection conformance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.10"
+
+      # The audit parses the installed @opencode-ai/plugin type definitions
+      # rather than hardcoding hook names, so the package must be present.
+      - name: install opencode plugin types
+        working-directory: .opencode
+        run: bun install --frozen-lockfile
+
+      # Catches a generated plugin that drifts from the hook registry, emits
+      # a hook name OpenCode does not define, or drops a hook's decision
+      # handling. Without this the blocking-decision bug in PreToolUse hooks
+      # is invisible until it runs.
+      - name: audit opencode plugin against the real type definitions
+        run: bun run scripts/opencode/audit-plugin.ts
+
+      - name: typecheck opencode plugin
+        run: bun x tsc -p .opencode/tsconfig.json
+
   conformance-skill-index:
     name: skill index completeness
     runs-on: ubuntu-latest

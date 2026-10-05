@@ -1,0 +1,8 @@
+# node_modules is installed by `bun install`.
+node_modules
+
+# package.json and bun.lock ARE tracked. The OpenCode contract audit
+# derives its expectations from the pinned @opencode-ai/plugin type
+# definitions, so the pin has to be version-controlled for the gate to be
+# reproducible. Leaving them ignored meant CI could not install the package
+# the audit reads.

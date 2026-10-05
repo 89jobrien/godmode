@@ -1,17 +1,38 @@
-// Derive the OpenCode plugin hook contract from the installed
-// @opencode-ai/plugin type definitions, then typecheck the generated
-// plugin against it. The .d.ts is the ground truth; this script only reads it.
+// Audit the generated OpenCode plugin against the real @opencode-ai/plugin
+// type definitions, which are the ground truth for the hook contract. This
+// script parses the installed .d.ts rather than hardcoding hook names, so a
+// hook that OpenCode never declared is caught here.
 //
-//   bun run .ctx/_WORKING_DIR/audit-opencode.ts
+//   bun run scripts/opencode/audit-plugin.ts
 //
-// Emits:
-//   1. the hook names + arity declared by Hooks
-//   2. `bun x tsc --noEmit` over .opencode/plugins/godmode.ts
+// Two limits of `tsc` make this necessary rather than redundant:
+//   - handler arity is not enforced, so a 1-arg handler satisfies a 2-arity
+//     hook and a dropped `output` parameter compiles clean
+//   - excess properties pass when at least one valid key is present, so a
+//     typo'd hook name alongside a real one compiles clean
+// Run `bun x tsc -p .opencode/tsconfig.json` as well; it catches what this
+// cannot.
 
 import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 
-const D_TS = ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts"
-const PLUGIN = ".opencode/plugins/godmode.ts"
+// Resolve from the repo root so the script behaves the same whether invoked
+// from the root, from a CI job, or via an absolute path.
+const ROOT = resolve(import.meta.dir, "../..")
+const D_TS = resolve(
+  ROOT,
+  ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts",
+)
+const PLUGIN = resolve(ROOT, ".opencode/plugins/godmode.ts")
+
+function readOrFail(path: string, hint: string): string {
+  try {
+    return readFileSync(path, "utf8")
+  } catch {
+    console.error(`FAIL: cannot read ${path}\n      ${hint}`)
+    process.exit(1)
+  }
+}
 
 interface HookSpec {
   name: string
@@ -63,7 +84,12 @@ function parseHooks(source: string): HookSpec[] {
   return hooks
 }
 
-const hooks = parseHooks(readFileSync(D_TS, "utf8"))
+const hooks = parseHooks(
+  readOrFail(
+    D_TS,
+    "Run `bun install` in .opencode — the contract audit reads the installed type definitions.",
+  ),
+)
 
 console.log(`OpenCode Hooks contract (from ${D_TS}):\n`)
 for (const h of hooks) {
@@ -72,7 +98,10 @@ for (const h of hooks) {
 }
 
 // Cross-check the generated plugin against that contract.
-const plugin = readFileSync(PLUGIN, "utf8")
+const plugin = readOrFail(
+  PLUGIN,
+  "Run `godmode hook generate --client opencode` to produce the plugin.",
+)
 const byName = new Map(hooks.map((h) => [h.name, h]))
 const emitted = [...plugin.matchAll(/"([\w.]+)"\s*:\s*async\s*\(/g)].map(
   (m) => m[1],
@@ -97,6 +126,15 @@ for (const name of emitted) {
 if (emitted.length === 0) {
   console.log("  (no async hook handlers matched — check the regex)")
   bad++
+}
+
+// A plugin that never reads a hook decision would silently downgrade every
+// blocking PreToolUse gate to advisory.
+if (!plugin.includes("throw new Error(verdict.reason")) {
+  console.log("  MISSING        block-decision handling (PreToolUse cannot deny)")
+  bad++
+} else {
+  console.log(`  ${"block-decision handling".padEnd(42)} OK`)
 }
 
 console.log(bad === 0 ? "\nPASS" : `\nFAIL: ${bad} problem(s)`)
