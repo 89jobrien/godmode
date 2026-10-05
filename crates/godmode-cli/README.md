@@ -95,8 +95,9 @@ godmode visualize-graph --format dot --out .ctx/godmode/tasks.dot
 ```
 
 Plan headings use `### Task N: Title`; optional `**Crate**`, `**Run**`, and `**Depends-on**`
-annotations become task fields. Re-ingesting the same source is idempotent, while colliding plans
-receive deterministic namespaced IDs.
+annotations become task fields. Re-ingesting a plan is idempotent whether or not it has moved — a
+plan whose recorded path no longer exists is matched as relocated by an unambiguous file stem plus
+a content match on its recorded tasks — while colliding plans receive deterministic namespaced IDs.
 
 ## Command Reference
 

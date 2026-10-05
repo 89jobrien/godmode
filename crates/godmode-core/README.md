@@ -99,7 +99,11 @@ annotations:
 Without `**Depends-on**`, parsed tasks form a sequential chain. `plan::ingest` keeps the first
 available `tN` IDs, deterministically namespaces collisions from the source filename, rewrites
 internal dependencies, preserves explicit `graph:` dependencies, and records source-to-ID mappings
-for idempotent re-ingestion. `IngestReport` reports parsed, added, skipped, and assigned IDs.
+for idempotent re-ingestion. The recorded source path is one identity signal, not the whole rule: a
+plan whose recorded path no longer exists is matched as relocated when its file stem is unambiguous
+and its recorded tasks are still in the graph with matching title, crate, and run, so re-ingestion
+stays idempotent after a move. Two plan files that share a stem and both still exist stay distinct.
+`IngestReport` reports parsed, added, skipped, and assigned IDs.
 
 `templates` loads task templates from repository `templates/` before
 `$HOME/.config/godmode/templates/`, substitutes declared `{{variables}}`, and applies resolved tasks
