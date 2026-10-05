@@ -4,7 +4,7 @@ description: >
   Use when the user wants to break up a large diff, PR, or branch into smaller independent PRs
   or branches. Handles mechanical analysis (file-to-crate mapping, concern classification, coupling
   detection), proposes a decomposition plan, requires explicit approval, then executes the split
-  (creates branches, stages subsets, runs cargo check per split, optionally opens PRs). Trigger
+  (creates branches, stages subsets, runs taskit check compile per split, optionally opens PRs). Trigger
   on "decompose this PR", "split this branch", "this diff is too big", "break this into smaller
   PRs", "make this reviewable", "/decompose", or any request to split a large changeset into
   independent units.
@@ -158,8 +158,8 @@ The splitter:
 1. Checks out `main` (or base)
 2. Creates the split branch
 3. Cherry-picks by file: `git checkout <source-branch> -- <files>`
-4. Runs `cargo check --workspace`
-5. Runs `cargo nextest run --workspace` (or scoped to affected crates)
+4. Runs `taskit check compile`
+5. Runs `taskit test run` (or scoped to affected crates)
 6. If checks pass: commits with a conventional message
 7. If checks fail: reports failure, rolls back the branch, stops — does not continue to next split
 
@@ -202,7 +202,7 @@ Depends on: #<prior-split-PR> (if sequential dependency exists)
 - crates/foo/src/bar.rs
 
 ## Test plan
-- [ ] cargo nextest run --workspace passes
+- [ ] taskit test run passes
 - [ ] clippy clean
 EOF
 ```
@@ -235,7 +235,7 @@ is always intact regardless.
 
 - **Source branch is read-only.** Never commit to it, never delete it. All splits branch from base.
 - **Plan approval is required.** No git mutations before the user says go.
-- **Sequential verification.** Each split must pass `cargo check` + `nextest` before the next
+- **Sequential verification.** Each split must pass `taskit check compile` + `nextest` before the next
   begins. A failing split halts the process — do not skip forward.
 - **Coverage check.** After all splits, verify every changed file appears in exactly one split.
   Files in multiple splits or no split are bugs.

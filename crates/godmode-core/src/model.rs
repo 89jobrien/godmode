@@ -194,7 +194,11 @@ impl Clone for TaskGraph {
     }
 }
 
-fn plan_file_stem(source: &str) -> &str {
+/// Returns a plan source's file stem: its final path segment without the `.md` suffix.
+///
+/// This is a plan's identity across directories, and the single definition used both to match a
+/// relocated plan and to derive the id namespace in `plan`, so the two cannot drift apart.
+pub(crate) fn plan_file_stem(source: &str) -> &str {
     let file_name = source.rsplit(['/', '\\']).next().unwrap_or(source);
     file_name.strip_suffix(".md").unwrap_or(file_name)
 }
@@ -216,11 +220,19 @@ impl TaskGraph {
     ///
     /// Provenance outlives its tasks, because `task remove` keeps ids reserved for their source. A
     /// candidate therefore only counts when every id it records still exists in the graph.
-    pub(crate) fn relocated_plan_task_ids(&self, source: &str) -> Option<&[String]> {
+    ///
+    /// `is_gone` answers whether a recorded path has disappeared. It is a parameter rather than an
+    /// inline `Path::exists` call so this data model performs no filesystem access and the check can
+    /// be substituted by callers and tests.
+    pub(crate) fn relocated_plan_task_ids(
+        &self,
+        source: &str,
+        is_gone: impl Fn(&str) -> bool,
+    ) -> Option<&[String]> {
         let stem = plan_file_stem(source);
         let mut matches = self.plan_imports.iter().filter(|import| {
             plan_file_stem(&import.source) == stem
-                && !std::path::Path::new(&import.source).exists()
+                && is_gone(&import.source)
                 && self.plan_import_has_live_tasks(import)
         });
         let only = matches.next()?;
@@ -240,6 +252,7 @@ impl TaskGraph {
             .any(|import| import.task_ids.iter().any(|task_id| task_id == id))
     }
 
+    /// Records `source` as the origin of `task_ids`, replacing any entry already at that path.
     pub(crate) fn record_plan_import(&mut self, source: String, task_ids: Vec<String>) {
         if let Some(import) = self
             .plan_imports
@@ -249,16 +262,37 @@ impl TaskGraph {
             import.task_ids = task_ids;
             return;
         }
-        // A relocated plan keeps a single provenance entry, rebound to its new path. The entry is
-        // adopted only when it records the same task ids *and* its old file is gone; distinct plans
-        // that share a stem keep their own entries.
-        let relocated = self.plan_imports.iter().position(|import| {
-            import.task_ids == task_ids && !std::path::Path::new(&import.source).exists()
-        });
-        match relocated {
-            Some(index) => self.plan_imports[index] = PlanImport { source, task_ids },
-            None => self.plan_imports.push(PlanImport { source, task_ids }),
+        self.plan_imports.push(PlanImport { source, task_ids });
+    }
+
+    /// Rebinds the entry describing this plan at its former path onto `source`, reporting whether it
+    /// found one.
+    ///
+    /// A relocated plan keeps a single provenance entry, so `is_relocated` selects the entry that
+    /// records this plan under its old location; it is a parameter so the relocation test is supplied
+    /// by the caller rather than performed here. An entry already recorded at `source` always wins,
+    /// because re-ingesting a plan in place must update its ids without discarding its identity.
+    pub(crate) fn adopt_relocated_plan_import(
+        &mut self,
+        source: &str,
+        task_ids: Vec<String>,
+        is_relocated: impl Fn(&str, &[String]) -> bool,
+    ) -> bool {
+        if self.plan_task_ids(source).is_some() {
+            return false;
         }
+        let Some(index) = self
+            .plan_imports
+            .iter()
+            .position(|import| is_relocated(&import.source, &import.task_ids))
+        else {
+            return false;
+        };
+        self.plan_imports[index] = PlanImport {
+            source: source.to_string(),
+            task_ids,
+        };
+        true
     }
 
     pub(crate) fn clear_plan_imports(&mut self) {

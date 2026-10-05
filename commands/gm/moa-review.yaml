@@ -36,7 +36,7 @@ prompt: |
   File: `.ctx/review/04-blast-radius.md`
   - For every changed public function, list all callers across the workspace
   - Flag callers that may be broken by signature or behaviour changes
-  - Run `cargo check --workspace` and capture any compilation errors
+  - Run `taskit check compile` and capture any compilation errors
 
   **Lens 5 — Documentation accuracy**
   File: `.ctx/review/05-docs.md`
@@ -68,7 +68,7 @@ prompt: |
   1. Verifies branch with `git branch --show-current` before any commit
   2. Writes a failing test for the finding first
   3. Implements the fix to make the test pass
-  4. Runs `cargo clippy --workspace -- -D warnings` — zero warnings
+  4. Runs `taskit check lint` — zero warnings
   5. Commits: `fix(<crate>): <finding summary> [moa-review]`
   6. Reports commit SHA and test name
 

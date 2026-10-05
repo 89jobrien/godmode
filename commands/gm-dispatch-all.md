@@ -77,7 +77,7 @@ After each agent completes:
 2. Merge sequentially (never octopus):
    `git merge --no-ff issue/slot-N -m "merge: slot-N fixes #..."`
 3. Resolve conflicts (expect Cargo.toml workspace dep conflicts — keep both entries).
-4. Run full suite: `cargo nextest run --workspace && cargo clippy --workspace -- -D warnings`
+4. Run full suite: `taskit test run` and `taskit check lint`
 5. Remove worktree: `git worktree remove .worktrees/slot-N && git branch -d issue/slot-N`
 6. Close issues: `gh issue close N --comment "Implemented in <sha>."`
    If gh auth fails: log to `.ctx/pending-manual.txt` and continue — do NOT retry.

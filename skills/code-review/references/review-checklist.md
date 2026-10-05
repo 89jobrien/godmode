@@ -59,7 +59,7 @@ Quick reference: `Unit → Property → Fuzz → Model Check → Conformance →
 - [ ] No dead code, unused imports, `#[allow(dead_code)]` without explanation
 - [ ] Doc comments (`///`) on public items where behaviour is non-obvious
 - [ ] Line width ≤ 100 columns
-- [ ] `cargo clippy -- -D warnings` clean
+- [ ] `taskit check lint` clean
 
 ## Severity Guide
 

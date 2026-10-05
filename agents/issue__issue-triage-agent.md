@@ -101,13 +101,13 @@ Consider:
 
 Output a table with columns:
 
-```text
+```
 | # | Title | Type | Complexity | Priority | Group | Order | Notes |
 ```
 
 Example:
 
-```text
+```
 | 42 | Panic on invalid UTF-8 input | Bug | S | P2 | Encoding | 3 | High-rep user report |
 | 51 | Add YAML support | Feature | M | P3 | Parser | 5 | Deferred; needs RFC |
 ```

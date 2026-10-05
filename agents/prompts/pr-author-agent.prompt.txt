@@ -93,7 +93,7 @@ support for...", "Fixes incorrect behavior...", "Refactors...").>
 ## Test Plan
 
 <Describe what was tested:>
-- <Ran test suite with `cargo nextest run`>
+- <Ran test suite with `taskit test run`>
 - <Verified behavior with manual test: <describe>>
 - <Added new tests in `tests/` for <feature>>
 

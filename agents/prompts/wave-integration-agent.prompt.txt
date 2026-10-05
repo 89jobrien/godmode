@@ -33,8 +33,8 @@ Never use `git rebase --skip` — it silently drops commits.
 ## Step 3: Test After Each Rebase
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 If tests fail: debug and fix on the branch (cap 3 attempts) before proceeding. If fix is

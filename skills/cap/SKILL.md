@@ -2,7 +2,7 @@
 name: "godmode:cap"
 description: >
   Commit and push workflow with pre-flight validation and hook recovery. Use when the user
-  says "cap", "commit and push", or "ship it". Runs cargo nextest, fmt, clippy, stages all
+  says "cap", "commit and push", or "ship it". Runs taskit test run, fmt, clippy, stages all
   changes, writes a conventional commit, handles pre-commit hook failures, and pushes.
 requires: []
 next: [pr-author]
@@ -19,15 +19,15 @@ Run the full validation gate, commit, and push in one pass.
 > Run via `godmode verify` or use the commands below:
 
 ```bash
-cargo check --workspace
-cargo nextest run --workspace   # preferred; fallback: cargo test --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit check compile
+taskit test run   # preferred; cargo fallback: cargo nextest run --workspace
+taskit check lint
+taskit check fmt --check
 ```
 
-If `cargo check` or tests fail — **stop**. Report failures. Do not commit broken code.
+If `taskit check compile` or tests fail — **stop**. Report failures. Do not commit broken code.
 
-If `cargo fmt --check` fails — run `cargo fmt --all` to fix, then continue.
+If `taskit check fmt --check` fails — run `taskit check fmt` to fix, then continue.
 
 If clippy warnings exist — fix them before committing.
 
@@ -103,7 +103,7 @@ If no running task exists, skip this step.
 ## Guardrails
 
 - Before staging ANY Rust change outside of the cap workflow, run:
-  `cargo clippy --all-targets --all-features -- -D warnings`
+  `taskit check lint`
   The feat-then-fix commit cycle is the top recurring anti-pattern in this workspace.
   Do not commit until clippy is clean.
 - Never use `--no-verify`.

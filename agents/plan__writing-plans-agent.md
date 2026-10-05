@@ -18,33 +18,23 @@ into a populated godmode task graph.
 **Input — find the spec.** Specs are formal design docs. Resolve in this order:
 
 1. **Explicit spec** — `{YYYYMMDD}-{topic}.spec.md` under `docs/specs/`
-2. **Legacy design doc** — `{YYYY-MM-DD}-{topic}.md` under `docs/plans/` (no doctype suffix;
+2. **Legacy design doc** — `{YYYY-MM-DD}-{topic}.md` under `.ctx/godmode/plans/` (no doctype suffix;
    infer `doctype = spec` from path)
 3. **Repo spec** — `spec.{project}.md` under `docs/`
 
-Use the Glob tool to find the most recent explicit spec:
-
-```text
-Pattern: docs/specs/*.spec.md
-```
-
-Fall back to legacy implicit design docs:
-
-```text
-Pattern: docs/plans/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md
-```
-
-Sort results and take the last entry.
+Use the Glob tool for `docs/specs/*.spec.md`. If no explicit spec exists, use the Glob tool for
+`.ctx/godmode/plans/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md`. Sort matching paths and select
+the latest entry.
 
 Read the resolved spec fully before doing anything else.
 
 **Output — write a plan.** Once you have extracted tasks, write an implementation plan to:
 
-```text
-docs/plans/{YYYYMMDD}-{topic}.plan.md
+```
+.ctx/godmode/plans/{YYYYMMDD}-{topic}.plan.md
 ```
 
-Path inference: any `.md` under `docs/plans/` is implicitly `doctype = plan`.
+Path inference: any `.md` under `.ctx/godmode/plans/` is implicitly `doctype = plan`.
 
 Frontmatter:
 
@@ -75,29 +65,23 @@ From the design doc's `## Tasks` section, identify each task. For each task note
 
 Count the tasks and confirm the count before proceeding.
 
-### 3. Add tasks to the graph
+### 3. Ingest tasks and run metadata
 
-For each task, call `godmode task add` in dependency order:
-
-```bash
-# Root task (no deps)
-godmode task add "t1" "<title>" --run "<cmd>"
-
-# Dependent task
-godmode task add "t2" "<title>" --deps t1 --run "<cmd>"
-```
-
-Omit `--deps` for root tasks. Omit `--run` if no run command was specified.
+Write `### Task N:` sections with `**Run**:` annotations, then ingest the plan. Direct
+`godmode task add` supports title, ID, dependencies, and crate name but not `run:` metadata.
 
 ### 4. Ingest plan markdown (if applicable)
 
 If the design doc uses `### Task N:` headings conforming to the godmode plan format, also run:
 
 ```bash
-godmode plan ingest docs/plans/<filename>.md
+godmode plan ingest .ctx/godmode/plans/<filename>.md
 ```
 
-Note: `plan ingest` is idempotent — it skips tasks whose IDs already exist.
+Note: `plan ingest` namespaces colliding plans and remains idempotent for the same plan source,
+including after the plan file is moved. A plan whose recorded path no longer exists is matched as
+relocated by an unambiguous file stem plus a content match on its recorded tasks, which keeps its
+existing task IDs.
 
 ### 5. Confirm the graph
 
@@ -112,7 +96,7 @@ Run `godmode status` and show the output to the user. Verify:
 Tell the user:
 
 > "Task graph populated with N tasks. Run `godmode task next` to see what's runnable, or
-> invoke `/godmode:tdd-crate-agent` to begin implementation."
+> invoke `/gm:tdd` to begin implementation."
 
 ## Rules
 

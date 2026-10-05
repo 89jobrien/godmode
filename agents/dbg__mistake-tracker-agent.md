@@ -34,7 +34,7 @@ Read all available session traces:
 
 ```bash
 # List session trace files
-# Glob: .ctx/sessions/*.jsonl
+# Glob: .ctx/godmode/sessions/*.jsonl
 ```
 
 For each `.jsonl` file, extract:
@@ -58,7 +58,7 @@ Look for patterns:
 
 ### Step 3: Read Existing Mistake Ledger
 
-Check if `.ctx/memory-bank/mistakes.md` exists. If it does, read it to see what
+Check if `.ctx/godmode/memory-bank/mistakes.md` exists. If it does, read it to see what
 patterns have already been cataloged. Note counts and dates for existing entries.
 
 If the file does not exist, proceed to Step 4.
@@ -67,12 +67,13 @@ If the file does not exist, proceed to Step 4.
 
 Search session traces and recent commits for clippy warnings:
 
-Use the Grep tool to search for `clippy` (case-insensitive) in `.ctx/sessions/*.jsonl`.
+Use the Grep tool to search for `clippy` (case-insensitive) in
+`.ctx/godmode/sessions/*.jsonl`.
 
-Find clippy-related commits:
+Read recent commits, then use the Grep tool on the captured output for `clippy`:
 
 ```bash
-git log --all --oneline -100 | grep -i clippy || true
+git log --all --oneline -100
 ```
 
 For each unique lint ID found:
@@ -85,12 +86,14 @@ Mark as recurring if it appears in 2+ sessions or commits.
 
 ### Step 5: Detect Test Failures
 
-Use the Grep tool to search for `test.*fail|FAILED` (case-insensitive) in `.ctx/sessions/*.jsonl`.
+Use the Grep tool to search for `test.*fail|FAILED` (case-insensitive) in
+`.ctx/godmode/sessions/*.jsonl`.
 
-Find test-related reverts or fixes:
+Read recent commits, then use the Grep tool on the captured output for test-related reverts or
+fixes:
 
 ```bash
-git log --all --oneline -100 | grep -i "test\|revert.*test" || true
+git log --all --oneline -100
 ```
 
 For each unique test name:
@@ -103,14 +106,14 @@ Mark as recurring if it fails in 2+ sessions.
 
 ### Step 6: Detect Process Errors
 
-Examine commits for subagent mistakes:
+Examine recent commits for subagent mistakes. Use the Grep tool on the captured output for `main`,
+`subagent`, and `worktree`:
 
 ```bash
-# Find commits on main from subagents (branch name in commit msg)
-git log --all --oneline -100 | grep "main\|subagent\|worktree" || true
+git log --all --oneline -100
 ```
 
-Check `.ctx/sessions/*.jsonl` for:
+Check `.ctx/godmode/sessions/*.jsonl` for:
 
 - `git commit` that ran on wrong branch
 - `git push --force` or `git reset --hard` usage
@@ -119,8 +122,10 @@ Check `.ctx/sessions/*.jsonl` for:
 ### Step 7: Detect Hook False Positives
 
 ```bash
-git log --all --oneline -100 | grep -i "hook\|skip.*verify\|allowlist" || true
+git log --all --oneline -100
 ```
+
+Use the Grep tool on the captured output for `hook`, `skip.*verify`, and `allowlist`.
 
 Track patterns:
 
@@ -131,8 +136,10 @@ Track patterns:
 ### Step 8: Detect Reverts
 
 ```bash
-git log --all --oneline -100 | grep -i "revert"
+git log --all --oneline -100
 ```
+
+Use the Grep tool on the captured output for `revert`.
 
 Each revert indicates a mistake made it to a commit. Correlate with:
 
@@ -154,7 +161,7 @@ For each detected pattern, create a ledger entry with:
 
 ### Step 10: Write or Update Mistake Ledger
 
-If `.ctx/memory-bank/mistakes.md` exists, append new findings using the Edit tool.
+If `.ctx/godmode/memory-bank/mistakes.md` exists, append new findings using the Edit tool.
 Do not delete or modify existing entries.
 
 If the file does not exist, create it with all findings.

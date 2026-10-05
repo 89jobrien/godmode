@@ -3,7 +3,7 @@ name: "gm-dep-bump-propagator-agent"
 description: >
   Shared dependency bump propagator. Use when a workspace crate version is
   bumped and downstream repos need updating. Finds all Cargo.toml files across
-  ~/dev/ that pin the old version, updates them, runs cargo check, and reports
+  ~/dev/ that pin the old version, updates them, runs taskit check compile, and reports
   pass/fail per repo.
 model: inherit
 color: yellow
@@ -104,7 +104,7 @@ For each affected file, use the Edit tool to replace the version pin:
 Always use Edit — never use sed or stream replacements. Show the before/after
 for each file.
 
-### Step 5: Run cargo check in each affected repo
+### Step 5: Run taskit check compile in each affected repo
 
 For each updated repository, run:
 
@@ -137,7 +137,7 @@ Create a summary table:
 
 ### Failed Repos (manual intervention needed)
 
-For each failed repo, show the cargo check error output and suggest next steps:
+For each failed repo, show the taskit check compile error output and suggest next steps:
 - Check if the new version exists on crates.io
 - Verify features are correctly specified
 - Check for transitive dependency conflicts
@@ -153,11 +153,11 @@ For each failed repo, show the cargo check error output and suggest next steps:
 - Use `git -C <repo-path>` instead of `cd <repo> && git` — do not change cwd.
 - Never bump major versions without explicit consent from the user. Verify the
   user is aware of breaking changes.
-- If a repo's cargo check fails, show the full error output and do NOT mark it
+- If a repo's taskit check compile fails, show the full error output and do NOT mark it
   as complete.
 - Always verify the new version exists before updating. Report if the version
   is not found on crates.io.
 - For workspaces with sub-crates, check both the root Cargo.toml and crate
   sub-directories for the dependency.
-- Run cargo check, not cargo build — checking suffices to validate dep
+- Run taskit check compile, not cargo build — checking suffices to validate dep
   resolution.

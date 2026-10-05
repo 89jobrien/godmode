@@ -20,8 +20,8 @@ skills: receiving-review
 - Group findings as Blocking / Suggestions / Nitpicks.
 - Apply ALL severity levels in one pass before committing. Do not commit after
   fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- Run verification after fixes: `taskit check lint`,
+  `taskit test run`, `taskit check fmt --check`.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
@@ -52,7 +52,7 @@ Classify each comment as:
 ## Step 3: Green baseline
 
 ```bash
-cargo nextest run --workspace
+taskit test run
 ```
 
 If red before your changes, fix and flag pre-existing failures separately.
@@ -80,9 +80,9 @@ Do not commit after blocking items only and leave suggestions for later.
 ## Step 6: Verify and close
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 Then mark the review task done via `godmode task done <id>`.

@@ -1899,11 +1899,11 @@ fn main() -> Result<()> {
 
     match cli.command {
         Commands::Lint => {
-            cmd!(sh, "cargo fmt --all -- --check").run()?;
-            cmd!(sh, "cargo clippy --workspace --all-targets -- -D warnings").run()?;
+            cmd!(sh, "taskit check fmt --check").run()?;
+            cmd!(sh, "taskit check lint").run()?;
         }
         Commands::Test => {
-            cmd!(sh, "cargo test --workspace").run()?;
+            cmd!(sh, "taskit test run").run()?;
         }
         Commands::E2e => {
             cmd!(sh, "./dev/build-service/run-e2e.sh").run()?;
@@ -1959,18 +1959,18 @@ Shell:
 #!/usr/bin/env bash
 set -euo pipefail
 
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 Rust:
 
 ```rust
 fn check(sh: &xshell::Shell) -> anyhow::Result<()> {
-    xshell::cmd!(sh, "cargo fmt --all -- --check").run()?;
-    xshell::cmd!(sh, "cargo clippy --workspace --all-targets -- -D warnings").run()?;
-    xshell::cmd!(sh, "cargo test --workspace").run()?;
+    xshell::cmd!(sh, "taskit check fmt --check").run()?;
+    xshell::cmd!(sh, "taskit check lint").run()?;
+    xshell::cmd!(sh, "taskit test run").run()?;
     Ok(())
 }
 ```
@@ -2306,8 +2306,8 @@ pub struct CheckArgs {
 pub fn run(ctx: &Context, args: CheckArgs) -> Result<()> {
     let sh = shell(ctx)?;
 
-    run!(ctx, sh, "cargo fmt --all -- --check")?;
-    run!(ctx, sh, "cargo clippy --workspace --all-targets -- -D warnings")?;
+    run!(ctx, sh, "taskit check fmt --check")?;
+    run!(ctx, sh, "taskit check lint")?;
 
     if args.fix {
         run!(ctx, sh, "cargo fix --workspace --allow-dirty")?;
@@ -2344,12 +2344,12 @@ pub fn run(ctx: &Context, args: ReleaseArgs) -> Result<()> {
     let sh = shell(ctx)?;
 
     // Step 1: Sequential pre-flight
-    run!(ctx, sh, "cargo check --workspace")?;
-    run!(ctx, sh, "cargo fmt --all -- --check")?;
-    run!(ctx, sh, "cargo clippy --workspace -- -D warnings")?;
+    run!(ctx, sh, "taskit check compile")?;
+    run!(ctx, sh, "taskit check fmt --check")?;
+    run!(ctx, sh, "taskit check lint")?;
 
     if !args.skip_tests {
-        run!(ctx, sh, "cargo test --workspace")?;
+        run!(ctx, sh, "taskit test run")?;
     }
 
     // Step 2: Parallel crate publishes
@@ -2650,7 +2650,7 @@ rayon = "1"
 | Testability                   | Unit tests in `xtask` crate                  |
 | Compile time                  | Minimize heavy deps, `cargo_metadata` lazily |
 
-The key insight from community guidance is that `xtask` compile time should stay low — don't pull in heavyweight frameworks unless the task genuinely needs them. Keep the binary fast to compile so `cargo xtask check` isn't slower than just running `cargo check` directly.[^12_1][^12_2]
+The key insight from community guidance is that `xtask` compile time should stay low — don't pull in heavyweight frameworks unless the task genuinely needs them. Keep the binary fast to compile so `cargo xtask check` isn't slower than just running `taskit check compile` directly.[^12_1][^12_2]
 <span style="display:none">[^12_10][^12_11][^12_12][^12_13][^12_14][^12_15][^12_16][^12_5][^12_6][^12_7][^12_8][^12_9]</span>
 
 <div align="center">⁂</div>

@@ -171,8 +171,8 @@ unless you fully understand the invariants.
 
 ## Code Style
 
-- Run `rustfmt` (`cargo fmt --all`) before every commit.
-- Run `cargo clippy -- -D warnings` and fix all warnings.
+- Run `rustfmt` (`taskit check fmt`) before every commit.
+- Run `taskit check lint` and fix all warnings.
 - Keep lines at or under 100 characters.
 - Place doc comments (`///`) immediately above the item they document.
 - Use `//!` for module-level documentation.
@@ -184,7 +184,7 @@ unless you fully understand the invariants.
 
 - Write unit tests in `#[cfg(test)]` modules in the same file as the code under test.
 - Write integration tests in `tests/` with descriptive file names.
-- Use `cargo nextest run` (preferred over `cargo test`) for test filtering and parallelism.
+- Use `taskit test run` (preferred over `taskit test run`) for test filtering and parallelism.
 - Test edge cases explicitly — not just the happy path.
 - Examples in doc comments must compile and use `?`, not `unwrap()`.
 
@@ -227,9 +227,9 @@ Before submitting any Rust code:
 - [ ] All public items have `///` rustdoc with at least one sentence
 - [ ] Tests cover the happy path and at least one failure/edge case
 - [ ] No `unsafe` without a `// SAFETY:` comment explaining the invariant
-- [ ] `cargo fmt --all` — no format diff
-- [ ] `cargo clippy -- -D warnings` — zero warnings
-- [ ] `cargo nextest run` — all green
+- [ ] `taskit check fmt` — no format diff
+- [ ] `taskit check lint` — zero warnings
+- [ ] `taskit test run` — all green
 
 ---
 

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core architecture</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html">Overview</a>
+      <a href="guide.html">Guide</a>
+      <a href="architecture.html" aria-current="page">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="features.html">Features</a>
+      <a href="cli.html">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="architecture" class="reveal">
+        <h2>Architecture</h2>
+        <p>
+          Internal dependencies only. External crates are omitted on purpose:
+          a diagram meant to explain how godmode-core is put together should not be
+          mostly tokio and serde.
+        </p>
+        <figure class="diagram">
+          <picture>
+            <source srcset="diagrams/architecture.print.svg" media="print">
+            <img src="diagrams/architecture.svg" alt="Workspace crates, their binaries, and the dependencies between them.">
+          </picture>
+          <figcaption>
+            Workspace crates and their binaries. Edit
+            <code>site/diagrams/architecture.mmd</code>, not the rendered SVG.
+          </figcaption>
+        </figure>
+      </section>
+    </main>
+  </body>
+</html>

@@ -36,7 +36,7 @@ Do not immediately implement. Triage first.
 ### 2. Confirm green baseline before changes
 
 ```bash
-cargo nextest run --workspace
+taskit test run
 ```
 
 If red before your changes, fix the pre-existing failures first and flag them separately.
@@ -70,9 +70,9 @@ Do not silently skip feedback you disagree with. Instead:
 ### 6. Verify after fixes
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 Then use `godmode:verification-before-completion` before marking done.

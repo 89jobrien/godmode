@@ -3,7 +3,7 @@ name: "godmode:dep-bump"
 description: >
   Propagate a workspace crate version bump across ~/dev/ downstream
   dependencies. Discover all pinned locations, update safely with Edit,
-  verify with cargo check, and report pass/fail per repo.
+  verify with taskit check compile, and report pass/fail per repo.
 requires: []
 next: [cap]
 ---
@@ -86,7 +86,7 @@ devkit = "0.5.0"
 
 For each updated repo:
 
-1. Run cargo check on the manifest:
+1. Run taskit check compile on the manifest:
 
    ```bash
    cargo check --manifest-path <path-to-cargo-toml>
@@ -174,7 +174,7 @@ discovers and validates; bump-commit commits the changes.
   user must request major version bumps explicitly.
 - Always verify the new version exists on crates.io before updating. Use
   `cargo search <crate>` or the registry web UI to confirm.
-- For any repo where cargo check fails, show the exact error and pause —
+- For any repo where taskit check compile fails, show the exact error and pause —
   do not continue to the next repo until the user acknowledges the failure.
 - If the version is yanked, report and ask the user to select a different
   version.

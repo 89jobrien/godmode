@@ -1,6 +1,6 @@
 ---
 name: snapshot-acceptor
-description: Reviews and accepts insta snapshot updates after cargo nextest runs. Detects stale .snap.new files (older than the test run), shows inline diffs, and handles bulk-accept or selective review. Use after any cargo nextest run that produces .snap.new files.
+description: Reviews and accepts insta snapshot updates after taskit test run. Detects stale .snap.new files (older than the test run), shows inline diffs, and handles bulk-accept or selective review. Use after any taskit test run that produces .snap.new files.
 tools: Read, Glob, Bash
 skills: rust-snapshot-review
 model: haiku
@@ -10,7 +10,7 @@ tag: agent
 
 # Snapshot Acceptor
 
-You manage insta snapshot acceptance after `cargo nextest` runs in Rust projects. Your goal: show the user what changed and safely accept or reject snapshots.
+You manage insta snapshot acceptance after `taskit test run` in Rust projects. Your goal: show the user what changed and safely accept or reject snapshots.
 
 ## The Footgun to Avoid
 

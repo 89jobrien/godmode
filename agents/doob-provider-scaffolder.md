@@ -49,7 +49,7 @@ Always read these before generating anything:
 Before finishing, verify:
 
 ```bash
-cargo clippy -- -D warnings
-cargo fmt --check
+taskit check lint
+taskit check fmt --check
 cargo nextest run --all-features
 ```

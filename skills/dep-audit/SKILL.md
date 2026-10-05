@@ -1,7 +1,7 @@
 ---
 name: "godmode:dep-audit"
 description: >
-  Audit dependencies across cargo outdated, cargo deny check, and cargo audit.
+  Audit dependencies across taskit protocol freshness, taskit protocol audit, and taskit protocol audit.
   Produce tiered findings: Blocking (CVEs), Suggestions (major bumps), Nitpicks
   (minor/patch bumps). Can auto-apply patch updates when asked.
 requires: []
@@ -20,12 +20,12 @@ next: [dep-bump]
 
 ## The Three-Tool Audit Process
 
-### Tool 1: cargo outdated
+### Tool 1: taskit protocol freshness
 
 Lists all crates with available updates. Categorizes by version bump type.
 
 ```bash
-cargo outdated --workspace
+taskit protocol freshness
 ```
 
 Output shows:
@@ -41,7 +41,7 @@ Flag each update by severity:
 - Minor (x.Y.0): new features, no breaking changes — Nitpick level
 - Patch (x.y.Z): bug fixes only — Nitpick level
 
-### Tool 2: cargo deny check
+### Tool 2: taskit protocol audit
 
 Scans for:
 
@@ -50,21 +50,21 @@ Scans for:
 - **Sources**: crates from banned sources
 
 ```bash
-cargo deny check
+taskit protocol audit
 ```
 
 Any advisory or license failure is Blocking or Suggestion level (depending on
 license policy).
 
-### Tool 3: cargo deny check advisories
+### Tool 3: taskit protocol audit
 
 Scans the vulnerability database for known CVEs in transitive dependencies.
-Use `cargo deny check advisories` instead of `cargo audit` — cargo-audit 0.22
+Use `taskit protocol audit` instead of `taskit protocol audit` — cargo-audit 0.22
 cannot parse CVSS 4.0 entries in the advisory DB (upstream bug; crashes at DB
 load time before any `--ignore` flags can be applied).
 
 ```bash
-cargo deny check advisories --config .config/deny.toml
+taskit protocol audit advisories --config .config/deny.toml
 ```
 
 Reports advisory ID, affected crate, and severity. Always Blocking.
@@ -110,8 +110,8 @@ note version mismatches:
 When asked to "apply patches" or "fix it":
 
 1. For each patch bump: `cargo update -p <crate> --precise <version>`
-2. Rerun `cargo deny check advisories --config .config/deny.toml` to verify no new conflicts
-3. Run `cargo check --workspace` to verify all builds succeed
+2. Rerun `taskit protocol audit advisories --config .config/deny.toml` to verify no new conflicts
+3. Run `taskit check compile` to verify all builds succeed
 4. Report: updated crates and re-audit status
 
 **Guardrails**:
@@ -125,7 +125,7 @@ When asked to "apply patches" or "fix it":
 
 Stop the audit if:
 
-- `cargo outdated` output is malformed (binary missing or broken)
-- `cargo deny` or `cargo audit` crash with unrecoverable error
+- `taskit protocol freshness` output is malformed (binary missing or broken)
+- `taskit protocol audit` or `taskit protocol audit` crash with unrecoverable error
 
 Report the error and ask for manual investigation.

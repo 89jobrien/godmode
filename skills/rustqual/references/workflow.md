@@ -168,7 +168,7 @@ rustqual <path> --save-baseline baseline.json
   than a hollow 100%.
 
 - **Always run tests between rounds** — refactoring can break things.
-  `cargo test && cargo clippy` after every batch of changes.
+  `taskit test run && taskit check lint` after every batch of changes.
 
-- **Don't forget `cargo clippy`** — rustqual doesn't check for clippy
+- **Don't forget `taskit check lint`** — rustqual doesn't check for clippy
   warnings. Run both.

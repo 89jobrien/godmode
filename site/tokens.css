@@ -1,0 +1,134 @@
+/* ============================================================
+   godmode — design tokens
+
+   REPLACE: say why this palette fits this project and its audience.
+   The pilots each justify theirs: minibox wears Gruvbox because its
+   own terminal output does, sparkfile wears a drafting grid because
+   it emits files. A palette picked because it looked tidy is the
+   thing to avoid.
+
+   Two inks beyond the accent carry meaning here; name what each one
+   means before using it.
+   ============================================================ */
+
+/* Default faces are wired up and working, so the generated site validates
+   the moment it is composed. fetch-fonts.sh must be run with the same
+   families:
+
+     bash fetch-fonts.sh <repo> "ibm-plex-sans:var" "ibm-plex-mono:400" "ibm-plex-mono:700"
+
+   Swap the families and the blocks together -- a @font-face pointing at a
+   file that was never fetched fails validation, not just the browser. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("fonts/ibm-plex-sans-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* type ---------------------------------------------------------------- */
+  --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --font-display-weight: 600;
+  --font-body-weight: 400;
+  --font-body-strong: 600;
+  --display-tracking: -0.02em;
+  --display-tracking-body: -0.012em;
+  --brand-tracking: -0.02em;
+
+  --font-size-xs: 0.72rem;
+  --font-size-sm: 0.84rem;
+  --font-size-md: 1.18rem;
+  --font-size-lg: clamp(1.42rem, 2.6vw, 1.9rem);
+  --font-size-2xl: clamp(2.1rem, 4.6vw, 3.3rem);
+  --font-size-display: clamp(2.8rem, 9vw, 6rem);
+
+  /* palette ------------------------------------------------------------- */
+  --color-bg: #12151a;
+  --color-surface: #191d24;
+  --color-surface-raised: #21262f;
+  --color-surface-sunken: #0d1015;
+  --color-fg: #e8ecf2;
+  --color-fg-muted: #97a1b0;
+  --color-accent: #7aa2f7;
+  --color-accent-hover: #9db9ff;
+  --color-accent-fg: #0b0e13;
+  --color-border: #2b323d;
+  --color-border-strong: #3d4653;
+  --color-focus: #f0b429;
+
+  /* second ink: state this project's signature uses ------------------------ */
+  --color-ink-2: #f0b429;
+
+  --color-nav-bg: rgb(18 21 26 / 0.9);
+  --color-row-hover: rgb(122 162 247 / 0.05);
+  --color-note-bg: rgb(122 162 247 / 0.07);
+  --color-pill-neutral-bg: rgb(151 161 176 / 0.15);
+  --color-code-bg: #0d1015;
+  --color-code-fg: #d7dce3;
+  --color-terminal-bg: #0d1015;
+  --color-terminal-fg: #d7dce3;
+  --color-dot-1: #f7768e;
+  --color-dot-2: #e0af68;
+  --color-dot-3: #7aa2f7;
+
+  --color-signal-ok: #7aa2f7;
+  --color-signal-ok-bg: rgb(122 162 247 / 0.14);
+  --color-signal-warn: #e0af68;
+  --color-signal-warn-bg: rgb(224 175 104 / 0.15);
+  --color-signal-err: #f7768e;
+  --color-signal-err-bg: rgb(247 118 142 / 0.14);
+
+  /* form ---------------------------------------------------------------- */
+  --radius-xs: 3px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 3px;
+  --content-width: 1080px;
+  --content-width-narrow: 900px;
+  --stat-columns: 4;
+  --terminal-min-height: 18rem;
+
+  --shadow-card: 0 10px 30px rgb(0 0 0 / 0.34);
+  --shadow-terminal: 0 24px 70px rgb(0 0 0 / 0.3);
+  --shadow-nav: 0 8px 28px rgb(0 0 0 / 0.36);
+  --shadow-button: 0 8px 20px -8px rgb(122 162 247 / 0.5);
+
+  /* atmosphere: state what these washes are doing ------------------------- */
+  --atmosphere-image: radial-gradient(circle at 10% -8%, rgb(122 162 247 / 0.09), transparent 30rem);
+  --atmosphere-size: auto;
+  --grain-image: radial-gradient(rgb(232 236 242 / 0.03) 0.5px, transparent 0.5px);
+  --grain-opacity: 1;
+  --grain-blend: normal;
+}

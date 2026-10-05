@@ -39,7 +39,7 @@ After dispatching, stay available to act on the findings.
 
 - Rust edition 2024 everywhere
 - Hexagonal architecture: domain crates have no external deps, adapters implement domain ports
-- `cargo clippy -- -D warnings` and `cargo fmt` must pass — CI enforces as hard failures
+- `taskit check lint` and `taskit check fmt` must pass — CI enforces as hard failures
 - Go: interfaces at consumption site, errors wrapped with `%w`, context as first arg
 
 ### Tools

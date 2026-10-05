@@ -49,6 +49,25 @@ impl HandoffItem {
         }
     }
 
+    fn pending(task: &Task) -> Self {
+        Self {
+            id: task.id.clone(),
+            doob_uuid: None,
+            name: slug(&task.title),
+            priority: priority_to_handoff(&task.priority),
+            status: "pending".into(),
+            title: task.title.clone(),
+            description: if task.notes.is_empty() {
+                format!("Queued work, not yet started ({})", task.id)
+            } else {
+                task.notes.clone()
+            },
+            files: vec![],
+            completed: None,
+            extra: vec![],
+        }
+    }
+
     fn blocked(task: &Task) -> Self {
         let reason = if task.notes.is_empty() {
             "blocked (no reason recorded)".into()
@@ -112,18 +131,91 @@ pub struct HandoffFile {
     pub log: Vec<HandoffLog>,
 }
 
-/// Build handoff items from task graph state.
-pub fn items_from_tasks(tasks: &[Task]) -> Vec<HandoffItem> {
-    let mut items = Vec::new();
+/// Upper bound on handoff items, so a large backlog cannot turn the snapshot into a wall of rows.
+///
+/// Ordering in [`items_from_tasks`] puts blocked and running ahead of pending, so truncation only
+/// ever discards queued work.
+const MAX_HANDOFF_ITEMS: usize = 50;
 
-    for t in tasks {
-        match t.status {
-            Status::Running => items.push(HandoffItem::running(t)),
-            Status::Blocked => items.push(HandoffItem::blocked(t)),
-            Status::Pending | Status::Done => {}
+/// Order two task identifiers so a numeric tail sorts numerically.
+///
+/// Task identifiers in a generated chain end in a plain integer, so a byte comparison puts `t10`
+/// before `t6` and a snapshot listing `t10, t6, t7` misrepresents which task is next.
+fn natural_order(left: &str, right: &str) -> std::cmp::Ordering {
+    let mut left_parts = natural_parts(left);
+    let mut right_parts = natural_parts(right);
+    loop {
+        match (left_parts.next(), right_parts.next()) {
+            (None, None) => return std::cmp::Ordering::Equal,
+            (None, Some(_)) => return std::cmp::Ordering::Less,
+            (Some(_), None) => return std::cmp::Ordering::Greater,
+            (Some(left_part), Some(right_part)) => match left_part.cmp(&right_part) {
+                std::cmp::Ordering::Equal => {}
+                other => return other,
+            },
         }
     }
-    items
+}
+
+/// Splits an identifier into alternating numeric and literal runs.
+///
+/// A run is `(kind, number, literal)`: numeric runs carry a parsed `u64` so they compare as numbers,
+/// and always sort before literal runs at the same position. Runs longer than `u64` saturate, which
+/// only affects identifiers far longer than any this project mints.
+fn natural_parts(value: &str) -> impl Iterator<Item = (u8, u64, String)> + '_ {
+    let mut rest = value;
+    std::iter::from_fn(move || {
+        if rest.is_empty() {
+            return None;
+        }
+        let start = rest;
+        let numeric = start.as_bytes()[0].is_ascii_digit();
+        let split = start
+            .find(|character: char| character.is_ascii_digit() != numeric)
+            .unwrap_or(start.len());
+        let (head, tail) = start.split_at(split);
+        rest = tail;
+        if numeric {
+            Some((0, head.parse::<u64>().unwrap_or(u64::MAX), String::new()))
+        } else {
+            Some((1, 0, head.to_owned()))
+        }
+    })
+}
+
+/// Build handoff items from task graph state.
+///
+/// Running and blocked are the needs-attention-now set. Pending is included too, because a task that
+/// has not been started is exactly what someone picking this repository up cold cannot otherwise
+/// discover — dropping it alongside `Done` made the snapshot read "No outstanding items" while a
+/// multi-step chain sat queued.
+///
+/// Only `Done` is excluded. Items are ordered blocked, then running, then pending, and within a
+/// group by priority, so the [`MAX_HANDOFF_ITEMS`] cap discards queued work before in-flight work.
+pub fn items_from_tasks(tasks: &[Task]) -> Vec<HandoffItem> {
+    let mut ranked: Vec<(u8, HandoffItem)> = Vec::new();
+
+    for task in tasks {
+        let (rank, item) = match task.status {
+            Status::Blocked => (0, HandoffItem::blocked(task)),
+            Status::Running => (1, HandoffItem::running(task)),
+            Status::Pending => (2, HandoffItem::pending(task)),
+            Status::Done => continue,
+        };
+        ranked.push((rank, item));
+    }
+
+    ranked.sort_by(|(left_rank, left), (right_rank, right)| {
+        left_rank
+            .cmp(right_rank)
+            .then_with(|| left.priority.cmp(&right.priority))
+            .then_with(|| natural_order(&left.id, &right.id))
+    });
+    ranked
+        .into_iter()
+        .map(|(_, item)| item)
+        .take(MAX_HANDOFF_ITEMS)
+        .collect()
 }
 
 /// Collect recent commits (since last tag or last 20).
@@ -315,12 +407,24 @@ mod tests {
     }
 
     #[test]
-    fn skips_done_and_pending() {
-        let t1 = Task::new("t1", "Done");
+    fn skips_completed_tasks() {
+        let mut t1 = Task::new("t1", "Done");
+        t1.status = Status::Done;
         let mut t2 = Task::new("t2", "Also done");
         t2.status = Status::Done;
-        let items = items_from_tasks(&[t1, t2]);
-        assert!(items.is_empty());
+        assert!(items_from_tasks(&[t1, t2]).is_empty());
+    }
+
+    #[test]
+    fn numeric_task_ids_sort_naturally() {
+        let mut ids = vec![
+            "t10".to_owned(),
+            "t6".to_owned(),
+            "t2".to_owned(),
+            "t10a".to_owned(),
+        ];
+        ids.sort_by(|left, right| natural_order(left, right));
+        assert_eq!(ids, vec!["t2", "t6", "t10", "t10a"]);
     }
 
     #[test]
@@ -400,6 +504,50 @@ mod tests {
 
         let md = std::fs::read_to_string(root.join("HANDOFF.md")).unwrap();
         assert!(md.starts_with("# Handoff — "), "unexpected header: {md}");
+    }
+
+    #[test]
+    fn pending_tasks_are_recorded_but_completed_ones_are_not() {
+        let mut pending_task = Task::new("t1", "Queued work");
+        pending_task.status = Status::Pending;
+        let mut done_task = Task::new("t2", "Finished work");
+        done_task.status = Status::Done;
+        let mut running_task = Task::new("t0", "In flight");
+        running_task.status = Status::Running;
+
+        let items = items_from_tasks(&[done_task, pending_task, running_task]);
+
+        let ids = items.iter().map(|i| i.id.as_str()).collect::<Vec<_>>();
+        assert_eq!(
+            ids,
+            vec!["t0", "t1"],
+            "blocked/running order ahead of pending"
+        );
+        assert!(
+            !ids.contains(&"t2"),
+            "completed work must not be an outstanding item"
+        );
+    }
+
+    #[test]
+    fn item_cap_discards_queued_work_before_in_flight_work() {
+        let mut tasks = Vec::new();
+        for index in 0..MAX_HANDOFF_ITEMS + 10 {
+            let mut task = Task::new(format!("pending-{index}"), "Queued");
+            task.status = Status::Pending;
+            tasks.push(task);
+        }
+        let mut running = Task::new("running-1", "In flight");
+        running.status = Status::Running;
+        tasks.push(running);
+
+        let items = items_from_tasks(&tasks);
+
+        assert_eq!(items.len(), MAX_HANDOFF_ITEMS);
+        assert_eq!(
+            items[0].id, "running-1",
+            "the in-flight task must survive the cap"
+        );
     }
 
     #[test]

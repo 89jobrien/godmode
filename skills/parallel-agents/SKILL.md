@@ -125,8 +125,8 @@ After all agents report:
 4. Run full workspace suite:
 
    ```bash
-   cargo nextest run --workspace
-   cargo clippy --workspace -- -D warnings
+   taskit test run
+   taskit check lint
    ```
 
 5. Merge each branch sequentially with `git merge --no-ff` (never cherry-pick or octopus-merge).

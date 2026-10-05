@@ -18,8 +18,8 @@ skills: code-review
 - Group findings as Blocking / Suggestions / Nitpicks.
 - Apply ALL severity levels in one pass before committing. Do not commit after
   fixing only blocking issues — one review, one fix commit.
-- Run verification after fixes: `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`, `cargo fmt --all --check`.
+- Run verification after fixes: `taskit check lint`,
+  `taskit test run`, `taskit check fmt --check`.
 - Never use `--no-verify` on git commits.
 - Run `git branch --show-current` before any commit. If on main, STOP.
 
@@ -91,7 +91,7 @@ State the total finding count by severity. If there are no blocking issues, say 
 ## Guardrails
 
 - Never edit source files.
-- Never run `cargo fmt --all` or any fix command.
+- Never run `taskit check fmt` or any fix command.
 - Apply ALL severity levels in one pass — do not defer nitpicks.
 - Read the full diff before filing any finding — partial review is not review.
 - If the diff is empty, report: "No changes found relative to main."

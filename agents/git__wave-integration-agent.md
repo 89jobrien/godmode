@@ -43,8 +43,8 @@ Never use `git rebase --skip` — it silently drops commits.
 ## Step 3: Test After Each Rebase
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 If tests fail: debug and fix on the branch (cap 3 attempts) before proceeding. If fix is
@@ -91,7 +91,7 @@ Conflicts resolved: N files
 <paste conflict log>"
 ```
 
-Update godmode: `godmode wave done`
+Update godmode: `godmode wave done <agent> --commits <sha>` for each integrated slot.
 
 ## Step 8: Report
 
@@ -100,8 +100,8 @@ any branches escalated and why.
 
 ## Guardrails
 
-- Never octopus-merge — sequential rebase only.
+- Merge branches one at a time with `git merge --no-ff`; never cherry-pick or octopus-merge.
 - Never use `git rebase --skip` — always resolve conflicts explicitly.
-- Never commit to main directly — rebase the branch, then merge.
+- Run `git branch --show-current` before every direct commit and stop on `main`.
 - Test between every branch merge.
 - Never use `--no-verify` on commits.

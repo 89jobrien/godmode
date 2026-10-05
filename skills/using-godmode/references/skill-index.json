@@ -194,7 +194,7 @@
     },
     {
       "name": "dep-audit",
-      "trigger": "Audit deps via cargo outdated, cargo deny, cargo audit",
+      "trigger": "Audit deps via taskit protocol freshness and audit",
       "phase": "VERIFY"
     },
     {

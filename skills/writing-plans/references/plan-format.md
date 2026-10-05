@@ -49,7 +49,10 @@ tasks. Use an empty annotation, `**Depends-on**: ```, for an independent root ta
 
 ## Ingest Behaviour
 
-- `godmode plan ingest <file>` — collision-safe and idempotent for the same plan path
+- `godmode plan ingest <file>` — collision-safe, and idempotent for the same plan whether it
+  stayed at its path or was moved
+- A moved plan is recognised as the same plan by an unambiguous file stem plus a content match on
+  its recorded tasks, so relocation keeps the existing task IDs instead of minting a second chain
 - `godmode agent dispatch <file>` — uses the same collision-safe ingestion before dispatch
 - Plan-ingest JSON reports `parsed`, `added`, `skipped`, and assigned `ids`; agent-dispatch JSON
   reports `parsed`, `ingested`, `skipped`, `ids`, and `chains`

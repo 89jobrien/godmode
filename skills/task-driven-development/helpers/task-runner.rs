@@ -98,7 +98,7 @@ enum Cmd {
     },
     /// pending -> red (active): write the failing test
     Red { id: String },
-    /// red -> green: runs cargo nextest, advances on success
+    /// red -> green: runs taskit test run, advances on success
     Green { id: String },
     /// green -> refactor -> done: runs clippy + fmt + nextest
     Refactor { id: String },
@@ -267,7 +267,7 @@ fn cmd_refactor(id: &str) -> Result<()> {
 
     println!("[refactor] fmt check...");
     if !run_cargo(&["fmt", "-p", &crate_name, "--", "--check"]) {
-        bail!("fmt check failed — run cargo fmt");
+        bail!("fmt check failed — run taskit check fmt");
     }
 
     println!("[refactor] nextest...");
