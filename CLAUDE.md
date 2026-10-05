@@ -7,19 +7,41 @@ Read local memory: @`.claude.local.md`
 
 ## Build & Test
 
-```bash
-cargo run -p godmode-conformance --bin run-conformance -- --verbose  # run conformance suite
-cargo test -p godmode-conformance                                     # property tests
-cargo bench -p godmode-conformance                                    # criterion benchmarks
-cargo build --workspace
-cargo check --workspace
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace          # preferred
-cargo test --workspace                 # fallback
-cargo fmt --all --check                # format check
-just conformance                       # plugin structure + subcommand + consistency checks
+All gates go through `taskit` — never invoke `cargo` directly.
 
-# Run a single test
+```bash
+taskit check quick                          # fast loop: fmt-check + lint + affected-crate tests
+taskit check ci                             # full local CI, summary table
+taskit check lint                           # clippy, -D warnings, all targets
+taskit check lint --crate-name godmode-core # one crate
+taskit check fmt --check                    # format check
+taskit check fmt                            # format
+taskit check compile                        # compile test binaries without running
+taskit test run                             # nextest, workspace
+taskit test run --crate-name godmode-core   # one crate
+taskit test coverage                        # coverage with threshold
+taskit test proptest --crate-name godmode-conformance
+taskit test bench --crate-name godmode-conformance
+taskit protocol audit                       # cargo-deny: advisories, licenses, bans
+taskit protocol freshness                   # outdated dependency check
+taskit check pre-commit                     # what the pre-commit hook runs
+
+just conformance                            # plugin structure + subcommand + consistency checks
+```
+
+`taskit` auto-discovers the workspace from `Cargo.toml`, so no `taskit.toml` is required.
+This table is a reference for ad-hoc runs — do not run these before committing or pushing,
+because the global git hooks already gate format, clippy, and tests.
+
+### Commands with no taskit equivalent
+
+Keep `cargo` for these — taskit exposes no wrapper, and neither is a quality gate:
+
+```bash
+# Binary execution
+cargo run -p godmode-conformance --bin run-conformance -- --verbose   # conformance suite
+
+# Single-test filter (no passthrough on `taskit test run`)
 cargo nextest run -E 'test(runnable_returns_tasks)'
 cargo test -p godmode-core runnable_returns_tasks
 ```
@@ -27,7 +49,7 @@ cargo test -p godmode-core runnable_returns_tasks
 ## Install the CLI
 
 ```bash
-cargo build --release -p godmode-cli && cp target/release/godmode ~/.cargo/bin/godmode
+taskit dev build --release && cp target/release/godmode ~/.cargo/bin/godmode
 ```
 
 Note: `which godmode` resolves to `~/.cargo/bin/`, not `~/.local/bin/`. Always copy to
@@ -121,8 +143,13 @@ Plan markdown must use `### Task N: <title>` headings. Optionally annotate with:
 
 `plan::parse` builds sequential `depends_on` chains automatically. The CLI prepares parsed tasks
 against the current graph: the first plan keeps `tN` IDs, later collisions use a deterministic
-file-stem namespace, and full-path provenance keeps re-ingestion idempotent. Prefix an explicit
-existing-graph dependency with `graph:` so it is not remapped with internal plan dependencies.
+file-stem namespace, and provenance keeps re-ingestion idempotent. The recorded path is one signal,
+not the whole rule. A plan whose recorded path no longer exists on disk is matched as relocated
+when its file stem is unambiguous and its recorded tasks are still in the graph with matching title,
+crate, and run. That match keeps the existing task IDs and rebinds the provenance entry to the new
+path, so re-ingestion is idempotent after a move. Two plan files that share a stem and both still
+exist remain distinct plans. Prefix an explicit existing-graph dependency with `graph:` so it is not
+remapped with internal plan dependencies.
 
 ### CLI subcommands
 
@@ -202,6 +229,7 @@ godmode hook log [--tail N]
 godmode hook test <script>
 godmode hook migrate
 godmode hook run <name>
+godmode hook generate --client <claude|opencode>   # hooks.json / plugins/godmode.ts
 godmode skill list
 godmode skill install <path>
 godmode skill uninstall <name>
@@ -219,9 +247,8 @@ godmode trace tail [--n N] [--session ID|--current]
 godmode trace failures [--session ID|--current]
 godmode trace stats [--session ID|--current]
 godmode trace summary [--sessions N] [--previous]
-godmode command generate --target <claude|opencode>
-godmode command install-opencode [--dry-run]
-godmode agent install-opencode [--dry-run]
+godmode hook generate --client <claude|opencode> [--dry-run]
+godmode agent generate-opencode --all [--dry-run]
 godmode insight add <title> --body <text> [--tags t1,t2]
 godmode insight list [--date YYYY-MM-DD] [--json]
 godmode insight render [--date YYYY-MM-DD]
@@ -280,8 +307,64 @@ agents/                      # top-level *.md are GENERATED — Claude discovers
 Plugin manifest schema accepts only: `name`, `version`, `author`, `description`. Extra fields
 cause validation failure on `claude plugin install`.
 
+## OpenCode parity
+
+`.opencode/` holds the OpenCode projection. Everything in it is GENERATED — edit the
+`agents/cfg/*.cfg.yaml` sources or the hook registry, then regenerate.
+
+| Surface  | Source of truth                                           | Generated output               | Regenerate with                           |
+| -------- | --------------------------------------------------------- | ------------------------------ | ----------------------------------------- |
+| Commands | `commands/gm/*.yaml`                                      | `.opencode/commands/gm-*.md`   | `nu commands/gm/generate.nu`              |
+| Agents   | `agents/cfg/*.cfg.yaml` + `agents/prompts/*.txt`          | `.opencode/agents/*.md`        | `godmode agent generate-opencode --all`   |
+| Hooks    | `REGISTRY` in `crates/godmode-core/src/hooks/registry.rs` | `.opencode/plugins/godmode.ts` | `godmode hook generate --client opencode` |
+| Skills   | `skills/*/SKILL.md`                                       | none needed                    | —                                         |
+
+Skills need no projection: OpenCode reads `.claude/skills/*/SKILL.md` natively.
+
+Agent projections are deny-by-default. Granted tools become `permission: allow`, followed by a
+`"*": deny` catch-all, because OpenCode applies the _last_ matching rule — the catch-all must
+come last or it would be overridden.
+
+Hooks map Claude's `PreToolUse`/`PostToolUse` to OpenCode's `tool.execute.before`/`after`.
+Claude's `SessionStart` and `Stop` have **no OpenCode equivalent**, so these 6 hooks do not run
+under OpenCode and are reported by a warning at plugin load:
+
+`session-start`, `memory-bank-inject`, `task-management` (SessionStart) — `stop-guard`,
+`memory-bank-update-remind`, `introspection` (Stop)
+
+`UNSUPPORTED_OPENCODE_EVENTS` in `registry.rs` is the single source of truth for that list;
+`opencode_unmapped()` derives the report from it. Do not hand-edit
+`.opencode/plugins/godmode.ts` — three conformance tests fail if it drifts.
+
+### OpenCode gates
+
+`taskit check ci` only dispatches Rust built-ins, so the OpenCode projection is gated in
+GitHub Actions (`conformance-opencode` job) rather than taskit. Run both locally before
+committing a change to `.opencode/` or `crates/godmode-core/src/hooks/registry.rs`:
+
+```bash
+bun install --cwd .opencode                # audit reads the installed type definitions
+bun run scripts/opencode/audit-plugin.ts   # contract audit
+bun x tsc -p .opencode/tsconfig.json       # typecheck
+```
+
+`audit-plugin.ts` derives the hook contract by parsing the installed
+`@opencode-ai/plugin/dist/index.d.ts` rather than hardcoding hook names, so a hook OpenCode
+never declared is caught. It is not redundant with `tsc`: TypeScript does **not** enforce
+handler arity, and does **not** flag an unknown property when a valid key is also present.
+A 1-arg handler satisfying a 2-arity hook, or a typo'd hook name beside a real one, both
+compile clean.
+
+`.opencode/package.json` and `bun.lock` are tracked on purpose. The audit reads the pinned
+`@opencode-ai/plugin` version, so leaving them gitignored would make the gate
+unreproducible and unable to run in CI.
+
 ## Gotchas
 
+- `ls <dir> | wc -l` in the Nushell tool wrapper counts **table rows, not entries**. Use
+  `rg --files <dir> | wc -l` or a Python one-liner when counting files.
+- Bash heredocs (`cat << 'EOF'`) do not survive the Nushell tool wrapper — write to a file with
+  the Write tool, then `cat <file> >> target`. Same for `cmd 2>&1`, `cmd && cmd`, and `||`.
 - CLI Quick Reference (`## CLI subcommands`) can silently drift from `crates/godmode-cli/src/main.rs`
   — when adding/changing a `Cmd` variant, grep `enum.*Action` in `main.rs` and diff against the
   reference block. `skill`/`release`/`pipeline`/`policy` families were undocumented for a while.
@@ -293,11 +376,11 @@ cause validation failure on `claude plugin install`.
 - `godmode task add <title> --id <id> --depends-on ""` registers an empty string as a dep,
   causing "unmet dependencies" on start. Omit `--depends-on` entirely for root tasks.
 - `dispatch --critical-path` shows the critical path tasks; `godmode status` also surfaces it.
-- Pre-commit hook runs `cargo fmt` automatically — expect a format diff on first commit attempt.
+- Pre-commit hook runs `taskit check fmt --check` and fails the commit on drift — it checks but
+  does not fix. A PostToolUse hook runs fmt on edited `.rs` files but does NOT auto-stage; run
+  `taskit check fmt` then `git add` the reformatted files, or the pre-commit check still fails.
 - `plan::parse` returns `Result<Vec<Task>>`, not `Vec<Task>` — always match/unwrap the Result.
 - `dispatch::independent_chains(graph, max)` returns `Vec<Chain>` — not `build_slots`.
-- `cargo fmt` PostToolUse hook runs automatically but does NOT auto-stage; run `cargo fmt --all`
-  then `git add` again before committing or the pre-commit check will still fail.
 - `tests/conformance/` is a workspace member (`-p godmode-conformance`); add new test modules
   in `src/`, register in `lib.rs::all_tests()`, and add `pub mod` to `lib.rs`.
 - `Task::started_at` is set by `Session::start_task`, not `graph::start` — duration tracking
@@ -307,9 +390,12 @@ cause validation failure on `claude plugin install`.
 
 ## Rust Conventions
 
-- Run `cargo check --workspace` before committing.
-- Fix clippy warnings proactively — treat `-D warnings` as the standard.
-- Run `cargo test` (or `cargo nextest run`) if test files were modified.
+- Gates go through `taskit` — never invoke `cargo` directly.
+- Do NOT run gates by hand before committing or pushing. The global git hooks run format
+  check, clippy on affected crates, tests, and the secret scan. Fix what a hook reports.
+- A format failure is the one case the hook detects but does not fix: run `taskit check fmt`
+  then `git add` the reformatted files.
+- Clippy runs with `-D warnings`; fix warnings proactively rather than suppressing them.
 - Do not investigate rust-analyzer or IDE diagnostics unless explicitly asked — they are often
   stale.
 

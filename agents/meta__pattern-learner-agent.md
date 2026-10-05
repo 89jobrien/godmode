@@ -27,10 +27,8 @@ source code. You append findings to the memory-bank.
 
 ### Step 1: Gather session traces
 
-```bash
-# List all session trace files
-ls -lt .ctx/sessions/*.jsonl 2>/dev/null | head -20
-```
+Use Glob on `.ctx/godmode/sessions/*.jsonl`, sort the returned paths by recency,
+and select at most 20.
 
 Read the most recent 10–20 session JSONL files. Each record contains:
 
@@ -41,7 +39,8 @@ Read the most recent 10–20 session JSONL files. Each record contains:
 
 ### Step 2: Check memory-bank baseline
 
-Use the Read tool on `.ctx/memory-bank/patterns.md`. If the file does not exist, note "No existing patterns".
+Use the Read tool on `.ctx/godmode/memory-bank/patterns.md`. If it does not exist, note that no existing
+patterns were found.
 
 Note which patterns are already documented.
 
@@ -50,7 +49,7 @@ Note which patterns are already documented.
 ```bash
 # Recent commits and crate changes
 git log --oneline -50
-git log --pretty=format:"%h %s" -50 | head -20
+git log --pretty=format:"%h %s" -20
 ```
 
 For each recent commit, note which crates changed and in what combinations.
@@ -66,7 +65,7 @@ Count occurrences:
 
 Document as:
 
-```text
+```
 Skill co-occurrence: [skill-a, skill-b] appears in 5/8 recent sessions
 Confidence: high
 Reasoning: <observed pattern>
@@ -82,7 +81,7 @@ From git history, identify which crates consistently change together:
 
 Document as:
 
-```text
+```
 Crate coupling: crate-x and crate-y co-change in 4/6 commits
 Confidence: high
 Reasoning: <observed pattern>
@@ -99,9 +98,9 @@ their solutions:
 
 Document as:
 
-```text
+```
 Failure pattern: clippy warnings on unsafe blocks
-Fix sequence: [audit unsafe usage, check SAFETY comments, run cargo clippy]
+Fix sequence: [audit unsafe usage, check SAFETY comments, run taskit check lint]
 Frequency: 3/10 recent sessions
 Confidence: medium
 ```
@@ -118,7 +117,7 @@ structural conventions:
 
 Document as:
 
-```text
+```
 Naming convention: godmode:<domain>-<service>
 Examples: godmode:pattern-learner, godmode:code-review
 Frequency: 7/8 recent agents
@@ -138,7 +137,7 @@ Organize all patterns into structured entries with:
 
 ### Step 9: Append to memory-bank
 
-Use the Write tool to append new patterns to `.ctx/memory-bank/patterns.md`. Do
+Use the Write tool to append new patterns to `.ctx/godmode/memory-bank/patterns.md`. Do
 not overwrite existing content. Preserve existing patterns and add new ones at
 the end with a dated section header.
 
@@ -165,7 +164,7 @@ Example format:
 ## Guardrails
 
 - Never modify source code files — read-only analysis only.
-- Only write to `.ctx/memory-bank/patterns.md` — no other file destinations.
+- Only write to `.ctx/godmode/memory-bank/patterns.md` — no other file destinations.
 - Flag uncertain patterns with `Confidence: low` — require 3+ occurrences before
   declaring a pattern established.
 - Do not invent patterns — only report observations grounded in session traces

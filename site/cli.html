@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Self-contained Rust-native development methodology plugin for Claude Code.">
+    <title>godmode-core CLI</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="brand">godmode-core</a>
+      <a href="index.html">Overview</a>
+      <a href="guide.html">Guide</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="crates.html">Crates</a>
+      <a href="features.html">Features</a>
+      <a href="cli.html" aria-current="page">CLI</a>
+      <a href="commands.html">Commands</a>
+    </nav>
+
+    <main id="main">
+      <section id="cli" class="reveal">
+        <h2>CLI</h2>
+        <p class="note">
+          Captured by running each binary with <code>--help</code>. It cannot
+          drift from the tool the way a transcribed page can.
+        </p>
+        <h3 id="godmode---help">godmode --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-handon---help">godmode handon --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode handon --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-handoff---help">godmode handoff --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode handoff --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-session---help">godmode session --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode session --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-task---help">godmode task --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode task --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-plan---help">godmode plan --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode plan --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-dispatch---help">godmode dispatch --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode dispatch --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-context---help">godmode context --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode context --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-status---help">godmode status --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode status --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-agent---help">godmode agent --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode agent --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-verify---help">godmode verify --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode verify --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-wave---help">godmode wave --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode wave --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-worktree---help">godmode worktree --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode worktree --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-ci---help">godmode ci --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode ci --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="godmode-issue---help">godmode issue --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">godmode issue --help</span></div>
+  <pre><span class="prompt">$</span> Rust-native development task graph and session manager
+
+Usage: godmode [OPTIONS] &lt;COMMAND&gt;
+
+Commands:
+  handon           Print triage summary at session start
+  handoff          Validate session state at session end
+  session          Session file management (pruning, etc.)
+  task             Task graph management
+  plan             Plan operations
+  dispatch         Show independent chains ready for parallel agent dispatch (JSON)
+  context          Emit full session context for hooks and subagents
+  status           Show graph counts and next runnable task(s) — fast mid-session state check
+  agent            Agent operations: list installed agents, generate index, or dispatch a plan
+  verify           Run verification gate: nextest + clippy + fmt + non-empty git log
+  wave             Wave state management for parallel agent sessions
+  worktree         Git worktree lifecycle management
+  ci               CI failure triage
+  issue            GitHub issue operations
+  graph            Interactive or file-driven task graph construction
+  hook             Hook observability: list, log, and test hooks
+  skill            Skill registry management
+  eval             Skill evaluation runs, baselines, comparisons, and CI gates
+  review           Plugin conformance and consistency auditing
+  release          Plugin release: bump version, tag, push
+  workflow         Workflow DAG execution per agent
+  visualize-graph  Render the task graph as DOT or SVG
+  memory-banking   Memory banking: persistent source-backed project context
+  insight          Insight capture and retrieval (append-only JSONL)
+  pipeline         Pipeline execution: list, start, advance, and status multi-step pipelines
+  policy           Governance policy management: resolve, check, list, audit
+  pin              Pin the session to a specific repo root path
+  unpin            Remove the pinned root from the session
+  init             First-time setup: create global config and project state dirs
+  doctor           Validate environment: required tools, 1Password auth, worktrees
+  scaffold         Generate a test module stub for a crate and testing dimension
+  test-check       Check whether a Rust source file has associated tests
+  trace            Query the observability trace at .ctx/godmode/traces/trace.jsonl
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+      --json     Emit machine-readable JSON instead of human text
+      --sarif    Emit SARIF v2.1.0 output (verify and review commands)
+  -h, --help     Print help
+  -V, --version  Print version
+</pre>
+</div>
+        <h3 id="run-conformance---help">run-conformance --help</h3>
+<div class="terminal">
+  <div class="terminal-bar"><span class="label">run-conformance --help</span></div>
+  <pre><span class="prompt">$</span> ═══════════════════════════════════════════════
+       GODMODE CONFORMANCE TEST RESULTS        
+═══════════════════════════════════════════════
+
+✓ command_projection: 1 pass, 0 fail, 0 skip (518ms)
+✓ crux: 8 pass, 0 fail, 0 skip (5ms)
+✓ dispatch: 4 pass, 0 fail, 0 skip (0ms)
+✓ graph: 12 pass, 0 fail, 0 skip (0ms)
+✓ hook_registry: 1 pass, 0 fail, 0 skip (2ms)
+✓ plan: 6 pass, 0 fail, 0 skip (0ms)
+✗ plugin_structure: 12 pass, 1 fail, 0 skip (147ms)
+  ✗ every_skill_has_skill_md FAILED:
+! FAIL: [rust-release-orchestrator] missing SKILL.md
+! FAIL: [using-doob] missing SKILL.md
+ (8ms)
+✓ wave: 6 pass, 0 fail, 0 skip (13ms)
+
+───────────────────────────────────────────────
+TOTAL: 50 pass, 1 fail, 0 skip (51 tests) in 520ms
+
+RESULT: FAILED
+</pre>
+</div>
+      </section>
+    </main>
+  </body>
+</html>

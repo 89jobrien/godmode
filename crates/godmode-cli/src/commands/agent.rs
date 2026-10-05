@@ -165,6 +165,67 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
                 Ok(())
             }
 
+            AgentAction::GenerateOpencode { all, dry_run } => {
+                let agents_dir = root.join("agents");
+                if !agents_dir.exists() {
+                    anyhow::bail!("agents/ directory not found at {}", agents_dir.display());
+                }
+                let names = if all {
+                    agent::list_cfg_agents(&agents_dir)?
+                } else {
+                    anyhow::bail!("provide --all; per-agent OpenCode generation is not supported")
+                };
+
+                let out_dir = root.join(".opencode").join("agents");
+                if !dry_run {
+                    std::fs::create_dir_all(&out_dir)?;
+                }
+
+                let mut generated = 0usize;
+                for n in &names {
+                    let cfg_path = agents_dir.join("cfg").join(format!("{n}.cfg.yaml"));
+                    if !cfg_path.exists() {
+                        continue;
+                    }
+                    let def = agent::load(&cfg_path)?;
+                    // OpenCode derives the agent name from the filename, so the
+                    // stem is the identity. The category prefix in the Claude
+                    // layout (`git__cap-agent.md`) is a Claude discovery
+                    // convention with no OpenCode equivalent.
+                    let stem = n.strip_suffix("-agent").unwrap_or(n);
+                    let prompt_path = agents_dir.join("prompts").join(format!("{n}.prompt.txt"));
+                    let prompt = if prompt_path.exists() {
+                        Some(std::fs::read_to_string(&prompt_path)?)
+                    } else {
+                        None
+                    };
+                    let md = agent::generate_opencode_md(&def, prompt.as_deref());
+                    if dry_run {
+                        if !json {
+                            println!("--- {stem}.md ---\n{md}");
+                        }
+                    } else {
+                        std::fs::write(out_dir.join(format!("{stem}.md")), &md)?;
+                    }
+                    generated += 1;
+                }
+
+                if json {
+                    println!(
+                        "{}",
+                        serde_json::json!({
+                            "ok": true,
+                            "generated": generated,
+                            "client": "opencode",
+                            "dry_run": dry_run,
+                        })
+                    );
+                } else if !dry_run {
+                    println!("Wrote {generated} agent(s) to .opencode/agents/");
+                }
+                Ok(())
+            }
+
             AgentAction::Dispatch { path, max } => {
                 let markdown = std::fs::read_to_string(&path)?;
                 let parsed_tasks = plan::parse(&markdown)?;

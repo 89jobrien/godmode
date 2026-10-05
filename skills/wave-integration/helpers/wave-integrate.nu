@@ -3,7 +3,7 @@
 # Usage: wave-integrate [--branches "feat/a feat/b feat/c"] [--base main] [--dry-run]
 #
 # Reads branches from --branches (space-separated) or from stdin (one per line).
-# Rebases each onto --base, runs cargo test --workspace, then merges to base.
+# Rebases each onto --base, runs taskit test run, then merges to base.
 # Writes conflict-resolution-log.md to cwd on completion.
 
 def ok   [msg: string] { print $"  (ansi green)✓(ansi reset)  ($msg)" }
@@ -97,8 +97,8 @@ def main [
         ok "Rebase clean"
 
         # Run tests
-        step "Running cargo nextest run --workspace"
-        let test_r = (do { cargo nextest run --workspace } | complete)
+        step "Running taskit test run"
+        let test_r = (do { taskit test run } | complete)
         if $test_r.exit_code != 0 {
             fail "Tests failed after rebase"
             print ($test_r.stdout | lines | last 30 | str join "\n")
@@ -135,7 +135,7 @@ def main [
     # Final test run on base
     if not $dry_run and ($integrated | length) > 0 {
         step $"Final test run on ($base)"
-        let final_r = (do { cargo nextest run --workspace } | complete)
+        let final_r = (do { taskit test run } | complete)
         if $final_r.exit_code != 0 {
             fail "Final tests failed on integration branch — do not proceed"
             exit 1
@@ -146,8 +146,10 @@ def main [
     # Write conflict log template
     let log_path = $"($repo_root)/conflict-resolution-log.md"
     let timestamp = (date now | format date "%Y-%m-%d %H:%M")
-    let branch_summary = ($integrated | each { |b|
-        let sha = ($integrated_shas | get -o $b | default "unknown")
+    let integrated_snapshot = $integrated
+    let integrated_shas_snapshot = $integrated_shas
+    let branch_summary = ($integrated_snapshot | each { |b|
+        let sha = ($integrated_shas_snapshot | get -o $b | default "unknown")
         $"- ($b) \(($sha)\)"
     } | str join "\n")
     let failed_summary = if ($failed | is-empty) { "none" } else { $failed | str join ", " }

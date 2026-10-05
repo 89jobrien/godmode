@@ -1,68 +1,77 @@
 project: godmode
 id: godmode
-updated: 2026-10-01
+updated: 2026-10-05
 items:
-- id: uncommitted-work
-  name: uncommitted-work
-  priority: P1
-  status: open
-  title: Uncommitted changes (26 files)
-  description: |-
-    Working tree has uncommitted changes:
-    .ctx/HANDOFF.godmode.godmode.yaml
-    .opencode/commands/gm-ci-fix.md
-    .opencode/commands/gm-debug-loop.md
-    .opencode/commands/gm-debug.md
-    agents/INDEX.md
-    agents/cfg/planner-agent.cfg.yaml
-    agents/ci-fix-agent.md
-    agents/dbg__systematic-debugging-agent.md
-    agents/plan__planner-agent.md
-    agents/planner-agent.md
-    agents/prompts/systematic-debugging-agent.prompt.txt
-    agents/systematic-debugging-agent.md
-    commands/gm-ci-fix.md
-    commands/gm-debug-loop.md
-    commands/gm-debug.md
-    commands/gm/debug-loop.yaml
-    commands/gm/debug.yaml
-    commands/gm/templates/debug.md
-    crates/godmode-core/src/hooks/memory_banking.rs
-    crates/godmode-core/src/memory_banking.rs
-    crates/godmode-core/src/policy.rs
-    crates/godmode-core/src/policy_engine.rs
-    skills/systematic-debugging/SKILL.md
-    skills/systematic-debugging/helpers/repro-template.md
-    .taskit/
-    skills/systematic-debugging/references/feedback-loops.md
-  files:
-  - .ctx/HANDOFF.godmode.godmode.yaml
-  - .opencode/commands/gm-ci-fix.md
-  - .opencode/commands/gm-debug-loop.md
-  - .opencode/commands/gm-debug.md
-  - agents/INDEX.md
-  - agents/cfg/planner-agent.cfg.yaml
-  - agents/ci-fix-agent.md
-  - agents/dbg__systematic-debugging-agent.md
-  - agents/plan__planner-agent.md
-  - agents/planner-agent.md
-  - agents/prompts/systematic-debugging-agent.prompt.txt
-  - agents/systematic-debugging-agent.md
-  - commands/gm-ci-fix.md
-  - commands/gm-debug-loop.md
-  - commands/gm-debug.md
-  - commands/gm/debug-loop.yaml
-  - commands/gm/debug.yaml
-  - commands/gm/templates/debug.md
-  - crates/godmode-core/src/hooks/memory_banking.rs
-  - crates/godmode-core/src/memory_banking.rs
-  - crates/godmode-core/src/policy.rs
-  - crates/godmode-core/src/policy_engine.rs
-  - skills/systematic-debugging/SKILL.md
-  - skills/systematic-debugging/helpers/repro-template.md
-  - .taskit/
-  - skills/systematic-debugging/references/feedback-loops.md
+- id: 2026-10-01-session-lifecycle-markers-t6
+  name: thread-the-port-through-the-whole-writer-path
+  priority: P2
+  status: pending
+  title: Thread the port through the whole writer path
+  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t6)
+- id: 2026-10-01-session-lifecycle-markers-t7
+  name: do-not-mint-an-id-that-was-never-persisted
+  priority: P2
+  status: pending
+  title: Do not mint an id that was never persisted
+  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t7)
+- id: 2026-10-01-session-lifecycle-markers-t8
+  name: a-close-names-the-session-being-closed
+  priority: P2
+  status: pending
+  title: A close names the session being closed
+  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t8)
+- id: 2026-10-01-session-lifecycle-markers-t9
+  name: correct-the-rotation-rationale-comment
+  priority: P2
+  status: pending
+  title: Correct the rotation rationale comment
+  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t9)
+- id: 2026-10-01-session-lifecycle-markers-t10
+  name: final-gates
+  priority: P2
+  status: pending
+  title: Final gates
+  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t10)
 log:
+- date: '20261005.030123'
+  summary: done=132 running=0 pending=5 blocked=0
+  commits:
+  - 04e45705642267fc69248ba242dfd7c739b018ed
+  - 6ddeba3a2e1629120d982d48b6405743bf1eda28
+  - 3b116fe0d9edd4cb4b0b61fd549322e97a0183a5
+  - fef6bda3b3f3948f3a0993c8a620d104cc1c71e7
+  - 08a693e546911e7818e377894370bf68a600457c
+  - 9f520d30f88a969de9d21f1f7918e11bd554d297
+  - 01cab85b657f776c3d1e94493d1c010aea98ff15
+  - daabf893a8c80bcb051faf49c4cc7c1ab5084319
+  - 8a1b43ca47b2e1c2e4619f01f40bfd0e57a3b9df
+  - 7be5bd46fbbf525f8a92e84db1f0601e6b53fc22
+- date: '20261003.044224'
+  summary: done=132 running=0 pending=5 blocked=0
+  commits:
+  - 3530dd7d008792e3219dad88057619b8b5d96c52
+  - 51a8bca0c00ba374fa0dd18457b79fa0d2108c99
+  - da9d2bf833667865b3b98bce7e309e3e29a5633d
+  - ea9f15215977d7349cdfba50b2e20c22a1d7624a
+  - 137fb4c941e888f71abaa4ef5368d48232bcb24b
+  - f258235a6719ce38c3baebe13b26ffbdb93c1e4c
+  - 1ee62e7b186e68a45bc1da3f29a9c86cae267672
+  - 695dbb19b55a58aa9b376f03c4b666679b739777
+  - 1659a56591701ee015f34937d6dcd707ad16adaf
+  - 54b1da9207bf61afa3cac34bf70d1d1e9c9bd85f
+- date: '20261002.205329'
+  summary: done=132 running=0 pending=5 blocked=0
+  commits:
+  - 3530dd7d008792e3219dad88057619b8b5d96c52
+  - 51a8bca0c00ba374fa0dd18457b79fa0d2108c99
+  - da9d2bf833667865b3b98bce7e309e3e29a5633d
+  - ea9f15215977d7349cdfba50b2e20c22a1d7624a
+  - 137fb4c941e888f71abaa4ef5368d48232bcb24b
+  - f258235a6719ce38c3baebe13b26ffbdb93c1e4c
+  - 1ee62e7b186e68a45bc1da3f29a9c86cae267672
+  - 695dbb19b55a58aa9b376f03c4b666679b739777
+  - 1659a56591701ee015f34937d6dcd707ad16adaf
+  - 54b1da9207bf61afa3cac34bf70d1d1e9c9bd85f
 - date: '20261001.013053'
   summary: done=127 running=0 pending=0 blocked=0
   commits:

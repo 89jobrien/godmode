@@ -88,7 +88,7 @@ issues and leave suggestions for a follow-up — that creates noisy fix historie
 ```
 
 4. Fix all issues in one pass before marking done
-5. Re-run `cargo clippy --workspace -- -D warnings` and `cargo nextest run --workspace` after fixes
+5. Re-run `taskit check lint` and `taskit test run` after fixes
 6. Use `godmode:verification-before-completion` before claiming done
 
 ## False Positives

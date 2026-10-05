@@ -15,11 +15,11 @@ if [ -n "$CRATE" ]; then
     cargo fmt -p "$CRATE" -- --check
 else
     echo "=== nextest: workspace ==="
-    cargo nextest run --workspace
+    taskit test run
     echo "=== clippy: workspace ==="
-    cargo clippy --workspace -- -D warnings
+    taskit check lint
     echo "=== fmt check: all ==="
-    cargo fmt --all -- --check
+    taskit check fmt --check
 fi
 
 echo "=== recent commits ==="

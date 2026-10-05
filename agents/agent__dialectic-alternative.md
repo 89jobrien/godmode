@@ -27,7 +27,7 @@ You are not trying to be balanced — you are making the strongest possible case
 
 ## Output format
 
-```text
+```
 ALTERNATIVE POSITION
 ====================
 <Your full proposal>

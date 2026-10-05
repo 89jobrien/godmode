@@ -1,0 +1,1282 @@
+/* ============================================================
+   godmode -- static site stylesheet
+   https://github.com/89jobrien/godmode
+
+   Assembled by the repo-reference-site skill. Three parts:
+
+     1. design tokens (below)
+     2. the SHARED COMPONENT LAYER, identical in every repo
+     3. the signature section, at the end
+
+   Edit (1) and (3) directly. To change (2), edit it in this skill and re-run
+   scripts/assemble-css.sh for each repo; never hand-fork the middle.
+   ============================================================ */
+
+/* ============================================================
+   godmode — design tokens
+
+   REPLACE: say why this palette fits this project and its audience.
+   The pilots each justify theirs: minibox wears Gruvbox because its
+   own terminal output does, sparkfile wears a drafting grid because
+   it emits files. A palette picked because it looked tidy is the
+   thing to avoid.
+
+   Two inks beyond the accent carry meaning here; name what each one
+   means before using it.
+   ============================================================ */
+
+/* Default faces are wired up and working, so the generated site validates
+   the moment it is composed. fetch-fonts.sh must be run with the same
+   families:
+
+     bash fetch-fonts.sh <repo> "ibm-plex-sans:var" "ibm-plex-mono:400" "ibm-plex-mono:700"
+
+   Swap the families and the blocks together -- a @font-face pointing at a
+   file that was never fetched fails validation, not just the browser. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url("fonts/ibm-plex-sans-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/ibm-plex-mono-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* type ---------------------------------------------------------------- */
+  --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --font-display-weight: 600;
+  --font-body-weight: 400;
+  --font-body-strong: 600;
+  --display-tracking: -0.02em;
+  --display-tracking-body: -0.012em;
+  --brand-tracking: -0.02em;
+
+  --font-size-xs: 0.72rem;
+  --font-size-sm: 0.84rem;
+  --font-size-md: 1.18rem;
+  --font-size-lg: clamp(1.42rem, 2.6vw, 1.9rem);
+  --font-size-2xl: clamp(2.1rem, 4.6vw, 3.3rem);
+  --font-size-display: clamp(2.8rem, 9vw, 6rem);
+
+  /* palette ------------------------------------------------------------- */
+  --color-bg: #12151a;
+  --color-surface: #191d24;
+  --color-surface-raised: #21262f;
+  --color-surface-sunken: #0d1015;
+  --color-fg: #e8ecf2;
+  --color-fg-muted: #97a1b0;
+  --color-accent: #7aa2f7;
+  --color-accent-hover: #9db9ff;
+  --color-accent-fg: #0b0e13;
+  --color-border: #2b323d;
+  --color-border-strong: #3d4653;
+  --color-focus: #f0b429;
+
+  /* second ink: state this project's signature uses ------------------------ */
+  --color-ink-2: #f0b429;
+
+  --color-nav-bg: rgb(18 21 26 / 0.9);
+  --color-row-hover: rgb(122 162 247 / 0.05);
+  --color-note-bg: rgb(122 162 247 / 0.07);
+  --color-pill-neutral-bg: rgb(151 161 176 / 0.15);
+  --color-code-bg: #0d1015;
+  --color-code-fg: #d7dce3;
+  --color-terminal-bg: #0d1015;
+  --color-terminal-fg: #d7dce3;
+  --color-dot-1: #f7768e;
+  --color-dot-2: #e0af68;
+  --color-dot-3: #7aa2f7;
+
+  --color-signal-ok: #7aa2f7;
+  --color-signal-ok-bg: rgb(122 162 247 / 0.14);
+  --color-signal-warn: #e0af68;
+  --color-signal-warn-bg: rgb(224 175 104 / 0.15);
+  --color-signal-err: #f7768e;
+  --color-signal-err-bg: rgb(247 118 142 / 0.14);
+
+  /* form ---------------------------------------------------------------- */
+  --radius-xs: 3px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --radius-pill: 3px;
+  --content-width: 1080px;
+  --content-width-narrow: 900px;
+  --stat-columns: 4;
+  --terminal-min-height: 18rem;
+
+  --shadow-card: 0 10px 30px rgb(0 0 0 / 0.34);
+  --shadow-terminal: 0 24px 70px rgb(0 0 0 / 0.3);
+  --shadow-nav: 0 8px 28px rgb(0 0 0 / 0.36);
+  --shadow-button: 0 8px 20px -8px rgb(122 162 247 / 0.5);
+
+  /* atmosphere: state what these washes are doing ------------------------- */
+  --atmosphere-image: radial-gradient(circle at 10% -8%, rgb(122 162 247 / 0.09), transparent 30rem);
+  --atmosphere-size: auto;
+  --grain-image: radial-gradient(rgb(232 236 242 / 0.03) 0.5px, transparent 0.5px);
+  --grain-opacity: 1;
+  --grain-blend: normal;
+}
+
+/* >>> SHARED-LAYER:BEGIN
+   SHARED COMPONENT LAYER
+   ------------------------------------------------------------------------
+   This block is byte-identical in every repo that uses the reference-site
+   pattern. It is the only part of a repo's site stylesheet that is not
+   repo-specific.
+
+   A repo's stylesheet is exactly three parts:
+
+       1. design tokens       (:root, @font-face)  -- repo-specific
+       2. SHARED COMPONENT LAYER (this block)    -- identical everywhere
+       3. signature section   (at the end)        -- repo-specific
+
+   Edit (1) and (3) freely. Change this block only by changing it in every
+   repo at once -- scripts/assemble-css.sh does that and fails on drift.
+   The site directory is site/ by default, overridable with SITE_DIR.
+
+   Adding a class here means every repo gains it. That is the point: it keeps
+   the sites one system instead of N forks.
+   ---------------------------------------------------------------------- */
+
+/* ============================================================
+   SHARED COMPONENT LAYER
+   Identical across crux, doob, and devloop. Do not edit
+   per-repo: the design tokens above and the signature section
+   below are the only repo-specific parts.
+   ============================================================ */
+
+/* --- reset --- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  min-width: 280px;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: var(--font-body-weight);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+/* --- atmosphere ------------------------------------------------
+   Two layers maximum, per the background bank. Each repo picks
+   its recipe in the token block via --atmosphere-image. */
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image: var(--atmosphere-image);
+  background-size: var(--atmosphere-size);
+  content: "";
+  pointer-events: none;
+}
+
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: var(--grain-opacity);
+  background-image: var(--grain-image);
+  content: "";
+  pointer-events: none;
+  mix-blend-mode: var(--grain-blend);
+}
+
+/* --- links and focus --- */
+
+a {
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+a:focus-visible,
+[tabindex]:focus-visible,
+summary:focus-visible {
+  border-radius: var(--radius-xs);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  padding: 0.55rem 0.85rem;
+  transform: translateY(-200%);
+  border-radius: var(--radius-xs);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* --- nav --- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  min-height: 56px;
+  padding: 0 1rem;
+  gap: 0.15rem;
+  align-items: center;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-nav-bg);
+  box-shadow: var(--shadow-nav);
+  scrollbar-width: thin;
+  backdrop-filter: blur(14px);
+}
+
+.nav .brand {
+  flex: 0 0 auto;
+  margin-right: 1.1rem;
+  color: var(--color-fg);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--brand-tracking);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav .brand .mark {
+  color: var(--color-accent);
+}
+
+.nav a:not(.brand) {
+  display: grid;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  place-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav a:not(.brand):hover,
+.nav a[aria-current="page"] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-fg);
+}
+
+/* --- page frame --- */
+
+.page {
+  width: min(100% - 2rem, var(--content-width));
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem) 0 5rem;
+}
+
+.page-head {
+  position: relative;
+  max-width: 62rem;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.page-head::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: min(11rem, 42%);
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  content: "";
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+  gap: 0.5rem;
+}
+
+.meta {
+  padding: 0.26rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+/* --- headings and prose --- */
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1.12;
+}
+
+h1 {
+  max-width: 20ch;
+  margin-bottom: 0.7rem;
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  margin: 3.25rem 0 0.9rem;
+  font-size: var(--font-size-lg);
+}
+
+h3 {
+  margin: 1.4rem 0 0.35rem;
+  font-size: var(--font-size-md);
+  letter-spacing: var(--display-tracking-body);
+  line-height: 1.3;
+}
+
+p {
+  margin-bottom: 0.9rem;
+}
+
+.lead {
+  max-width: 68ch;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+}
+
+.section-intro {
+  max-width: 66ch;
+  margin-bottom: 1.4rem;
+  color: var(--color-fg-muted);
+}
+
+section + section {
+  margin-top: 1.25rem;
+}
+
+ul,
+ol {
+  margin: 0.5rem 0 1rem 1.3rem;
+}
+
+li {
+  margin-bottom: 0.32rem;
+}
+
+strong {
+  font-weight: var(--font-body-strong);
+}
+
+hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- cards and grids --- */
+
+.card,
+.panel {
+  margin: 1rem 0;
+  padding: clamp(1rem, 2.6vw, 1.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.card > :first-child,
+.panel > :first-child {
+  margin-top: 0;
+}
+
+.card > :last-child,
+.panel > :last-child {
+  margin-bottom: 0;
+}
+
+.card h3,
+.panel h3 {
+  margin-top: 0.5rem;
+}
+
+.grid-2,
+.grid-3,
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3,
+.card-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.feature-card {
+  position: relative;
+  margin: 0;
+  padding: 1.15rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-raised);
+}
+
+.feature-card > :first-child {
+  margin-top: 0;
+}
+
+.feature-card > :last-child {
+  margin-bottom: 0;
+}
+
+.feature-card h3 {
+  margin-top: 0.8rem;
+}
+
+.feature-card p {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* --- tables --- */
+
+.table-wrap {
+  margin: 1rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+  scrollbar-color: var(--color-border-strong) var(--color-bg);
+}
+
+table {
+  display: table;
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+caption {
+  padding: 0.8rem 1rem;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-align: left;
+}
+
+th,
+td {
+  padding: 0.68rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: var(--color-row-hover);
+}
+
+/* a full-width band that splits one table into named sections */
+.group-row th {
+  padding: 0.5rem 0.85rem;
+  border-top: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-strong);
+  background: var(--color-surface-sunken);
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+td code,
+th code {
+  white-space: nowrap;
+}
+
+/* --- code --- */
+
+code {
+  padding: 0.08em 0.34em;
+  border-radius: var(--radius-xs);
+  background: var(--color-code-bg);
+  color: var(--color-code-fg);
+  font-family: var(--font-mono);
+  font-size: 0.87em;
+}
+
+pre {
+  margin: 1rem 0;
+  padding: 1.05rem 1.2rem;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-code-bg);
+  color: var(--color-code-fg);
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+  line-height: 1.62;
+  tab-size: 2;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* --- terminal --- */
+
+.terminal {
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-terminal-bg);
+  box-shadow: var(--shadow-terminal);
+}
+
+.terminal-bar {
+  display: flex;
+  padding: 0.65rem 0.85rem;
+  gap: 0.4rem;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.terminal-bar::before {
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 50%;
+  background: var(--color-dot-1);
+  box-shadow: 1rem 0 var(--color-dot-2), 2rem 0 var(--color-dot-3);
+  content: "";
+}
+
+.terminal-bar .label {
+  margin-left: auto;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.terminal pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--color-terminal-fg);
+}
+
+/*
+ * Only the hero terminal is a fixed-height showcase. Everywhere else the block
+ * is exactly as tall as its own content: padding a one-line command out to
+ * 18rem puts a third of the viewport of empty space under it, which is what
+ * made a page of short commands read as a page of long ones.
+ */
+.hero .terminal pre {
+  min-height: var(--terminal-min-height, auto);
+}
+
+.terminal .prompt {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.terminal .cmt {
+  color: var(--color-fg-muted);
+}
+
+.terminal .ok {
+  color: var(--color-signal-ok);
+}
+
+.terminal .warn {
+  color: var(--color-signal-warn);
+}
+
+.terminal .err {
+  color: var(--color-signal-err);
+}
+
+/* --- status pills --- */
+
+.pill {
+  display: inline-block;
+  padding: 0.18rem 0.46rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill-ok,
+.pill-active,
+.pill-shipped {
+  background: var(--color-signal-ok-bg);
+  color: var(--color-signal-ok);
+}
+
+.pill-partial,
+.pill-wip,
+.pill-experimental {
+  background: var(--color-signal-warn-bg);
+  color: var(--color-signal-warn);
+}
+
+.pill-none,
+.pill-blocked,
+.pill-notwired {
+  background: var(--color-signal-err-bg);
+  color: var(--color-signal-err);
+}
+
+.pill-neutral,
+.pill-meta {
+  background: var(--color-pill-neutral-bg);
+  color: var(--color-fg-muted);
+}
+
+.status {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-ok {
+  color: var(--color-signal-ok);
+}
+
+.status-warn,
+.status-wip {
+  color: var(--color-signal-warn);
+}
+
+.status-err {
+  color: var(--color-signal-err);
+}
+
+.status-off {
+  color: var(--color-fg-muted);
+}
+
+/* --- notes and callouts --- */
+
+.note,
+blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-note-bg);
+  color: var(--color-fg-muted);
+}
+
+.note > :last-child,
+blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.note strong,
+blockquote strong {
+  color: var(--color-fg);
+}
+
+.note-warn {
+  border-left-color: var(--color-signal-warn);
+  background: var(--color-signal-warn-bg);
+}
+
+/* --- diagrams --- */
+
+.diagram {
+  margin: 1.25rem 0;
+  padding: clamp(0.5rem, 2vw, 1.1rem);
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+}
+
+.diagram img {
+  margin: 0 auto;
+}
+
+figcaption {
+  max-width: 74ch;
+  margin: 0.7rem auto 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+/* --- ordered steps --- */
+
+.steps {
+  display: grid;
+  margin: 0.5rem 0 1rem;
+  gap: 0.75rem;
+  list-style: none;
+  counter-reset: step;
+}
+
+.step {
+  display: grid;
+  padding: 1rem 0;
+  grid-template-columns: 2.6rem minmax(0, 1fr);
+  gap: 0.9rem;
+  border-top: 1px solid var(--color-border);
+  counter-increment: step;
+}
+
+.step::before {
+  color: var(--color-accent);
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+}
+
+.step > div > :first-child {
+  margin-top: 0;
+}
+
+.step > div > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- actions --- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 1.4rem;
+  gap: 0.65rem;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 44px;
+  padding: 0.55rem 0.95rem;
+  align-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xs);
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  text-decoration: none;
+  box-shadow: var(--shadow-button);
+}
+
+.button-primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.button-primary:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-accent-fg);
+}
+
+/* --- faq --- */
+
+.faq {
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.faq-item > summary {
+  display: flex;
+  min-height: 3rem;
+  padding: 1rem 0;
+  gap: 1rem;
+  align-items: flex-start;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-display-weight);
+  letter-spacing: var(--display-tracking-body);
+  list-style: none;
+  line-height: 1.35;
+}
+
+.faq-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item > summary::before {
+  flex: 0 0 auto;
+  margin-top: 0.15em;
+  color: var(--color-accent);
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.faq-item[open] > summary::before {
+  content: "\2212";
+}
+
+.faq-item > summary:hover {
+  color: var(--color-accent);
+}
+
+.faq-body {
+  padding: 0 0 1.25rem 1.9rem;
+}
+
+.faq-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- hero and stat strip --- */
+
+.hero {
+  position: relative;
+  display: grid;
+  padding: clamp(2.75rem, 7vw, 6rem) max(1rem, calc((100vw - var(--content-width)) / 2));
+  align-items: center;
+}
+
+.hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+
+.hero h1 {
+  max-width: none;
+  margin: 0 0 1rem;
+  font-size: var(--font-size-display);
+  letter-spacing: var(--display-tracking);
+}
+
+.hero h1 .mark {
+  color: var(--color-accent);
+}
+
+.hero .tagline {
+  max-width: 46ch;
+  margin-bottom: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-md);
+  line-height: 1.55;
+}
+
+.stat-strip {
+  display: grid;
+  width: min(100% - 2rem, var(--content-width));
+  margin: 0 auto;
+  grid-template-columns: repeat(var(--stat-columns, 4), minmax(0, 1fr));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+}
+
+.stat {
+  padding: 1.15rem 0.7rem;
+  text-align: center;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--color-border);
+}
+
+.stat .n {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-display-weight);
+  line-height: 1.2;
+}
+
+.stat .d {
+  margin-top: 0.15rem;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.home-section {
+  width: min(100% - 2rem, var(--content-width-narrow));
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0;
+}
+
+.home-section + .home-section {
+  border-top: 1px solid var(--color-border);
+}
+
+/* --- footer --- */
+
+.site-foot {
+  padding: 2.25rem 1rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.site-foot a {
+  color: var(--color-fg-muted);
+  text-decoration: underline;
+}
+
+.site-foot a:hover {
+  color: var(--color-accent);
+}
+
+/* --- motion: one orchestrated page-load stagger --- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: reveal 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.reveal-1 { animation-delay: 0ms; }
+.reveal-2 { animation-delay: 90ms; }
+.reveal-3 { animation-delay: 180ms; }
+.reveal-4 { animation-delay: 270ms; }
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- responsive --- */
+
+@media (max-width: 980px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .terminal {
+    max-width: 40rem;
+  }
+
+  .stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat + .stat {
+    border-left: 0;
+  }
+
+  .stat:nth-child(even) {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .stat:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 760px) {
+  .grid-3,
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .nav {
+    padding-inline: 0.6rem;
+  }
+
+  .nav .brand {
+    margin-right: 0.4rem;
+  }
+
+  .page,
+  .home-section,
+  .stat-strip {
+    width: min(100% - 1.2rem, var(--content-width));
+  }
+
+  .grid-3,
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-inline: 0.8rem;
+  }
+
+  .faq-body {
+    padding-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .button,
+  .button:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+  }
+
+  body::before,
+  body::after,
+  .nav,
+  .skip-link,
+  .actions,
+  .hero .terminal {
+    display: none;
+  }
+
+  .page,
+  .home-section {
+    width: 100%;
+    padding: 0;
+  }
+
+  .card,
+  .panel,
+  .table-wrap,
+  .diagram,
+  .stat-strip {
+    border-color: #bbb;
+    background: none;
+    box-shadow: none;
+  }
+
+  a,
+  code {
+    color: #1c3d00;
+  }
+
+  .faq-item > summary::before {
+    content: "";
+  }
+}
+
+/* <<< SHARED-LAYER:END */
+
+/* ============================================================
+   godmode — signature
+
+   The shape this site is organised around. Draw it from something the
+   project already does — a state machine, a request path, a file it
+   emits — rather than from a designer's mood board. If you cannot
+   name the thing being drawn, delete this file and use the shared
+   layer alone.
+   ============================================================ */
+
+.sig {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.sig-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 15rem) minmax(0, 1fr);
+  gap: 0.9rem 1.2rem;
+  align-items: baseline;
+  padding: 0.72rem 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.sig-row:first-child {
+  border-top: 0;
+}
+
+.sig-row:hover {
+  background: var(--color-row-hover);
+}
+
+.sig-name {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-ink-2);
+}
+
+.sig-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-fg-muted);
+}
+
+@media (max-width: 44rem) {
+  .sig-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+}
+
+/* ============================================================
+   End of repo-specific sections.
+
+   Self-hosted faces in ./fonts/ are latin subsets pulled from Fontsource
+   (SIL Open Font License 1.1). See fonts/README.md for the file list and
+   upstream sources. No CDN request is made at render time.
+
+   repo: godmode
+   ============================================================ */

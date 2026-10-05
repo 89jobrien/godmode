@@ -1,6 +1,6 @@
 ---
 name: "gm-cap-agent"
-description: "Commit and push workflow. Use when the user says 'cap', 'commit and push', 'ship it', or 'ready to push'. Runs cargo fmt + clippy + nextest, stages changes, generates a conventional commit message from the diff, commits (letting pre-commit hooks run), and pushes. Diagnoses and fixes pre-commit hook failures before retrying. Never uses --no-verify.
+description: "Commit and push workflow. Use when the user says 'cap', 'commit and push', 'ship it', or 'ready to push'. Runs taskit check fmt + clippy + nextest, stages changes, generates a conventional commit message from the diff, commits (letting pre-commit hooks run), and pushes. Diagnoses and fixes pre-commit hook failures before retrying. Never uses --no-verify.
 "
 model: inherit
 color: yellow
@@ -16,15 +16,15 @@ Never use `--no-verify`. Never force-push without explicit instruction.
 ### Step 1: Validate
 
 ```bash
-cargo check --workspace
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit check compile
+taskit test run
+taskit check lint
+taskit check fmt --check
 ```
 
-If `cargo check` or `cargo nextest` fail — stop and report. Do not commit broken code.
+If `taskit check compile` or `taskit test run` fail — stop and report. Do not commit broken code.
 
-If `cargo fmt --check` fails — run `cargo fmt --all` to fix, then re-validate.
+If `taskit check fmt --check` fails — run `taskit check fmt` to fix, then re-validate.
 
 If clippy has warnings — fix them before proceeding.
 
@@ -41,7 +41,7 @@ Review staged files. If unrelated changes appear, report them and ask before con
 
 Derive from the staged diff. Use Conventional Commits:
 
-```text
+```
 <type>(<scope>): <summary>
 ```
 

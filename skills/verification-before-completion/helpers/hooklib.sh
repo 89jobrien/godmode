@@ -6,9 +6,9 @@
 #
 # Usage:
 #   source "$(dirname "$0")/hooklib.sh"
-#   check_format "Rust"   "rustfmt" "cargo fmt --all" cargo fmt --all --check
+#   check_format "Rust"   "rustfmt" "taskit check fmt" taskit check fmt --check
 #   check_format "Shell"  "shfmt"   "shfmt -w ."      shfmt -d .
-#   check_lint   "Clippy" "cargo"   "cargo clippy --fix" cargo clippy -- -D warnings
+#   check_lint   "Clippy" "cargo"   "cargo clippy --fix" taskit check lint
 #   hooklib_exit
 
 HOOKLIB_FAILURES=()

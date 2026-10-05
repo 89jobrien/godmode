@@ -23,9 +23,9 @@ Use this right before a release commit, tag, or automated workflow run. It is a 
  git ls-remote --tags <remote> "refs/tags/v<version>"
 
 # Run release gates
- cargo fmt --all --check
- cargo clippy --workspace --all-targets -- -D warnings
- cargo nextest run --workspace
+ taskit check fmt --check
+ taskit check lint
+ taskit test run
 ```
 
 ## Rules
