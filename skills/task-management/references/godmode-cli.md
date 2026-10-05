@@ -30,9 +30,15 @@ godmode task push-done                  # mark completed tasks done in doob
 ## Plan Ingestion
 
 ```bash
-godmode plan ingest <plan.md>           # collision-safe, same-plan idempotent
+godmode plan ingest <plan.md>           # collision-safe, idempotent for the same plan even after a move
 godmode agent dispatch <plan.md> [--max 5]  # collision-safe ingest + dispatch
 ```
+
+Idempotence keys on content, not ID existence: a task is skipped when the graph already holds that
+ID with matching title, crate, run, and dependencies. A plan whose recorded path no longer exists
+is matched as relocated by an unambiguous file stem plus that content match, so re-ingesting after a
+move reuses its existing task IDs instead of minting a second chain. Two plan files sharing a stem
+that both still exist stay distinct.
 
 ## Dispatch
 
