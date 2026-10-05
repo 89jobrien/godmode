@@ -289,7 +289,7 @@ promptfoo eval --config .ctx/_WORKING_DIR/evals-<date>.yaml
 crs validate [--profile <profile>]
 
 # 3. Run workspace tests
-cargo nextest run --workspace
+taskit test run
 
 # 4. Smoke test the hook pipeline
 echo '{"tool_name":"Bash","tool_input":{"command":"<sample>"}}' | coursers pre [--profile <profile>]
@@ -377,7 +377,7 @@ Phases 6, 7 print next steps and run `crs validate`.
 | Phase 1 stats    | `crs stats`                                        |
 | Phase 3 evals    | `echo '<payload>' \| coursers pre [--profile <p>]` |
 | Phase 7 validate | `crs validate [--profile <p>]`                     |
-| Phase 7 test     | `cargo nextest run --workspace`                    |
+| Phase 7 test     | `taskit test run`                                  |
 
 Profile isolation: pass `--profile <name>` to all coursers/crs commands to keep
 test-profile state separate from production.

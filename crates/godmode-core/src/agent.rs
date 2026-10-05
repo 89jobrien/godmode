@@ -197,6 +197,68 @@ pub fn generate_md(agent: &AgentDef) -> String {
     generate_md_with_prompt(agent, None)
 }
 
+/// Maps a Claude tool name to the OpenCode tool that gates the same capability.
+///
+/// Claude's `Agent` is a single tool that spawns subagents; OpenCode exposes
+/// that as `task`, and keeps discovery tools separate.
+fn opencode_permission(tool: &str) -> Option<&'static str> {
+    match tool {
+        "Agent" => Some("task"),
+        "Bash" => Some("bash"),
+        "Read" => Some("read"),
+        "Write" | "Edit" => Some("edit"),
+        "Glob" => Some("glob"),
+        "Grep" => Some("grep"),
+        _ => None,
+    }
+}
+
+/// Generate an OpenCode agent `.md` from an `AgentDef`.
+///
+/// OpenCode derives the agent name from the filename and reads `description`
+/// and `mode` from frontmatter, with the body as the system prompt. Granted
+/// tools become `permission: allow` entries; a trailing `"*": deny` makes the
+/// projection deny-by-default rather than inheriting OpenCode's full toolset.
+pub fn generate_opencode_md(agent: &AgentDef, prompt: Option<&str>) -> String {
+    let mut granted: Vec<&'static str> = Vec::new();
+    for tool in &agent.tools {
+        if let Some(action) = opencode_permission(tool)
+            && !granted.contains(&action)
+        {
+            granted.push(action);
+        }
+    }
+
+    let mut fm = vec![
+        "mode: subagent".to_string(),
+        format!(
+            "description: >\n{}",
+            agent
+                .description
+                .lines()
+                .map(|line| format!("  {}", line.trim_end()))
+                .collect::<Vec<_>>()
+                .join("\n")
+        ),
+    ];
+    if !granted.is_empty() {
+        let mut lines: Vec<String> = granted
+            .iter()
+            .map(|action| format!("  {action}: allow"))
+            .collect();
+        // Last matching rule wins in OpenCode, so the catch-all deny must be
+        // last for it to act as a default.
+        lines.push("  \"*\": deny".to_string());
+        fm.push(format!("permission:\n{}", lines.join("\n")));
+    }
+
+    let body = prompt
+        .or(agent.prompt.as_deref())
+        .unwrap_or("<!-- generated from YAML — add prompt here -->");
+
+    format!("---\n{}\n---\n\n{}\n", fm.join("\n"), body)
+}
+
 /// Load an agent from `agents/cfg/<name>.cfg.yaml`, pair with
 /// `agents/prompts/<name>.txt`, and generate the top-level `.md`.
 ///
@@ -333,5 +395,49 @@ Some prose here.
     #[test]
     fn extract_frontmatter_none_when_missing() {
         assert!(extract_frontmatter("no frontmatter here").is_none());
+    }
+
+    #[test]
+    fn opencode_projection_is_subagent_with_body_as_prompt() {
+        let md = generate_opencode_md(&sample_agent(), Some("You are a test agent."));
+        assert!(md.contains("mode: subagent"));
+        assert!(md.contains("description: >"));
+        assert!(md.contains("You are a test agent."));
+    }
+
+    #[test]
+    fn opencode_projection_maps_tools_to_permissions() {
+        let md = generate_opencode_md(&sample_agent(), None);
+        // Read/Write -> read/edit
+        assert!(md.contains("read: allow"), "missing read permission:\n{md}");
+        assert!(md.contains("edit: allow"), "missing edit permission:\n{md}");
+    }
+
+    #[test]
+    fn opencode_projection_denies_ungranted_tools_last() {
+        let md = generate_opencode_md(&sample_agent(), None);
+        let deny = md.find("\"*\": deny").expect("catch-all deny");
+        let allow = md.find("read: allow").expect("explicit allow");
+        // OpenCode applies the last matching rule, so deny must come after.
+        assert!(
+            allow < deny,
+            "catch-all deny must follow explicit allows so it acts as a default"
+        );
+    }
+
+    #[test]
+    fn opencode_projection_dedupes_write_and_edit() {
+        let mut agent = sample_agent();
+        agent.tools = vec!["Write".into(), "Edit".into()];
+        let md = generate_opencode_md(&agent, None);
+        assert_eq!(md.matches("edit: allow").count(), 1, "{md}");
+    }
+
+    #[test]
+    fn opencode_projection_omits_permission_block_when_no_tools() {
+        let mut agent = sample_agent();
+        agent.tools = vec![];
+        let md = generate_opencode_md(&agent, None);
+        assert!(!md.contains("permission:"), "{md}");
     }
 }

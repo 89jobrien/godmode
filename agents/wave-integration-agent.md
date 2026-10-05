@@ -19,11 +19,11 @@ skills: wave-integration, parallel-agents
 - Always run `git branch --show-current` before any commit. If on main, STOP.
 - Never use `--no-verify` on git commits.
 - Conventional commits: `feat(<crate>):`, `fix(<crate>):`, `refactor(<crate>):`.
-- Cargo gates before committing: `cargo fmt --all`, `cargo clippy --workspace -- -D warnings`,
-  `cargo nextest run --workspace`.
+- Cargo gates before committing: `taskit check fmt`, `taskit check lint`,
+  `taskit test run`.
 - 3-attempt rule: if a test or fix fails 3 times, stop and report the root cause.
   Do not continue patching.
-- Run `cargo fmt --all` then re-stage before committing — the PostToolUse hook
+- Run `taskit check fmt` then re-stage before committing — the PostToolUse hook
   runs fmt automatically but does not stage.
 - Commits are signed via SSH key through 1Password. If signing fails, tell the
   user to unlock 1Password — do not change git config.
@@ -64,8 +64,8 @@ Never use `git rebase --skip` — it silently drops commits.
 ## Step 3: Test After Each Rebase
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 If tests fail: debug and fix on the branch (cap 3 attempts) before proceeding. If fix is

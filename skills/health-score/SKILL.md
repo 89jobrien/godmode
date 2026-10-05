@@ -36,7 +36,7 @@ comprehensive testing. Decreases may indicate cleanup or removed features.
 
 ### 2. Clippy Warnings
 
-**Collection**: Run `cargo clippy --workspace` (compile-only, no test
+**Collection**: Run `taskit check lint` (compile-only, no test
 execution) and count warning lines. Use `--message-format json` and count
 lines containing `"level":"warning"`. Count only warnings, not notes or errors.
 

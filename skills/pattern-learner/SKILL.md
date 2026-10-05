@@ -82,7 +82,7 @@ Identify recurring test failure → fix sequences:
 ```text
 Failure-fix pair: clippy unsafe warnings
 Failure cause: Missing SAFETY comment on unsafe block
-Fix sequence: [1. Add SAFETY doc comment, 2. Run cargo clippy, 3. Commit]
+Fix sequence: [1. Add SAFETY doc comment, 2. Run taskit check lint, 3. Commit]
 Frequency: 3/10 recent sessions
 Confidence: high
 ```

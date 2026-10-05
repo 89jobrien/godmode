@@ -28,9 +28,9 @@ godmode verify
 If `godmode` is not on PATH, fall back to the manual gate:
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
-cargo fmt --all --check
+taskit test run
+taskit check lint
+taskit check fmt --check
 git log --oneline -3
 ```
 
@@ -45,6 +45,6 @@ Do not attempt to fix. Report: "Gate failed — fix required before this can be 
 ## Guardrails
 
 - Never edit source files.
-- Never run `cargo fmt --all` (fix mode) — only `--check`.
+- Never run `taskit check fmt` (fix mode) — only `--check`.
 - Never claim pass without seeing the actual exit-code-0 output from the gate.
 - If `godmode verify` exits non-zero, the session is not done.

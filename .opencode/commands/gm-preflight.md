@@ -16,9 +16,9 @@ subtask: false
 Run pre-flight checks before pushing or starting parallel issue resolution.
 
 1. Verify git branch: run `git branch --show-current`. If on main, STOP and report.
-2. Run `cargo fmt --check --all`. Fix any formatting issues found.
-3. Run `cargo clippy --workspace -- -D warnings`. Fix any warnings found.
-4. Run `cargo nextest run --workspace`. Fix any test failures found.
+2. Run `taskit check fmt --check`. Fix any formatting issues found.
+3. Run `taskit check lint`. Fix any warnings found.
+4. Run `taskit test run`. Fix any test failures found.
 5. Verify gh CLI auth: run `gh auth status`. If auth fails, report immediately — do NOT proceed
    with any gh operations. Tell the user to run `gh auth login` manually.
 6. Report pass/fail for each check. Only confirm "ready to push" when all 5 pass clean.

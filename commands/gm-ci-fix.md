@@ -32,7 +32,7 @@ Follow godmode:ci-fix exactly:
 2. Classify the root cause (compile_error, test_failure, clippy_warning, fmt_check,
    pre_commit_hook, runner_environment, false_positive, dependency_issue).
 3. Apply the minimum targeted fix for that class only.
-4. Verify locally: cargo check, nextest, clippy, fmt.
+4. Verify locally: run taskit check quick once, then let the git hooks confirm.
 5. Commit with message "fix(ci): <root cause summary>" and push.
 6. Report the run ID, class, fix applied, and new commit SHA.
 Do NOT switch self-hosted runners, change model names, or use --no-verify.

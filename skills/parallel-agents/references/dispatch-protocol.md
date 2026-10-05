@@ -53,8 +53,8 @@ git merge --no-ff agent/t1 -m "merge: <description>"
 git merge --no-ff agent/t2 -m "merge: <description>"
 
 # 3. Full workspace gate
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 ## BLOCKED.md Protocol

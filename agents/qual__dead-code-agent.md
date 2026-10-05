@@ -51,7 +51,7 @@ Record line numbers and file paths.
 
 For each public export, use Grep to search:
 
-```text
+```
 # Search for <name> across the entire workspace
 # Look for patterns: function calls, type constructors, trait impls
 ```
@@ -83,7 +83,7 @@ Read `Cargo.toml` — list all `[features]` entries and non-default `cfg(feature
 
 For each feature flag, search the workspace:
 
-```text
+```
 # Look for cfg(feature = "flagname")
 ```
 
@@ -129,7 +129,7 @@ For each finding:
 
 ### Step 8: Example output format
 
-```text
+```
 ## Dead Code Report — <scope>
 
 ### Blocking

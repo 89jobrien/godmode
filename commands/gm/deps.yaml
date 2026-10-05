@@ -6,7 +6,7 @@ prompt: |
      Present findings grouped by severity: Critical (yanked/vuln) → Outdated → Minor.
      Wait for user confirmation on which deps to update.
   2. Run godmode:dep-bump — apply approved updates. Review changelogs for breaking changes
-     before each bump. Run cargo test after each bump to catch regressions.
+     before each bump. Run taskit test run after each bump to catch regressions.
   3. Run godmode:cap — commit and push with message: chore(deps): bump <names>.
   Never bump a dependency without reviewing the changelog first.
   Abort if any test fails after a bump — report which dep caused the failure.

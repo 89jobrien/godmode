@@ -39,8 +39,8 @@ regressions.
 > Run via `godmode verify` or use the commands below:
 
 ```bash
-cargo nextest run --workspace
-cargo clippy --workspace -- -D warnings
+taskit test run
+taskit check lint
 ```
 
 Both must pass before touching anything.
@@ -60,7 +60,7 @@ Do not expand scope without surfacing to user.
 Each change:
 
 1. Edit code
-2. Run `cargo nextest run --workspace` — must stay green
+2. Run `taskit test run` — must stay green
 3. If red, revert and diagnose before proceeding
 
 ### 4. Verify behaviour unchanged
@@ -80,9 +80,9 @@ git branch --show-current   # must NOT be main
 > Run via `godmode verify` or use the commands below:
 
 ```bash
-cargo fmt --all --check
-cargo clippy --workspace -- -D warnings
-cargo nextest run --workspace
+taskit check fmt --check
+taskit check lint
+taskit test run
 ```
 
 ## Common Refactoring Patterns (Rust)

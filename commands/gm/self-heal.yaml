@@ -1,7 +1,7 @@
 name: self-heal
 template: dev
 prompt: |
-  Self-healing CI loop. Run cargo clippy + nextest + fmt, diagnose each failure, apply the
+  Self-healing CI loop. Run taskit check lint` + `taskit test run, diagnose each failure, apply the
   minimal fix, re-run, repeat until all three pass clean. Do NOT commit until all green.
 
   Arguments: $ARGUMENTS (optional: specific crate path or --workspace; default: --workspace)
@@ -11,7 +11,7 @@ prompt: |
   Repeat until all gates pass or 10 iterations reached:
 
   ### Gate 1: clippy
-  Run: cargo clippy --workspace --all-targets -- -D warnings
+  Run: taskit check lint
   For each warning/error:
   - Identify the exact file and line
   - Apply the minimal fix (do not refactor surrounding code)
@@ -19,7 +19,7 @@ prompt: |
   - Do not move to gate 2 until clippy is clean
 
   ### Gate 2: tests
-  Run: cargo nextest run --workspace
+  Run: taskit test run
   For each failure:
   - Read the full failure output — do NOT dismiss as flakiness
   - Check environment variables, recent changes, and actual error messages
@@ -28,8 +28,8 @@ prompt: |
   - Do not move to gate 3 until nextest is clean
 
   ### Gate 3: fmt
-  Run: cargo fmt --all --check
-  If it fails: run `cargo fmt --all` to fix, then re-check.
+  Run: taskit check fmt --check
+  If it fails: run `taskit check fmt` to fix, then re-check.
 
   ## Exit conditions
 

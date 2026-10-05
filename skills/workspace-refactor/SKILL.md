@@ -144,7 +144,7 @@ dependent repo:
 2. Pass the migration checklist to the subagent
 3. Subagent applies changes:
    - Edit files according to checklist
-   - Run `cargo check` to verify
+   - Run `taskit check compile` to verify
    - Run `git branch --show-current`; stop if it is `main`
    - Commit with descriptive message (e.g., "refactor: migrate to RuntimeExecutor")
    - Report the branch and SHA without merging or removing the worktree

@@ -17,7 +17,7 @@ Read the full error, not just the first line. The Rust compiler often puts the r
 cause several lines below the first `error[E...]` marker.
 
 ```bash
-cargo check 2>&1 | less         # full output, no truncation
+taskit check compile 2>&1 | less         # full output, no truncation
 RUST_BACKTRACE=1 cargo nextest run -p <crate> -- <test>
 RUST_BACKTRACE=full cargo nextest run -p <crate> -- <test>
 ```

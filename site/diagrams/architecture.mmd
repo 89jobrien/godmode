@@ -1,0 +1,13 @@
+flowchart LR
+  godmodex2dxcore["godmode-core<br/>0.7.0"]
+  godmodex2dxcli["godmode-cli<br/>0.7.0"]
+  bin_godmodex2dxcli["godmode"]
+  godmodex2dxconformance["godmode-conformance<br/>0.7.0"]
+  bin_godmodex2dxconformance["run-conformance"]
+  xtask["xtask<br/>0.1.0"]
+  bin_xtask["xtask"]
+  godmodex2dxcli --> godmodex2dxcore
+  godmodex2dxcli --> bin_godmode
+  godmodex2dxconformance --> godmodex2dxcore
+  godmodex2dxconformance --> bin_runx2dxconformance
+  xtask --> bin_xtask

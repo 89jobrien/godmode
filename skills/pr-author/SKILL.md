@@ -64,7 +64,7 @@ Grouped by crate, with bullet points per area:
 Describe what was tested:
 
 - "All existing tests continue to pass"
-- "Ran `cargo nextest run --workspace`"
+- "Ran `taskit test run`"
 - "Added new tests in `tests/unit/` for dependency resolution"
 - "Verified behavior with manual test: <steps>"
 

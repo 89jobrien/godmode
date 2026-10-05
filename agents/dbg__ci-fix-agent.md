@@ -39,9 +39,9 @@ If ambiguous — report to the user and stop.
 
 Apply the minimum targeted fix. Do not touch unrelated code. Per class:
 
-- `fmt_check` → `cargo fmt --all`
+- `fmt_check` → `taskit check fmt`
 - `clippy_warning` → fix each warning, no `#[allow]` without justification
-- `compile_error` / `test_failure` → fix source, run `cargo check`
+- `compile_error` / `test_failure` → fix source, run `taskit check compile`
 - `pre_commit_hook` / `false_positive_detection` → add minimum exclusion entry
 - `runner_environment` → edit only the failing workflow step (Read the file first)
 - `dependency_issue` → update `Cargo.toml` or `Cargo.lock`

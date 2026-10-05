@@ -2,22 +2,17 @@
 # cap.nu — validate, stage, commit, and push.
 # Usage: nu skills/cap/helpers/cap.nu "<commit message>"
 
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/trace.nu") *
-use ($"(git rev-parse --show-toplevel | str trim)/skills/_lib/helpers.nu") *
+use ../../_lib/trace.nu *
+use ../../_lib/helpers.nu *
 
 def main [msg: string = ""] {
     assert-not-main
 
     let tid = (trace-start "cap" "cap.nu" $msg)
 
-    # Check + test first (cheap); fmt auto-fix if needed
-    cargo-test-gate $tid
-    let fmt = (run-external "cargo" "fmt" "--all" "--" "--check" | complete)
-    if $fmt.exit_code != 0 {
-        trace-decision "cap" "cap.nu" "auto_fmt" "ran cargo fmt"
-        run-external "cargo" "fmt" "--all"
-    }
-    run-checked $tid "cargo" "clippy" "--workspace" "--" "-D" "warnings"
+    # No gate pre-flight here. The global git hooks gate every commit and push
+    # (format check, clippy on affected crates, tests, secret scan). Stage and
+    # commit; a failing hook blocks the commit and reports what to fix.
 
     run-external "git" "add" "-A"
     run-external "git" "diff" "--cached" "--stat"

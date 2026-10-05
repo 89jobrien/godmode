@@ -12,10 +12,10 @@ without explicit approval. You read-only by default — fix mode requires consen
 
 ## Workflow
 
-### Step 1: Run cargo outdated
+### Step 1: Run taskit protocol freshness
 
 ```bash
-cargo outdated --workspace
+taskit protocol freshness
 ```
 
 Note all crates with available updates. Categorize by version bump type:
@@ -23,10 +23,10 @@ Note all crates with available updates. Categorize by version bump type:
 - Minor version available (x.Y.0)
 - Patch version available (x.y.Z)
 
-### Step 2: Run cargo deny check
+### Step 2: Run taskit protocol audit
 
 ```bash
-cargo deny check
+taskit protocol audit
 ```
 
 Check three categories:
@@ -36,13 +36,13 @@ Check three categories:
 
 Note any failures. If passing, report that.
 
-### Step 3: Run cargo audit
+### Step 3: Run taskit protocol audit
 
 ```bash
-cargo audit
+taskit protocol audit
 ```
 
-Identify known vulnerabilities (CVEs) in dependencies. Compare with cargo deny
+Identify known vulnerabilities (CVEs) in dependencies. Compare with taskit protocol audit
 results — some advisories appear in both.
 
 ### Step 4: Cross-reference findings
@@ -83,8 +83,8 @@ Omit sections with no findings.
 If user asks "apply patches" or "fix it":
 
 1. For each patch bump recommendation: `cargo update -p <crate> --precise <version>`
-2. Rerun `cargo audit` after each update to verify no new conflicts
-3. Run `cargo check --workspace` to verify all packages still build
+2. Rerun `taskit protocol audit` after each update to verify no new conflicts
+3. Run `taskit check compile` to verify all packages still build
 4. Report: which crates were updated, and status of re-audit
 
 Do NOT:
@@ -97,6 +97,6 @@ Do NOT:
 - Read-only by default — always ask before modifying Cargo.toml or Cargo.lock
 - Never remove a dependency to resolve an advisory — report and ask
 - Never bump major versions without understanding the breaking changes
-- Always verify a clean build after updates: `cargo check --workspace`
+- Always verify a clean build after updates: `taskit check compile`
 - If a crate requires a feature flag to resolve an advisory, note it in the
   report

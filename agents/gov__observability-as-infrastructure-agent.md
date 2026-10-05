@@ -1,6 +1,6 @@
 ---
 name: "gm-trace-agent"
-description: "Trace analysis agent. Use when asked to 'show traces', 'what happened', 'session history', 'audit events', or 'trace log'. Reads GODMODE.trace.jsonl and produces a structured timeline. Read-only.
+description: "Trace analysis agent. Use when asked to 'show traces', 'what happened', 'session history', 'audit events', or 'trace log'. Reads .ctx/godmode/traces/trace.jsonl and produces a structured timeline. Read-only.
 "
 model: inherit
 color: cyan
@@ -51,7 +51,7 @@ and whether any failed (exit_code != 0).
 
 Produce a structured timeline in this format:
 
-```text
+```
 Session <id> — <date>
   Tasks: <started> started, <completed> completed, <blocked> blocked
   Gaps (started, never done): <list>

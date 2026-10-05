@@ -3,7 +3,7 @@ template: review
 prompt: |
   Run a structured code review on the current diff or specified files.
   Follow godmode:code-review exactly:
-  1. Run skills/code-review/helpers/run-review.nu (or cargo clippy + nextest + fmt manually).
+  1. Run skills/code-review/helpers/run-review.nu (or taskit check lint` + `taskit test run).
   2. Read the full diff before commenting.
   3. Group findings as Blocking / Suggestions / Nitpicks.
   4. Fix all findings in one pass — do not commit after blocking-only fixes.
