@@ -368,6 +368,16 @@
       "phase": "ACT"
     },
     {
+      "name": "crs-ledger-apply",
+      "trigger": "Merge proposed rule-ledger entries and re-render the ledger view",
+      "phase": "ACT"
+    },
+    {
+      "name": "crs-ledger-diff",
+      "trigger": "Diff live rule hits against the prose rule ledger",
+      "phase": "ACT"
+    },
+    {
       "name": "crs-validate",
       "trigger": "Validate proposed coursers rules before install",
       "phase": "VERIFY"
