@@ -9,6 +9,14 @@
 
 use ../../_lib/trace.nu *
 
+# Emit a decision and stop. MUST print explicitly: nu only prints main's
+# return value, so `{ ... } | to json; exit 0` silently discarded every
+# deny/review payload and the caller saw empty stdout with exit 0.
+def decide [decision: record] {
+    print ($decision | to json)
+    exit 0
+}
+
 def main [
     agent_name: string
     tool_name: string
@@ -17,8 +25,7 @@ def main [
 ] {
     let git_root = (do { git rev-parse --show-toplevel } | complete)
     if $git_root.exit_code != 0 {
-        { action: "allow", reason: "not in git repo — no policy enforcement" } | to json
-        exit 0
+        decide { action: "allow", reason: "not in git repo — no policy enforcement" }
     }
     let root = $git_root.stdout | str trim
     let skill_dir = $"($root)/skills/agent-governance"
@@ -31,56 +38,57 @@ def main [
 
     if $resolve_result.exit_code != 0 {
         # Fail closed — if we can't resolve policy, deny
-        { action: "deny", reason: "policy resolution failed — fail closed" } | to json
-        exit 0
+        decide { action: "deny", reason: "policy resolution failed — fail closed" }
     }
 
     let policy = $resolve_result.stdout | from json
+    if ($policy == null) {
+        decide { action: "deny", reason: $"empty policy for ($agent_name) — fail closed" }
+    }
 
     # 1. Check blocked_tools
     let blocked = $policy | get blocked_tools? | default []
     if ($tool_name in $blocked) {
-        {
+        decide {
             action: "deny"
             reason: $"tool '($tool_name)' is in blocked_tools for ($agent_name)"
-        } | to json
-        exit 0
+        }
     }
 
     # 2. Check allowed_tools (if non-empty, tool must be in list)
     let allowed = $policy | get allowed_tools? | default []
     if ($allowed | length) > 0 and not ($tool_name in $allowed) {
-        {
+        decide {
             action: "deny"
             reason: $"tool '($tool_name)' not in allowed_tools for ($agent_name)"
-        } | to json
-        exit 0
+        }
     }
 
     # 3. Check require_human_approval
     let approvals = $policy | get require_human_approval? | default []
     if ($tool_name in $approvals) or ("*" in $approvals) {
-        {
+        decide {
             action: "review"
             reason: $"tool '($tool_name)' requires human approval for ($agent_name)"
-        } | to json
-        exit 0
+        }
     }
 
     # 4. Check content against blocked_patterns
     if ($input != "") {
         let patterns = $policy | get blocked_patterns? | default []
         for pattern in $patterns {
-            let match_result = do { echo $input | grep -qP $pattern } | complete
-            if $match_result.exit_code == 0 {
-                {
+            # Match with nu's native regex engine. Do NOT shell out to
+            # `grep -qP`: BSD grep (macOS) has no -P, so every blocked_patterns
+            # check exited 2 and content filtering never denied.
+            let matched = try { $input =~ $pattern } catch { false }
+            if $matched {
+                decide {
                     action: "deny"
                     reason: $"content matches blocked pattern: ($pattern)"
-                } | to json
-                exit 0
+                }
             }
         }
     }
 
-    { action: "allow", reason: "passed all policy checks" } | to json
+    decide { action: "allow", reason: "passed all policy checks" }
 }

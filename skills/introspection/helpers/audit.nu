@@ -100,7 +100,12 @@ def main [] {
         let lines = ($issues | each {|issue| $"- ($issue)"} | str join "\n")
         $"# Introspect Report — ($timestamp)\n\n## Blocking\n\n($lines)\n"
     }
-    $report | save --force $report_path
+    # Never clobber a report that already exists for today. A full
+    # introspection writes a detailed report here; re-running this helper would
+    # otherwise replace those findings with a terse "no issues" stub.
+    if not ($report_path | path exists) {
+        $report | save --force $report_path
+    }
 
     let report_index_path = ($reports_root | path join "godmode-reports.index.json")
     let report_index = if ($report_index_path | path exists) {
@@ -114,10 +119,19 @@ def main [] {
         | save --force $report_index_path
 
     if ($issues | is-empty) {
-        print $"($skill_files | length) skills checked. No issues. Report: ($report_path)"
+        print $"($skill_files | length) skills checked. No issues."
+        print (if ($report_path | path exists) {
+            $"Existing report kept: ($report_path)"
+        } else {
+            $"Report written: ($report_path)"
+        })
     } else {
         for issue in $issues { print $issue }
-        print $"\nReport written: ($report_path)"
+        print (if ($report_path | path exists) {
+            $"\nExisting report kept (not overwritten): ($report_path)"
+        } else {
+            $"\nReport written: ($report_path)"
+        })
         exit 1
     }
 }
