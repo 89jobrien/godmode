@@ -24,11 +24,15 @@ prompt: |
   ## Step 3: Worktree setup
 
   ```
-  REPO_ROOT=$(git rev-parse --show-toplevel)
-  grep -q '.worktrees/' "$REPO_ROOT/.gitignore" || echo '.worktrees/' >> "$REPO_ROOT/.gitignore"
-  git fetch origin main
+  # Nushell — no $(...), no >>, no ||-echo redirection.
+  let repo_root = (git rev-parse --show-toplevel | str trim)
+  let ignore = $"($repo_root)/.gitignore"
+  if not (open --raw $ignore | str contains ".worktrees/") {
+      ".worktrees/" | save --append $ignore
+  }
+  ^git fetch origin main
   # For each slot N:
-  git worktree add "$REPO_ROOT/.worktrees/slot-N" -b "issue/slot-N"
+  ^git worktree add $"($repo_root)/.worktrees/slot-N" -b $"issue/slot-N"
   ```
 
   ## Step 4: Dispatch agents

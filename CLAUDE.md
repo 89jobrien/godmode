@@ -203,6 +203,7 @@ godmode worktree remove <branch>
 godmode ci triage [--run-id <id>]
 godmode issue list [--repo owner/repo] [--label <label>]
 godmode issue close <number> --commit <sha> [--repo owner/repo]
+godmode issue sync-todos [--preview|--apply] [--repo owner/repo]  # TODO markers <-> issues
 godmode skill list                              # list registered skills
 godmode skill install <path>                    # install skill from a local dir
 godmode skill uninstall <name>                  # remove a skill from the registry
@@ -220,49 +221,36 @@ godmode pipeline skip                           # advance without marking done
 godmode pipeline stop                           # deactivate current pipeline
 godmode pipeline status                         # active pipeline + progress
 godmode pipeline run <name> [--from <skill>] [--fail-fast]  # run headlessly
-godmode policy resolve <agent> [--level L]      # effective policy for an agent
+godmode policy resolve <agent> [--level L] [--json]   # effective policy for an agent
 godmode policy check <agent> <tool> [--input <text>] [--level L]  # check a tool call
-godmode policy list                             # list default/category/level policies
-godmode policy audit [--date YYYY-MM-DD]        # governance audit trail
+godmode policy list [--json]                        # list default/category/level policies
+godmode policy audit [--date YYYY-MM-DD] [--json]   # governance audit trail
 godmode hook list
 godmode hook log [--tail N]
 godmode hook test <script>
 godmode hook migrate
 godmode hook run <name>
-godmode hook generate --client <claude|opencode>   # hooks.json / plugins/godmode.ts
-godmode skill list
-godmode skill install <path>
-godmode skill uninstall <name>
-godmode skill index [--check]
+godmode hook generate --client <claude|opencode> [--dry-run]
 godmode review self
 godmode review skills
 godmode review agents
-godmode release current
-godmode release bump [--version X]
-godmode release tag
-godmode release push
-godmode release changelog
-godmode release validate
 godmode trace tail [--n N] [--session ID|--current]
 godmode trace failures [--session ID|--current]
 godmode trace stats [--session ID|--current]
 godmode trace summary [--sessions N] [--previous]
-godmode hook generate --client <claude|opencode> [--dry-run]
 godmode agent generate-opencode --all [--dry-run]
 godmode insight add <title> --body <text> [--tags t1,t2]
 godmode insight list [--date YYYY-MM-DD] [--json]
 godmode insight render [--date YYYY-MM-DD]
 godmode session prune --older-than <days> [--dry-run]
-godmode policy resolve <agent> [--level <level>] [--json]
-godmode policy check <agent> <tool> [--input <content>] [--level <level>]
-godmode policy list [--json]
-godmode policy audit [--date YYYY-MM-DD] [--json]
 godmode workflow run <agent> <workflow>
 godmode workflow list [--agent <name>]
 godmode workflow status <name>
 godmode scaffold <crate> <dimension>                    # test stub generator
 godmode test-check <path>                               # check if .rs file has tests
 ```
+
+`--json` is a global flag accepted by `skill`, `policy`, and `review` output.
 
 `task done` accepts `--commit <sha>` and `--notes <text>` for trace metadata.
 

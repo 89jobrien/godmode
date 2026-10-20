@@ -109,6 +109,8 @@ def main [
         }})
     }
 
+    # NOTE: nothing may follow this `if` -- nu prints only main's return value,
+    # so a trailing trace-end swallowed the --json payload entirely.
     if $json {
         $report | to json
     } else {
@@ -149,6 +151,4 @@ def main [
             print "No policy violations or pending reviews."
         }
     }
-
-    trace-end $_tid
 }

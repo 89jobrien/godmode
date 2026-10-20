@@ -18,18 +18,34 @@ fn godmode_bin() -> PathBuf {
         .and_then(|p| p.parent())
         .expect("workspace root");
 
+    // Honour CARGO_TARGET_DIR. Hardcoding `<root>/target` points at a stale
+    // binary whenever the target dir is redirected (a worktree, a shared cache)
+    // — or finds nothing and fails for a reason that reads like a build step
+    // was forgotten.
+    let target_root = match std::env::var_os("CARGO_TARGET_DIR") {
+        Some(dir) => {
+            let dir = PathBuf::from(dir);
+            if dir.is_absolute() {
+                dir
+            } else {
+                workspace_root.join(dir)
+            }
+        }
+        None => workspace_root.join("target"),
+    };
+
     // Prefer the profile that matches current build (debug first, then release).
     for profile in &["debug", "release"] {
-        let candidate = workspace_root.join("target").join(profile).join("godmode");
+        let candidate = target_root.join(profile).join("godmode");
         if candidate.exists() {
             return candidate;
         }
     }
 
     panic!(
-        "godmode binary not found under {}/target/{{debug,release}}. \
+        "godmode binary not found under {}/{{debug,release}}. \
          Run `cargo build -p godmode-cli` first.",
-        workspace_root.display()
+        target_root.display()
     )
 }
 

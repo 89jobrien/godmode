@@ -88,6 +88,11 @@ def main [
         }
     }
 
+    trace-end $_tid
+
+    # NOTE: trace-end must NOT be the last statement of main -- nu prints only
+    # main's return value, so a trailing `trace-end` swallowed the --json
+    # payload entirely and every caller parsed an empty policy.
     if $json {
         $result | to json
     } else {
@@ -119,8 +124,6 @@ def main [
             $approvals | each { |a| print $"  - ($a)" }
         }
     }
-
-    trace-end $_tid
 }
 
 # Compose multiple policies with most-restrictive-wins semantics.

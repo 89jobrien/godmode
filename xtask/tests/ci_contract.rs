@@ -135,6 +135,43 @@ fn install_uses_cargo_target_dir_for_the_built_binary() {
     let output = fixture
         .command("install")
         .env("FAKE_CREATE_DIST", "1")
+        .env("PATH", {
+            format!(
+                "{}:{}",
+                fixture.bin.display(),
+                fixture.home.join(".local/bin").display()
+            )
+        })
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read(fixture.home.join(".local/bin/godmode")).unwrap(),
+        b"binary"
+    );
+}
+
+/// The whole point of the PATH-order rule: when both directories are on PATH,
+/// install must land in the one that comes first, or the copy is shadowed and
+/// the update silently does nothing.
+#[test]
+fn install_targets_the_directory_that_wins_on_path() {
+    let fixture = Fixture::new();
+    let output = fixture
+        .command("install")
+        .env("FAKE_CREATE_DIST", "1")
+        .env("PATH", {
+            format!(
+                "{}:{}:{}",
+                fixture.bin.display(),
+                fixture.home.join(".cargo/bin").display(),
+                fixture.home.join(".local/bin").display()
+            )
+        })
         .output()
         .unwrap();
     assert!(
@@ -146,6 +183,42 @@ fn install_uses_cargo_target_dir_for_the_built_binary() {
         fs::read(fixture.home.join(".cargo/bin/godmode")).unwrap(),
         b"binary"
     );
+    assert!(!fixture.home.join(".local/bin/godmode").exists());
+}
+
+#[test]
+fn install_honours_godmode_install_dir_override() {
+    let fixture = Fixture::new();
+    let output = fixture
+        .command("install")
+        .env("FAKE_CREATE_DIST", "1")
+        .env("GODMODE_INSTALL_DIR", fixture.home.join("custom/bin"))
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read(fixture.home.join("custom/bin/godmode")).unwrap(),
+        b"binary"
+    );
+}
+
+/// Installing into a directory that is not on PATH recreates the bug this
+/// replaced, so refuse instead of writing somewhere unreachable.
+#[test]
+fn install_refuses_when_no_candidate_is_on_path() {
+    let fixture = Fixture::new();
+    let output = fixture
+        .command("install")
+        .env("FAKE_CREATE_DIST", "1")
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("GODMODE_INSTALL_DIR"), "{stderr}");
 }
 
 #[test]
