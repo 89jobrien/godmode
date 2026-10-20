@@ -44,3 +44,6 @@ pub mod write_mode;
 
 #[cfg(feature = "testing")]
 pub mod testing;
+
+#[cfg(test)]
+mod git_harness;
