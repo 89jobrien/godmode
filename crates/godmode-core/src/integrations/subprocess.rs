@@ -42,7 +42,11 @@ pub fn run(bin: &str, args: &[&str], context_msg: &str) -> Result<String> {
 
 /// Build the [`Command`] for [`run_in`]: `bin`/`args` in `cwd` with
 /// [`GIT_PINNED_ENV`] stripped from the child environment.
-fn command_in(bin: &str, args: &[&str], cwd: &Path) -> Command {
+///
+/// `pub(crate)` so every in-crate `git` spawn shares one definition of
+/// "operate on the repository at this directory" instead of silently
+/// re-inheriting an ambient `GIT_DIR` from a git hook.
+pub(crate) fn command_in(bin: &str, args: &[&str], cwd: &Path) -> Command {
     let mut cmd = Command::new(bin);
     cmd.args(args).current_dir(cwd);
     for var in GIT_PINNED_ENV {

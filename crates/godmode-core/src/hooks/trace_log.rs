@@ -54,9 +54,10 @@ pub struct GitHeadSha;
 
 impl HeadSha for GitHeadSha {
     fn head_sha(&self, root: &Path) -> String {
-        std::process::Command::new("git")
-            .args(["rev-parse", "--short", "HEAD"])
-            .current_dir(root)
+        // `command_in` strips git's env pins, so this reads `root`'s HEAD even
+        // when godmode itself is running inside a git hook (which exports
+        // GIT_DIR and would otherwise win over `current_dir`).
+        crate::integrations::subprocess::command_in("git", &["rev-parse", "--short", "HEAD"], root)
             .output()
             .ok()
             .filter(|out| out.status.success())
