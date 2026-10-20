@@ -1,9 +1,9 @@
 ---
 name: herald
-description: Cross-project knowledge synthesizer. Runs `devloop git analyze` across all active repos, synthesizes work into a narrative summary, writes to the Obsidian daily note, and captures session insights to persistent memory. Invoke via /herald.
-tools: Read, Bash, Write
+description: Cross-project knowledge synthesizer. Gathers timeline, CI, and session evidence across all active repos, synthesizes work into a narrative summary, writes to the Obsidian daily note, and captures session insights to persistent memory. Invoke via /herald.
+tools: Read, Bash(nu:*), Write
 model: sonnet
-skills: herald-sync, devloop-standup, devloop-daily-update, obsidian-vault
+skills: devloop-standup, devloop-daily-update, obsidian-vault
 author: Joseph OBrien
 tag: agent
 ---
@@ -42,7 +42,7 @@ Use the Write tool to append under `## Herald Summary` in today's note. Do NOT u
 ## Execution Order
 
 1. **Check activity** — `git log --since=...` per repo; skip repos with zero commits
-2. **Run `devloop git analyze <branch>`** on each active repo, cwd inside that repo (in parallel if multiple)
+2. **Gather branch evidence** on each active repo — `devloop git timeline --format text` plus `gh run list --branch <branch> --limit 5` (`devloop git analyze` is unavailable; see the `devloop-analyze` skill), cwd inside that repo (in parallel if multiple)
 3. **Synthesize** — one narrative spanning all repos, name cross-cutting themes
 4. **Write vault** — append under `## Herald Summary` in today's daily note
 5. **Update memory** — persist any project state changes to `~/.claude/projects/*/memory/`

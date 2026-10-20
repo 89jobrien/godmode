@@ -21,7 +21,7 @@ if ($ctx.running | length) == 0 and $ctx.pending_count > 0 {
             | str join ", "
         } catch { "" }
     } else { "" }
-    eprintln $"[godmode] No task running. ($ctx.pending_count) pending. Start one: godmode task start ($next_ids)"
+    print --stderr $"[godmode] No task running. ($ctx.pending_count) pending. Start one: godmode task start ($next_ids)"
 }
 
 exit 0

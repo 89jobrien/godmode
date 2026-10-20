@@ -45,5 +45,5 @@ let result = do { ^godmode task push-done } | complete
 
 if $result.exit_code != 0 {
     # Degrade gracefully — push-done failure must not abort the session.
-    eprintln $"[task-done-sync] push-done exited ($result.exit_code): ($result.stderr)"
+    print --stderr $"[task-done-sync] push-done exited ($result.exit_code): ($result.stderr)"
 }
