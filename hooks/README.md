@@ -49,7 +49,7 @@ Any other name passed to `godmode hook run` exits 1 with an "Unknown hook" error
 
 ## Git Hooks
 
-Installed per-repo via `nu hooks/install.nu` from the target repo root.
+Installed per-repo via `nu hooks/install.nu` from the target repo root or any of its worktrees. The installer copies the hook scripts and `lib/godmode-hook-lib.nu` into `<git-dir>/hooks/godmode/` and writes wrappers that resolve them relative to the wrapper's own location, so installed hooks keep working after the checkout they were installed from is moved or deleted. Re-running the installer refreshes the copies; it refuses to install into a bare repository.
 
 | Hook        | File             | Purpose                                          |
 | ----------- | ---------------- | ------------------------------------------------ |
