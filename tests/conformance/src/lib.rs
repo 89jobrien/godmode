@@ -9,6 +9,7 @@ pub mod dispatch_tests;
 pub mod fixture_tests;
 pub mod graph_tests;
 pub mod harness;
+pub mod hook_install_tests;
 pub mod hook_registry_tests;
 pub mod pipeline_property_tests;
 pub mod plan_tests;
@@ -23,6 +24,7 @@ pub fn all_tests() -> harness::TestRunner {
     let mut runner = harness::TestRunner::new();
     runner.add_boxed(graph_tests::all());
     runner.add_boxed(hook_registry_tests::all());
+    runner.add_boxed(hook_install_tests::all());
     runner.add_boxed(plan_tests::all());
     runner.add_boxed(dispatch_tests::all());
     runner.add_boxed(wave_tests::all());
