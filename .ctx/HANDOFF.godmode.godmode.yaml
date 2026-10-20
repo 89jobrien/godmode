@@ -1,38 +1,21 @@
 project: godmode
 id: godmode
-updated: 2026-10-05
-items:
-- id: 2026-10-01-session-lifecycle-markers-t6
-  name: thread-the-port-through-the-whole-writer-path
-  priority: P2
-  status: pending
-  title: Thread the port through the whole writer path
-  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t6)
-- id: 2026-10-01-session-lifecycle-markers-t7
-  name: do-not-mint-an-id-that-was-never-persisted
-  priority: P2
-  status: pending
-  title: Do not mint an id that was never persisted
-  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t7)
-- id: 2026-10-01-session-lifecycle-markers-t8
-  name: a-close-names-the-session-being-closed
-  priority: P2
-  status: pending
-  title: A close names the session being closed
-  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t8)
-- id: 2026-10-01-session-lifecycle-markers-t9
-  name: correct-the-rotation-rationale-comment
-  priority: P2
-  status: pending
-  title: Correct the rotation rationale comment
-  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t9)
-- id: 2026-10-01-session-lifecycle-markers-t10
-  name: final-gates
-  priority: P2
-  status: pending
-  title: Final gates
-  description: Queued work, not yet started (2026-10-01-session-lifecycle-markers-t10)
+updated: 2026-10-20
+items: []
 log:
+- date: '20261020.113033'
+  summary: done=0 running=0 pending=0 blocked=0
+  commits:
+  - 4c44fb38396b1539d333a4cea5b5f91f7b56110f
+  - 375c8b5d555319c9d23121940c0cd086f500ab6f
+  - 10ed34d6964e4ce5d4a0c7378269dad6584617ba
+  - 3cf5b7d1b0f3311e92500cfda6697940f5f907c4
+  - 10fe4b806072600c2d5a93dac89f8035e9b3168c
+  - 8ad91383060bb008833e6d2cd451e4562aa1df0a
+  - fa551b6f29f9342915fe1c4999953b6aa9bb7a1e
+  - aa372e6b779ad25fef565255608a506e7851318e
+  - 206d1428eb80bfa6ff8c08a1782180a6d155a675
+  - 0a6aef66da4402aefa19fdba131d915dd92a7716
 - date: '20261005.030123'
   summary: done=132 running=0 pending=5 blocked=0
   commits:
