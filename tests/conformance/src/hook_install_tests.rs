@@ -12,6 +12,24 @@ use anyhow::{Context, Result, bail};
 
 use crate::harness::{ConformanceTest, TestCategory, TestContext, TestResult};
 
+/// Git pins `GIT_DIR` & co. when invoking hooks, so child processes in these
+/// tests must be scrubbed or they would operate on the invoking repository
+/// instead of the fixture repos.
+fn isolate_from_invoking_repo(mut command: Command) -> Command {
+    for var in [
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_PREFIX",
+    ] {
+        command.env_remove(var);
+    }
+    command
+}
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -50,7 +68,7 @@ fn fixture() -> Result<InstallFixture> {
 
     let repo = temporary.path().join("target-repo");
     std::fs::create_dir_all(&repo)?;
-    let output = Command::new("git")
+    let output = isolate_from_invoking_repo(Command::new("git"))
         .arg("init")
         .current_dir(&repo)
         .output()
@@ -70,7 +88,7 @@ fn fixture() -> Result<InstallFixture> {
 }
 
 fn run_installer(fixture: &InstallFixture) -> Result<std::process::Output> {
-    Command::new("nu")
+    isolate_from_invoking_repo(Command::new("nu"))
         .arg(fixture.plugin_root.join("hooks/install.nu"))
         .current_dir(&fixture.repo)
         .output()
@@ -126,7 +144,7 @@ fn check_installer_refuses_bare_repositories() -> Result<()> {
     copy_tree(&repo_root().join("hooks"), &plugin_root.join("hooks"))?;
 
     let bare = temporary.path().join("bare.git");
-    let output = Command::new("git")
+    let output = isolate_from_invoking_repo(Command::new("git"))
         .args(["init", "--bare"])
         .arg(&bare)
         .output()
@@ -138,7 +156,7 @@ fn check_installer_refuses_bare_repositories() -> Result<()> {
         );
     }
 
-    let output = Command::new("nu")
+    let output = isolate_from_invoking_repo(Command::new("nu"))
         .arg(plugin_root.join("hooks/install.nu"))
         .current_dir(&bare)
         .output()
@@ -168,7 +186,7 @@ fn check_installed_hooks_survive_source_removal() -> Result<()> {
     std::fs::remove_dir_all(&fixture.plugin_root)?;
 
     let hooks_dir = fixture.repo.join(".git/hooks");
-    let status = Command::new("sh")
+    let status = isolate_from_invoking_repo(Command::new("sh"))
         .arg(hooks_dir.join("pre-push"))
         .current_dir(&fixture.repo)
         .status()
