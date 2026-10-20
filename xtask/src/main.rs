@@ -42,7 +42,12 @@ fn print_usage() {
            pre-commit   fmt-check + clippy + conformance\n  \
            ci           fmt + check + clippy + nextest + typed conformance + deny + release validate\n  \
            dist         release build of godmode-cli\n  \
-           install      build release and copy to ~/.cargo/bin/"
+           install      build release and copy to the earliest ~/.local/bin or ~/.cargo/bin on PATH\n"
+    );
+    eprintln!(
+        "\nEnvironment:\n  \
+           CARGO_TARGET_DIR        override the build target directory\n  \
+           GODMODE_INSTALL_DIR     absolute override for the install directory"
     );
 }
 
@@ -135,11 +140,63 @@ fn dist() -> Result<()> {
 
 // ── Install ────────────────────────────────────────────────────────
 
+/// Directories `install` may write to, in preference order.
+const INSTALL_CANDIDATES: &[&str] = &[".local/bin", ".cargo/bin"];
+
+/// Resolve where the built binary should be copied.
+///
+/// Order matters: pick whichever candidate appears **earliest on `PATH`**, not
+/// merely the first candidate that is present. Installing into a directory that
+/// is later on `PATH` than another copy silently does nothing, which is how the
+/// CLI drifted from 0.7.0 to 0.8.1 unnoticed.
+///
+/// `GODMODE_INSTALL_DIR` overrides the choice for unusual setups.
+fn install_dir() -> Result<std::path::PathBuf> {
+    if let Some(dir) = std::env::var_os("GODMODE_INSTALL_DIR") {
+        let dir = std::path::PathBuf::from(dir);
+        if !dir.is_absolute() {
+            bail!(
+                "GODMODE_INSTALL_DIR must be an absolute path, got {}",
+                dir.display()
+            );
+        }
+        return Ok(dir);
+    }
+
+    let home = home_dir()?;
+    let path = std::env::var("PATH").unwrap_or_default();
+
+    // Position of each candidate within PATH; None when absent.
+    let positions: Vec<Option<usize>> = INSTALL_CANDIDATES
+        .iter()
+        .map(|rel| {
+            let dir = home.join(rel);
+            path.split(':')
+                .position(|entry| std::path::Path::new(entry) == dir)
+        })
+        .collect();
+
+    match positions
+        .iter()
+        .enumerate()
+        .filter_map(|(i, p)| p.map(|at| (at, i)))
+        .min()
+    {
+        Some((_, i)) => Ok(home.join(INSTALL_CANDIDATES[i])),
+        None => bail!(
+            "no install directory on PATH (looked for {} under {}); \
+             add one to PATH or set GODMODE_INSTALL_DIR",
+            INSTALL_CANDIDATES.join(", "),
+            home.display()
+        ),
+    }
+}
+
 fn install() -> Result<()> {
     dist()?;
 
     let src = target_dir()?.join("release/godmode");
-    let dest_dir = home_dir()?.join(".cargo/bin");
+    let dest_dir = install_dir()?;
     let dest = dest_dir.join("godmode");
 
     std::fs::create_dir_all(&dest_dir)
