@@ -2,10 +2,11 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::SystemTime;
 
 use anyhow::{Context, Result};
+
+use crate::integrations::subprocess::command_in;
 
 /// All memory-bank template file names in display order.
 const TEMPLATE_FILES: &[&str] = &[
@@ -65,9 +66,7 @@ pub fn list_files(git_root: &Path) -> Result<Vec<PathBuf>> {
 /// Get the unix timestamp of the most recent commit (seconds since epoch).
 /// Returns 0 if git is unavailable or repo has no commits.
 fn latest_commit_timestamp(git_root: &Path) -> u64 {
-    Command::new("git")
-        .args(["log", "-1", "--format=%ct"])
-        .current_dir(git_root)
+    command_in("git", &["log", "-1", "--format=%ct"], git_root)
         .output()
         .ok()
         .and_then(|o| {
@@ -160,10 +159,12 @@ pub fn inject(git_root: &Path, json: bool) -> Result<()> {
 
 /// Check for recent commits and print a reminder to update memory-bank files.
 pub fn remind(git_root: &Path, json: bool) -> Result<()> {
-    let output = Command::new("git")
-        .args(["log", "--since=2 hours ago", "--oneline"])
-        .current_dir(git_root)
-        .output()?;
+    let output = command_in(
+        "git",
+        &["log", "--since=2 hours ago", "--oneline"],
+        git_root,
+    )
+    .output()?;
 
     let has_commits =
         output.status.success() && !String::from_utf8_lossy(&output.stdout).trim().is_empty();
@@ -406,5 +407,35 @@ mod tests {
         assert_eq!(capitalize("hello world"), "Hello world");
         assert_eq!(capitalize(""), "");
         assert_eq!(capitalize("A"), "A");
+    }
+
+    /// Regression: staleness compares the memory-bank files of `git_root`
+    /// against `git_root`'s own commit time, not against the commit time of
+    /// the repository an ambient `GIT_DIR` points at.
+    #[test]
+    fn stale_files_uses_the_given_roots_commit_time_under_a_pinned_git_dir() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let fixture = GitRepo::init();
+        fixture.commit("fixture commit", Some("2020-01-01T00:00:00+00:00"));
+        let bank = fixture.path().join(".ctx/memory-bank");
+        fs::create_dir_all(&bank).expect("create memory bank");
+        let file = bank.join("active-context.md");
+        fs::write(&file, "# Active context\n").expect("write memory bank file");
+        // 2010: older than the fixture's 2020 commit, so the file is stale.
+        filetime::set_file_mtime(&file, filetime::FileTime::from_unix_time(1_262_304_000, 0))
+            .expect("age the memory-bank file");
+
+        // The decoy's only commit is older than the file, so a helper that
+        // reads it concludes nothing is stale.
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", Some("2005-01-01T00:00:00+00:00"));
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        assert_eq!(
+            stale_files(fixture.path()).expect("stale files"),
+            vec!["active-context.md".to_string()]
+        );
     }
 }

@@ -1,5 +1,7 @@
 //! Environment validation checks for `godmode doctor`.
 
+use crate::integrations::subprocess::command_in;
+
 /// Result of a single doctor check.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct CheckResult {
@@ -155,9 +157,10 @@ impl EnvironmentProbe for RealProbe {
     }
 
     fn stale_worktrees(&self) -> Vec<String> {
-        let output = std::process::Command::new("git")
-            .args(["worktree", "list", "--porcelain"])
-            .output();
+        let Ok(cwd) = std::env::current_dir() else {
+            return vec![];
+        };
+        let output = command_in("git", &["worktree", "list", "--porcelain"], &cwd).output();
         let Ok(out) = output else { return vec![] };
         if !out.status.success() {
             return vec![];
@@ -278,5 +281,32 @@ mod tests {
     fn doctor_uses_which_v8_contract() {
         let manifest = include_str!("../Cargo.toml");
         assert!(manifest.lines().any(|line| line.trim() == "which = \"8\""));
+    }
+
+    /// Regression: the probe must inspect the repository of the current
+    /// directory, not the one an ambient `GIT_DIR` points at.
+    #[test]
+    fn real_probe_ignores_a_pinned_git_dir() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", None);
+        let linked = decoy.path().join("linked-worktree");
+        decoy.git_ok(&[
+            "worktree",
+            "add",
+            "--quiet",
+            "--detach",
+            linked.to_str().expect("fixture path is UTF-8"),
+        ]);
+        std::fs::remove_dir_all(&linked).expect("remove the linked worktree");
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        let stale = RealProbe.stale_worktrees();
+        assert!(
+            !stale.iter().any(|path| path.contains("linked-worktree")),
+            "must inspect the current repository, not the pinned one: {stale:?}"
+        );
     }
 }

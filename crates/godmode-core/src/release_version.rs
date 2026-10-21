@@ -2,10 +2,11 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 use serde::Deserialize;
+
+use crate::integrations::subprocess::command_in;
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct VersionBumpConfig {
@@ -103,14 +104,7 @@ pub fn extract_cargo_workspace_version(content: &str) -> Option<String> {
 
 /// Returns the nearest reachable Git tag without a leading `v`.
 pub fn latest_tag_version(root: &Path) -> Option<String> {
-    let out = Command::new("git")
-        .args([
-            "-C",
-            root.to_str().unwrap_or("."),
-            "describe",
-            "--tags",
-            "--abbrev=0",
-        ])
+    let out = command_in("git", &["describe", "--tags", "--abbrev=0"], root)
         .output()
         .ok()?;
     if !out.status.success() {
@@ -118,4 +112,28 @@ pub fn latest_tag_version(root: &Path) -> Option<String> {
     }
     let tag = String::from_utf8_lossy(&out.stdout).trim().to_string();
     Some(tag.strip_prefix('v').unwrap_or(&tag).to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::git_harness::{GitRepo, PinnedGitDir};
+
+    /// Regression: `git describe` must read `root`, not the repository an
+    /// ambient `GIT_DIR` points at.
+    #[test]
+    fn latest_tag_version_reads_the_given_root_under_a_pinned_git_dir() {
+        let fixture = GitRepo::init();
+        fixture.commit("fixture commit", None);
+        fixture.tag("v1.0.0");
+
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", None);
+        decoy.tag("v9.9.9");
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        assert_eq!(latest_tag_version(fixture.path()).as_deref(), Some("1.0.0"));
+    }
 }

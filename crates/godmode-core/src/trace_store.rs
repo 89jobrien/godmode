@@ -18,6 +18,8 @@
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+use crate::integrations::subprocess::command_in;
+
 /// Log location relative to a repository root.
 pub const TRACE_RELATIVE: &str = ".ctx/godmode/traces/trace.jsonl";
 
@@ -31,8 +33,8 @@ pub fn trace_path(root: &Path) -> PathBuf {
 /// Readers and writers must agree on which log they mean, so both go through
 /// here rather than each shelling out to git.
 pub fn discover_root() -> Option<PathBuf> {
-    let out = std::process::Command::new("git")
-        .args(["rev-parse", "--show-toplevel"])
+    let cwd = std::env::current_dir().ok()?;
+    let out = command_in("git", &["rev-parse", "--show-toplevel"], &cwd)
         .output()
         .ok()
         .filter(|out| out.status.success())?;
@@ -122,5 +124,25 @@ mod tests {
     fn discover_root_finds_the_enclosing_repo() {
         // The crate lives inside the godmode workspace, so this must resolve.
         assert!(discover_root().is_some());
+    }
+
+    /// Regression: root discovery must follow the working directory, not the
+    /// `GIT_DIR`/`GIT_WORK_TREE` pair a parent git process may have exported.
+    #[test]
+    fn discover_root_ignores_git_repository_pins() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", None);
+
+        let _pin = PinnedGitDir::with_work_tree(&decoy);
+
+        let root = discover_root().expect("the crate lives inside a checkout");
+        let root = std::fs::canonicalize(root).expect("canonical root");
+        let decoy = std::fs::canonicalize(decoy.path()).expect("canonical decoy");
+        assert_ne!(
+            root, decoy,
+            "root discovery must not resolve to the pinned repository"
+        );
     }
 }
