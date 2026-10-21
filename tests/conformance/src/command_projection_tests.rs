@@ -18,6 +18,27 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+/// Strip git's repository-pinning variables from `command`.
+///
+/// A `git` hook run from a linked worktree exports an absolute `GIT_DIR` to its
+/// children, and this crate is developed from a linked worktree. Without this,
+/// a child `git` ignores its `current_dir` and inspects the *hook's*
+/// repository. Mirrors `hook_install_tests::isolate_from_invoking_repo`.
+fn isolate_from_invoking_repo(mut command: Command) -> Command {
+    for var in [
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_PREFIX",
+    ] {
+        command.env_remove(var);
+    }
+    command
+}
+
 fn copy_tree(source: &Path, destination: &Path) -> Result<()> {
     std::fs::create_dir_all(destination)?;
     for entry in std::fs::read_dir(source)? {
@@ -58,7 +79,7 @@ fn markdown_files(directory: &Path) -> Result<BTreeMap<String, String>> {
 fn ensure_tracked(root: &Path, directory: &Path, files: &BTreeMap<String, String>) -> Result<()> {
     for name in files.keys() {
         let path = directory.join(name).strip_prefix(root)?.to_path_buf();
-        let output = Command::new("git")
+        let output = isolate_from_invoking_repo(Command::new("git"))
             .args(["ls-files", "--error-unmatch", "--"])
             .arg(&path)
             .current_dir(root)
