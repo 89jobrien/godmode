@@ -13,6 +13,39 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
+/// Git's repository-pinning variables, matching `godmode_core`'s
+/// `GIT_PINNED_ENV`.
+///
+/// A `git` hook run from a linked worktree exports an absolute `GIT_DIR` to its
+/// children, and this crate is developed from a linked worktree. A scratch
+/// repository created or driven while that pin is inherited would read and
+/// write the *hook's* repository instead, so every child here gets it removed
+/// before any deliberate pin is applied.
+const GIT_PINNED_ENV: &[&str] = &[
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_COMMON_DIR",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_PREFIX",
+];
+
+/// A `git` command in `dir` with the repository pins stripped.
+fn git_in(dir: &Path) -> Command {
+    scrubbed(&std::path::PathBuf::from("git"), dir)
+}
+
+/// A command for `bin` in `dir` with the repository pins stripped.
+fn scrubbed(bin: &Path, dir: &Path) -> Command {
+    let mut cmd = Command::new(bin);
+    cmd.current_dir(dir);
+    for var in GIT_PINNED_ENV {
+        cmd.env_remove(var);
+    }
+    cmd
+}
+
 fn godmode_bin() -> std::path::PathBuf {
     if let Ok(path) = std::env::var("CARGO_BIN_EXE_godmode") {
         return std::path::PathBuf::from(path);
@@ -47,11 +80,7 @@ fn scratch_repo() -> tempfile::TempDir {
             hooks.path().to_str().expect("hooks path is UTF-8"),
         ],
     ] {
-        let status = Command::new("git")
-            .args(&args)
-            .current_dir(path)
-            .status()
-            .expect("run git");
+        let status = git_in(path).args(&args).status().expect("run git");
         assert!(status.success(), "git {args:?} must succeed");
     }
     dir
@@ -59,22 +88,23 @@ fn scratch_repo() -> tempfile::TempDir {
 
 /// Commit `message` with an explicit author and committer date.
 fn commit_at(repo: &Path, message: &str, date: &str) {
-    let status = Command::new("git")
+    let status = git_in(repo)
         .args(["commit", "--quiet", "--allow-empty", "-m", message])
         .env("GIT_AUTHOR_DATE", date)
         .env("GIT_COMMITTER_DATE", date)
-        .current_dir(repo)
         .status()
         .expect("run git commit");
     assert!(status.success(), "git commit must succeed");
 }
 
 /// Run the binary in `dir` with `GIT_DIR` pinned to `pin`.
+///
+/// The pins are stripped first, so the child sees exactly the `GIT_DIR` this
+/// test sets — nothing a git hook exported upstream.
 fn run_remind(dir: &Path, pin: &Path) -> Output {
-    Command::new(godmode_bin())
+    scrubbed(&godmode_bin(), dir)
         .args(["memory-banking", "remind", "--json"])
         .env("GIT_DIR", pin)
-        .current_dir(dir)
         .output()
         .expect("run godmode")
 }
