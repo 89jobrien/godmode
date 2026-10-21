@@ -10,6 +10,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::context::{self, BlockedSummary, SessionContext, TaskSummary};
+use crate::integrations::subprocess::command_in;
 
 /// Parsed hook stdin JSON (tool_input + tool_result fields vary by hook type).
 #[derive(Debug, Clone, Deserialize)]
@@ -134,8 +135,8 @@ pub(super) fn running_without_commit_ids(root: &Path) -> Option<String> {
 
 /// Walk up from CWD to find the git root.
 fn find_git_root() -> Option<PathBuf> {
-    let output = std::process::Command::new("git")
-        .args(["rev-parse", "--show-toplevel"])
+    let cwd = std::env::current_dir().ok()?;
+    let output = command_in("git", &["rev-parse", "--show-toplevel"], &cwd)
         .output()
         .ok()?;
     if !output.status.success() {
@@ -203,5 +204,25 @@ mod tests {
             recent_commits: vec![],
         };
         assert_eq!(ctx.exit_code(), 0);
+    }
+
+    /// Regression: root discovery must follow the working directory, not the
+    /// `GIT_DIR`/`GIT_WORK_TREE` pair a parent git process may have exported.
+    #[test]
+    fn find_git_root_ignores_git_repository_pins() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", None);
+
+        let _pin = PinnedGitDir::with_work_tree(&decoy);
+
+        let root = find_git_root().expect("the crate lives inside a checkout");
+        let root = std::fs::canonicalize(root).expect("canonical root");
+        let decoy = std::fs::canonicalize(decoy.path()).expect("canonical decoy");
+        assert_ne!(
+            root, decoy,
+            "root discovery must not resolve to the pinned repository"
+        );
     }
 }

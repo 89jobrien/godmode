@@ -7,6 +7,8 @@ use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 
+use crate::integrations::subprocess::command_in;
+
 #[path = "release_tag.rs"]
 pub mod release_tag;
 #[path = "release_version.rs"]
@@ -169,10 +171,7 @@ fn classify(subject: &str) -> (&'static str, String) {
 
 /// Generate a changelog entry from commits since the latest tag.
 pub fn generate_changelog(root: &Path) -> Result<ChangelogEntry> {
-    let root_str = root.to_str().unwrap_or(".");
-
-    let tag_out = Command::new("git")
-        .args(["-C", root_str, "describe", "--tags", "--abbrev=0"])
+    let tag_out = command_in("git", &["describe", "--tags", "--abbrev=0"], root)
         .output()
         .context("failed to run git describe")?;
     let since = if tag_out.status.success() {
@@ -182,8 +181,7 @@ pub fn generate_changelog(root: &Path) -> Result<ChangelogEntry> {
         "HEAD".to_string()
     };
 
-    let log_out = Command::new("git")
-        .args(["-C", root_str, "log", &since, "--format=%s"])
+    let log_out = command_in("git", &["log", &since, "--format=%s"], root)
         .output()
         .context("failed to run git log")?;
     if !log_out.status.success() {
@@ -441,5 +439,42 @@ edition = "2024"
     fn bump_rejects_non_semver_explicit_versions() {
         let tmp = make_fixture("1.0.0");
         assert!(bump(tmp.path(), Some("deadbeef")).is_err());
+    }
+
+    /// Regression: `git describe` and `git log` must read `root`, not the
+    /// repository an ambient `GIT_DIR` points at (git exports one to hooks run
+    /// from a linked worktree, which is how godmode is developed).
+    #[test]
+    fn changelog_covers_only_the_given_root_under_a_pinned_git_dir() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let fixture = GitRepo::init();
+        fixture.commit("feat: fixture change", None);
+        fixture.tag("v1.0.0");
+        fixture.commit("fix: fixture follow-up", None);
+        fixture.write(
+            ".version-bump.json",
+            r#"{"files":[{"path":".claude-plugin/plugin.json","field":"version"}]}"#,
+        );
+        fixture.write(".claude-plugin/plugin.json", r#"{"version":"1.1.0"}"#);
+
+        let decoy = GitRepo::init();
+        decoy.commit("feat: decoy change", None);
+        decoy.tag("v9.9.9");
+        decoy.commit("fix: decoy follow-up", None);
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        let entry = generate_changelog(fixture.path()).expect("changelog entry");
+        let messages: Vec<&String> = entry.sections.values().flatten().collect();
+        assert_eq!(entry.version, "1.1.0");
+        assert!(
+            messages.iter().any(|m| m.contains("fixture follow-up")),
+            "changelog must cover the given root: {messages:?}"
+        );
+        assert!(
+            !messages.iter().any(|m| m.contains("decoy")),
+            "changelog leaked the pinned repository's commits: {messages:?}"
+        );
     }
 }

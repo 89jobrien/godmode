@@ -5,6 +5,8 @@ use std::path::Path;
 
 use chrono::{DateTime, Utc};
 
+use crate::integrations::subprocess::command_in;
+
 /// Run the verification hook. Returns a message for stderr (may be empty).
 pub fn run(root: &Path) -> String {
     let trace_path = root.join(".ctx/godmode/traces/trace.jsonl");
@@ -13,15 +15,7 @@ pub fn run(root: &Path) -> String {
     }
 
     // Get last commit time
-    let output = std::process::Command::new("git")
-        .args([
-            "-C",
-            &root.display().to_string(),
-            "log",
-            "-1",
-            "--format=%cI",
-        ])
-        .output();
+    let output = command_in("git", &["log", "-1", "--format=%cI"], root).output();
 
     let commit_time: DateTime<Utc> = match output {
         Ok(o) if o.status.success() => {
@@ -65,4 +59,35 @@ pub fn run(root: &Path) -> String {
 
 fn warn() -> String {
     "[godmode:verify] Verification gate not run since last commit — run `godmode verify` before ending session".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::git_harness::{GitRepo, PinnedGitDir};
+
+    /// Regression: the hook must date the last commit of `root`, not of the
+    /// repository an ambient `GIT_DIR` points at.
+    #[test]
+    fn verification_uses_the_given_roots_last_commit_under_a_pinned_git_dir() {
+        let fixture = GitRepo::init();
+        fixture.commit("fixture commit", Some("2024-01-01T00:00:00+00:00"));
+        fixture.write(
+            ".ctx/godmode/traces/trace.jsonl",
+            "{\"event\":\"verify_passed\",\"timestamp\":\"2022-01-01T00:00:00+00:00\"}\n",
+        );
+
+        // The decoy's only commit predates the recorded verify, so a hook that
+        // reads it reports "already verified" and stays silent.
+        let decoy = GitRepo::init();
+        decoy.commit("decoy commit", Some("2020-01-01T00:00:00+00:00"));
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        assert!(
+            !run(fixture.path()).is_empty(),
+            "a commit newer than the last verify must warn"
+        );
+    }
 }
