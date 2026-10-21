@@ -13,37 +13,22 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
-/// Git's repository-pinning variables, matching `godmode_core`'s
-/// `GIT_PINNED_ENV`.
+mod common;
+
+/// A `git` command in `dir` with the repository pins stripped.
+fn git_in(dir: &Path) -> Command {
+    common::scrubbed("git", dir)
+}
+
+/// A command for `bin` in `dir` with the repository pins stripped.
 ///
 /// A `git` hook run from a linked worktree exports an absolute `GIT_DIR` to its
 /// children, and this crate is developed from a linked worktree. A scratch
 /// repository created or driven while that pin is inherited would read and
-/// write the *hook's* repository instead, so every child here gets it removed
+/// write the *hook's* repository instead, so every child here strips the pins
 /// before any deliberate pin is applied.
-const GIT_PINNED_ENV: &[&str] = &[
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
-    "GIT_COMMON_DIR",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_PREFIX",
-];
-
-/// A `git` command in `dir` with the repository pins stripped.
-fn git_in(dir: &Path) -> Command {
-    scrubbed(&std::path::PathBuf::from("git"), dir)
-}
-
-/// A command for `bin` in `dir` with the repository pins stripped.
 fn scrubbed(bin: &Path, dir: &Path) -> Command {
-    let mut cmd = Command::new(bin);
-    cmd.current_dir(dir);
-    for var in GIT_PINNED_ENV {
-        cmd.env_remove(var);
-    }
-    cmd
+    common::scrubbed(bin, dir)
 }
 
 fn godmode_bin() -> std::path::PathBuf {

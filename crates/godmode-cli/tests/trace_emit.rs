@@ -7,54 +7,23 @@
 //! `--json` as a flag rather than as the value of `--args`.
 
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
-/// Git's repository-pinning variables, matching `godmode_core`'s
-/// `GIT_PINNED_ENV`.
+mod common;
+
+/// A `git` (or `godmode`) command in `dir` with the repository pins stripped.
 ///
 /// A `git` hook run from a linked worktree exports an absolute `GIT_DIR` to its
 /// children, and this crate is developed from a linked worktree. A scratch
 /// repository created or driven while that pin is inherited would read and
 /// write the *hook's* repository instead — the very failure the production
-/// `command_in` helper exists to prevent — so every child here gets it removed.
-const GIT_PINNED_ENV: &[&str] = &[
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
-    "GIT_COMMON_DIR",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_PREFIX",
-];
-
-/// A `git` (or `godmode`) command in `dir` with the repository pins stripped.
-fn scrubbed(bin: &Path, dir: &Path) -> Command {
-    let mut cmd = Command::new(bin);
-    cmd.current_dir(dir);
-    for var in GIT_PINNED_ENV {
-        cmd.env_remove(var);
-    }
-    cmd
-}
-
-fn godmode_bin() -> std::path::PathBuf {
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return std::path::PathBuf::from(path);
-    }
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest
-        .parent()
-        .expect("crate parent")
-        .parent()
-        .expect("workspace root")
-        .join("target/debug/godmode")
+/// `command_in` helper exists to prevent — so every child here strips the pins.
+fn scrubbed(bin: &Path, dir: &Path) -> std::process::Command {
+    common::scrubbed(bin, dir)
 }
 
 fn run_godmode(dir: &Path, args: &[&str]) -> Output {
-    scrubbed(&godmode_bin(), dir)
-        .args(args)
-        .output()
-        .expect("run godmode")
+    common::run_godmode(dir, args)
 }
 
 /// A throwaway git repo, since `godmode` resolves the trace log from the

@@ -1,16 +1,7 @@
 //! Tests DOT graph rendering, default formatting, and file output through the CLI.
 
 /// End-to-end tests for `godmode visualize-graph`.
-use std::process::Command;
-
-fn godmode_bin() -> std::path::PathBuf {
-    if let Ok(p) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return std::path::PathBuf::from(p);
-    }
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let workspace_root = manifest.parent().unwrap().parent().unwrap();
-    workspace_root.join("target/debug/godmode")
-}
+mod common;
 
 fn setup_graph(yaml: &str) -> tempfile::TempDir {
     let dir = tempfile::TempDir::new().expect("tempdir");
@@ -34,11 +25,7 @@ const CHAIN_YAML: &str = r#"tasks:
 #[test]
 fn visualize_graph_dot_output_contains_nodes_and_edges() {
     let dir = setup_graph(CHAIN_YAML);
-    let out = Command::new(godmode_bin())
-        .args(["visualize-graph", "--format", "dot"])
-        .current_dir(dir.path())
-        .output()
-        .expect("godmode binary must be present");
+    let out = common::run_godmode(dir.path(), &["visualize-graph", "--format", "dot"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
@@ -59,11 +46,7 @@ fn visualize_graph_dot_output_contains_nodes_and_edges() {
 #[test]
 fn visualize_graph_default_format_is_dot() {
     let dir = setup_graph(CHAIN_YAML);
-    let out = Command::new(godmode_bin())
-        .arg("visualize-graph")
-        .current_dir(dir.path())
-        .output()
-        .expect("godmode binary must be present");
+    let out = common::run_godmode(dir.path(), &["visualize-graph"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
@@ -78,17 +61,16 @@ fn visualize_graph_default_format_is_dot() {
 fn visualize_graph_out_writes_file() {
     let dir = setup_graph(CHAIN_YAML);
     let out_path = dir.path().join("graph.dot");
-    let out = Command::new(godmode_bin())
-        .args([
+    let out = common::run_godmode(
+        dir.path(),
+        &[
             "visualize-graph",
             "--format",
             "dot",
             "--out",
             out_path.to_str().unwrap(),
-        ])
-        .current_dir(dir.path())
-        .output()
-        .expect("godmode binary must be present");
+        ],
+    );
 
     assert!(
         out.status.success(),

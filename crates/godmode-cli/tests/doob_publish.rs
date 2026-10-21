@@ -1,27 +1,14 @@
 //! Verifies that publishing tasks to Doob is idempotent and persists remote provenance.
 
 use std::os::unix::fs::PermissionsExt;
-use std::process::Command;
 
-fn godmode_bin() -> std::path::PathBuf {
-    std::env::var("CARGO_BIN_EXE_godmode")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|_| {
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .join("target/debug/godmode")
-        })
-}
+mod common;
 
 #[test]
 fn task_push_publishes_once_and_persists_doob_provenance() {
     let dir = tempfile::TempDir::new().unwrap();
-    let add = Command::new(godmode_bin())
+    let add = common::scrubbed(common::godmode_bin(), dir.path())
         .args(["task", "add", "Publish me", "--id", "t1"])
-        .current_dir(dir.path())
         .output()
         .unwrap();
     assert!(add.status.success());
@@ -46,9 +33,8 @@ fn task_push_publishes_once_and_persists_doob_provenance() {
     );
 
     for expected in [1, 0] {
-        let output = Command::new(godmode_bin())
+        let output = common::scrubbed(common::godmode_bin(), dir.path())
             .args(["--json", "task", "push", "--project", "godmode"])
-            .current_dir(dir.path())
             .env("PATH", &path)
             .output()
             .unwrap();

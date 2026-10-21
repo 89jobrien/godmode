@@ -1,21 +1,10 @@
 //! Tests pipeline entry-point validation, resumed execution, and optional-step skipping.
 
-use std::process::{Command, Output};
+use std::process::Output;
 
 use godmode_core::pipeline::{self, Pipeline, PipelineStep};
 
-fn godmode_bin() -> std::path::PathBuf {
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return path.into();
-    }
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("target/debug/godmode")
-}
+mod common;
 
 fn setup_pipeline() -> (tempfile::TempDir, Pipeline) {
     let dir = tempfile::tempdir().unwrap();
@@ -55,18 +44,17 @@ fn setup_pipeline() -> (tempfile::TempDir, Pipeline) {
 }
 
 fn run_pipeline(root: &std::path::Path, from: Option<&str>) -> Output {
-    let mut command = Command::new(godmode_bin());
+    let mut command = common::scrubbed(common::godmode_bin(), root);
     command.args(["--json", "pipeline", "run", "entry-points"]);
     if let Some(from) = from {
         command.args(["--from", from]);
     }
-    command.current_dir(root).output().unwrap()
+    command.output().unwrap()
 }
 
 fn skip_pipeline(root: &std::path::Path) -> Output {
-    Command::new(godmode_bin())
+    common::scrubbed(common::godmode_bin(), root)
         .args(["--json", "pipeline", "skip"])
-        .current_dir(root)
         .output()
         .unwrap()
 }
