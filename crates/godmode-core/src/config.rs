@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::integrations::subprocess::command_in;
+
 /// Top-level godmode configuration.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
@@ -163,8 +165,7 @@ fn load_global_config() -> Option<Config> {
 /// Extract project name from `git remote get-url origin` — takes the repo
 /// basename, strips `.git` suffix.
 fn project_name_from_git(root: &Path) -> Option<String> {
-    let out = std::process::Command::new("git")
-        .args(["-C", root.to_str()?, "remote", "get-url", "origin"])
+    let out = command_in("git", &["remote", "get-url", "origin"], root)
         .output()
         .ok()?;
     if !out.status.success() {
@@ -249,6 +250,26 @@ max_commits = 5
         let cfg = Config::default();
         let name = cfg.project_name(Path::new("/tmp/my-project"));
         assert_eq!(name, "my-project");
+    }
+
+    /// Regression: the git-remote fallback must read `root`, not the
+    /// repository an ambient `GIT_DIR` points at.
+    #[test]
+    fn project_name_reads_the_given_roots_remote_under_a_pinned_git_dir() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let fixture = GitRepo::init();
+        fixture.remote("git@example.invalid:acme/fixture-project.git");
+
+        let decoy = GitRepo::init();
+        decoy.remote("git@example.invalid:acme/decoy-project.git");
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        assert_eq!(
+            Config::default().project_name(fixture.path()),
+            "fixture-project"
+        );
     }
 
     /// `KNOWN_INTEGRATION_KEYS` must track the `Integrations` fields, otherwise a

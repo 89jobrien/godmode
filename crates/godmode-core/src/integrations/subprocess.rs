@@ -11,7 +11,7 @@ use anyhow::{Context, Result, bail};
 /// friends from the parent `git` process, which would otherwise leak into
 /// every spawned `git`/`hj` and make it operate on the hook's repository
 /// instead of the requested directory.
-const GIT_PINNED_ENV: &[&str] = &[
+pub(crate) const GIT_PINNED_ENV: &[&str] = &[
     "GIT_DIR",
     "GIT_WORK_TREE",
     "GIT_INDEX_FILE",

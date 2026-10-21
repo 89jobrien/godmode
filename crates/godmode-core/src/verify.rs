@@ -5,6 +5,8 @@ use std::process::Command;
 
 use anyhow::Result;
 
+use crate::integrations::subprocess::command_in;
+
 #[derive(Debug, serde::Serialize)]
 pub struct StepResult {
     pub name: String,
@@ -121,9 +123,7 @@ impl VerifyStep for CommitsStep {
     }
 
     fn run(&self, root: &Path, _crate_name: Option<&str>) -> Result<StepResult> {
-        let out = Command::new("git")
-            .args(["-C", &root.to_string_lossy(), "log", "--oneline", "-3"])
-            .output()?;
+        let out = command_in("git", &["log", "--oneline", "-3"], root).output()?;
         let output = String::from_utf8_lossy(&out.stdout).into_owned();
         let ok = !output.trim().is_empty();
         Ok(StepResult {
@@ -337,6 +337,29 @@ mod tests {
         let s = FakeStep;
         let result = s.run(Path::new("/tmp"), None).unwrap();
         assert_eq!(result.name, s.name());
+    }
+
+    /// Regression: the history step must read `root`, not the repository an
+    /// ambient `GIT_DIR` points at.
+    #[test]
+    fn commits_step_reads_the_given_root_under_a_pinned_git_dir() {
+        use crate::git_harness::{GitRepo, PinnedGitDir};
+
+        let fixture = GitRepo::init();
+        fixture.commit("fixture history entry", None);
+
+        let decoy = GitRepo::init();
+        decoy.commit("decoy history entry", None);
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        let result = CommitsStep.run(fixture.path(), None).expect("run step");
+        assert!(result.ok);
+        assert!(
+            result.output.contains("fixture history entry"),
+            "the step must report the given root's log: {}",
+            result.output
+        );
     }
 }
 
