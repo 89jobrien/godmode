@@ -8,6 +8,7 @@ use chrono::{NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
+use crate::integrations::subprocess::command_in;
 use crate::model::{Status, Task};
 
 /// A single handoff item, matching the minibox/atelier HANDOFF schema.
@@ -220,16 +221,7 @@ pub fn items_from_tasks(tasks: &[Task]) -> Vec<HandoffItem> {
 
 /// Collect recent commits (since last tag or last 20).
 pub fn recent_commits(root: &Path) -> Vec<String> {
-    let out = std::process::Command::new("git")
-        .args([
-            "-C",
-            root.to_str().unwrap_or("."),
-            "log",
-            "--oneline",
-            "-20",
-            "--format=%H",
-        ])
-        .output();
+    let out = command_in("git", &["log", "--oneline", "-20", "--format=%H"], root).output();
     match out {
         Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
             .lines()
@@ -237,6 +229,29 @@ pub fn recent_commits(root: &Path) -> Vec<String> {
             .map(|l| l.to_string())
             .collect(),
         _ => vec![],
+    }
+}
+
+#[cfg(test)]
+mod pinned_tests {
+    use super::*;
+
+    use crate::git_harness::{GitRepo, PinnedGitDir};
+
+    /// Regression: recent history must come from `root`, not from the
+    /// repository an ambient `GIT_DIR` points at.
+    #[test]
+    fn recent_commits_reads_the_given_root_under_a_pinned_git_dir() {
+        let fixture = GitRepo::init();
+        let fixture_sha = fixture.commit("fixture commit", None);
+
+        let decoy = GitRepo::init();
+        let decoy_sha = decoy.commit("decoy commit", None);
+
+        let _pin = PinnedGitDir::pointing_at(&decoy);
+
+        assert_eq!(recent_commits(fixture.path()), vec![fixture_sha]);
+        assert_ne!(recent_commits(fixture.path()), vec![decoy_sha]);
     }
 }
 
@@ -441,9 +456,7 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let root = dir.path();
         // init git so recent_commits doesn't fail
-        let _ = std::process::Command::new("git")
-            .args(["init", root.to_str().unwrap()])
-            .output();
+        let _ = command_in("git", &["init", root.to_str().unwrap()], root).output();
 
         let cfg = Config::default();
         let summary = "done=1 running=0 pending=0 blocked=0";
@@ -484,9 +497,7 @@ mod tests {
 
         let dir = TempDir::new().unwrap();
         let root = dir.path();
-        let _ = std::process::Command::new("git")
-            .args(["init", root.to_str().unwrap()])
-            .output();
+        let _ = command_in("git", &["init", root.to_str().unwrap()], root).output();
 
         let cfg = Config::default();
         let summary = "done=0 running=0 pending=0 blocked=0";
@@ -557,9 +568,7 @@ mod tests {
 
         let dir = TempDir::new().unwrap();
         let root = dir.path();
-        let _ = std::process::Command::new("git")
-            .args(["init", root.to_str().unwrap()])
-            .output();
+        let _ = command_in("git", &["init", root.to_str().unwrap()], root).output();
 
         let cfg = Config::default();
         let summary = "done=0 running=0 pending=1 blocked=0";
