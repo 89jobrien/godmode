@@ -1,26 +1,9 @@
 //! Tests task metadata persistence, defaults, help text, and priority validation.
 
-use std::process::Command;
-
-fn godmode_bin() -> std::path::PathBuf {
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return std::path::PathBuf::from(path);
-    }
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest
-        .parent()
-        .expect("crate parent")
-        .parent()
-        .expect("workspace root")
-        .join("target/debug/godmode")
-}
+mod common;
 
 fn run_godmode(dir: &tempfile::TempDir, args: &[&str]) -> std::process::Output {
-    Command::new(godmode_bin())
-        .args(args)
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode")
+    common::run_godmode(dir.path(), args)
 }
 
 #[test]
