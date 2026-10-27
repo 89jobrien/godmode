@@ -2,58 +2,20 @@
 
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
-use std::process::Command;
 
 use tempfile::TempDir;
 
-/// Path to the compiled `godmode` binary.
-///
-/// Walks from CARGO_MANIFEST_DIR up to the workspace root, then checks
-/// `target/debug/godmode` and `target/release/godmode`.
-fn godmode_bin() -> PathBuf {
-    // CARGO_MANIFEST_DIR is crates/godmode-core; workspace root is two levels up.
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let workspace_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("workspace root");
+mod common;
 
-    // Honour CARGO_TARGET_DIR. Hardcoding `<root>/target` points at a stale
-    // binary whenever the target dir is redirected (a worktree, a shared cache)
-    // — or finds nothing and fails for a reason that reads like a build step
-    // was forgotten.
-    let target_root = match std::env::var_os("CARGO_TARGET_DIR") {
-        Some(dir) => {
-            let dir = PathBuf::from(dir);
-            if dir.is_absolute() {
-                dir
-            } else {
-                workspace_root.join(dir)
-            }
-        }
-        None => workspace_root.join("target"),
-    };
-
-    // Prefer the profile that matches current build (debug first, then release).
-    for profile in &["debug", "release"] {
-        let candidate = target_root.join(profile).join("godmode");
-        if candidate.exists() {
-            return candidate;
-        }
-    }
-
-    panic!(
-        "godmode binary not found under {}/{{debug,release}}. \
-         Run `cargo build -p godmode-cli` first.",
-        target_root.display()
-    )
+/// Path to the compiled `godmode` binary (see `common::godmode_bin`).
+fn godmode_bin() -> std::path::PathBuf {
+    common::godmode_bin()
 }
 
 /// Run `godmode` in `dir` with the given args. Returns `(exit_code, stdout, stderr)`.
 fn run(dir: &std::path::Path, args: &[&str]) -> (i32, String, String) {
-    let out = Command::new(godmode_bin())
+    let out = common::scrubbed(godmode_bin(), dir)
         .args(args)
-        .current_dir(dir)
         .output()
         .expect("failed to run godmode");
     let code = out.status.code().unwrap_or(-1);
@@ -174,9 +136,8 @@ fn task_pull_github_imports_issues() {
         std::env::var("PATH").unwrap_or_default()
     );
 
-    let out = Command::new(godmode_bin())
+    let out = common::scrubbed(godmode_bin(), dir.path())
         .args(["task", "pull", "--github", "--json"])
-        .current_dir(dir.path())
         .env("PATH", &path_with_fake)
         .output()
         .expect("failed to run godmode");
@@ -213,18 +174,16 @@ fn task_pull_github_idempotent() {
     );
 
     // First pull
-    let out1 = Command::new(godmode_bin())
+    let out1 = common::scrubbed(godmode_bin(), dir.path())
         .args(["task", "pull", "--github", "--json"])
-        .current_dir(dir.path())
         .env("PATH", &path_with_fake)
         .output()
         .expect("run 1");
     assert_eq!(out1.status.code().unwrap_or(-1), 0);
 
     // Second pull — same data, should still exit 0 with imported=0 (skipped)
-    let out2 = Command::new(godmode_bin())
+    let out2 = common::scrubbed(godmode_bin(), dir.path())
         .args(["task", "pull", "--github", "--json"])
-        .current_dir(dir.path())
         .env("PATH", &path_with_fake)
         .output()
         .expect("run 2");

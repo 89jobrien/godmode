@@ -3,8 +3,10 @@
 mod fake_bin;
 use fake_bin::FakeBin;
 
+mod common;
+
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use tempfile::TempDir;
 
 /// Absolute path to the hooks directory in this repo.
@@ -32,7 +34,8 @@ fn run_hook(
     path_prefix: Option<&str>,
 ) -> std::process::Output {
     let nu = nu_bin().expect("nu not on PATH");
-    let mut cmd = Command::new(&nu);
+    let cwd = std::env::current_dir().expect("current dir");
+    let mut cmd = common::scrubbed(&nu, &cwd);
     cmd.arg(script);
     cmd.stdin(Stdio::piped());
     cmd.stdout(Stdio::piped());
