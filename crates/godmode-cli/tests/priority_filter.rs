@@ -4,19 +4,7 @@
 ///
 /// These tests build a temporary task graph on disk and invoke the compiled
 /// `godmode` binary, asserting stdout content and exit codes.
-use std::process::Command;
-
-/// Path to the compiled godmode binary produced by `cargo test --package godmode-cli`.
-fn godmode_bin() -> std::path::PathBuf {
-    // cargo nextest / cargo test sets CARGO_BIN_EXE_godmode automatically.
-    if let Ok(p) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return std::path::PathBuf::from(p);
-    }
-    // Fallback: walk up from CARGO_MANIFEST_DIR to workspace root then target/debug.
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let workspace_root = manifest.parent().unwrap().parent().unwrap();
-    workspace_root.join("target/debug/godmode")
-}
+mod common;
 
 /// Create a temp directory containing a pre-populated `.ctx/godmode/tasks.yaml`.
 fn setup_graph(yaml: &str) -> tempfile::TempDir {
@@ -49,11 +37,7 @@ const MIXED_GRAPH: &str = r#"tasks:
 #[test]
 fn task_list_priority_high_shows_only_high() {
     let dir = setup_graph(MIXED_GRAPH);
-    let out = Command::new(godmode_bin())
-        .args(["task", "list", "--priority", "high"])
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode");
+    let out = common::run_godmode(dir.path(), &["task", "list", "--priority", "high"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
@@ -79,11 +63,7 @@ fn task_list_priority_high_shows_only_high() {
 #[test]
 fn task_list_priority_low_shows_only_low() {
     let dir = setup_graph(MIXED_GRAPH);
-    let out = Command::new(godmode_bin())
-        .args(["task", "list", "--priority", "low"])
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode");
+    let out = common::run_godmode(dir.path(), &["task", "list", "--priority", "low"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
@@ -99,11 +79,7 @@ fn task_list_priority_low_shows_only_low() {
 #[test]
 fn task_list_no_priority_shows_all() {
     let dir = setup_graph(MIXED_GRAPH);
-    let out = Command::new(godmode_bin())
-        .args(["task", "list"])
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode");
+    let out = common::run_godmode(dir.path(), &["task", "list"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(out.status.success(), "stdout: {stdout}");
@@ -117,11 +93,7 @@ fn task_list_no_priority_shows_all() {
 #[test]
 fn task_next_priority_high_shows_only_high_runnable() {
     let dir = setup_graph(MIXED_GRAPH);
-    let out = Command::new(godmode_bin())
-        .args(["task", "next", "--priority", "high"])
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode");
+    let out = common::run_godmode(dir.path(), &["task", "next", "--priority", "high"]);
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     // Exit 0 when at least one result; exit 1 when empty — high task is pending+runnable.
@@ -148,11 +120,7 @@ fn task_next_priority_high_empty_exits_nonzero() {
     depends_on: []
 "#;
     let dir = setup_graph(yaml);
-    let out = Command::new(godmode_bin())
-        .args(["task", "next", "--priority", "high"])
-        .current_dir(dir.path())
-        .output()
-        .expect("run godmode");
+    let out = common::run_godmode(dir.path(), &["task", "next", "--priority", "high"]);
 
     assert!(
         !out.status.success(),

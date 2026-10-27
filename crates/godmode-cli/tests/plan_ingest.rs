@@ -1,25 +1,10 @@
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::Output;
 
-fn godmode_bin() -> std::path::PathBuf {
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_godmode") {
-        return std::path::PathBuf::from(path);
-    }
-    let manifest = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest
-        .parent()
-        .expect("crate parent")
-        .parent()
-        .expect("workspace root")
-        .join("target/debug/godmode")
-}
+mod common;
 
 fn run_godmode(dir: &Path, args: &[&str]) -> Output {
-    Command::new(godmode_bin())
-        .args(args)
-        .current_dir(dir)
-        .output()
-        .expect("run godmode")
+    common::run_godmode(dir, args)
 }
 
 fn write_plan(path: &Path, first: &str, second: &str) {
