@@ -126,3 +126,79 @@ fn remind_reports_the_working_repo_not_the_pinned_one() {
         "the working repo had a recent commit, so remind must report it: {stdout}"
     );
 }
+
+/// Regression (config leak): `scratch_repo` must never write its local
+/// identity / signing / hooks settings into a repository inherited through
+/// `GIT_DIR`.
+///
+/// Before the spawn sites were scrubbed, an unscrubbed `git config` under a
+/// pinned `GIT_DIR` wrote `user.name = "godmode test"`, `commit.gpgsign = false`,
+/// and a dead `core.hooksPath` into the real (hook's) repository — the
+/// incident that disabled signing and hooks on this very repo. This test
+/// pins `GIT_DIR` at a stand-in repository, runs `scratch_repo`, and asserts
+/// the pinned repository's config is byte-identical afterwards.
+#[test]
+fn scratch_repo_does_not_leak_config_into_a_pinned_git_dir() {
+    use std::sync::Mutex;
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+    let _guard = ENV_LOCK.lock().expect("env lock");
+
+    // Stand-in for the hook's repository.
+    let pinned = tempfile::TempDir::new().expect("pinned temp dir");
+    let pinned_git = pinned.path().join(".git");
+    let init = std::process::Command::new("git")
+        .args(["init", "--quiet"])
+        .current_dir(pinned.path())
+        .status()
+        .expect("git init pinned");
+    assert!(init.success(), "pinned git init must succeed");
+    let before =
+        std::fs::read_to_string(pinned_git.join("config")).expect("read pinned config before");
+
+    // Save, then install, the authentic pin shape a linked-worktree hook exports.
+    let saved: Vec<(&str, Option<std::ffi::OsString>)> = common::GIT_PINNED_ENV
+        .iter()
+        .map(|v| (*v, std::env::var_os(v)))
+        .collect();
+    unsafe {
+        std::env::set_var("GIT_DIR", &pinned_git);
+        std::env::set_var("GIT_INDEX_FILE", pinned_git.join("index"));
+        std::env::set_var("GIT_PREFIX", "");
+    }
+    for v in common::GIT_PINNED_ENV {
+        if *v != "GIT_DIR" && *v != "GIT_INDEX_FILE" && *v != "GIT_PREFIX" {
+            unsafe { std::env::remove_var(v) };
+        }
+    }
+
+    // The fixture that performs git init + config writes. It must target its
+    // own repository, never the pinned one.
+    let scratch = scratch_repo();
+    let _ = scratch.path();
+
+    // Restore the process environment.
+    for (k, val) in saved {
+        unsafe {
+            match val {
+                Some(v) => std::env::set_var(k, v),
+                None => std::env::remove_var(k),
+            }
+        }
+    }
+
+    let after =
+        std::fs::read_to_string(pinned_git.join("config")).expect("read pinned config after");
+
+    assert_eq!(
+        before, after,
+        "scratch_repo leaked configuration into the pinned GIT_DIR repository"
+    );
+    assert!(
+        !after.contains("godmode test"),
+        "pinned repo must not receive the scratch identity"
+    );
+    assert!(
+        !after.contains("test@example.invalid"),
+        "pinned repo must not receive the scratch email"
+    );
+}
