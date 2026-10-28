@@ -146,9 +146,11 @@ fn scratch_repo_does_not_leak_config_into_a_pinned_git_dir() {
     // Stand-in for the hook's repository.
     let pinned = tempfile::TempDir::new().expect("pinned temp dir");
     let pinned_git = pinned.path().join(".git");
-    let init = std::process::Command::new("git")
+    // `git init` honours `GIT_DIR`, so under a pinned environment it would
+    // initialise the *pinned* (real) repository instead of this temp dir.
+    // Scrub first, exactly like the fixture under test does.
+    let init = common::scrubbed("git", pinned.path())
         .args(["init", "--quiet"])
-        .current_dir(pinned.path())
         .status()
         .expect("git init pinned");
     assert!(init.success(), "pinned git init must succeed");
