@@ -47,94 +47,11 @@ rustqual --init                    # Generate default rustqual.toml
 Each finding has a code that tells you what category it belongs to and
 how to fix it:
 
-### IOSP Findings
-
-- **VIOLATION** (logic + calls): A function mixes decision logic (`if`, `match`,
-  loops) with calls to other functions. IOSP says a function should either
-  contain logic OR delegate to other functions, not both.
-
-  **Fix pattern**: Extract the logic into a pure function, or extract the I/O
-  into a helper, so the parent becomes a pure orchestrator (calls only) or
-  pure logic (no calls).
-
-  **When to suppress**: I/O boundary functions (file existence check + read)
-  and integration roots (`main`, CLI dispatch) inherently mix logic with calls.
-  Use `// qual:allow(iosp) reason: "..."` for these.
-
-### Test Quality Findings
-
-- **TQ_UNTESTED**: No unit test calls this function directly. rustqual only
-  sees unit tests within the same crate — integration tests in `tests/` and
-  cross-crate usage are invisible to it.
-
-  **Fix pattern**: Move testable logic from binary crates to the library crate
-  where it can be unit tested. For CLI dispatch functions that are pure I/O
-  wiring, suppression via `ignore_functions` in config is appropriate.
-
-- **TQ_NO_SUT**: Test name doesn't reference a recognizable system-under-test.
-  rustqual expects test names to include the function or type being tested.
-
-  **Fix pattern**: Rename the test to include the function name. Call the
-  function directly (e.g., `WikiCategory::from_str(...)` instead of
-  `"...".parse::<WikiCategory>()`), since rustqual traces direct calls.
-
-### DRY Findings
-
-- **DEAD_CODE** (testonly): A function is only called from test code within
-  the same crate. This is a frequent false positive for pub API methods used
-  by other crates in the workspace.
-
-  **Important**: DEAD_CODE cannot be suppressed with `// qual:allow(dry)`.
-  rustqual will flag the allow comment as an ORPHAN_SUPPRESSION. Instead,
-  disable dead code detection in `rustqual.toml` if all findings are
-  cross-crate false positives:
-
-  ```toml
-  [duplicates]
-  detect_dead_code = false
-  ```
-
-- **BOILERPLATE** (BP-002): Manual trait impl that could use a derive macro.
-  Common for `Display`, `Error`, `From` impls.
-
-  **Fix pattern**: Use `thiserror::Error` derive instead of manual
-  `impl Display + impl Error`.
-
-### SRP Findings
-
-- **SRP_STRUCT** (LCOM4=N): Struct has low cohesion — its methods form N
-  independent clusters. Methods in different clusters don't share fields.
-
-  **Fix pattern**: Split the struct into separate types, or extract a group
-  of methods into a standalone function that takes the struct as a parameter.
-
-- **SRP_MODULE** (N lines): File exceeds the configured length ceiling.
-
-  **Fix pattern**: Split into submodules. For test files, use `mod init {}`,
-  `mod graph {}`, etc.
+The IOSP and test-quality codes are in `references/finding-codes-iosp-and-test-quality.md`. The DRY and SRP codes are in `references/finding-codes-dry-and-srp.md`. Read the file that covers a code before fixing or suppressing it.
 
 ## Inline Suppressions
 
-Suppress specific findings with comments above the function:
-
-```rust
-// qual:allow(iosp) reason: "I/O boundary function"
-fn read_data(path: &Path) -> Result<Data> { ... }
-```
-
-Available dimensions: `iosp`, `complexity`, `dry`, `srp`, `coupling`,
-`test`, `architecture`.
-
-A bare `// qual:allow` (no dimension) suppresses all dimensions.
-
-**Gotchas**:
-
-- `qual:allow(dry)` does NOT suppress DEAD_CODE findings — only duplicate
-  and boilerplate findings. DEAD_CODE is reported under DRY but is not
-  suppressible inline. Use `detect_dead_code = false` in config instead.
-- Stale or mismatched suppressions produce ORPHAN_SUPPRESSION findings.
-- The `max_suppression_ratio` config (default 0.05) warns if too many
-  functions are suppressed.
+The suppression syntax, the dimension keys, and the gotchas are in `references/inline-suppressions.md`. Read it before adding a `qual:allow` comment.
 
 ## Configuration (rustqual.toml)
 
@@ -147,42 +64,7 @@ Read `references/rustqual-toml-example.md` before writing or editing
 
 ## Workflow: Improving a Quality Score
 
-When asked to fix rustqual findings, follow this priority order. Each
-category has different cost/benefit — start where the impact is highest.
-
-### 1. Low-hanging fruit (high impact, easy fixes)
-
-- **BOILERPLATE**: Switch to derive macros (`thiserror`, `derive_more`)
-- **TQ_NO_SUT**: Rename tests to include the SUT function name
-- **SRP_MODULE**: Split large files into submodules
-
-### 2. Structural improvements (medium effort)
-
-- **IOSP VIOLATION**: Extract pure logic from I/O functions. Common pattern:
-  split `open()` into `read_data()` (I/O) + `from_data()` (logic).
-- **TQ_UNTESTED**: Move testable logic from binary crates to library crates.
-  Add unit tests for the moved functions.
-- **SRP_STRUCT**: Extract method clusters into free functions or new types.
-- **High parameter count**: Introduce input structs (like `EdgeInput`).
-
-### 3. Configuration (for false positives)
-
-- **TQ_UNTESTED on CLI dispatch**: Add dispatch function names to
-  `ignore_functions` or accept — integration tests cover them.
-- **DEAD_CODE on pub API**: Set `detect_dead_code = false` if all findings
-  are cross-crate consumers.
-- **IOSP on I/O boundaries**: Use `// qual:allow(iosp)` with a reason.
-
-### 4. Know when to stop
-
-Some findings are structural limitations of single-crate analysis:
-
-- CLI dispatch functions will always be TQ_UNTESTED (integration tests
-  are invisible)
-- Cross-crate pub API will always be DEAD_CODE (no cross-crate tracing)
-- I/O boundaries inherently mix logic with calls
-
-Configure or suppress these rather than over-refactoring to satisfy the tool.
+The four-step priority order for fixing findings is in `references/improvement-workflow.md`. Read it when asked to fix rustqual findings or raise the score.
 
 ## Common Pitfalls
 
@@ -201,31 +83,7 @@ Configure or suppress these rather than over-refactoring to satisfy the tool.
 
 ## Baselines and CI Integration
 
-Save a baseline for CI regression detection:
-
-```bash
-rustqual --init                                      # Generate tailored config
-rustqual --save-baseline .ctx/rustqual-baseline.json # Snapshot current state
-rustqual --compare .ctx/rustqual-baseline.json --fail-on-regression  # CI gate
-```
-
-This exits 0 as long as the score doesn't drop, even if findings exist.
-Commit both `rustqual.toml` and `.ctx/rustqual-baseline.json` to the repo.
-
-## Workspace vs Per-Crate Scanning
-
-rustqual produces different totals depending on scan scope:
-
-- **Workspace-level** (`rustqual .` from repo root): scans all `.rs` files
-  including top-level re-exports and files not inside any single crate.
-- **Per-crate** (`rustqual crates/<name>`): scans only that crate's `src/`.
-
-The per-crate sum will be lower than the workspace total because the
-workspace scan includes files outside any crate boundary. These numbers
-are not comparable — always use the same method when tracking progress.
-
-**Rule:** Use `--save-baseline` / `--compare` instead of recording numbers
-in plan documents. The baseline file is the single source of truth.
+Baseline commands, the CI gate, and the workspace versus per-crate scan scope are in `references/baselines-and-scan-scope.md`. Read it before saving a baseline or comparing scores.
 
 ## Autonomous Quality Loop
 
@@ -245,6 +103,12 @@ its own file and listing it in `exclude_files`, or turning off dead-code
 detection.
 
 ## Reference Files
+
+- **`references/finding-codes-iosp-and-test-quality.md`** — IOSP, TQ_UNTESTED, and TQ_NO_SUT codes with fix patterns. Read before fixing or suppressing one of these findings.
+- **`references/finding-codes-dry-and-srp.md`** — DEAD_CODE, BOILERPLATE, SRP_STRUCT, and SRP_MODULE codes with fix patterns. Read before fixing one of these findings or changing `detect_dead_code`.
+- **`references/inline-suppressions.md`** — `qual:allow` syntax, dimension keys, and gotchas. Read before adding a suppression.
+- **`references/improvement-workflow.md`** — Priority order for fixing findings. Read when asked to fix findings or raise the score.
+- **`references/baselines-and-scan-scope.md`** — Baseline and CI gate commands, and scan scope. Read before saving a baseline or comparing scores.
 
 - **`references/cli-reference.md`** — Full CLI options, output formats,
   config file schema, exit codes, CI examples
