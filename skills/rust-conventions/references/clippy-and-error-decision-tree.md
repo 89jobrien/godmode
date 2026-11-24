@@ -1,17 +1,6 @@
-# Rust Quality Checklist
+# Clippy lints and error-handling decision tree
 
-Before submitting any Rust code:
-
-- [ ] Naming follows RFC 430 (types=CamelCase, fns=snake_case, consts=SCREAMING_SNAKE)
-- [ ] All public types derive or implement `Debug`
-- [ ] Error handling uses `Result<T, E>` — no bare `unwrap()` in non-test code
-- [ ] All public items have `///` rustdoc with at least one sentence
-- [ ] Tests cover the happy path and at least one failure/edge case
-- [ ] No `unsafe` without a `// SAFETY:` comment explaining the invariant
-- [ ] `taskit check fmt` — no format diff
-- [ ] `taskit check lint` — zero warnings
-- [ ] `taskit test run` — all green
-- [ ] No dead code, unused imports, or commented-out blocks
+Read this before fixing a clippy lint, or before deciding whether a fallible path returns `Result` or panics. The Quality Checklist itself lives in the root `SKILL.md`, which is the single source for that list.
 
 ## Common Clippy Lints to Watch
 

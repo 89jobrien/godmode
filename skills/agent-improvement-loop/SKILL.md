@@ -29,18 +29,7 @@ SDK traces → Human+LLM feedback → Promptfoo evals → HALO diagnosis
 
 Goal: surface raw evidence of what the agent actually did.
 
-**Default adapter (coursers/crs):**
-
-```nu
-# Recent session history for current project
-crs discover --since 30 --format json
-
-# Richer facet view with git context
-crs insights --format json
-
-# Block stats — which rules fired most
-crs stats
-```
+**Default adapter (coursers/crs):** run the commands in `references/phase-1-trace-commands.md`.
 
 **Generic adapter:** point at any trace source that produces structured records:
 
@@ -75,20 +64,8 @@ Goal: turn raw traces into labeled signal (good behavior / bad behavior / missin
    - `severity`: `P1` (breaks workflow) | `P2` (annoying) | `P3` (cosmetic)
    - `evidence_count`: how many times seen
 
-**LLM assist prompt (run inline):**
-
-```text
-Given these agent trace samples, identify:
-1. Patterns that should be blocked but aren't
-2. Patterns that are blocked but shouldn't be (false positives)
-3. Block messages that are unhelpful or wrong
-4. Threshold values that fire too early or too late
-
-Traces:
-<traces>{{traces}}</traces>
-
-Respond as JSON: { clusters: [{ id, type, severity, evidence_count, sample, diagnosis }] }
-```
+**LLM assist prompt (run inline):** use the prompt in `references/phase-2-feedback-prompt.md`,
+with the trace samples filled in.
 
 **Output of this phase:**
 
@@ -102,40 +79,11 @@ Respond as JSON: { clusters: [{ id, type, severity, evidence_count, sample, diag
 
 Goal: turn feedback clusters into reproducible test cases that can gate future changes.
 
-**For each cluster from Phase 2, generate an eval case:**
+**For each cluster from Phase 2, generate an eval case** using the template in
+`references/phase-3-eval-cases.md`. Save it to `.ctx/_WORKING_DIR/evals-<date>.yaml`.
 
-```yaml
-# .ctx/_WORKING_DIR/evals-<date>.yaml
-description: "<cluster.id> — <cluster.diagnosis>"
-providers:
-  - id: exec
-    config:
-      command: "echo '<sample_command>' | coursers pre --profile test"
-
-tests:
-  - description: "should block <pattern>"
-    assert:
-      - type: javascript
-        value: "output.includes('deny')"
-
-  - description: "should NOT block <exception>"
-    assert:
-      - type: javascript
-        value: "!output.includes('deny')"
-```
-
-**Run evals:**
-
-```nu
-promptfoo eval --config .ctx/_WORKING_DIR/evals-<date>.yaml --output .ctx/_WORKING_DIR/eval-results-<date>.json
-```
-
-**If promptfoo is not available**, generate shell-based smoke tests instead:
-
-```nu
-# Smoke test equivalent
-echo '{"tool_name":"Bash","tool_input":{"command":"<sample>"}}' | coursers pre
-```
+**Run evals:** the promptfoo command and the shell fallback (for when promptfoo is not
+available) are in `references/phase-3-eval-cases.md`.
 
 **Output of this phase:**
 
@@ -152,33 +100,9 @@ Goal: prioritize which changes to make based on impact × confidence × effort.
 
 HALO = **H**igh-impact, **A**ctionable, **L**ow-effort, **O**bservable.
 
-**Score each failing eval cluster:**
+**Score each failing eval cluster** with the formula in `references/phase-4-halo-scoring.md`.
 
-```text
-impact    = evidence_count × severity_weight  (P1=3, P2=2, P3=1)
-confidence = promptfoo pass rate on existing cases (0.0–1.0)
-effort     = estimated lines of change (1=<5, 2=5-20, 3=>20)
-halo_score = (impact × confidence) / effort
-```
-
-**Rank and emit a change list:**
-
-```json
-{
-  "changes": [
-    {
-      "rank": 1,
-      "cluster_id": "no-sleep-in-codex",
-      "type": "missing-rule",
-      "halo_score": 4.2,
-      "action": "add rule to ~/.config/coursers/profiles/codex/rules.json",
-      "target_file": "~/.config/coursers/profiles/codex/rules.json",
-      "evidence_count": 14,
-      "eval_ids": ["eval-003", "eval-007"]
-    }
-  ]
-}
-```
+**Rank and emit a change list** in the JSON shape given in the same file.
 
 **Output of this phase:**
 
@@ -193,28 +117,7 @@ halo_score = (impact × confidence) / effort
 Goal: package the ranked change list into a handoff that Codex (or any coding agent) can
 execute without further context.
 
-**Handoff document format:**
-
-```markdown
-# Agent Improvement Handoff — <date>
-
-## Context
-
-<one paragraph: what agent, what loop iteration, what source of traces>
-
-## Changes (ranked by HALO score)
-
-### Change 1: <cluster_id>
-
-- **File**: `<target_file>`
-- **Action**: <add rule | update threshold | fix message | add exception>
-- **Evidence**: <evidence_count> occurrences in last 30 days
-- **Eval gate**: `<eval_id>` must pass after change
-- **Spec**:
-  <exact JSON/TOML/code block to add or modify>
-
-### Change 2: ...
-```
+**Handoff document format:** fill the template in `references/phase-5-handoff-template.md`.
 
 **Save to:**
 
@@ -241,25 +144,7 @@ Read `.ctx/_WORKING_DIR/diagnosis.json`, then pass its contents to `hj handoff -
 Goal: remove the human from the loop for routine low-risk changes by automating handoff
 detection and Codex triggering.
 
-**Heartbeat script (Nushell cron or launchd):**
-
-```nu
-#!/usr/bin/env nu
-# ~/.local/bin/agent-improvement-heartbeat.nu
-# Run every N minutes via cron or launchd
-
-let handoff_dir = $"($env.HOME)/dev/.ctx"
-let pattern = "HANDOFF.agent-improvement.*.yaml"
-
-let pending = (ls $"($handoff_dir)/($pattern)" | where modified > ((date now) - 1hr))
-
-if ($pending | length) > 0 {
-    for $f in $pending {
-        # Trigger Codex with the handoff as context
-        codex --context (open $f.name | to json) "Apply the changes in this handoff. Run evals after each change. Commit only if all evals pass."
-    }
-}
-```
+**Heartbeat script (Nushell cron or launchd):** see `references/phase-6-heartbeat-script.md`.
 
 **Gate conditions before auto-triggering:**
 
@@ -279,21 +164,8 @@ if ($pending | length) > 0 {
 
 Goal: validate that the changes work, the evals pass, and commit the result.
 
-**Validation steps:**
-
-```nu
-# 1. Run the evals that were failing in Phase 3
-promptfoo eval --config .ctx/_WORKING_DIR/evals-<date>.yaml
-
-# 2. Run the full rule health check
-crs validate [--profile <profile>]
-
-# 3. Run workspace tests
-taskit test run
-
-# 4. Smoke test the hook pipeline
-echo '{"tool_name":"Bash","tool_input":{"command":"<sample>"}}' | coursers pre [--profile <profile>]
-```
+**Validation steps:** run the four checks in `references/phase-7-validation-commands.md`
+(evals, `crs validate`, `taskit test run`, and the hook smoke test).
 
 **On all green:**
 
@@ -368,34 +240,12 @@ Phases 6, 7 print next steps and run `crs validate`.
 
 <adapter id="coursers" default="true">
 
-### Coursers / crs adapter (default)
-
-| Loop phase       | Command                                            |
-| ---------------- | -------------------------------------------------- |
-| Phase 1 traces   | `crs discover --since <N> --format json`           |
-| Phase 1 insights | `crs insights --format json`                       |
-| Phase 1 stats    | `crs stats`                                        |
-| Phase 3 evals    | `echo '<payload>' \| coursers pre [--profile <p>]` |
-| Phase 7 validate | `crs validate [--profile <p>]`                     |
-| Phase 7 test     | `taskit test run`                                  |
-
-Profile isolation: pass `--profile <name>` to all coursers/crs commands to keep
-test-profile state separate from production.
+Coursers / crs is the default adapter. Its phase-by-phase commands and profile isolation rules are in `references/adapters.md`.
 
 </adapter>
 
 <adapter id="generic">
 
-### Generic adapter
-
-Replace Phase 1 with any trace source that emits structured JSON records with fields:
-
-- `command` or `input` — what the agent did
-- `exit_code` or `outcome` — success/failure
-- `timestamp` — when it happened
-- `session_id` (optional) — for grouping
-
-Replace Phase 3 evals with any eval harness (promptfoo, pytest, custom shell scripts) that
-can assert on agent output given a fixed input.
+For any other trace source, the required record fields and the eval-harness swap are in `references/adapters.md`.
 
 </adapter>

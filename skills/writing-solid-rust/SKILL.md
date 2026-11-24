@@ -154,6 +154,26 @@ Minimal payment processing example:
 - **Adapters**: Stripe and InMemory implementations
 - **Pattern**: Swap payment processors, use test doubles easily
 
+## Code Examples
+
+The code for each step, pattern, test, and mistake lives in `references/`. Read the file in the right column before writing that kind of code. Each file opens with the same "Read this before" line.
+
+| File                                            | Read before                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `references/walkthrough-domain.md`              | writing the domain port, domain types, or domain service (Steps 1 to 3)               |
+| `references/walkthrough-adapters.md`            | writing infrastructure adapters or wiring them in `main.rs` (Steps 4 and 5)           |
+| `references/pattern-async-traits.md`            | a port trait has async methods                                                        |
+| `references/pattern-builder.md`                 | an adapter needs several configuration values, some required                          |
+| `references/pattern-multiple-traits.md`         | one trait has grown methods that callers do not all use (ISP)                         |
+| `references/pattern-error-mapping.md`           | an adapter must map infrastructure errors to domain errors                            |
+| `references/testing-unit.md`                    | writing unit tests for domain services with test doubles                              |
+| `references/testing-integration.md`             | testing an adapter against a real system or test instance                             |
+| `references/refactoring-walkthrough.md`         | converting a tightly coupled service to ports and adapters (Refactoring Steps 2 to 4) |
+| `references/mistake-trait-mirrors-api.md`       | designing a port from an external API's method list                                   |
+| `references/mistake-domain-uses-infra-types.md` | a domain signature mentions an SDK type                                               |
+| `references/mistake-generic-explosion.md`       | a service struct has four or more generic parameters                                  |
+| `references/mistake-logic-in-adapter.md`        | an adapter method contains a validation or business rule                              |
+
 ## Implementation Workflow
 
 ### Step 1: Identify the Port
@@ -165,32 +185,11 @@ Minimal payment processing example:
    - Message queues
    - Third-party services
 
-2. **Define the domain trait (port)**
-
-```rust
-// domain.rs
-pub trait PaymentProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError>;
-}
-```
+2. **Define the domain trait (port)** in `domain.rs`. Code: `references/walkthrough-domain.md`.
 
 ### Step 2: Define Domain Types
 
-1. **Create domain-specific types**
-
-```rust
-// domain.rs
-pub struct Payment {
-    pub amount_cents: u64,
-    pub currency: String,
-}
-
-#[derive(Debug)]
-pub enum PaymentError {
-    Rejected,
-    Network,
-}
-```
+1. **Create domain-specific types.** Code: `references/walkthrough-domain.md`.
 
 2. **Keep types focused and minimal**
    - Only fields relevant to the domain
@@ -198,279 +197,45 @@ pub enum PaymentError {
 
 ### Step 3: Implement Domain Logic
 
-1. **Write business logic generic over the port**
-
-```rust
-// domain.rs or service.rs
-pub struct CheckoutService<P: PaymentProcessor> {
-    processor: P,
-}
-
-impl<P: PaymentProcessor> CheckoutService<P> {
-    pub fn new(processor: P) -> Self {
-        Self { processor }
-    }
-
-    pub fn checkout(&self, amount_cents: u64, currency: &str) -> Result<(), PaymentError> {
-        // Business rules here
-        let payment = Payment { amount_cents, currency: currency.to_string() };
-        self.processor.process(&payment)
-    }
-}
-```
+1. **Write business logic generic over the port.** Code: `references/walkthrough-domain.md`.
 
 ### Step 4: Create Infrastructure Adapters
 
-1. **Implement the trait for each external system**
+1. **Implement the trait for each external system.** Code: `references/walkthrough-adapters.md`.
 
-```rust
-// infra/stripe.rs
-use crate::domain::{Payment, PaymentError, PaymentProcessor};
-
-pub struct StripeProcessor {
-    pub api_key: String,
-}
-
-impl PaymentProcessor for StripeProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError> {
-        // Call Stripe API
-        println!("Stripe: charging {} {}", payment.amount_cents, payment.currency);
-        Ok(())
-    }
-}
-```
-
-2. **Create test doubles for testing**
-
-```rust
-// infra/in_memory.rs
-pub struct InMemoryProcessor {
-    pub accepted: Vec<Payment>,
-}
-
-impl PaymentProcessor for InMemoryProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError> {
-        // Store in memory for testing
-        Ok(())
-    }
-}
-```
+2. **Create test doubles for testing.** Code: `references/walkthrough-adapters.md`.
 
 ### Step 5: Wire Dependencies in Composition Root
 
-1. **Choose concrete implementations**
-
-```rust
-// main.rs
-mod domain;
-mod infra {
-    pub mod stripe;
-    pub mod in_memory;
-}
-
-use infra::stripe::StripeProcessor;
-use domain::CheckoutService;
-
-fn main() {
-    let processor = StripeProcessor {
-        api_key: "sk_live_...".to_string(),
-    };
-
-    let checkout = CheckoutService::new(processor);
-    checkout.checkout(5000, "USD").unwrap();
-}
-```
+1. **Choose concrete implementations.** Code: `references/walkthrough-adapters.md`.
 
 ## Common Patterns
 
 ### Pattern 1: Async Traits
 
-When working with async code:
-
-```rust
-use async_trait::async_trait;
-
-#[async_trait]
-pub trait LlmProvider {
-    async fn chat(&self, messages: &[ChatMessage]) -> Result<String, LlmError>;
-}
-
-#[async_trait]
-impl LlmProvider for OpenAiAdapter {
-    async fn chat(&self, messages: &[ChatMessage]) -> Result<String, LlmError> {
-        // Async implementation
-    }
-}
-```
+When working with async code. Code: `references/pattern-async-traits.md`.
 
 ### Pattern 2: Builder for Complex Adapters
 
-When adapters need configuration:
-
-```rust
-pub struct OpenAiAdapter {
-    client: Client,
-    api_key: String,
-    model: String,
-    timeout: Duration,
-}
-
-impl OpenAiAdapter {
-    pub fn builder() -> OpenAiAdapterBuilder {
-        OpenAiAdapterBuilder::default()
-    }
-}
-
-pub struct OpenAiAdapterBuilder {
-    api_key: Option<String>,
-    model: String,
-    timeout: Duration,
-}
-
-impl OpenAiAdapterBuilder {
-    pub fn api_key(mut self, key: String) -> Self {
-        self.api_key = Some(key);
-        self
-    }
-
-    pub fn model(mut self, model: String) -> Self {
-        self.model = model;
-        self
-    }
-
-    pub fn build(self) -> Result<OpenAiAdapter, BuildError> {
-        Ok(OpenAiAdapter {
-            client: Client::new(),
-            api_key: self.api_key.ok_or(BuildError::MissingApiKey)?,
-            model: self.model,
-            timeout: self.timeout,
-        })
-    }
-}
-```
+When adapters need configuration. Code: `references/pattern-builder.md`.
 
 ### Pattern 3: Multiple Traits for Different Capabilities
 
-When components need different capabilities:
-
-```rust
-// Instead of one large trait
-pub trait Storage {
-    fn read(&self, key: &str) -> Result<Vec<u8>, Error>;
-    fn write(&self, key: &str, data: &[u8]) -> Result<(), Error>;
-    fn delete(&self, key: &str) -> Result<(), Error>;
-    fn list(&self) -> Result<Vec<String>, Error>;
-}
-
-// Use separate traits (ISP)
-pub trait Reader {
-    fn read(&self, key: &str) -> Result<Vec<u8>, Error>;
-}
-
-pub trait Writer {
-    fn write(&self, key: &str, data: &[u8]) -> Result<(), Error>;
-}
-
-pub trait Deleter {
-    fn delete(&self, key: &str) -> Result<(), Error>;
-}
-
-// Components depend only on what they need
-pub struct ReadOnlyService<R: Reader> {
-    reader: R,
-}
-```
+When components need different capabilities. Code: `references/pattern-multiple-traits.md`.
 
 ### Pattern 4: Error Type Mapping
 
-Keep domain errors separate from infrastructure errors:
-
-```rust
-// Domain error
-#[derive(Debug)]
-pub enum PaymentError {
-    Rejected,
-    Network,
-    InvalidAmount,
-}
-
-// Adapter maps infrastructure errors to domain errors
-impl PaymentProcessor for StripeProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError> {
-        self.stripe_client
-            .charge(payment)
-            .map_err(|e| match e {
-                StripeError::CardDeclined => PaymentError::Rejected,
-                StripeError::NetworkError => PaymentError::Network,
-                _ => PaymentError::Network,
-            })
-    }
-}
-```
+Keep domain errors separate from infrastructure errors. Code: `references/pattern-error-mapping.md`.
 
 ## Testing Strategy
 
 ### Unit Testing Domain Logic
 
-Domain logic is easy to test with test doubles:
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    struct MockProcessor {
-        should_succeed: bool,
-    }
-
-    impl PaymentProcessor for MockProcessor {
-        fn process(&self, _payment: &Payment) -> Result<(), PaymentError> {
-            if self.should_succeed {
-                Ok(())
-            } else {
-                Err(PaymentError::Rejected)
-            }
-        }
-    }
-
-    #[test]
-    fn test_checkout_success() {
-        let processor = MockProcessor { should_succeed: true };
-        let service = CheckoutService::new(processor);
-
-        assert!(service.checkout(5000, "USD").is_ok());
-    }
-
-    #[test]
-    fn test_checkout_rejection() {
-        let processor = MockProcessor { should_succeed: false };
-        let service = CheckoutService::new(processor);
-
-        assert!(service.checkout(5000, "USD").is_err());
-    }
-}
-```
+Domain logic is easy to test with test doubles. Code: `references/testing-unit.md`.
 
 ### Integration Testing Adapters
 
-Test adapters against real systems (or test instances):
-
-```rust
-#[tokio::test]
-async fn test_stripe_integration() {
-    let processor = StripeProcessor {
-        api_key: std::env::var("STRIPE_TEST_KEY").unwrap(),
-    };
-
-    let payment = Payment {
-        amount_cents: 100,
-        currency: "USD".to_string(),
-    };
-
-    let result = processor.process(&payment);
-    assert!(result.is_ok());
-}
-```
+Test adapters against real systems (or test instances). Code: `references/testing-integration.md`.
 
 ## Best Practices
 
@@ -522,151 +287,33 @@ Find all direct usage of:
 
 ### Step 2: Extract Traits
 
-For each dependency, create a trait:
-
-```rust
-// Before: tight coupling
-struct UserService {
-    db: PostgresConnection,
-}
-
-// After: trait extracted
-trait UserRepository {
-    fn find_by_id(&self, id: UserId) -> Result<User, Error>;
-    fn save(&self, user: &User) -> Result<(), Error>;
-}
-
-struct UserService<R: UserRepository> {
-    repo: R,
-}
-```
+For each dependency, create a trait. Code: `references/refactoring-walkthrough.md`.
 
 ### Step 3: Implement Adapters
 
-Create adapter structs that implement the traits:
-
-```rust
-struct PostgresUserRepository {
-    pool: Pool<Postgres>,
-}
-
-impl UserRepository for PostgresUserRepository {
-    fn find_by_id(&self, id: UserId) -> Result<User, Error> {
-        // PostgreSQL implementation
-    }
-
-    fn save(&self, user: &User) -> Result<(), Error> {
-        // PostgreSQL implementation
-    }
-}
-```
+Create adapter structs that implement the traits. Code: `references/refactoring-walkthrough.md`.
 
 ### Step 4: Update Composition Root
 
-Wire the new structure in main.rs:
-
-```rust
-fn main() {
-    let pool = create_db_pool();
-    let repo = PostgresUserRepository { pool };
-    let service = UserService::new(repo);
-
-    // Use service
-}
-```
+Wire the new structure in main.rs. Code: `references/refactoring-walkthrough.md`.
 
 ## Common Mistakes to Avoid
 
 ### Mistake 1: Traits That Mirror Infrastructure APIs
 
-```rust
-// Bad: trait mirrors Stripe API
-pub trait PaymentProcessor {
-    fn create_charge(&self, token: &str, amount: u64) -> Result<ChargeId, Error>;
-    fn refund_charge(&self, charge_id: &ChargeId) -> Result<(), Error>;
-}
-
-// Good: domain-focused trait
-pub trait PaymentProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError>;
-    fn refund(&self, transaction: &TransactionId) -> Result<(), PaymentError>;
-}
-```
+Code: `references/mistake-trait-mirrors-api.md`.
 
 ### Mistake 2: Domain Depending on Infrastructure Types
 
-```rust
-// Bad: domain uses infrastructure types
-pub struct CheckoutService<P: PaymentProcessor> {
-    processor: P,
-}
-
-impl<P: PaymentProcessor> CheckoutService<P> {
-    pub fn checkout(&self, stripe_token: StripeToken) -> Result<(), Error> {
-        // StripeToken is infrastructure detail
-    }
-}
-
-// Good: domain uses domain types
-impl<P: PaymentProcessor> CheckoutService<P> {
-    pub fn checkout(&self, payment_method: PaymentMethod) -> Result<(), PaymentError> {
-        // PaymentMethod is domain type
-    }
-}
-```
+Code: `references/mistake-domain-uses-infra-types.md`.
 
 ### Mistake 3: Too Many Generic Parameters
 
-```rust
-// Bad: generic parameter explosion
-pub struct OrderService<R: Repository, P: PaymentProcessor, E: EmailSender, L: Logger> {
-    repo: R,
-    payment: P,
-    email: E,
-    logger: L,
-}
-
-// Good: use trait objects or dedicated dependency struct
-pub struct Dependencies {
-    pub repo: Box<dyn Repository>,
-    pub payment: Box<dyn PaymentProcessor>,
-    pub email: Box<dyn EmailSender>,
-    pub logger: Box<dyn Logger>,
-}
-
-pub struct OrderService {
-    deps: Dependencies,
-}
-```
+Code: `references/mistake-generic-explosion.md`.
 
 ### Mistake 4: Putting Business Logic in Adapters
 
-```rust
-// Bad: business logic in adapter
-impl PaymentProcessor for StripeProcessor {
-    fn process(&self, payment: &Payment) -> Result<(), PaymentError> {
-        // This validation is business logic - belongs in domain
-        if payment.amount_cents < 100 {
-            return Err(PaymentError::InvalidAmount);
-        }
-
-        self.stripe_client.charge(payment)
-    }
-}
-
-// Good: business logic in domain
-impl<P: PaymentProcessor> CheckoutService<P> {
-    pub fn checkout(&self, amount_cents: u64, currency: &str) -> Result<(), PaymentError> {
-        // Business rule in domain
-        if amount_cents < 100 {
-            return Err(PaymentError::InvalidAmount);
-        }
-
-        let payment = Payment { amount_cents, currency: currency.to_string() };
-        self.processor.process(&payment)
-    }
-}
-```
+Code: `references/mistake-logic-in-adapter.md`.
 
 ## When NOT to Use This Pattern
 

@@ -55,6 +55,8 @@ Quick reference: `Unit → Property → Fuzz → Model Check → Conformance →
 
 ## Style
 
+The pre-submit Rust checklist (naming, derives, `taskit` gates) is owned by **`godmode:rust-conventions`**. This section lists only what a reviewer checks on top of it.
+
 - [ ] Names consistent with Rust conventions: `snake_case` fns, `CamelCase` types, `SCREAMING_SNAKE` consts
 - [ ] No dead code, unused imports, `#[allow(dead_code)]` without explanation
 - [ ] Doc comments (`///`) on public items where behaviour is non-obvious

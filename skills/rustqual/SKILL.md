@@ -138,45 +138,12 @@ A bare `// qual:allow` (no dimension) suppresses all dimensions.
 
 ## Configuration (rustqual.toml)
 
-Generate a tailored config with `rustqual --init`. Key settings:
+Generate a tailored config with `rustqual --init`, then adjust it. The file
+covers ignore lists, IOSP tuning flags, and the complexity, duplicates, SRP,
+and weights tables.
 
-```toml
-# Ignore functions by name pattern (glob). "main" and "test_*" are common.
-ignore_functions = ["main", "test_*"]
-
-# Skip entire files
-exclude_files = []
-
-# IOSP tuning
-strict_closures = false           # Treat closures as logic
-strict_iterator_chains = false    # Treat .map/.filter as logic
-strict_error_propagation = false  # Count ? as logic
-
-[complexity]
-max_cognitive = 18
-max_cyclomatic = 11
-max_function_lines = 68
-
-[duplicates]
-detect_dead_code = true           # Set false for workspace crates
-                                  # where pub API is used cross-crate
-
-[srp]
-max_parameters = 5
-file_length_baseline = 300
-file_length_ceiling = 800
-lcom4_threshold = 2
-
-[weights]
-# Must sum to ~1.0. Adjust to match project priorities.
-iosp         = 0.22
-complexity   = 0.18
-dry          = 0.13
-srp          = 0.18
-coupling     = 0.09
-test_quality = 0.10
-architecture = 0.10
-```
+Read `references/rustqual-toml-example.md` before writing or editing
+`rustqual.toml`. It has the full annotated example.
 
 ## Workflow: Improving a Quality Score
 
@@ -262,102 +229,19 @@ in plan documents. The baseline file is the single source of truth.
 
 ## Autonomous Quality Loop
 
-When asked to "improve quality" or "run the quality loop", execute this
-phased workflow. Each phase has explicit scan scope and exit criteria.
+When asked to "improve quality" or "run the quality loop", read
+`references/autonomous-quality-loop.md` first. It defines the four phases
+(MEASURE, FIX, VERIFY, COMMIT) with their commands, scan scope, and exit
+criteria. Run the phases in order and do not skip MEASURE, because every
+later comparison depends on the baseline it saves.
 
-<rustqual-phase name="MEASURE" mode="read-only">
-Establish the baseline. Always run from the workspace root.
-
-```bash
-rustqual --init                                       # if no rustqual.toml
-rustqual . --no-fail --save-baseline .ctx/rustqual-baseline.json
-rustqual . --no-fail --format sarif > .ctx/rustqual-baseline.sarif.json
-```
-
-Record the score and finding count from the baseline file — do not
-transcribe numbers into plan docs. The baseline file is the canonical
-reference for all subsequent comparisons.
-
-If per-crate breakdown is needed for a plan, run each crate individually
-and note that per-crate totals will sum to less than the workspace total.
-</rustqual-phase>
-
-<rustqual-phase name="FIX" mode="read-write" max-iterations="10">
-Iterative improvement loop. Each iteration:
-
-1. Run `rustqual . --no-fail --compare .ctx/rustqual-baseline.json`
-   to see current delta from baseline
-2. Pick the single highest-impact finding category:
-   - Count findings per category (DEAD_CODE, VIOLATION, TQ_UNTESTED, etc.)
-   - Multiply count x category weight to rank impact
-   - Prefer categories with real fixes over suppression-only categories
-3. Fix up to 5 instances of that category
-4. Run `taskit test run` — if tests fail, revert and try next category
-5. Re-run `rustqual . --no-fail` — confirm score improved
-6. If score >= target OR 10 iterations reached, transition to VERIFY
-
-Print after each iteration:
-
-| Iter | Category  | Files Changed     | Tests   | Score          |
-| ---- | --------- | ----------------- | ------- | -------------- |
-| 1    | DEAD_CODE | config.rs, oci.rs | 89 pass | 83.9% -> 98.6% |
-
-</rustqual-phase>
-
-<rustqual-phase name="VERIFY" mode="read-only">
-Final comparison against the original baseline.
-
-```bash
-rustqual . --no-fail --compare .ctx/rustqual-baseline.json
-```
-
-Report the delta: starting score, ending score, findings removed.
-Diff against `.ctx/rustqual-baseline.sarif.json` for per-finding detail.
-If the score regressed, return to FIX.
-
-Exit criteria (any of):
-
-- Quality score exceeds target (default 95%)
-- 10 iterations completed in FIX
-- Only false-positive findings remain (cross-crate DEAD_CODE, cfg-gated
-  code, CLI dispatch TQ_UNTESTED)
-  </rustqual-phase>
-
-<rustqual-phase name="COMMIT" mode="commit">
-Update the baseline and commit.
-
-```bash
-rustqual . --no-fail --save-baseline .ctx/rustqual-baseline.json
-```
-
-Commit with message: `quality: raise rustqual score from X% to Y%`
-
-Include both `rustqual.toml` and `.ctx/rustqual-baseline.json` in the
-commit so the baseline tracks with the code that produced it.
-</rustqual-phase>
-
-### Dealing with cfg-gated code (Kani, test utilities)
+## cfg-gated Code (Kani, test utilities)
 
 `#[cfg(kani)]` modules and `#[cfg(any(test, feature = "testutil"))]` code
-are invisible to rustqual's dead-code analysis. Two approaches:
-
-1. **Extract to dedicated files** and add to `exclude_files` in config:
-
-   ```toml
-   exclude_files = ["src/kani_proofs.rs", "src/testutil.rs"]
-   ```
-
-   Use `#[path = "kani_proofs.rs"]` to keep the module relationship.
-
-2. **Disable dead code detection** if ALL dead-code findings are cfg-gated:
-
-   ```toml
-   [duplicates]
-   detect_dead_code = false
-   ```
-
-Option 1 is preferred — it keeps detection active for real dead code while
-excluding known false-positive files.
+are invisible to rustqual's dead-code analysis. Read
+`references/cfg-gated-code.md` before choosing between moving that code to
+its own file and listing it in `exclude_files`, or turning off dead-code
+detection.
 
 ## Reference Files
 
@@ -367,3 +251,11 @@ excluding known false-positive files.
   examples for every finding type
 - **`references/workflow.md`** — Step-by-step walkthrough of a typical
   improvement session from first run to 100%, with progression table
+- **`references/rustqual-toml-example.md`** — Annotated `rustqual.toml`
+  example. Read before writing or editing the config.
+- **`references/autonomous-quality-loop.md`** — The MEASURE, FIX, VERIFY,
+  COMMIT phases with commands and exit criteria. Read before running
+  "improve quality" or "run the quality loop".
+- **`references/cfg-gated-code.md`** — How to handle `#[cfg(kani)]` and
+  cfg-gated test utilities in dead-code findings. Read when a finding
+  involves cfg-gated code.

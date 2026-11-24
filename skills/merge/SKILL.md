@@ -17,6 +17,19 @@ General-purpose merge agent. Covers single-branch merges, PR-based workflows, sq
 worktree cleanup, and godmode task state sync. For merging multiple parallel agent branches
 produced by a wave, use `godmode:wave-integration` instead.
 
+## Reference files
+
+Read the file named in a row before doing the task in its right column. These files are not
+loaded automatically.
+
+| File                                    | Read before                                                                                                |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `references/mode-rejection-recovery.md` | recovering from a rejected `git push` (non-fast-forward, stale info, permission denied)                    |
+| `references/mode-direct-merge.md`       | merging a feature branch into `main` locally with no PR, choosing a merge strategy, or resolving conflicts |
+| `references/mode-squash.md`             | squash-merging a branch, or deciding whether to collapse its commits                                       |
+| `references/mode-pr.md`                 | opening a PR for the current branch, or merging an open PR via `gh`                                        |
+| `references/worktree-and-task-sync.md`  | removing a worktree after a merge, or marking a godmode task done                                          |
+
 ## Step 0 — Assess the situation
 
 Before doing anything, gather state:
@@ -42,226 +55,7 @@ follow them. If ambiguous, pick the most conservative option and state your choi
 | Single feature branch, no PR             | **Direct-merge**                                      |
 | Push was rejected                        | **Rejection-recovery** → then re-run appropriate mode |
 
----
-
-## Mode: Rejection-recovery
-
-```bash
-git push 2>&1
-```
-
-| Output contains                    | Cause                             | Action                           |
-| ---------------------------------- | --------------------------------- | -------------------------------- |
-| `non-fast-forward` / `fetch first` | Remote has commits you don't have | Fetch, integrate, retry          |
-| `rejected ... (stale info)`        | Force-push needed                 | Ask user — feature branches only |
-| `Permission denied`                | Auth failure                      | Check SSH key / 1Password agent  |
-
-```bash
-git fetch origin
-git log --oneline HEAD..origin/<branch>   # commits on remote you don't have
-git log --oneline origin/<branch>..HEAD   # your commits not yet on remote
-```
-
-If only remote has new commits: continue to Direct-merge mode.
-If both sides diverged: resolve conflicts, then push.
-Never force-push to `main`.
-
----
-
-## Mode: Direct-merge
-
-Integrate the current feature branch into main.
-
-### 1. Fetch and check divergence
-
-```bash
-git fetch origin
-git log --oneline main..HEAD              # commits to merge
-git log --oneline HEAD..origin/main       # new commits on main since branch
-```
-
-If `main` has advanced since the branch was cut, review those commits first.
-
-### 2. Choose merge strategy
-
-```bash
-git log --oneline --merges main..HEAD     # check for merge commits on branch
-```
-
-- Branch has merge commits → use `git merge --no-ff` (never rebase)
-- Branch is clean linear history → `git merge --no-ff` is still the default
-- User explicitly requested rebase → `git rebase main` (only if no merge commits)
-
-### 3. Merge
-
-```bash
-git checkout main
-git pull
-git merge --no-ff <branch> -m "feat(<scope>): merge <branch>"
-```
-
-### 4. Resolve conflicts (if any)
-
-For each conflicted file:
-
-1. Read both sides — understand the intent, do not pick mechanically.
-2. Produce a merged result that preserves both intents.
-3. `git add <file>`
-
-Complete: `git merge --continue`
-
-If merge becomes too complex, show `git diff HEAD` before considering abort. Never abort without
-showing the user what would be lost.
-
-### 5. Test
-
-```bash
-taskit test run
-```
-
-Fix failures (up to 3 attempts) before pushing. Escalate if not resolved.
-
-### 6. Push
-
-```bash
-git push
-```
-
-If no upstream: `git push -u origin $(git branch --show-current)`
-Never use `--no-verify`.
-
----
-
-## Mode: Squash
-
-Collapse all branch commits into one before merging, producing a clean linear history on main.
-
-```bash
-git checkout main
-git pull
-git merge --squash <branch>
-```
-
-This stages all changes but does not commit. Write a single conventional commit summarizing the
-entire branch:
-
-```bash
-git commit -m "feat(<scope>): <summary of entire branch>
-
-Squashed from <branch>:
-- <key change 1>
-- <key change 2>"
-```
-
-Then push as normal.
-
-**When to use squash:** Feature branches with noisy WIP commits, branches from orca-strait/parallel
-agents where individual commits are scaffolding artifacts, or when the user explicitly requests it.
-
-**When not to use squash:** Branches where individual commits carry meaningful history (e.g., a
-multi-phase refactor where each commit represents a reviewable step).
-
----
-
-## Mode: PR-create
-
-Open a pull request for the current branch.
-
-```bash
-git push -u origin $(git branch --show-current)
-
-gh pr create \
-  --title "<conventional commit title>" \
-  --body-file - <<'EOF'
-## Summary
-- <bullet 1>
-- <bullet 2>
-
-## Test plan
-- [ ] taskit test run passes
-- [ ] clippy clean
-EOF
-```
-
-Print the PR URL when done. Do not merge — leave that to the user or a subsequent `/merge` call.
-
----
-
-## Mode: PR-merge
-
-Merge an open PR via gh.
-
-First, check the PR state:
-
-```bash
-gh pr view --json number,title,mergeable,mergeStateStatus,reviewDecision
-```
-
-If `mergeStateStatus` is not `CLEAN`, report the blockage and stop.
-
-Choose merge style:
-
-- Default: `--merge` (preserves merge commit, matches `--no-ff`)
-- Squash requested: `--squash`
-- Rebase requested: `--rebase` (only if no merge commits on branch)
-
-```bash
-gh pr merge <number> --merge --delete-branch
-```
-
-`--delete-branch` removes the remote branch after merge. Pair with worktree cleanup below if
-this was a worktree branch.
-
----
-
-## Worktree cleanup
-
-After a successful merge, check if the source branch was a worktree:
-
-```bash
-git worktree list
-```
-
-If the merged branch appears as a worktree path, remove it:
-
-```bash
-git worktree remove <path> --force
-git branch -d <branch>
-```
-
-Only do this after confirming the branch is fully merged:
-
-```bash
-git log --oneline main..<branch>   # must be empty
-```
-
----
-
-## Task state sync
-
-If a godmode task is associated with this branch, mark it done:
-
-```bash
-godmode task done <task-id> --commit $(git rev-parse HEAD) --notes "merged <branch> into main"
-```
-
-If no task ID is known, check `.ctx/godmode/tasks.yaml` for tasks in `running` state that match the
-branch name or scope.
-
----
-
-## Verification
-
-After any merge:
-
-```bash
-git log --oneline main..<branch>   # must be empty — branch fully merged
-git log --oneline -3               # shows merge commit at tip
-```
-
-If `main..<branch>` is non-empty, the merge did not complete. Investigate before reporting done.
-
----
+Each mode's steps are in the reference file for it, listed above.
 
 ## Report
 
@@ -274,7 +68,16 @@ merged: <branch> -> main | <sha> | [conflicts: N files] [worktree: removed] [tas
 If a PR was created instead of merged, print the PR URL.
 If escalating to the user, state exactly what is blocked and what decision is needed.
 
----
+## Verification
+
+After any merge:
+
+```bash
+git log --oneline main..<branch>   # must be empty — branch fully merged
+git log --oneline -3               # shows merge commit at tip
+```
+
+If `main..<branch>` is non-empty, the merge did not complete. Investigate before reporting done.
 
 ## Key rules
 
