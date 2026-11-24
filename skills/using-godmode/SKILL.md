@@ -68,6 +68,26 @@ then quality gates (`verification-before-completion`, `code-review`).
 - "The skill is overkill" → if it exists, use it
 - "Just this one thing first" → check before acting
 
+## Core Skills
+
+The skills the invocation rule relies on most. Check this table first. If none fits, read the full index below.
+
+| Skill                                    | Use when                                           |
+| ---------------------------------------- | -------------------------------------------------- |
+| `godmode:brainstorm`                     | Before any creative or design work                 |
+| `godmode:design`                         | Translate brainstorm into architectural spec       |
+| `godmode:writing-plans`                  | Multi-step task with a spec or requirements        |
+| `godmode:context-map`                    | Map all relevant files before implementation       |
+| `godmode:task-driven-development`        | TDD with serialized task lists and issue chains    |
+| `godmode:parallel-agents`                | 2+ independent tasks that can run concurrently     |
+| `godmode:tackle-issues`                  | Working on GitHub issues in parallel               |
+| `godmode:refactoring`                    | Restructuring code without changing behaviour      |
+| `godmode:systematic-debugging`           | Any bug, test failure, unexpected behavior         |
+| `godmode:verification-before-completion` | Before claiming work is done                       |
+| `godmode:code-review`                    | Before merge, after feature complete               |
+| `godmode:cap`                            | "cap", "commit and push", "ship it"                |
+| `godmode:rust-conventions`               | Rust coding conventions for writing/reviewing code |
+
 ## Available Skills
 
 The skill index is in three files, split by area. Read the file whose area matches the task, then choose a skill from its rows.
