@@ -772,8 +772,14 @@ enum WorkflowAction {
 
 #[derive(Subcommand)]
 enum MemoryBankingAction {
-    /// Print memory-bank contents for context injection (SessionStart hook).
-    Inject,
+    /// Print the memory-bank summary for context injection (SessionStart hook).
+    Inject {
+        /// Print every memory-bank file in full instead of the summary.
+        #[arg(long)]
+        full: bool,
+    },
+    /// Regenerate context-summary.md from the other memory-bank files.
+    Summarize,
     /// Print update reminder if session had commits (Stop hook).
     Remind,
     /// Create .ctx/memory-banking/ with empty template files.

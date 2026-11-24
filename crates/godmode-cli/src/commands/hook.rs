@@ -311,6 +311,13 @@ fn run_builtin_hook(root: &Path, json: bool, name: &str) -> Result<()> {
             }
             eprintln!("[godmode:quality-gate] all gates passed.");
         }
+        "git-status" => {
+            // SessionStart stdout is what reaches the model; stderr does not.
+            let out = hooks::git_status::run(root);
+            if !out.is_empty() {
+                print!("{out}");
+            }
+        }
         "task-management" => {
             let msg = hooks::task_management::run(root);
             if !msg.is_empty() {

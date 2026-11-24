@@ -15,6 +15,11 @@ const PLUGIN_ROOT =
 /** Claude hooks with no OpenCode lifecycle counterpart. */
 const UNMAPPED: { id: string; event: string; command: string }[] = [
   {
+    "command": "godmode hook run git-status",
+    "event": "SessionStart",
+    "id": "git-status"
+  },
+  {
     "command": "godmode hook run introspection",
     "event": "Stop",
     "id": "introspection"

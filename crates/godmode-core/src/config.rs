@@ -20,6 +20,51 @@ pub struct Config {
 
     /// Handoff output settings.
     pub handoff: Handoff,
+
+    /// Memory-bank summary settings.
+    pub memory_banking: MemoryBanking,
+
+    /// SessionStart git-status hook settings.
+    pub git_status: GitStatus,
+}
+
+/// Settings for the generated `context-summary.md`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct MemoryBanking {
+    /// Total byte budget for the generated summary.
+    pub summary_budget: usize,
+    /// `##` section headings (case-insensitive prefix match) left out of the
+    /// summary because they are history rather than current state.
+    pub skip_sections: Vec<String>,
+}
+
+impl Default for MemoryBanking {
+    fn default() -> Self {
+        Self {
+            summary_budget: 6144,
+            skip_sections: vec!["Recently completed".to_string(), "What works".to_string()],
+        }
+    }
+}
+
+/// Settings for the SessionStart `git-status` hook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GitStatus {
+    /// Maximum changed paths listed before the output is cut off.
+    pub max_paths: usize,
+    /// Branch names that get a warning line when checked out.
+    pub protected_branches: Vec<String>,
+}
+
+impl Default for GitStatus {
+    fn default() -> Self {
+        Self {
+            max_paths: 30,
+            protected_branches: Vec::new(),
+        }
+    }
 }
 
 /// Which external tools godmode will call.

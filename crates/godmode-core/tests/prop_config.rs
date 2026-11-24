@@ -37,7 +37,7 @@ prop_compose! {
         integrations in arb_integrations(),
         handoff in arb_handoff(),
     ) -> Config {
-        Config { project_name, integrations, handoff }
+        Config { project_name, integrations, handoff, ..Config::default() }
     }
 }
 
