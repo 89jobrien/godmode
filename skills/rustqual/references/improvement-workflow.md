@@ -1,6 +1,6 @@
 # Improvement workflow
 
-Read this when asked to fix rustqual findings or raise the quality score, to get the priority order.
+Read this before fixing rustqual findings or raising the quality score, to get the priority order.
 
 ## Workflow: Improving a Quality Score
 
