@@ -116,6 +116,14 @@ pub const REGISTRY: &[HookRegistration] = &[
         10,
     ),
     HookRegistration::active(
+        "git-status",
+        CLAUDE,
+        "SessionStart",
+        "*",
+        "godmode hook run git-status",
+        10,
+    ),
+    HookRegistration::active(
         "task-management",
         CLAUDE,
         "SessionStart",
@@ -938,7 +946,7 @@ mod opencode_tests {
     #[test]
     fn unmapped_hooks_are_exactly_the_session_and_stop_claude_hooks() {
         let unmapped = opencode_unmapped();
-        assert_eq!(unmapped.len(), 6, "expected 6 unmapped hooks: {unmapped:?}");
+        assert_eq!(unmapped.len(), 7, "expected 7 unmapped hooks: {unmapped:?}");
         for (id, event, _) in &unmapped {
             assert!(
                 UNSUPPORTED_OPENCODE_EVENTS.contains(event),
