@@ -22,6 +22,7 @@ pub fn run(root: &Path) -> String {
     let mut files: Vec<_> = entries
         .filter_map(|e| e.ok())
         .filter(|e| e.path().extension().map(|ext| ext == "md").unwrap_or(false))
+        .filter(|e| e.file_name() != crate::memory_banking::SUMMARY_FILE)
         .collect();
 
     files.sort_by_key(|e| e.file_name());

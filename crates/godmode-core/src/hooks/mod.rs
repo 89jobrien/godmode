@@ -12,6 +12,7 @@ pub mod code_review;
 pub mod context_map;
 pub mod design;
 pub mod doublecheck;
+pub mod git_status;
 pub mod hook_context;
 pub mod introspection;
 pub mod memory_banking;

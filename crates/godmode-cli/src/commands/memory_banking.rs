@@ -11,7 +11,8 @@ pub fn handle(command: Cmd, root: &Path, json: bool, _sarif: bool) -> Result<()>
     match command {
         Cmd::MemoryBanking { action } => {
             match action {
-                MemoryBankingAction::Inject => memory_banking::inject(root, json)?,
+                MemoryBankingAction::Inject { full } => memory_banking::inject(root, json, full)?,
+                MemoryBankingAction::Summarize => memory_banking::summarize(root, json)?,
                 MemoryBankingAction::Remind => memory_banking::remind(root, json)?,
                 MemoryBankingAction::Init => memory_banking::init(root)?,
                 MemoryBankingAction::Status => memory_banking::status(root, json)?,
