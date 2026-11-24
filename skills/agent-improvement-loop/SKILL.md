@@ -194,45 +194,13 @@ git push
 
 ## Running the Loop
 
-### Full loop (interactive)
-
-Work through phases 1–7 in order. Present findings at each phase boundary and wait for
-confirmation before proceeding to the next phase.
-
-### Partial loop
-
-- **Diagnose only**: run phases 1–4, emit `diagnosis.json`, stop
-- **Eval-first**: skip phase 1, start from existing `feedback.json` at phase 3
-- **Harness-only**: given a `diagnosis.json`, jump to phase 5 and produce the handoff
-
-### Loop invocation
-
-```text
-/agent-improvement-loop [--agent <name>] [--since <days>] [--phase <N>] [--dry-run]
-```
-
-| Flag        | Default         | Effect                                   |
-| ----------- | --------------- | ---------------------------------------- |
-| `--agent`   | current project | Which agent's traces to analyze          |
-| `--since`   | 30              | Days of trace history to scan            |
-| `--phase`   | 1               | Start from this phase                    |
-| `--dry-run` | false           | Run through phases without writing files |
+The full and partial run modes, and the invocation flags, are in `references/running-the-loop.md`. Read it before starting a run.
 
 ---
 
 ## Standalone implementation
 
-The loop is also available as a standalone Rust workspace: **updog** (`~/dev/updog`,
-<https://github.com/89jobrien/updog>).
-
-- `agent-loop` crate — serializable types: `TraceRecord`, `FeedbackCluster`, `HaloScore`,
-  `ChangeItem`, `Diagnosis`, `Handoff`
-- `ail` binary — `ail run [--agent <name>] [--since <days>] [--phase <N>] [--dry-run]`
-
-Install: `cargo install --path ~/dev/updog/crates/ail`
-
-Phases 1, 4, 5 are fully implemented. Phases 2, 3 emit guided prompts and resume instructions.
-Phases 6, 7 print next steps and run `crs validate`.
+The standalone updog workspace and its `ail` binary are described in `references/standalone-implementation.md`. Read it before installing or running `ail`.
 
 ---
 
