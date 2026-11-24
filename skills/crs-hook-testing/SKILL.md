@@ -24,12 +24,14 @@ rule.
 Read the file named in a row before doing the task in its right column. These files are not
 loaded automatically.
 
-| File                                       | Read before                                                                                                         |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `references/stages-0-1-discover-author.md` | discovering candidate commands, or adding or editing a rule in `course-correct-rules.json`                          |
-| `references/stages-2-3-validate-probe.md`  | running `crs validate`, or testing a rule against a command with `crs probe` or `crs pre`                           |
-| `references/stages-4-5-fire-observe.md`    | firing a rule through the real pre or post hook, or checking its activity with stats, heat, history, log, or export |
-| `references/stage-6-refine-retire.md`      | changing a rule based on observations, removing an obsolete rule, or checking rule health with insights and replay  |
+| File                                       | Read before                                                                                                        |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `references/stages-0-1-discover-author.md` | discovering candidate commands for a new rule                                                                      |
+| `references/stage-1-author.md`             | adding or editing a rule in `course-correct-rules.json`                                                            |
+| `references/stages-2-3-validate-probe.md`  | running `crs validate`, or testing a rule against a command with `crs probe` or `crs pre`                          |
+| `references/stages-4-5-fire-observe.md`    | firing a rule through the real pre or post hook                                                                    |
+| `references/stage-5-observe.md`            | checking a rule's activity with stats, heat, history, log, or export once it has been live                         |
+| `references/stage-6-refine-retire.md`      | changing a rule based on observations, removing an obsolete rule, or checking rule health with insights and replay |
 
 ---
 

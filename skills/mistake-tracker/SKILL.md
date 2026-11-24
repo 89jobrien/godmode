@@ -27,11 +27,14 @@ traces and git history — not assumptions.
 Read the file named in a row before doing the task in its right column. These files are not
 loaded automatically.
 
-| File                                 | Read before                                                                                    |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `references/detection-categories.md` | classifying a failure, or deciding which of the five categories a pattern belongs to           |
-| `references/ledger-format.md`        | creating or appending to `.ctx/godmode/memory-bank/mistakes.md`, or checking an entry's fields |
-| `references/output-format.md`        | reporting findings to the user                                                                 |
+| File                                                   | Read before                                                                                                          |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `references/detection-categories.md`                   | classifying a clippy lint recurrence (category 1), or deciding which of the five categories a new pattern belongs to |
+| `references/detection-categories-test-and-process.md`  | classifying a test failure or process error as a recurring mistake (categories 2 and 3)                              |
+| `references/detection-categories-hooks-and-reverts.md` | classifying a hook false positive or a revert as a recurring mistake (categories 4 and 5)                            |
+| `references/ledger-format.md`                          | creating or appending to `.ctx/godmode/memory-bank/mistakes.md`, or checking an entry's fields                       |
+| `references/ledger-format-process-hooks-reverts.md`    | writing a process error, hook false positive, or revert entry to the ledger                                          |
+| `references/output-format.md`                          | reporting findings to the user                                                                                       |
 
 ## Integration with Other Skills
 

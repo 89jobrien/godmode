@@ -24,13 +24,14 @@ Skip phases only when you can state the justification out loud.
 Read the file named in a row before doing the work in that phase. These files are not loaded
 automatically.
 
-| File                                            | Read before                                                                                         |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `references/phase-0-feedback-loop.md`           | starting any debugging task, or concluding a bug cannot be reproduced on demand                     |
-| `references/phase-1-2-reproduce-locate.md`      | confirming a bug reproduces (Phase 1), or tracing it to a root cause (Phase 2)                      |
-| `references/phase-3-4-hypotheses-instrument.md` | ranking hypotheses (Phase 3), or adding probes or measuring a performance regression (Phase 4)      |
-| `references/phase-5-6-fix-cleanup.md`           | writing the regression test and fix (Phase 5), or closing out a debugging task (Phase 6)            |
-| `references/rust-specific-checklist.md`         | debugging a panic, borrow or lifetime error, async failure, cross-crate failure, or flaky Rust test |
+| File                                                 | Read before                                                                                         |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `references/phase-0-feedback-loop.md`                | starting any debugging task, or building the loop that reproduces the bug                           |
+| `references/phase-0-loop-iteration-and-fallbacks.md` | tuning a slow feedback loop, reproducing a non-deterministic bug, or when no loop can be built      |
+| `references/phase-1-2-reproduce-locate.md`           | confirming a bug reproduces (Phase 1), or tracing it to a root cause (Phase 2)                      |
+| `references/phase-3-4-hypotheses-instrument.md`      | ranking hypotheses (Phase 3), or adding probes or measuring a performance regression (Phase 4)      |
+| `references/phase-5-6-fix-cleanup.md`                | writing the regression test and fix (Phase 5), or closing out a debugging task (Phase 6)            |
+| `references/rust-specific-checklist.md`              | debugging a panic, borrow or lifetime error, async failure, cross-crate failure, or flaky Rust test |
 
 ## 3-Failure Rule
 

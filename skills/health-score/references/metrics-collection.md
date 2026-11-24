@@ -1,6 +1,6 @@
 # Metric collection and interpretation
 
-Read this before collecting any of the seven health metrics, or before interpreting a metric's value for a scorecard.
+Read this before collecting health metrics 1 to 3 (test count, clippy warnings, TODO density), or before interpreting them for a scorecard. Metrics 4 to 7 are in metrics-collection-api-and-dependencies.md and metrics-collection-module-size-and-docs.md.
 
 ## Seven Metrics
 
@@ -40,48 +40,3 @@ per thousand lines.
 decisions or incomplete implementations. Expressed as "N per 1,000 lines of code".
 
 **Example**: "0.5 per 1k lines" means roughly one TODO per 2,000 lines.
-
-### 4. Public API Surface
-
-**Collection**: Count all `pub fn`, `pub struct`, `pub enum`, `pub trait`
-declarations in `crates/*/src/**/*.rs` using Grep with pattern
-`^\s*pub\s+(fn|struct|enum|trait)`. Sum across workspace.
-
-**Interpretation**: Growing API surface can indicate feature expansion or API
-bloat. Stable or shrinking surface may indicate consolidation. Use as a trend
-indicator, not an absolute measure.
-
-**Example**: "145 public items"
-
-### 5. Dependency Count
-
-**Collection**: Read `Cargo.lock` and count `[[package]]` section markers. This
-includes all direct and transitive dependencies.
-
-**Interpretation**: More dependencies = larger attack surface and more maintenance
-burden. Fewer dependencies = simpler dependency tree. Trend is most useful:
-increases may signal feature additions; decreases indicate cleanup.
-
-**Example**: "98 total dependencies"
-
-### 6. Average Module Line Count
-
-**Collection**: List all `.rs` files in `crates/*/src/`. Count lines in each
-with `wc -l`. Compute arithmetic mean. Round to nearest integer.
-
-**Interpretation**: Higher average module size may indicate modules are doing too
-much. Lower average indicates more focused modules. Ideal range is 100–300 lines
-per module depending on domain.
-
-**Example**: "180 lines per module"
-
-### 7. Documentation Coverage
-
-**Collection**: Count all items with `pub` visibility (functions, structs, enums,
-traits). Count how many are immediately preceded by `///` doc comments. Compute
-percentage: (documented / total) × 100. Round to one decimal place.
-
-**Interpretation**: Higher is better. 80%+ is good; <50% indicates undocumented
-public API. Public items without docs are harder for consumers to use correctly.
-
-**Example**: "92.5% (138 of 149 public items documented)"

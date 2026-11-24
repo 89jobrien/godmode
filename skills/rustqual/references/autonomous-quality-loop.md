@@ -1,6 +1,6 @@
 # Autonomous quality loop
 
-Read this before running "improve quality" or "run the quality loop" against a workspace. It holds the four phases (MEASURE, FIX, VERIFY, COMMIT) with their commands and exit criteria. The finding codes and fix patterns the loop relies on are in SKILL.md and `references/fix-patterns.md`.
+Read this before running "improve quality" or "run the quality loop" against a workspace. It holds the MEASURE and FIX phases. The VERIFY and COMMIT phases are in autonomous-quality-loop-verify-and-commit.md. The finding codes and fix patterns the loop relies on are in SKILL.md and `references/fix-patterns.md`.
 
 When asked to "improve quality" or "run the quality loop", execute this
 phased workflow. Each phase has explicit scan scope and exit criteria.
@@ -42,36 +42,4 @@ Print after each iteration:
 | ---- | --------- | ----------------- | ------- | -------------- |
 | 1    | DEAD_CODE | config.rs, oci.rs | 89 pass | 83.9% -> 98.6% |
 
-</rustqual-phase>
-
-<rustqual-phase name="VERIFY" mode="read-only">
-Final comparison against the original baseline.
-
-```bash
-rustqual . --no-fail --compare .ctx/rustqual-baseline.json
-```
-
-Report the delta: starting score, ending score, findings removed.
-Diff against `.ctx/rustqual-baseline.sarif.json` for per-finding detail.
-If the score regressed, return to FIX.
-
-Exit criteria (any of):
-
-- Quality score exceeds target (default 95%)
-- 10 iterations completed in FIX
-- Only false-positive findings remain (cross-crate DEAD_CODE, cfg-gated
-  code, CLI dispatch TQ_UNTESTED)
-  </rustqual-phase>
-
-<rustqual-phase name="COMMIT" mode="commit">
-Update the baseline and commit.
-
-```bash
-rustqual . --no-fail --save-baseline .ctx/rustqual-baseline.json
-```
-
-Commit with message: `quality: raise rustqual score from X% to Y%`
-
-Include both `rustqual.toml` and `.ctx/rustqual-baseline.json` in the
-commit so the baseline tracks with the code that produced it.
 </rustqual-phase>

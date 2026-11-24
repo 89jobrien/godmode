@@ -33,13 +33,14 @@ and always requires explicit user approval before any git mutations occur.
 Read the file named in a row before doing the step in its right column. These files are not
 loaded automatically.
 
-| File                                         | Read before                                                                        |
-| -------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `references/analysis-input-and-mechanics.md` | Step 0–1: choosing the input diff, running the analyzer, reading coupling warnings |
-| `references/review-and-plan.md`              | Step 2–3: judging groupings, naming splits, presenting the plan for approval       |
-| `references/execute-splits.md`               | Step 4: running the splitter after approval, and the coverage check                |
-| `references/open-prs.md`                     | Step 5: opening PRs for the split branches, only when the user asks                |
-| `references/split-strategies.md`             | a grouping call is ambiguous and needs decision heuristics                         |
+| File                                         | Read before                                                                              |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `references/analysis-input-and-mechanics.md` | Step 0: choosing the input diff and recording the source branch, base, and changed files |
+| `references/analysis-mechanics-step-1.md`    | Step 1: running the analyzer on the input diff, or reading its coupling warnings         |
+| `references/review-and-plan.md`              | Step 2–3: judging groupings, naming splits, presenting the plan for approval             |
+| `references/execute-splits.md`               | Step 4: running the splitter after approval, and the coverage check                      |
+| `references/open-prs.md`                     | Step 5: opening PRs for the split branches, only when the user asks                      |
+| `references/split-strategies.md`             | a grouping call is ambiguous and needs decision heuristics                               |
 
 ---
 

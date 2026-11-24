@@ -1,6 +1,6 @@
 # Payment walkthrough: adapters and composition root
 
-Read this before writing infrastructure adapters or wiring them in `main.rs`. It holds the code for SKILL.md Steps 4 and 5, using the payment example. Step 3 is in `walkthrough-domain.md`.
+Read this before writing infrastructure adapters for the payment example. It holds the code for SKILL.md Step 4. Step 3 is in `walkthrough-domain.md`. Step 5 is in `walkthrough-composition-root.md`.
 
 ## Step 4: Create Infrastructure Adapters
 
@@ -34,28 +34,5 @@ impl PaymentProcessor for InMemoryProcessor {
         // Store in memory for testing
         Ok(())
     }
-}
-```
-
-## Step 5: Wire Dependencies in Composition Root
-
-```rust
-// main.rs
-mod domain;
-mod infra {
-    pub mod stripe;
-    pub mod in_memory;
-}
-
-use infra::stripe::StripeProcessor;
-use domain::CheckoutService;
-
-fn main() {
-    let processor = StripeProcessor {
-        api_key: "sk_live_...".to_string(),
-    };
-
-    let checkout = CheckoutService::new(processor);
-    checkout.checkout(5000, "USD").unwrap();
 }
 ```

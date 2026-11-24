@@ -41,13 +41,14 @@ Idea → Unit → Property → Fuzz → Model Check → Conformance → Integrat
 Read the file named in a row before applying the dimension in its right column. These files
 are not loaded automatically.
 
-| File                                             | Read before                                                                                  |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `references/when-unit-and-property.md`           | writing the first unit test for a function, or a property test for a non-trivial input space |
-| `references/when-fuzz.md`                        | adding a fuzz target for parsing, untrusted input, or `unsafe` code                          |
-| `references/when-model-check.md`                 | writing a Kani proof harness, or deciding whether a function needs a proof                   |
-| `references/when-conformance-and-integration.md` | writing a conformance suite for an `impl Trait`, or testing a seam between components        |
-| `references/when-regression.md`                  | fixing a bug, before the fix lands                                                           |
+| File                                                  | Read before                                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `references/when-unit-and-property.md`                | writing the first unit test for a function, or a property test for a non-trivial input space |
+| `references/when-fuzz.md`                             | adding a fuzz target for parsing, untrusted input, or `unsafe` code                          |
+| `references/when-model-check.md`                      | deciding whether a function needs a proof                                                    |
+| `references/when-model-check-harness-and-commands.md` | writing a Kani proof harness body, or running `cargo kani` locally or in CI                  |
+| `references/when-conformance-and-integration.md`      | writing a conformance suite for an `impl Trait`, or testing a seam between components        |
+| `references/when-regression.md`                       | fixing a bug, before the fix lands                                                           |
 
 ---
 

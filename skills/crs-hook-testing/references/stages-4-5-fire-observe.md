@@ -1,6 +1,6 @@
-# Stages 4-5: Fire and observe
+# Stage 4: Fire (pre and post hooks)
 
-Read this before firing a rule through the real pre or post hook chain, or before checking a rule's activity with stats, heat, history, log, or export.
+Read this before firing a rule through the real pre or post hook chain. Checking the rule activity afterwards is in stage-5-observe.md.
 
 ## Stage 4: Fire (pre/post)
 
@@ -22,32 +22,3 @@ echo '{"tool":"Bash","input":{"command":"<cmd>"},"output":{"exit_code":1}}' | co
 
 Records the failure to the rolling state log. After `failure_threshold` hits, `crs pre`
 will block the command even without a pattern match.
-
----
-
-## Stage 5: Observe
-
-After the rule has been live for a session or more, check its activity:
-
-```bash
-# Count by rule (all time):
-crs stats
-
-# Heatmap — visual frequency chart:
-crs heat
-
-# Recent blocked commands:
-crs history
-
-# Full hook execution log (last N entries):
-crs log --limit 50
-
-# Filter to a specific rule:
-crs log --limit 200 | rg "<rule-id>"
-```
-
-Also export a full snapshot for offline analysis:
-
-```bash
-crs export > /tmp/crs-snapshot-$(date +%Y%m%d).json
-```

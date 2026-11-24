@@ -230,9 +230,10 @@ in plan documents. The baseline file is the single source of truth.
 ## Autonomous Quality Loop
 
 When asked to "improve quality" or "run the quality loop", read
-`references/autonomous-quality-loop.md` first. It defines the four phases
-(MEASURE, FIX, VERIFY, COMMIT) with their commands, scan scope, and exit
-criteria. Run the phases in order and do not skip MEASURE, because every
+`references/autonomous-quality-loop.md` first. It defines the MEASURE and FIX
+phases with their commands, scan scope, and exit criteria. The VERIFY and COMMIT
+phases are in `references/autonomous-quality-loop-verify-and-commit.md`. Run all
+four phases in order and do not skip MEASURE, because every
 later comparison depends on the baseline it saves.
 
 ## cfg-gated Code (Kani, test utilities)
@@ -253,9 +254,11 @@ detection.
   improvement session from first run to 100%, with progression table
 - **`references/rustqual-toml-example.md`** — Annotated `rustqual.toml`
   example. Read before writing or editing the config.
-- **`references/autonomous-quality-loop.md`** — The MEASURE, FIX, VERIFY,
-  COMMIT phases with commands and exit criteria. Read before running
-  "improve quality" or "run the quality loop".
+- **`references/autonomous-quality-loop.md`** — The MEASURE and FIX phases
+  with commands and exit criteria. Read before running "improve quality" or
+  "run the quality loop".
+- **`references/autonomous-quality-loop-verify-and-commit.md`** — The VERIFY and
+  COMMIT phases. Read after FIX, before verifying or committing the baseline.
 - **`references/cfg-gated-code.md`** — How to handle `#[cfg(kani)]` and
   cfg-gated test utilities in dead-code findings. Read when a finding
   involves cfg-gated code.

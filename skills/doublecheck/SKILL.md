@@ -31,16 +31,17 @@ independently, and flag hallucination patterns before they propagate.
 Read the file named in a row before doing the step in its right column. These files are not
 loaded automatically.
 
-| File                                         | Read before                                                                                    |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `references/layer-1-self-audit.md`           | starting a run: extracting claims, checking internal consistency, initial confidence           |
-| `references/layer-2-source-verification.md`  | searching for sources, or checking a citation against its source                               |
-| `references/layer-3-adversarial-review.md`   | the adversarial pass, the hallucination pattern checklist, or escalating red flags             |
-| `references/layer-3-deep-matrix.md`          | running with `--deep`, which requires the per-claim pattern matrix                             |
-| `references/report-and-ratings.md`           | writing the report, choosing a confidence rating, or adding the limitations disclosure         |
-| `references/verification-report-template.md` | laying out the report itself                                                                   |
-| `references/claim-categories.md`             | classifying a claim when the category is unclear                                               |
-| `references/domain-guidance.md`              | the output is legal, medical or scientific, financial or regulatory, or technical and security |
+| File                                                        | Read before                                                                                    |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `references/layer-1-self-audit.md`                          | starting a run: extracting claims, checking internal consistency, initial confidence           |
+| `references/layer-2-source-verification.md`                 | searching for sources, or checking a citation against its source                               |
+| `references/layer-3-adversarial-review.md`                  | the adversarial pass, or the hallucination pattern checklist                                   |
+| `references/layer-3-adversarial-questions-and-red-flags.md` | asking the adversarial questions for a major claim, or deciding which red flags to escalate    |
+| `references/layer-3-deep-matrix.md`                         | running with `--deep`, which requires the per-claim pattern matrix                             |
+| `references/report-and-ratings.md`                          | writing the report, choosing a confidence rating, or adding the limitations disclosure         |
+| `references/verification-report-template.md`                | laying out the report itself                                                                   |
+| `references/claim-categories.md`                            | classifying a claim when the category is unclear                                               |
+| `references/domain-guidance.md`                             | the output is legal, medical or scientific, financial or regulatory, or technical and security |
 
 ## Layer summary
 

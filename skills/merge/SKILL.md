@@ -22,13 +22,14 @@ produced by a wave, use `godmode:wave-integration` instead.
 Read the file named in a row before doing the task in its right column. These files are not
 loaded automatically.
 
-| File                                    | Read before                                                                                                |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `references/mode-rejection-recovery.md` | recovering from a rejected `git push` (non-fast-forward, stale info, permission denied)                    |
-| `references/mode-direct-merge.md`       | merging a feature branch into `main` locally with no PR, choosing a merge strategy, or resolving conflicts |
-| `references/mode-squash.md`             | squash-merging a branch, or deciding whether to collapse its commits                                       |
-| `references/mode-pr.md`                 | opening a PR for the current branch, or merging an open PR via `gh`                                        |
-| `references/worktree-and-task-sync.md`  | removing a worktree after a merge, or marking a godmode task done                                          |
+| File                                                  | Read before                                                                                     |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `references/mode-rejection-recovery.md`               | recovering from a rejected `git push` (non-fast-forward, stale info, permission denied)         |
+| `references/mode-direct-merge.md`                     | merging a feature branch into `main` locally with no PR, or choosing a merge strategy           |
+| `references/mode-direct-merge-conflicts-test-push.md` | resolving conflicts during a direct merge, running tests after it, or pushing the merged `main` |
+| `references/mode-squash.md`                           | squash-merging a branch, or deciding whether to collapse its commits                            |
+| `references/mode-pr.md`                               | opening a PR for the current branch, or merging an open PR via `gh`                             |
+| `references/worktree-and-task-sync.md`                | removing a worktree after a merge, or marking a godmode task done                               |
 
 ## Step 0 — Assess the situation
 

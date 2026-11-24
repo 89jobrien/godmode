@@ -21,16 +21,19 @@ constraints, and audit trails.
 Read the file named in a row before doing the task in its right column. These
 files are not loaded automatically.
 
-| File                              | Read before                                                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `references/policy-layout.md`     | creating, moving, or reviewing a policy file under `policies/`, or choosing an agent's category               |
-| `references/policy-schema.md`     | writing or editing a policy YAML file                                                                         |
-| `references/hook-behavior.md`     | changing `hook.nu`, its `PreToolUse/Agent` registration, or any approve/block check                           |
-| `references/audit-trail.md`       | reading, aggregating, or changing the governance audit log, or the `audit:` block                             |
-| `references/adding-policies.md`   | adding a new agent category or a one-off custom policy                                                        |
-| `references/rust-patterns.md`     | building governance into a Rust agent system (policy struct, composition, tool wrapper, trust scoring, audit) |
-| `references/governance-levels.md` | choosing a governance level for an agent                                                                      |
-| `references/policy-example.yaml`  | seeing a filled-in policy before writing one                                                                  |
+| File                                             | Read before                                                                                     |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `references/policy-layout.md`                    | creating, moving, or reviewing a policy file under `policies/`, or choosing an agent's category |
+| `references/policy-schema.md`                    | writing or editing a policy YAML file                                                           |
+| `references/hook-behavior.md`                    | changing `hook.nu`, its `PreToolUse/Agent` registration, or any approve/block check             |
+| `references/audit-trail.md`                      | reading, aggregating, or changing the governance audit log, or the `audit:` block               |
+| `references/adding-policies.md`                  | adding a new agent category or a one-off custom policy                                          |
+| `references/rust-patterns.md`                    | building a policy struct for a Rust agent system (Pattern 1)                                    |
+| `references/rust-patterns-policy-composition.md` | composing policies or adding a policy to a Rust agent (Pattern 2)                               |
+| `references/rust-patterns-governed-tool.md`      | wrapping a tool call in a governance check (Pattern 3)                                          |
+| `references/rust-patterns-trust-and-audit.md`    | adding trust scoring or an audit trail to an agent (Patterns 4 and 5)                           |
+| `references/governance-levels.md`                | choosing a governance level for an agent                                                        |
+| `references/policy-example.yaml`                 | seeing a filled-in policy before writing one                                                    |
 
 ## How It Works
 
@@ -122,10 +125,12 @@ Steps for a new category and the (not yet implemented) custom policy path are in
 
 ## Implementation Patterns (Rust)
 
-The Rust reference implementations (policy struct, composition, governed tool
-wrapper, trust scoring, append-only audit) are in `references/rust-patterns.md`.
-They are not used by the hook, which is Nushell, but document the architectural
-approach.
+The Rust reference implementations are split by pattern. Pattern 1 (policy struct)
+is in `references/rust-patterns.md`. Pattern 2 (composition) is in
+`references/rust-patterns-policy-composition.md`. Pattern 3 (governed tool wrapper)
+is in `references/rust-patterns-governed-tool.md`. Patterns 4 and 5 (trust scoring,
+append-only audit) are in `references/rust-patterns-trust-and-audit.md`. They are not
+used by the hook, which is Nushell, but document the architectural approach.
 
 ## Best Practices
 

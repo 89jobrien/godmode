@@ -158,21 +158,23 @@ Minimal payment processing example:
 
 The code for each step, pattern, test, and mistake lives in `references/`. Read the file in the right column before writing that kind of code. Each file opens with the same "Read this before" line.
 
-| File                                            | Read before                                                                           |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `references/walkthrough-domain.md`              | writing the domain port, domain types, or domain service (Steps 1 to 3)               |
-| `references/walkthrough-adapters.md`            | writing infrastructure adapters or wiring them in `main.rs` (Steps 4 and 5)           |
-| `references/pattern-async-traits.md`            | a port trait has async methods                                                        |
-| `references/pattern-builder.md`                 | an adapter needs several configuration values, some required                          |
-| `references/pattern-multiple-traits.md`         | one trait has grown methods that callers do not all use (ISP)                         |
-| `references/pattern-error-mapping.md`           | an adapter must map infrastructure errors to domain errors                            |
-| `references/testing-unit.md`                    | writing unit tests for domain services with test doubles                              |
-| `references/testing-integration.md`             | testing an adapter against a real system or test instance                             |
-| `references/refactoring-walkthrough.md`         | converting a tightly coupled service to ports and adapters (Refactoring Steps 2 to 4) |
-| `references/mistake-trait-mirrors-api.md`       | designing a port from an external API's method list                                   |
-| `references/mistake-domain-uses-infra-types.md` | a domain signature mentions an SDK type                                               |
-| `references/mistake-generic-explosion.md`       | a service struct has four or more generic parameters                                  |
-| `references/mistake-logic-in-adapter.md`        | an adapter method contains a validation or business rule                              |
+| File                                                       | Read before                                                                                                           |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `references/walkthrough-domain.md`                         | writing the domain port, domain types, or domain service (Steps 1 to 3)                                               |
+| `references/walkthrough-adapters.md`                       | writing infrastructure adapters for the payment example (Step 4)                                                      |
+| `references/walkthrough-composition-root.md`               | wiring adapters into a composition root for the payment example (Step 5)                                              |
+| `references/pattern-async-traits.md`                       | a port trait has async methods                                                                                        |
+| `references/pattern-builder.md`                            | an adapter needs several configuration values, some required                                                          |
+| `references/pattern-multiple-traits.md`                    | one trait has grown methods that callers do not all use (ISP)                                                         |
+| `references/pattern-error-mapping.md`                      | an adapter must map infrastructure errors to domain errors                                                            |
+| `references/testing-unit.md`                               | writing unit tests for domain services with test doubles                                                              |
+| `references/testing-integration.md`                        | testing an adapter against a real system or test instance                                                             |
+| `references/refactoring-walkthrough.md`                    | converting a tightly coupled service to ports and adapters (Refactoring Step 2)                                       |
+| `references/refactoring-walkthrough-implement-and-wire.md` | implementing the adapters or rewiring the composition root in a trait-extraction refactor (Refactoring Steps 3 and 4) |
+| `references/mistake-trait-mirrors-api.md`                  | designing a port from an external API's method list                                                                   |
+| `references/mistake-domain-uses-infra-types.md`            | a domain signature mentions an SDK type                                                                               |
+| `references/mistake-generic-explosion.md`                  | a service struct has four or more generic parameters                                                                  |
+| `references/mistake-logic-in-adapter.md`                   | an adapter method contains a validation or business rule                                                              |
 
 ## Implementation Workflow
 
@@ -207,7 +209,7 @@ The code for each step, pattern, test, and mistake lives in `references/`. Read 
 
 ### Step 5: Wire Dependencies in Composition Root
 
-1. **Choose concrete implementations.** Code: `references/walkthrough-adapters.md`.
+1. **Choose concrete implementations.** Code: `references/walkthrough-composition-root.md`.
 
 ## Common Patterns
 
@@ -291,11 +293,11 @@ For each dependency, create a trait. Code: `references/refactoring-walkthrough.m
 
 ### Step 3: Implement Adapters
 
-Create adapter structs that implement the traits. Code: `references/refactoring-walkthrough.md`.
+Create adapter structs that implement the traits. Code: `references/refactoring-walkthrough-implement-and-wire.md`.
 
 ### Step 4: Update Composition Root
 
-Wire the new structure in main.rs. Code: `references/refactoring-walkthrough.md`.
+Wire the new structure in main.rs. Code: `references/refactoring-walkthrough-implement-and-wire.md`.
 
 ## Common Mistakes to Avoid
 

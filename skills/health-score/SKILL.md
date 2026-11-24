@@ -26,12 +26,15 @@ and tracks trends over time by persisting scores to a JSON history file.
 Read the file named in a row before doing the task in its right column. These files are not
 loaded automatically.
 
-| File                                  | Read before                                                                     |
-| ------------------------------------- | ------------------------------------------------------------------------------- |
-| `references/metrics-collection.md`    | collecting any of the seven metrics, or interpreting a metric's value           |
-| `references/trend-calculation.md`     | comparing a current measurement to the previous one, or assigning trend symbols |
-| `references/history-and-scorecard.md` | appending to the history file, or writing a scorecard for the user              |
-| `references/limitations.md`           | presenting a score as a quality judgment, or comparing scores across repos      |
+| File                                                    | Read before                                                                        |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `references/metrics-collection.md`                      | collecting metrics 1 to 3 (tests, clippy, TODOs), or interpreting a metric's value |
+| `references/metrics-collection-api-and-dependencies.md` | collecting metrics 4 and 5 (public API surface, dependency count)                  |
+| `references/metrics-collection-module-size-and-docs.md` | collecting metrics 6 and 7 (module line count, documentation coverage)             |
+| `references/trend-calculation.md`                       | comparing a current measurement to the previous one, or assigning trend symbols    |
+| `references/history-and-scorecard.md`                   | appending to the history file                                                      |
+| `references/scorecard-format-and-grade.md`              | writing a scorecard for the user, including the health grade criteria              |
+| `references/limitations.md`                             | presenting a score as a quality judgment, or comparing scores across repos         |
 
 ## See Also
 
