@@ -22,74 +22,11 @@ Use this skill whenever:
 
 ## Core Principles
 
-### SOLID in Rust
+The SOLID principles as they apply to Rust are in `references/principles-solid-in-rust.md`. Read it before explaining a principle or applying one to a design.
 
-**Single Responsibility Principle (SRP)**
+The hexagonal layout and its dependency rule are in `references/principles-hexagonal-architecture.md`. Read it before drawing a layout for a new system.
 
-- Each struct/enum has one reason to change
-- Domain types contain business logic
-- Adapters only handle external system integration
-- No leakage between layers
-
-**Open/Closed Principle (OCP)**
-
-- Extend behavior via new trait implementations
-- Add new adapters without modifying domain code
-- Use generics and trait bounds for extensibility
-
-**Liskov Substitution Principle (LSP)**
-
-- Any implementor of a trait can replace another
-- Trait contracts must be honored
-- Type safety ensures substitutability
-
-**Interface Segregation Principle (ISP)**
-
-- Small, focused trait definitions
-- Clients depend only on methods they use
-- Compose larger behaviors from smaller traits
-
-**Dependency Inversion Principle (DIP)**
-
-- Domain depends on traits (abstractions), not concrete types
-- Infrastructure implements traits
-- Composition root (main.rs) wires dependencies
-
-### Hexagonal Architecture
-
-```text
-┌─────────────────────────────────────────────────┐
-│              Composition Root                   │
-│                  (main.rs)                      │
-│   Wires domain to adapters, injects deps        │
-└────────────────┬────────────────────────────────┘
-                 │
-    ┌────────────┴────────────┐
-    │                         │
-┌───▼─────────────┐    ┌──────▼──────────────┐
-│   Domain Layer  │    │ Infrastructure      │
-│                 │    │    Adapters         │
-│  ┌──────────┐   │    │                     │
-│  │Business  │   │    │  ┌──────────────┐   │
-│  │Logic     │───┼────┼─►│ OpenAI       │   │
-│  │          │   │    │  │ Adapter      │   │
-│  └──────────┘   │    │  └──────────────┘   │
-│                 │    │                     │
-│  ┌──────────┐   │    │  ┌──────────────┐   │
-│  │Traits    │◄──┼────┼──│ Stripe       │   │
-│  │(Ports)   │   │    │  │ Adapter      │   │
-│  └──────────┘   │    │  └──────────────┘   │
-│                 │    │                     │
-│  ┌──────────┐   │    │  ┌──────────────┐   │
-│  │Domain    │   │    │  │ Terminal     │   │
-│  │Types     │   │    │  │ Renderer     │   │
-│  └──────────┘   │    │  └──────────────┘   │
-└─────────────────┘    └─────────────────────┘
-
-Dependencies point inward: adapters → domain
-Domain has zero dependencies on infrastructure
-</text>
-```
+Dependencies point inward: adapters depend on domain traits, and the domain depends on no infrastructure.
 
 ## Architecture Pattern
 
@@ -125,34 +62,7 @@ Domain has zero dependencies on infrastructure
 
 ## Reference Examples
 
-This skill includes three complete domain examples in the `references/` directory:
-
-### 1. LLM Inference (`references/solid-LLM-inference.md`)
-
-Demonstrates SOLID principles for AI/LLM integration:
-
-- **Domain**: `LlmProvider` trait as port
-- **Components**: `CodeReviewer` and `QaAgent` generic over providers
-- **Adapters**: OpenAI, Claude (Anthropic), and Ollama implementations
-- **Pattern**: Easily swap LLM providers without changing business logic
-
-### 2. UI Components (`references/solid-UI-components.md`)
-
-Shows render-agnostic UI component architecture:
-
-- **Domain**: `Component` and `Renderer` traits
-- **Components**: `Label`, `Button`, `LoginForm`
-- **Adapters**: Terminal and Web renderers
-- **Pattern**: Same UI components render to multiple backends
-
-### 3. Payment Processing (`references/solid-payment-processing.md`)
-
-Minimal payment processing example:
-
-- **Domain**: `PaymentProcessor` trait
-- **Components**: `CheckoutService` with business rules
-- **Adapters**: Stripe and InMemory implementations
-- **Pattern**: Swap payment processors, use test doubles easily
+Three complete domain examples (LLM inference, UI components, payment processing) are in `references/reference-examples-overview.md`. Read it before choosing one to copy from.
 
 ## Code Examples
 
@@ -175,6 +85,12 @@ The code for each step, pattern, test, and mistake lives in `references/`. Read 
 | `references/mistake-domain-uses-infra-types.md`            | a domain signature mentions an SDK type                                                                               |
 | `references/mistake-generic-explosion.md`                  | a service struct has four or more generic parameters                                                                  |
 | `references/mistake-logic-in-adapter.md`                   | an adapter method contains a validation or business rule                                                              |
+| `references/principles-solid-in-rust.md`                   | explaining a SOLID principle, or applying one to a Rust design                                                        |
+| `references/principles-hexagonal-architecture.md`          | drawing the hexagonal layout for a new system, or deciding which layer a type or trait belongs to                     |
+| `references/reference-examples-overview.md`                | choosing one of the three full domain examples to copy from                                                           |
+| `references/best-practices.md`                             | reviewing a domain layer, port trait, adapter, composition root, or test setup against the rules                      |
+| `references/refactoring-existing-code-steps.md`            | reading the four steps for extracting traits from an existing service (Refactoring Steps 1 to 4)                      |
+| `references/summary-and-benefits.md`                       | writing a closing summary of the architecture, or justifying it to a team                                             |
 
 ## Implementation Workflow
 
@@ -241,63 +157,11 @@ Test adapters against real systems (or test instances). Code: `references/testin
 
 ## Best Practices
 
-### Domain Layer
-
-- **Zero external dependencies** - domain should compile standalone
-- **Rich domain types** - use newtype pattern for domain concepts
-- **Explicit errors** - define domain-specific error types
-- **Pure functions where possible** - easier to test and reason about
-
-### Traits (Ports)
-
-- **Small and focused** - follow Interface Segregation Principle
-- **Avoid leaky abstractions** - no infrastructure details in trait methods
-- **Use associated types** when return types vary by implementation
-- **Document trait contracts** - preconditions, postconditions, invariants
-
-### Adapters
-
-- **One adapter per external system** - SRP for infrastructure
-- **Map errors to domain errors** - don't leak infrastructure error types
-- **Configuration via constructor** - make dependencies explicit
-- **Implement multiple traits** - adapter can implement several ports
-
-### Composition Root
-
-- **All wiring happens here** - main.rs or application setup
-- **Read configuration** - environment variables, config files
-- **Create all instances** - adapters, services, domain objects
-- **No business logic** - only dependency injection
-
-### Testing
-
-- **Mock at trait boundaries** - easy to create test doubles
-- **Unit test domain logic** - fast, no external dependencies
-- **Integration test adapters** - slower, against real systems
-- **Property-based testing** - use proptest for domain invariants
+The rules for the domain layer, traits, adapters, composition root, and testing are in `references/best-practices.md`. Read it before reviewing code against them.
 
 ## Refactoring Existing Code
 
-### Step 1: Identify External Dependencies
-
-Find all direct usage of:
-
-- HTTP clients
-- Database connections
-- File system operations
-- Third-party APIs
-
-### Step 2: Extract Traits
-
-For each dependency, create a trait. Code: `references/refactoring-walkthrough.md`.
-
-### Step 3: Implement Adapters
-
-Create adapter structs that implement the traits. Code: `references/refactoring-walkthrough-implement-and-wire.md`.
-
-### Step 4: Update Composition Root
-
-Wire the new structure in main.rs. Code: `references/refactoring-walkthrough-implement-and-wire.md`.
+The four steps for extracting traits from an existing service are in `references/refactoring-existing-code-steps.md`. Read it first. The code for each step is in the refactoring rows of the index above.
 
 ## Common Mistakes to Avoid
 
@@ -335,30 +199,6 @@ In these cases, prefer simpler approaches and refactor to SOLID/hexagonal when:
 
 ## Summary
 
-SOLID principles in Rust:
-
-- **Use traits as ports** between domain and infrastructure
-- **Keep domain pure** with zero external dependencies
-- **Implement adapters** for each external system
-- **Wire dependencies** in composition root (main.rs)
-- **Test easily** by mocking at trait boundaries
-- **Extend without modification** by adding new trait implementations
-
-This architecture maximizes:
-
-- Testability (easy mocking)
-- Maintainability (clear separation of concerns)
-- Flexibility (swap implementations)
-- Team scalability (clear boundaries)
+The SOLID principles in Rust, and the benefits of this architecture, are in `references/summary-and-benefits.md`.
 
 Remember: **Dependencies point inward.** Domain depends on nothing. Infrastructure depends on domain traits.
-
-## Additional Resources
-
-For complete working examples, see:
-
-- `references/solid-LLM-inference.md` - AI/LLM port and adapters
-- `references/solid-UI-components.md` - Render-agnostic UI components
-- `references/solid-payment-processing.md` - Payment processing example
-
-Each reference includes full code examples with explanations of where SOLID principles appear.
